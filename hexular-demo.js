@@ -1,0 +1,294 @@
+// --- Events ---
+
+const ROWS = 100;
+const COLS = 100;
+const NUM_STATES = 12;
+
+var hexular, controls, container, overlay, ruleConfig, ruleMenus,
+  ctlToggle, ctlStep, ctlClear, ctlConfig, ctlStates, ctlRuleAll,
+  key, shift, setting, selected, lastSet, setState, configUp;
+
+window.addEventListener('DOMContentLoaded', function(e) {
+  controls = document.querySelector('.controls');
+  container = document.querySelector('.container');
+  overlay = document.querySelector('.overlay');
+  ruleConfig = document.querySelector('.rule-config');
+
+  ctlToggle = document.querySelector('#ctl_toggle');
+  ctlStep = document.querySelector('#ctl_step');
+  ctlClear = document.querySelector('#ctl_clear');
+  ctlConfig = document.querySelector('#ctl_config');
+  ctlStates = document.querySelector('#ctl_states');
+  ctlRuleAll = document.querySelector('#ctl_rule_all');
+
+  ctlToggle.addEventListener('click', handleToggle.bind(ctlToggle));
+  ctlStep.addEventListener('click', handleStep.bind(ctlStep));
+  ctlClear.addEventListener('click', handleClear.bind(ctlClear));
+  ctlConfig.addEventListener('click', handleConfig.bind(ctlConfig));
+  ctlStates.addEventListener('change', handleStates.bind(ctlStates));
+  ctlRuleAll.addEventListener('change', handleRuleAll.bind(ctlRuleAll));
+
+  document.body.addEventListener('keydown', keydown);
+  document.body.addEventListener('keyup', keyup);
+
+  document.body.addEventListener('mousemove', mousemove);
+  document.body.addEventListener('mousedown', mousedown);
+  document.body.addEventListener('mouseup', mouseup);
+  document.body.addEventListener('mouseout', mouseout);
+
+  init();
+});
+
+function init(rows, cols, numStates) {
+  rows = rows || ROWS;
+  cols = cols || COLS;
+  numStates = numStates || NUM_STATES;
+
+  ctlStates.value = numStates;
+
+  // Hex init
+
+  hexular = new Hexular(
+    {
+      rows: rows,
+      cols: cols,
+      numStates: numStates,
+      defaultRule: rules.simpleIncrementor
+    },
+    rules.standardOff);
+
+  while (container.firstChild)
+    container.firstChild.remove();
+
+  container.appendChild(hexular.canvas);
+
+  hexular.draw();
+
+  window.scrollTo(
+    (document.body.scrollWidth - window.innerWidth) / 2,
+    (document.body.scrollHeight - window.innerHeight) / 2
+  );
+
+  initRuleMenus();
+}
+
+function initRuleMenus() {
+  ctlRuleAll.options.length = 1;
+
+  for (let k in rules) {
+    if (!rules.hasOwnProperty(k))
+      continue;
+
+    let option = document.createElement('option');
+    option.text = k;
+
+    ctlRuleAll.appendChild(option);
+  }
+
+  while (ruleMenus && ruleMenus.length > 0)
+    ruleMenus.pop().parentNode.remove();
+
+  ruleMenus = Array(hexular.maxStates);
+
+  for (let i = 0; i < hexular.maxStates; i++) {
+    let ruleMenu = document.createElement('select');
+    let ruleContainer = document.createElement('div');
+
+    ruleMenu.title = 'State ' + i;
+    ruleMenu.addEventListener('change', handleRule.bind(ruleMenu));
+
+    ruleContainer.classList.add('rule-container');
+    ruleContainer.style.borderColor = hexular.colors[i];
+
+    for (let k in rules) {
+      if (!rules.hasOwnProperty(k))
+        continue;
+
+      let option = document.createElement('option');
+      option.text = k;
+
+      if (hexular.rules[i] == rules[k])
+        option.selected = true;
+
+      ruleMenu.appendChild(option);
+    }
+
+    if (i >= hexular.numStates)
+      ruleMenu.disabled = true;
+
+    ruleMenus[i] = ruleMenu;
+
+    ruleContainer.appendChild(ruleMenu);
+    ruleConfig.appendChild(ruleContainer);
+  }
+}
+
+function mousemove(e) {
+  let cell = hexular.cellAtPosition(
+    e.pageY - hexular.canvas.offsetTop,
+    e.pageX - hexular.canvas.offsetLeft);
+
+  selectCell(cell);
+
+  if (setting)
+    setCell(cell);
+}
+
+function mousedown(e) {
+  if (e.which != 1)
+    return;
+
+  if (e.target == hexular.canvas) {
+    if (e.shiftKey)
+      shift = true;
+    setCell(selected);
+    e.preventDefault();
+  }
+  else if (e.target == overlay) {
+    handleConfig();
+  }
+}
+
+function mouseup(e) {
+  setCell();
+  shift = false;
+}
+
+function mouseout(e) {
+  selectCell();
+}
+
+function keydown(e) {
+  if (!key) {
+    // ESC to hide/show controls
+    if (e.keyCode == 27) {
+      if (configUp) {
+        handleConfig();
+      }
+      else {
+        controls.style.visibility =
+          controls.style.visibility == 'hidden' ? 'visible' : 'hidden';
+        key = true;
+      }
+    }
+
+    // TAB to start/stop
+    else if (e.keyCode == 9) {
+      handleToggle();
+      key = true;
+    }
+
+    // SPACE to step or stop
+    else if (e.keyCode == 32) {
+      if (hexular.running) {
+        handleStop();
+      }
+      else {
+        handleStep();
+      }
+      key = true;
+    }
+  }
+
+  if (key) {
+    e.preventDefault();
+  }
+}
+
+function keyup(e) {
+  if (key)
+    e.preventDefault();
+  key = false;
+}
+
+function selectCell(cell) {
+  selected = cell;
+  hexular.selectCell(cell);
+}
+
+function setCell(cell) {
+  if (cell) {
+    setting = true;
+    if (cell != lastSet) {
+      if (setState == null)
+        setState = (selected.state + 1) % hexular.numStates;
+      cell.state = shift ? 0 : setState;
+      lastSet = cell;
+      hexular.selectCell();
+      hexular.drawCell(cell);
+    }
+  }
+  // Null cell
+  else {
+    setting = false;
+    setState = null;
+    lastSet = null;
+  }
+}
+
+// --- Button handlers ---
+
+function handleToggle() {
+  if (hexular.running)
+    handleStop();
+  else
+    handleStart();
+}
+
+function handleStart() {
+  hexular.start();
+  ctlStep.disabled = true;
+  ctlToggle.value = 'Stop';
+}
+
+function handleStop() {
+  hexular.stop();
+  ctlStep.disabled = false;
+  ctlToggle.value = 'Start';
+}
+
+function handleStep() {
+  hexular.step();
+}
+
+function handleClear() {
+  handleStop();
+  hexular.clear();
+}
+
+function handleConfig() {
+  configUp = !configUp;
+  if (configUp) {
+    overlay.style.visibility = 'visible';
+  }
+  else {
+    overlay.style.visibility = 'hidden';
+  }
+}
+
+function handleStates() {
+  const numStates = parseInt(this.value);
+  hexular.numStates = parseInt(numStates);
+  for (let i = 0; i < ruleMenus.length; i++) {
+    if (i < numStates)
+      ruleMenus[i].disabled = false;
+    else
+      ruleMenus[i].disabled = true;
+  }
+}
+
+function handleRule() {
+  const index = ruleMenus.indexOf(this);
+  hexular.rules[index] = rules[this.value] || rules.nullRule;
+}
+
+function handleRuleAll() {
+  const rule = rules[this.value] || rules.nullRule;
+
+  for (let i = 0; i < ruleMenus.length; i++) {
+    ruleMenus[i].value = this.value;
+    hexular.rules[i] = rule;
+  }
+
+  this.selectedIndex = 0;
+}

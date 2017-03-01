@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script type='text/javascript' src='hexular.js'></script>
+  <script type='text/javascript' src='hexular-rules.js'></script>
+  <script type='text/javascript' src='hexular-demo.js'></script>
+  <link rel='stylesheet' type='text/css' href='hexular-demo.css'/>
+  <title>Hexular Demo</title>
+</head>
+<body>
+  <div class='container'></div>
+  <div class='controls'>
+    <input type='button' id='ctl_toggle' value='Start'/>
+    <input type='button' id='ctl_step' value='Step'/>
+    <input type='button' id='ctl_clear' value='Clear'/>
+    <input type='button' id='ctl_config' value='Config...'/>
+  </div>
+  <div class='overlay'>
+    <div class='config'>
+      <input name='ctl_states' type='range' id='ctl_states' min='2' max='12' step='1'
+        value='2' list='ticks' title='Number of States (2-12)'/>
+      <datalist id="ticks">
+        <option>2</option>
+        <option>4</option>
+        <option>6</option>
+        <option>8</option>
+        <option>10</option>
+        <option>12</option>
+      </datalist>
+      <select id='ctl_rule_all' title='Set all rules'>
+        <option value=''>&lt;&lt; Set all rules &gt;&gt;</option>
+      </select>
+      <div class='rule-config'></div>
+    </div>
+  </div>
+
+</body>
+</html>

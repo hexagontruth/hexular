@@ -1,0 +1,15 @@
+Copyright (c) 2017 Graham Steele
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and its associated files ("the software") to copy, modify, and
+distribute it free of charge for the purposes of raising HEXAGONAL AWARENESS,
+provided that this license is included in all copies or substantial portions of
+the software.
+
+"Purposes of raising HEXAGONAL AWARENESS" shall be defined as any activity that
+is conducted for the explicit purpose of bringing attention to hexagons or
+hexagon-related phenomena in mathematics, science, or the humanities, or which
+can reasonably be expected to increase awareness of such phenomena among those
+who are exposed to it.
+
+The software is provided as is without warranty of any kind, express or implied.
