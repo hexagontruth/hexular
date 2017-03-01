@@ -9,8 +9,8 @@ var rules = {
   // Standard binary activation rule for off cells
 
   standardOff: function(cell) {
-    const tot = cell.total();
-    if (tot == 2)
+    const count = cell.countAll();
+    if (count == 2)
       return 1;
     else
       return 0;
@@ -19,8 +19,8 @@ var rules = {
   // Standard binary activation rule for already-activated cells
 
   standardOn: function(cell) {
-    const tot = cell.total();
-    if (tot > 2 && tot < 5)
+    const count = cell.countAll();
+    if (count == 3 || count == 4)
       return 1;
     else
       return 0;
@@ -29,9 +29,19 @@ var rules = {
   // Same as standardOff, but will activate for either 2 or 3
 
   easyOff: function(cell) {
-    const tot = cell.total();
-    if (tot == 2 || tot == 3)
+    const count = cell.countAll();
+    if (count == 2 || count == 3)
       return 1;
+    else
+      return 0;
+  },
+
+  // Same as standardOn, using states > 1 to represent activation generation
+
+  generationalStandardOn: function(cell) {
+    const count = cell.countAll();
+    if (count == 3 || count == 4)
+      return cell.offset(1) || 1;
     else
       return 0;
   },

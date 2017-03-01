@@ -4,6 +4,8 @@ Hexular
 An extensible hexagonal CA platform
 -----------------------------------
 
+View demo: https://hexagrahamaton.github.io/hexular
+
 ### Overview
 
 Hexular is an extensible platform for creating and running hexagonal cellular automata (CAs) in a browser, released in commemoration of Hexagonal Awareness Month 2017.
@@ -73,7 +75,11 @@ The main control buttons should be fairly self-explanatory. Cell states are chan
 
 Several predefined rules are given in the `hexular-rules.js` file, though these are simply for convenience and not meant to be exhaustive. The default rule for zero cells is "standardOff," which promotes cells to state 1 when they have exactly 2 activated neighbors (state > 0), while the default rule for the remaining states is "simpleIncrementor," which I included largely as a simple Life-like demonstration of the multistate capabilities of Hexular. This rule does however have some interesting properties, such as a tendency to "gliderize" easily. (This seems true to some extent of many multistate rules involving sequential state progression, since they seem to produce "propulsion tails" that impart velocity to local configurations.)
 
-For a more traditional binary state system roughly corresponding to the rules of Conway's Game of Life, set `numStates` to 2 and the state 1 rule to "standardOn."
+For a more traditional binary state system roughly corresponding to the rules of Conway's Game of Life, set `numStates` to 2 and the state 1 rule to "standardOn" or "generationalStandardOn." The latter uses states > 1 to indicate the generational status of each activated cell (i.e., how many steps it has been active for). This generational state loops back to 1 after reaching `numStates`.
+
+Interesting results can be obtained by mixing and matching rules in different stages and configurations. For instance, combining "generationalStandardOn" and "simpleIncrementor" can produce novel progressions of somewhat stable configurations that aren't characteristic of either rule in isolation.
+
+In my experience "standardOff" is typically a good zero-state rule, regardless of higher state behavior.
 
 #### Configuration
 
