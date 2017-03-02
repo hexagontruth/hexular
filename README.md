@@ -99,7 +99,7 @@ My consistent adherence to the right-hand rule with respect to coordinate vector
 
 Finally, this wasn't really written for backwards compatibility, and may not work at all on older browsers. Replacing `let` and `const` with `var` may help.
 
-#### Links
+### Links
 
 - This program was originally inspired as a generalization of David Siaw's similarly browser-based Hexlife program:
 
