@@ -105,6 +105,10 @@ Finally, this wasn't really written for backwards compatibility, and may not wor
 
   https://github.com/davidsiaw/hexlife
 
+- Also, Charlotte Dann's Hexagonal Generative Art, which incorporates CA-type rules along with more elaborate logic:
+
+  http://codepen.io/pouretrebelle/post/hexagons
+
 - Despite my general expertise in this area, I continue to find Amit Patel's "Hexagonal Grids" page to be an invaluable resource when dealing with hex grids:
 
   http://www.redblobgames.com/grids/hexagons/

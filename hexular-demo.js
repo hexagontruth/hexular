@@ -1,8 +1,9 @@
-// --- Events ---
+// --- INIT ---
 
-const ROWS = 100;
-const COLS = 100;
-const NUM_STATES = 12;
+const DEFAULT_ROWS = 96;
+const DEFAULT_COLS = 96;
+const DEFAULT_RADIUS = 10;
+const DEFAULT_NUM_STATES = 12;
 
 var hexular, controls, container, overlay, ruleConfig, ruleMenus,
   ctlToggle, ctlStep, ctlClear, ctlConfig, ctlStates, ctlRuleAll,
@@ -36,26 +37,40 @@ window.addEventListener('DOMContentLoaded', function(e) {
   document.body.addEventListener('mouseup', mouseup);
   document.body.addEventListener('mouseout', mouseout);
 
-  init();
+
+  let argArray = location.search.substring(1).split('&');
+  let opts = {};
+  argArray.forEach(function(e, i) {
+    if (e.length != 0) {
+      let pair = e.split('=');
+      let parsedInt = parseInt(pair[1]);
+      opts[pair[0]] = Number.isNaN(parsedInt) ? pair[1] : parsedInt;
+    }
+  });
+
+  init(opts);
 });
 
-function init(rows, cols, numStates) {
-  rows = rows || ROWS;
-  cols = cols || COLS;
-  numStates = numStates || NUM_STATES;
+function init(optArgs) {
+  optArgs = optArgs || {};
 
-  ctlStates.value = numStates;
+  let opts = {
+    rows: DEFAULT_ROWS,
+    cols: DEFAULT_COLS,
+    radius: DEFAULT_RADIUS,
+    numStates: DEFAULT_NUM_STATES,
+    defaultRule: rules.simpleIncrementor
+  };
+
+  for (let k in optArgs)
+    if (optArgs.hasOwnProperty(k))
+      opts[k] = optArgs[k];
+
+  ctlStates.value = opts.numStates;
 
   // Hex init
 
-  hexular = new Hexular(
-    {
-      rows: rows,
-      cols: cols,
-      numStates: numStates,
-      defaultRule: rules.simpleIncrementor
-    },
-    rules.standardOff);
+  hexular = new Hexular(opts, rules.standardOff);
 
   while (container.firstChild)
     container.firstChild.remove();
@@ -122,6 +137,8 @@ function initRuleMenus() {
     ruleConfig.appendChild(ruleContainer);
   }
 }
+
+// --- LISTENERS ---
 
 function mousemove(e) {
   let cell = hexular.cellAtPosition(

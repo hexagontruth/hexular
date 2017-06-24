@@ -136,8 +136,6 @@ var Hexular = (function () {
     this.canvas.width = 2 * radius * (cols + 1.5) * math.apothem;
 
     this.canvas.classList.add(CANVAS_CLASS);
-    this.context.strokeStyle = this.highlightColor;
-    this.context.lineWidth = this.highlightLineWidth;
 
     // Precomputed math stuff
 
@@ -157,6 +155,14 @@ var Hexular = (function () {
       radius + this.highlightLineWidth);
     this.selectHeight = this.selectYOffset * 2;
     this.selectWidth = this.selectXOffset * 2;
+
+    // Callback hooks for drawing actions
+
+    this.onDrawCell = new HookList(this);
+    this.onDrawCell.push(defaultDrawCell);
+
+    this.onDrawSelector = new HookList(this);
+    this.onDrawSelector.push(defaultDrawSelector)
 
     // Initialize cells
 
@@ -255,20 +261,15 @@ var Hexular = (function () {
       this.selected.y);
   }
 
-  // Draw cell
+  // Draw actions
 
   Hexular.prototype.drawCell = function(cell) {
-    this.drawHexPath(cell);
-    this.context.fillStyle = this.colors[cell.state];
-    this.context.fill();
+    this.onDrawCell.call(cell);
   };
 
-  // Draw selector
-
   Hexular.prototype.drawSelector = function(cell) {
-    this.drawHexPath(cell);
-    this.context.stroke();
-  }
+    this.onDrawSelector.call(cell);
+  };
 
   // Basic hex path for both cells and selector
 
@@ -362,6 +363,19 @@ var Hexular = (function () {
       cell.state = 0;
     });
     this.draw();
+  };
+
+  Hexular.prototype.test = function(n) {
+    n = n || 64;
+
+    var a = +new Date();
+
+    for (let i = 0; i < n; i++)
+      this.step();
+
+    var b = +new Date();
+
+    return b - a;
   }
 
   // --- CELLS ---
@@ -370,6 +384,10 @@ var Hexular = (function () {
     this.owner = owner;
     this.u = u;
     this.v = v;
+
+    // Useful for custom drawing actions that involve paths between neighbors
+    this.isEdge =
+      (u == 0 || u == owner.rows - 1 || v == 0 || v == owner.cols - 1);
 
     // We again calculate cubic coords and shift x left once every 2 rows
     this.y = owner.yOffset + owner.basis[0] * u + owner.basis[1] * v;
@@ -433,6 +451,44 @@ var Hexular = (function () {
     return mod(this.state + i, this.owner.numStates);
   }
 
+  // --- CALLBACKS ---
+
+  HookList.prototype = new Array();
+
+  function HookList(owner) {
+    this.owner = owner;
+  }
+
+  HookList.prototype.call = function() {
+    for (let i = 0; i < this.length; i++)
+      if (this[i].apply(this.owner, arguments) === false)
+        return false;
+
+    return true;
+  };
+
+  // --- DEFAULT CELL CALLBACKS ---
+
+  function nullRule(cell) {
+    return cell.state;
+  }
+
+  function defaultDrawCell(cell) {
+    // Use cell.owner when writing custom drawing callbacks
+    this.drawHexPath(cell);
+
+    this.context.fillStyle = this.colors[cell.state];
+    this.context.fill();
+  }
+
+  function defaultDrawSelector(cell) {
+    this.drawHexPath(cell);
+
+    this.context.strokeStyle = this.highlightColor;
+    this.context.lineWidth = this.highlightLineWidth;
+    this.context.stroke();
+  }
+
   // --- UTILITY FUNCTIONS ---
 
   // Recursive element-wise arithmetic
@@ -452,17 +508,14 @@ var Hexular = (function () {
     return ((k % n) + n) % n;
   }
 
-  // Default identity rule for undefined or unused states
-
-  function nullRule(cell) {
-    return cell.state;
-  }
-
   // ---
+
+  Hexular.nullRule = nullRule;
+  Hexular.defaultDrawCell = defaultDrawCell;
+  Hexular.defaultDrawSelector = defaultDrawSelector;
 
   Hexular.elemOp = elemOp;
   Hexular.mod = mod;
-  Hexular.nullRule = nullRule;
 
   return Hexular;
 })();
