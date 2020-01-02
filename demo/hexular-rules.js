@@ -2,13 +2,11 @@ var rules = {
 
   // Default identity rule - same as Hexular.nullRule
 
-  nullRule: function(cell) {
-    return cell.state;
-  },
+  nullRule: (cell) => cell.state,
 
   // Standard binary activation rule for off cells
 
-  standardOff: function(cell) {
+  standardOff: (cell) => {
     const count = cell.countAll();
     if (count == 2)
       return 1;
@@ -18,7 +16,7 @@ var rules = {
 
   // Standard binary activation rule for already-activated cells
 
-  standardOn: function(cell) {
+  standardOn: (cell) => {
     const count = cell.countAll();
     if (count == 3 || count == 4)
       return 1;
@@ -28,7 +26,7 @@ var rules = {
 
   // Same as standardOff, but will activate for either 2 or 3
 
-  easyOff: function(cell) {
+  easyOff: (cell) => {
     const count = cell.countAll();
     if (count == 2 || count == 3)
       return 1;
@@ -38,7 +36,7 @@ var rules = {
 
   // Same as standardOn, using states > 1 to represent activation generation
 
-  generationalStandardOn: function(cell) {
+  generationalStandardOn: (cell) => {
     const count = cell.countAll();
     if (count == 3 || count == 4)
       return cell.offset(1) || 1;
@@ -48,7 +46,7 @@ var rules = {
 
   // Simple multistate rule
 
-  simpleIncrementor: function(cell) {
+  simpleIncrementor: (cell) => {
     const count = cell.countAll();
     if (count == 2 || count == 3)
       return cell.offset(1);
@@ -60,13 +58,11 @@ var rules = {
 
   // Increment each state -- useful for holding activation for fixed period
 
-  cycleRule: function(cell) {
-    return cell.offset(1);
-  },
+  cycleRule: (cell) => cell.offset(1),
 
   // A random example of a more complex state -- not actually useful
 
-  fancytown: function(cell) {
+  fancytown: (cell) => {
     const tot = cell.total();
     if (tot > 2 && tot < 5)
       return cell.offset(1);
@@ -78,13 +74,18 @@ var rules = {
 
   // Another useless example, similar to simpleIncrementor
 
-  isomod: function(cell) {
-    return cell.offset(cell.total());
-  },
+  isomod: (cell) => cell.offset(cell.total()),
+
+  // Total xor
+
+  totalXor: (cell) => cell.total() % 2,
+
+  // Count xor
+
+  countXor: (cell) => cell.countAll() % 2,
 
   // Always set to zero
 
-  alwaysOff: function(cell) {
-    return 0;
-  }
-}
+  alwaysOff: (cell) => 0,
+
+};

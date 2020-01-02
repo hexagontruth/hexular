@@ -4,8 +4,6 @@ var Hexular = (function () {
 
   const DEFAULT_ROWS = 60;
   const DEFAULT_COLS = 60;
-  const DEFAULT_NUM_STATES = 2;
-  const DEFAULT_MAX_STATES = 12;
   const DEFAULT_RULE = nullRule;
 
   const DEFAULT_RADIUS = 10;
@@ -37,8 +35,6 @@ var Hexular = (function () {
   var defaults = {
     rows: DEFAULT_ROWS,
     cols: DEFAULT_COLS,
-    numStates: DEFAULT_NUM_STATES,
-    maxStates: DEFAULT_MAX_STATES,
     defaultRule: DEFAULT_RULE,
     colors: DEFAULT_COLORS,
     radius: DEFAULT_RADIUS,
@@ -104,7 +100,7 @@ var Hexular = (function () {
 
     // Populate default rules
 
-    for (let i = this.rules.length; i < this.maxStates; i++)
+    for (let i = this.rules.length; i < 12; i++)
       this.rules.push(this.defaultRule);
 
     // Other state properties
@@ -519,3 +515,6 @@ var Hexular = (function () {
 
   return Hexular;
 })();
+
+if (typeof module != 'undefined')
+  module.exports = Hexular;

@@ -89,7 +89,6 @@ function init(optArgs) {
 
 function initRuleMenus() {
   ctlRuleAll.options.length = 1;
-
   for (let k in rules) {
     if (!rules.hasOwnProperty(k))
       continue;
@@ -103,9 +102,9 @@ function initRuleMenus() {
   while (ruleMenus && ruleMenus.length > 0)
     ruleMenus.pop().parentNode.remove();
 
-  ruleMenus = Array(hexular.maxStates);
+  ruleMenus = Array(12);
 
-  for (let i = 0; i < hexular.maxStates; i++) {
+  for (let i = 0; i < 12; i++) {
     let ruleMenu = document.createElement('select');
     let ruleContainer = document.createElement('div');
 
