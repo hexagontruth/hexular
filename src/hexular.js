@@ -1,13 +1,15 @@
 var Hexular = (function () {
 
-  // --- DEFAULTS ---
+  // --- SOME EXCITING DEFAULT VALUES ---
 
   const DEFAULT_ROWS = 60;
   const DEFAULT_COLS = 60;
   const DEFAULT_RULE = nullRule;
+  const DEFAULT_MAX_STATES = 12; // This is only used as a helper constant for computing modulo states - 
 
   const DEFAULT_RADIUS = 10;
   const DEFAULT_BORDER_WIDTH = 1;
+  const CANVAS_CLASS = 'hexular-canvas';
   const DEFAULT_HIGHLIGHT_COLOR = '#ffbb33';
   const DEFAULT_HIGHLIGHT_LINE_WIDTH = 2;
 
@@ -23,8 +25,6 @@ var Hexular = (function () {
     '#69babe', // I picked this before looking at the hex value
     '#725ca7'
   ];
-
-  const CANVAS_CLASS = 'hexular-canvas';
 
   let index = 0;
 
@@ -55,6 +55,8 @@ var Hexular = (function () {
     ]
   };
 
+  class HexError extends Error {}
+
   /** Class representing a complete Hexular instance */
 
   class Hexular {
@@ -82,48 +84,6 @@ var Hexular = (function () {
       const radius = this.radius;
       const rows = this.rows;
       const cols = this.cols;
-
-      this.selected = {
-        cell: null,
-        imageData: null,
-        y: 0,
-        x: 0
-      };
-
-      this.canvas = document.createElement('canvas');
-      this.context = this.canvas.getContext('2d');
-
-      this.canvas.height  = 2 * radius * (rows + 1.5) * 0.75;
-      this.canvas.width = 2 * radius * (cols + 1.5) * math.apothem;
-
-      this.canvas.classList.add(CANVAS_CLASS);
-
-      // Precomputed math stuff
-
-      this.innerRadius = radius - this.borderWidth / (2 * math.apothem);
-      this.vertices = elemOp(math.vertices, this.innerRadius);
-
-      this.basis = elemOp(math.basis, radius);
-      this.invBasis = elemOp(math.invBasis, 1 / radius);
-
-      this.yOffset = 2 * radius;
-      this.xOffset = 2 * radius * math.apothem;
-
-      // For imageData rectangle coords
-      this.selectYOffset = Math.ceil(
-        radius * math.apothem + this.highlightLineWidth);
-      this.selectXOffset = Math.ceil(
-        radius + this.highlightLineWidth);
-      this.selectHeight = this.selectYOffset * 2;
-      this.selectWidth = this.selectXOffset * 2;
-
-      // Callback hooks for drawing actions
-
-      this.onDrawCell = new HookList(this);
-      this.onDrawCell.push(defaultDrawCell);
-
-      this.onDrawSelector = new HookList(this);
-      this.onDrawSelector.push(defaultDrawSelector)
 
       // Initialize cells
 
@@ -171,13 +131,212 @@ var Hexular = (function () {
       });
     }
 
+    // --- Timer/step stuff ---
+
+    startStop() {
+      if (this.timer) {
+        this.stop();
+        return false;
+      }
+      else {
+        this.start();
+        return true;
+      }
+    }
+
+    start() {
+      this.timer = setInterval(this.step.bind(this), this.timerLength);
+      this.running = true;
+    }
+
+    stop() {
+      clearTimeout(this.timer);
+      this.timer = null;
+      this.running = false;
+    }
+
+    step() {
+      this.eachCell((cell) => {
+        cell.nextState = this.rules[cell.state](cell);
+      });
+      this.eachCell((cell) => {
+        cell.state = cell.nextState;
+      });
+      this.renderer.draw();
+    }
+
+    clear() {
+      this.eachCell((cell) => {
+        cell.state = 0;
+      });
+      this.renderer.draw();
+    }
+
+    test(n) {
+      n = n || 64;
+
+      let a = +new Date();
+
+      for (let i = 0; i < n; i++)
+        this.step();
+
+      let b = +new Date();
+
+      return b - a;
+    }
+
+  }
+
+  /** Class representing a cell */
+
+  class Cell {
+    constructor(owner, u, v) {
+      this.owner = owner;
+      this.u = u;
+      this.v = v;
+
+      // Useful for custom drawing actions that involve paths between neighbors
+      this.isEdge =
+        (u == 0 || u == owner.rows - 1 || v == 0 || v == owner.cols - 1);
+
+      // We again calculate cubic coords and shift x left once every 2 rows
+      this.y = owner.renderer.yOffset + owner.renderer.basis[0] * u + owner.renderer.basis[1] * v;
+      this.x = owner.renderer.xOffset + owner.renderer.basis[2] * u + owner.renderer.basis[3] *
+        (v - Math.floor(u / 2));
+
+      this.state = 0;
+      this.nextState = null;
+      this.neighbors = Array(6);
+    }
+
+    total() {
+      let tot = 0
+      for (let i = 0; i < 6; i ++)
+        tot += this.neighbors[i].state;
+      return tot;
+    }
+
+    countAll() {
+      let count = 0
+      for (let i = 0; i < 6; i ++)
+        if (this.neighbors[i].state > 0)
+          count++;
+      return count;
+    }
+
+    count(state) {
+      let count = 0;
+      for (let i = 0; i < 6; i ++)
+        if (this.neighbors[i].state == state)
+          count ++;
+      return count;
+    }
+
+    counts() {
+      let values = Array(this.owner.maxStates).fill(0);
+      for (let i = 0; i < 6; i ++)
+        values[this.neighbors[i].state] += 1;
+      return values;
+    }
+
+    stateMap() {
+      return this.neighbors.map((e) => this.state);
+    }
+
+    max(states) {
+      states = states || this.stateMap();
+      return Math.max.apply(null, this.stateMap());
+    }
+
+    min(states) {
+      states = states || this.stateMap();
+      return Math.min.apply(null, this.stateMap());
+    }
+
+    offset(i) {
+      return mod(this.state + i, this.owner.numStates);
+    }
+  }
+
+  /** Class representing a list of callback hooks */
+
+  class HookList extends Array {
+    constructor(owner) {
+      super();
+      this.owner = owner;
+    }
+
+   call() {
+      for (let i = 0; i < this.length; i++)
+        if (this[i].apply(this.owner, arguments) === false)
+          return false;
+
+      return true;
+    }
+  }
+
+  /** Class represting a renderer to draw to the DOM */
+
+  class Renderer {
+    constructor(...args) {
+      this._init(...args);
+    }
+    _init() { throw new HexError('Method not implemented'); }
+  }
+
+  class CanvasRenderer extends Renderer {
+    _init(hex) {
+      this.hex = hex;
+      const radius = hex.radius, rows = hex.rows, cols = hex.cols;
+      this.canvas = document.createElement('canvas');
+      this.context = this.canvas.getContext('2d');
+
+      this.canvas.height  = 2 * radius * (rows + 1.5) * 0.75;
+      this.canvas.width = 2 * radius * (cols + 1.5) * math.apothem;
+
+      this.canvas.classList.add(CANVAS_CLASS);
+
+      // Precomputed math stuff
+
+      this.innerRadius = radius - this.hex.borderWidth / (2 * math.apothem);
+      this.vertices = elemOp(math.vertices, this.innerRadius);
+
+      this.basis = elemOp(math.basis, radius);
+      this.invBasis = elemOp(math.invBasis, 1 / radius);
+
+      this.yOffset = 2 * radius;
+      this.xOffset = 2 * radius * math.apothem;
+
+      // For imageData rectangle coords
+      this.selectYOffset = Math.ceil(
+        radius * math.apothem + this.hex.highlightLineWidth);
+      this.selectXOffset = Math.ceil(
+        radius + this.hex.highlightLineWidth);
+      this.selectHeight = this.selectYOffset * 2;
+      this.selectWidth = this.selectXOffset * 2;
+
+      // Callback hooks for drawing actions
+
+      this.onDrawCell = new HookList(this);
+      this.onDrawCell.push(defaultDrawCell);
+
+      this.onDrawSelector = new HookList(this);
+      this.onDrawSelector.push(defaultDrawSelector);
+      this.selected = {
+        cell: null,
+        imageData: null,
+        y: 0,
+        x: 0
+      };
+    }
+
     // Draw all hexes
 
     draw() {
       this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-      this.eachCell((cell) => {
-          this.drawCell(cell);
+      this.hex.eachCell((cell) => {
+        this.drawCell(cell);
       });
 
       if (this.selected.cell) {
@@ -282,168 +441,11 @@ var Hexular = (function () {
       if (ru < 0 || ru >= this.rows || rv < 0 || rv >= this.cols)
         return null;
       else
-        return this.cells[ru][rv];
+        return this.hex.cells[ru][rv];
     }
-
-    // --- Timer/step stuff ---
-
-    startStop() {
-      if (this.timer) {
-        this.stop();
-        return false;
-      }
-      else {
-        this.start();
-        return true;
-      }
-    }
-
-    start() {
-      this.timer = setInterval(this.step.bind(this), this.timerLength);
-      this.running = true;
-    }
-
-    stop() {
-      clearTimeout(this.timer);
-      this.timer = null;
-      this.running = false;
-    }
-
-    step() {
-      this.eachCell((cell) => {
-        cell.nextState = this.rules[cell.state](cell);
-      });
-      this.eachCell((cell) => {
-        cell.state = cell.nextState;
-      });
-      this.draw();
-    }
-
-    clear() {
-      this.eachCell((cell) => {
-        cell.state = 0;
-      });
-      this.draw();
-    }
-
-    test(n) {
-      n = n || 64;
-
-      let a = +new Date();
-
-      for (let i = 0; i < n; i++)
-        this.step();
-
-      let b = +new Date();
-
-      return b - a;
-    }
-
-  }
-
-  /** Class representing a cell */
-
-  class Cell {
-    constructor(owner, u, v) {
-      this.owner = owner;
-      this.u = u;
-      this.v = v;
-
-      // Useful for custom drawing actions that involve paths between neighbors
-      this.isEdge =
-        (u == 0 || u == owner.rows - 1 || v == 0 || v == owner.cols - 1);
-
-      // We again calculate cubic coords and shift x left once every 2 rows
-      this.y = owner.yOffset + owner.basis[0] * u + owner.basis[1] * v;
-      this.x = owner.xOffset + owner.basis[2] * u + owner.basis[3] *
-        (v - Math.floor(u / 2));
-
-      this.state = 0;
-      this.nextState = null;
-      this.neighbors = Array(6);
-    }
-
-    total() {
-      let tot = 0
-      for (let i = 0; i < 6; i ++)
-        tot += this.neighbors[i].state;
-      return tot;
-    }
-
-    countAll() {
-      let count = 0
-      for (let i = 0; i < 6; i ++)
-        if (this.neighbors[i].state > 0)
-          count++;
-      return count;
-    }
-
-    count(state) {
-      let count = 0;
-      for (let i = 0; i < 6; i ++)
-        if (this.neighbors[i].state == state)
-          count ++;
-      return count;
-    }
-
-    counts() {
-      let values = Array(this.owner.maxStates).fill(0);
-      for (let i = 0; i < 6; i ++)
-        values[this.neighbors[i].state] += 1;
-      return values;
-    }
-
-    stateMap() {
-      return this.neighbors.map((e) => this.state);
-    }
-
-    max(states) {
-      states = states || this.stateMap();
-      return Math.max.apply(null, this.stateMap());
-    }
-
-    min(states) {
-      states = states || this.stateMap();
-      return Math.min.apply(null, this.stateMap());
-    }
-
-    offset(i) {
-      return mod(this.state + i, this.owner.numStates);
-    }
-  }
-
-  /** Class representing a list of callback hooks */
-
-  class HookList extends Array {
-    constructor(owner) {
-      super();
-      this.owner = owner;
-    }
-
-   call() {
-      for (let i = 0; i < this.length; i++)
-        if (this[i].apply(this.owner, arguments) === false)
-          return false;
-
-      return true;
-    }
-  }
-
-  /** Class represting a renderer to draw to the DOM */
-
-  class Renderer {
-    constructor() {
-
-    }
-  }
-
-  class CanvasRenderer extends Renderer {
-
   }
 
   // TODO: Add SVG renderer
-
-
 
   // --- DEFAULT CELL CALLBACKS ---
 
@@ -455,15 +457,15 @@ var Hexular = (function () {
     // Use cell.owner when writing custom drawing callbacks
     this.drawHexPath(cell);
 
-    this.context.fillStyle = this.colors[cell.state];
+    this.context.fillStyle = this.hex.colors[cell.state];
     this.context.fill();
   }
 
   function defaultDrawSelector(cell) {
     this.drawHexPath(cell);
 
-    this.context.strokeStyle = this.highlightColor;
-    this.context.lineWidth = this.highlightLineWidth;
+    this.context.strokeStyle = this.hex.highlightColor;
+    this.context.lineWidth = this.hex.highlightLineWidth;
     this.context.stroke();
   }
 
@@ -488,6 +490,8 @@ var Hexular = (function () {
 
   // ---
 
+  Hexular.HexError = HexError;
+
   Hexular.nullRule = nullRule;
   Hexular.defaultDrawCell = defaultDrawCell;
   Hexular.defaultDrawSelector = defaultDrawSelector;
@@ -500,6 +504,7 @@ var Hexular = (function () {
     rows: DEFAULT_ROWS,
     cols: DEFAULT_COLS,
     defaultRule: DEFAULT_RULE,
+    maxStates: DEFAULT_MAX_STATES,
     colors: DEFAULT_COLORS,
     radius: DEFAULT_RADIUS,
     borderWidth: DEFAULT_BORDER_WIDTH,

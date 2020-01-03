@@ -75,9 +75,9 @@ function init(optArgs) {
   while (container.firstChild)
     container.firstChild.remove();
 
-  container.appendChild(hexular.canvas);
+  container.appendChild(hexular.renderer.canvas);
 
-  hexular.draw();
+  hexular.renderer.draw();
 
   window.scrollTo(
     (document.body.scrollWidth - window.innerWidth) / 2,
@@ -140,9 +140,9 @@ function initRuleMenus() {
 // --- LISTENERS ---
 
 function mousemove(e) {
-  let cell = hexular.cellAtPosition(
-    e.pageY - hexular.canvas.offsetTop,
-    e.pageX - hexular.canvas.offsetLeft);
+  let cell = hexular.renderer.cellAtPosition(
+    e.pageY - hexular.renderer.canvas.offsetTop,
+    e.pageX - hexular.renderer.canvas.offsetLeft);
 
   selectCell(cell);
 
@@ -154,7 +154,7 @@ function mousedown(e) {
   if (e.which != 1)
     return;
 
-  if (e.target == hexular.canvas) {
+  if (e.target == hexular.renderer.canvas) {
     if (e.shiftKey)
       shift = true;
     setCell(selected);
@@ -219,7 +219,7 @@ function keyup(e) {
 
 function selectCell(cell) {
   selected = cell;
-  hexular.selectCell(cell);
+  hexular.renderer.selectCell(cell);
 }
 
 function setCell(cell) {
@@ -230,8 +230,8 @@ function setCell(cell) {
         setState = (selected.state + 1) % hexular.numStates;
       cell.state = shift ? 0 : setState;
       lastSet = cell;
-      hexular.selectCell();
-      hexular.drawCell(cell);
+      hexular.renderer.selectCell();
+      hexular.renderer.drawCell(cell);
     }
   }
   // Null cell
