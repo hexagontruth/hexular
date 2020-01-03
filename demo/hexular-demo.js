@@ -70,7 +70,7 @@ function init(optArgs) {
 
   // Hex init
 
-  hexular = new Hexular(opts, rules.standardOff);
+  hexular = new Hexular(opts, rules.standardOff, rules.standardOn);
 
   while (container.firstChild)
     container.firstChild.remove();
