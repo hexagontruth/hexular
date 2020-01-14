@@ -1,11 +1,11 @@
 // --- INIT ---
 
-const DEFAULT_ROWS = 96;
-const DEFAULT_COLS = 96;
+const DEFAULT_ROWS = 16;
+const DEFAULT_COLS = 16;
 const DEFAULT_RADIUS = 10;
 const DEFAULT_NUM_STATES = 12;
 
-var hexular, controls, container, overlay, ruleConfig, ruleMenus,
+let hexular, canvas, controls, container, overlay, ruleConfig, ruleMenus,
   ctlToggle, ctlStep, ctlClear, ctlConfig, ctlStates, ctlRuleAll,
   key, shift, setting, selected, lastSet, setState, configUp;
 
@@ -70,14 +70,15 @@ function init(optArgs) {
 
   // Hex init
 
-  hexular = new Hexular(opts, rules.standardOff, rules.standardOn);
+  canvas = document.createElement('canvas');
+  hexular = Hexular(opts, rules.standardOff, rules.standardOn).renderTo(canvas, 10);
 
   while (container.firstChild)
     container.firstChild.remove();
 
-  container.appendChild(hexular.renderer.canvas);
+  container.appendChild(canvas);
 
-  hexular.renderer.draw();
+  hexular.draw();
 
   window.scrollTo(
     (document.body.scrollWidth - window.innerWidth) / 2,
@@ -140,9 +141,10 @@ function initRuleMenus() {
 // --- LISTENERS ---
 
 function mousemove(e) {
-  let cell = hexular.renderer.cellAtPosition(
-    e.pageY - hexular.renderer.canvas.offsetTop,
-    e.pageX - hexular.renderer.canvas.offsetLeft);
+  let cell = hexular.cellAt([
+    e.pageY - canvas.offsetTop,
+    e.pageX - canvas.offsetLeft
+  ]);
 
   selectCell(cell);
 
@@ -154,7 +156,7 @@ function mousedown(e) {
   if (e.which != 1)
     return;
 
-  if (e.target == hexular.renderer.canvas) {
+  if (e.target == canvas) {
     if (e.shiftKey)
       shift = true;
     setCell(selected);
@@ -219,7 +221,7 @@ function keyup(e) {
 
 function selectCell(cell) {
   selected = cell;
-  hexular.renderer.selectCell(cell);
+  hexular.selectCell(cell);
 }
 
 function setCell(cell) {
@@ -230,8 +232,8 @@ function setCell(cell) {
         setState = (selected.state + 1) % hexular.numStates;
       cell.state = shift ? 0 : setState;
       lastSet = cell;
-      hexular.renderer.selectCell();
-      hexular.renderer.drawCell(cell);
+      hexular.selectCell();
+      hexular.drawCell(cell);
     }
   }
   // Null cell

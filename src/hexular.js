@@ -5,7 +5,7 @@ var Hexular = (function () {
   const DEFAULT_ROWS = 60;
   const DEFAULT_COLS = 60;
   const DEFAULT_RULE = nullRule;
-  const DEFAULT_MAX_STATES = 12; // This is only used as a helper constant for computing modulo states - 
+  const DEFAULT_MAX_STATES = 2; // Only used by modulo filter
 
   const DEFAULT_RADIUS = 10;
   const DEFAULT_BORDER_WIDTH = 1;
@@ -26,15 +26,11 @@ var Hexular = (function () {
     '#725ca7'
   ];
 
-  let index = 0;
-
   // --- MATH STUFF ---
 
   const APOTHEM = Math.sqrt(3) / 2;
 
   let math = {
-    tau: Math.PI * 2,
-    arc: Math.PI / 3,
     apothem: APOTHEM,
     inverseApothem: 1 / APOTHEM,
     vertices: [
@@ -46,70 +42,78 @@ var Hexular = (function () {
       [-0.5, APOTHEM]
     ],
     basis: [
-      1.5, 0,
-      APOTHEM, 2 * APOTHEM
+      [1.5, 0],
+      [APOTHEM, 2 * APOTHEM]
     ],
     invBasis: [
-      2 / 3, 0,
-      -1 / 3, 1 / (2 * APOTHEM)
+      [2 / 3, 0],
+      [-1 / 3, 1 / (2 * APOTHEM)]
     ]
   };
 
+  let index = 0;
+
+  /** Class representing a hexagonal error */
+
   class HexError extends Error {}
 
-  /** Class representing a complete Hexular instance */
+  /** Class representing a complete model instance */
 
-  class Hexular {
+  class Model {
     /**
-    * Creates Hexular instance
+    * Creates Model instance
     *
     * @param {...(function|object)} args - Function rules (indexed from 0) or Object overrides to merge with instance
     */
     constructor(...args) {
       Object.assign(this, Hexular.defaults);
       this.rules = [];
+      this.filters = [];
+      this.renderers = new Set();
+      this.primaryRenderer = null;
       for (let arg of args) {
-        if (typeof arg == 'function')
+        if (arg instanceof Topology) {
+          this.topology = arg;
+        }
+        else if (subclass(arg, Topology)) {
+          this.topology = new arg(this);
+        }
+        else if (arg instanceof Renderer) {
+          this.renderers.add(arg);
+        }
+        else if (typeof arg == 'function')
           this.rules.push(arg);
         else if (typeof arg == 'object')
           Object.assign(this, arg);
       }
 
+      this.topology = this.topology || new this.defaultTopology();
+      this.topology.init(this);
+      this.renderers.forEach((renderer) => renderer.init(this));
       this.index = index++;
       this.timer = null;
       this.running = false;
+      this.renderer = null;
       this.colors = this.colors.slice();
-      this.renderer = new this.renderer(this);
 
-      const radius = this.radius;
-      const rows = this.rows;
-      const cols = this.cols;
+      this.cells = this.topology.cells;
+    }
 
-      // Initialize cells
+    renderTo(...args) {
+      let Class = subclass(args[0], Renderer) ? args[0] : this.defaultRenderer;
+      this.addRenderer(new Class(this, ...args));
+      return this;
+    }
 
-      this.cells = new Array(rows);
-      for (let i = 0; i < rows; i++)
-        this.cells[i] = new Array(cols);
+    addRenderer(renderer) {
+      this.renderers.add(renderer);
+      if (this.renderers.size == 1)
+        this.primaryRenderer = renderer;
+    }
 
-      this.eachCoord((u, v) => {
-        this.cells[u][v] = new Cell(this, u, v);
-      });
-
-      // Connect cells
-      for (let i = 0; i < rows; i++) {
-        let upRow = mod(i - 1, rows);
-        let downRow = mod(i + 1, rows);
-        let offset = downRow % 2;
-        for (let j = 0; j < cols; j++) {
-          const cell = this.cells[i][j];
-          cell.neighbors[0] = this.cells[upRow][mod(j - offset, cols)];
-          cell.neighbors[1] = this.cells[i][mod(j - 1, cols)];
-          cell.neighbors[2] = this.cells[downRow][mod(j - offset, cols)];
-          cell.neighbors[3] = this.cells[downRow][mod(j - offset + 1, cols)];
-          cell.neighbors[4] = this.cells[i][mod(j + 1, cols)];
-          cell.neighbors[5] = this.cells[upRow][mod(j - offset + 1, cols)];
-        }
-      }
+    addFilter(filter, idx) {
+      idx = idx != null ? idx : this.filters.length;
+      this.filters.splice(idx, 0, filter.bind(this));
     }
 
     // Iterate over u,v coords for each valid cell
@@ -125,10 +129,8 @@ var Hexular = (function () {
 
     // Iterate over cells
 
-    eachCell(callback) {
-      this.eachCoord((u, v) => {
-        return callback(this.cells[u][v]);
-      });
+    eachCell(fn) {
+      this.topology.eachCell(fn);
     }
 
     // --- Timer/step stuff ---
@@ -157,63 +159,63 @@ var Hexular = (function () {
 
     step() {
       this.eachCell((cell) => {
-        cell.nextState = this.rules[cell.state](cell);
+        cell.nextState = (this.rules[cell.state] || this.defaultRule)(cell);
       });
       this.eachCell((cell) => {
         cell.state = cell.nextState;
       });
-      this.renderer.draw();
+      this.draw();
     }
 
     clear() {
       this.eachCell((cell) => {
         cell.state = 0;
       });
-      this.renderer.draw();
+      this.draw();
     }
 
-    test(n) {
-      n = n || 64;
-
-      let a = +new Date();
-
-      for (let i = 0; i < n; i++)
-        this.step();
-
-      let b = +new Date();
-
-      return b - a;
+    cellAt(...args) {
+      return this._callPrimaryRenderMethod('cellAt', ...args);
     }
 
+    selectCell(...args) {
+      return this._callPrimaryRenderMethod('selectCell', ...args);
+    }
+
+    drawCell(...args) {
+      return this._callPrimaryRenderMethod('drawCell', ...args);
+    }
+
+    draw() {
+      this.renderers.forEach((renderer) => {
+        renderer.draw();
+      });
+    }
+
+    _callPrimaryRenderMethod(fnString, ...args) {
+      if (this.primaryRenderer)
+        return this.primaryRenderer[fnString](...args);
+      else
+        throw new HexError(`No primary renderer for ${this}`);
+    }
   }
 
   /** Class representing a cell */
 
   class Cell {
-    constructor(owner, u, v) {
-      this.owner = owner;
-      this.u = u;
-      this.v = v;
-
-      // Useful for custom drawing actions that involve paths between neighbors
-      this.isEdge =
-        (u == 0 || u == owner.rows - 1 || v == 0 || v == owner.cols - 1);
-
-      // We again calculate cubic coords and shift x left once every 2 rows
-      this.y = owner.renderer.yOffset + owner.renderer.basis[0] * u + owner.renderer.basis[1] * v;
-      this.x = owner.renderer.xOffset + owner.renderer.basis[2] * u + owner.renderer.basis[3] *
-        (v - Math.floor(u / 2));
-
-      this.state = 0;
-      this.nextState = null;
-      this.neighbors = Array(6);
+    constructor(model, coord, ...args) {
+      this.model = model;
+      this.coord = coord;
+      let defaults = {
+        state: 0,
+        nextState: 0,
+        neighbors: Array(6)
+      };
+      Object.assign(this, defaults, ...args);
     }
 
     total() {
-      let tot = 0
-      for (let i = 0; i < 6; i ++)
-        tot += this.neighbors[i].state;
-      return tot;
+      return this.neighbors.reduce((a, e) => a + e.state, 0);
     }
 
     countAll() {
@@ -232,25 +234,25 @@ var Hexular = (function () {
       return count;
     }
 
-    counts() {
-      let values = Array(this.owner.maxStates).fill(0);
+    stateCounts() {
+      let values = Array(this.model.maxStates).fill(0);
       for (let i = 0; i < 6; i ++)
         values[this.neighbors[i].state] += 1;
       return values;
     }
 
     stateMap() {
-      return this.neighbors.map((e) => this.state);
+      return this.neighbors.map((e) => e.state);
     }
 
     max(states) {
       states = states || this.stateMap();
-      return Math.max.apply(null, this.stateMap());
+      return Math.max.apply(null, states);
     }
 
     min(states) {
       states = states || this.stateMap();
-      return Math.min.apply(null, this.stateMap());
+      return Math.min.apply(null, states);
     }
 
     offset(i) {
@@ -275,21 +277,104 @@ var Hexular = (function () {
     }
   }
 
-  /** Class represting a renderer to draw to the DOM */
+  /** Common abstract class for topologies and renderers */
 
-  class Renderer {
-    constructor(...args) {
-      this._init(...args);
+  class Adapter {
+    init() { Adapter.methodNotImplemented(); }
+  }
+  Adapter.methodNotImplemented = () => {throw new HexError('Method not implemented.')};
+
+  class Topology extends Adapter {
+    constructor() {
+      super();
+      this.cells = [];
     }
-    _init() { throw new HexError('Method not implemented'); }
+    eachCell() { Adapter.methodNotImplemented(); }
+  }
+
+  class OffsetTopology extends Topology {
+    init(model) {
+      this.cells = [];
+      this.model = model;
+      const rows = this.rows = model.rows;
+      const cols = this.cols = model.cols;
+      let q = 0;
+      if (!this.rows || !this.cols) throw new HexError('OffsetTopology requires rows and columns to be defined');
+      this.eachCoord(([i, j]) => {q++
+        // Being on the edge potentially effects draw actions involving neighbors
+        let edge = (i == 0 || i == this.rows - 1 || j == 0 || j == this.cols - 1);
+        this.cells.push(new Cell(model, [i, j], {edge}));
+      });
+
+      // Connect cells
+      this.eachCell((cell, [i, j]) => {
+        let upRow = mod(i - 1, rows);
+        let downRow = mod(i + 1, rows);
+        let offset = downRow % 2;
+        cell.neighbors[0] = this.cells[upRow * rows + mod(j - offset, cols)];
+        cell.neighbors[1] = this.cells[i * rows + mod(j - 1, cols)];
+        cell.neighbors[2] = this.cells[downRow * rows + mod(j - offset, cols)];
+        cell.neighbors[3] = this.cells[downRow * rows + mod(j - offset + 1, cols)];
+        cell.neighbors[4] = this.cells[i * rows + mod(j + 1, cols)];
+        cell.neighbors[5] = this.cells[upRow * rows + mod(j - offset + 1, cols)];
+      });
+    }
+
+    eachCell(fn) {
+      return this.eachCoord(([i, j]) => {
+        let cell = this.cells[i * this.rows + j];
+        return fn(cell, [i, j]);
+      });
+    }
+
+    eachCoord(fn) {
+      for (let i = 0; i < this.rows; i++) {
+        for (let j = 0; j < this.cols; j++) {
+          if (fn([i, j]) === false) return false;
+        }
+      }
+      return true;
+    }
+
+    getCoords(renderer, cell) {
+      let r = renderer.cellRadius;
+      let xOffset = renderer.xOffset;
+      let yOffset = renderer.yOffset;
+      let i = cell.coord[0];
+      let j = cell.coord[1];
+
+      // We again calculate cubic coords and shift x left once every 2 rows
+      let y = yOffset + renderer.basis[0][0] * i + renderer.basis[0][1] * j;
+      let x = xOffset + renderer.basis[1][0] * i + renderer.basis[1][1] * (j - Math.floor(i / 2));
+      return [y, x];
+    }
+
+    cellAtCubic([u, v, w]) {
+      // For offset, we shift every two rows to the left
+      v += Math.floor(u / 2);
+      let cell = this.model.cells[u * this.cols + v];
+      return cell;
+    }
+  }
+
+  /** Class represting a renderer to draw to the DOM */
+  class Renderer extends Adapter {
+    constructor(...args) {
+      super();
+      this.cellMap = new Map();
+      this.init(...args);
+    }
+    draw() { Adapter.methodNotImplemented(); }
   }
 
   class CanvasRenderer extends Renderer {
-    _init(hex) {
-      this.hex = hex;
-      const radius = hex.radius, rows = hex.rows, cols = hex.cols;
-      this.canvas = document.createElement('canvas');
-      this.context = this.canvas.getContext('2d');
+    init(model, canvas, cellRadius) {
+      this.model = model;
+      this.topology = model.topology;
+      this.canvas = canvas;
+      this.cellRadius = cellRadius;
+      this.context = canvas.getContext('2d');
+      const radius = this.radius = model.radius, rows = model.rows, cols = model.cols;
 
       this.canvas.height  = 2 * radius * (rows + 1.5) * 0.75;
       this.canvas.width = 2 * radius * (cols + 1.5) * math.apothem;
@@ -298,20 +383,19 @@ var Hexular = (function () {
 
       // Precomputed math stuff
 
-      this.innerRadius = radius - this.hex.borderWidth / (2 * math.apothem);
+      this.innerRadius = radius - this.model.borderWidth / (2 * math.apothem);
       this.vertices = elemOp(math.vertices, this.innerRadius);
 
       this.basis = elemOp(math.basis, radius);
-      this.invBasis = elemOp(math.invBasis, 1 / radius);
 
       this.yOffset = 2 * radius;
       this.xOffset = 2 * radius * math.apothem;
 
       // For imageData rectangle coords
       this.selectYOffset = Math.ceil(
-        radius * math.apothem + this.hex.highlightLineWidth);
+        radius * math.apothem + this.model.highlightLineWidth);
       this.selectXOffset = Math.ceil(
-        radius + this.hex.highlightLineWidth);
+        radius + this.model.highlightLineWidth);
       this.selectHeight = this.selectYOffset * 2;
       this.selectWidth = this.selectXOffset * 2;
 
@@ -328,14 +412,18 @@ var Hexular = (function () {
         y: 0,
         x: 0
       };
+
+      this.topology.cells.forEach((cell) => {
+        this.cellMap.set(cell, this.topology.getCoords(this, cell));
+      });
     }
 
-    // Draw all hexes
+    // Draw all cells
 
     draw() {
       this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-      this.hex.eachCell((cell) => {
+      this.topology.eachCell((cell) => {
         this.drawCell(cell);
       });
 
@@ -353,8 +441,9 @@ var Hexular = (function () {
           this.putImageData()
         }
         if (cell) {
-          this.selected.y = cell.y - this.selectYOffset;
-          this.selected.x = cell.x - this.selectXOffset;
+          let [y, x] = this.cellMap.get(cell);
+          this.selected.y = y - this.selectYOffset;
+          this.selected.x = x - this.selectXOffset;
           this.getImageData();
           this.drawSelector(cell);
         }
@@ -391,14 +480,12 @@ var Hexular = (function () {
       this.onDrawSelector.call(cell);
     }
 
-    // Basic hex path for both cells and selector
+    // Basic cell path for both cells and selector
 
     drawHexPath(cell) {
-      const y = cell.y
-      const x = cell.x;
+      const [y, x] = this.cellMap.get(cell);
       const context = this.context;
       const vertices = this.vertices;
-
       context.beginPath();
       context.moveTo(x + vertices[0][1], y + vertices[0][0]);
 
@@ -413,35 +500,14 @@ var Hexular = (function () {
 
     // Get cell at y,x coords on canvas
 
-    cellAtPosition(y, x) {
+    cellAt([y, x]) {
       y -= this.yOffset;
       x -= this.xOffset;
-
-      // We first find the position with respect to cubic coordinates
-      let u = this.invBasis[0] * y + this.invBasis[1] * x;
-      let v = this.invBasis[2] * y + this.invBasis[3] * x;
-      let w = -u - v;
-
-      let ru = Math.round(u);
-      let rv = Math.round(v);
-      let rw = Math.round(w);
-
-      let du = Math.abs(ru - u);
-      let dv = Math.abs(rv - v);
-      let dw = Math.abs(rw - w);
-
-      if (du > dv && du > dw)
-        ru = -rv - rw;
-      else if (du > dw)
-        rv = -ru - rw;
-
-      // Every two rows are then shifted one space to the left
-      rv += Math.floor(ru / 2);
-
-      if (ru < 0 || ru >= this.rows || rv < 0 || rv >= this.cols)
-        return null;
-      else
-        return this.hex.cells[ru][rv];
+      // First convert to cubic coords
+      let rawCubic = cartesianToCubic([y, x]);
+      let cubic = roundCubic(rawCubic, this.cellRadius)
+      let cell = this.topology.cellAtCubic(cubic);
+      return cell;
     }
   }
 
@@ -456,17 +522,22 @@ var Hexular = (function () {
   function defaultDrawCell(cell) {
     // Use cell.owner when writing custom drawing callbacks
     this.drawHexPath(cell);
-
-    this.context.fillStyle = this.hex.colors[cell.state];
+    this.context.fillStyle = this.model.colors[cell.state];
     this.context.fill();
   }
 
   function defaultDrawSelector(cell) {
     this.drawHexPath(cell);
 
-    this.context.strokeStyle = this.hex.highlightColor;
-    this.context.lineWidth = this.hex.highlightLineWidth;
+    this.context.strokeStyle = this.model.highlightColor;
+    this.context.lineWidth = this.model.highlightLineWidth;
     this.context.stroke();
+  }
+
+  // --- OPTIONAL FILTERS ---
+
+  function modFilter(state) {
+    return mod(state, this.maxStates);
   }
 
   // --- UTILITY FUNCTIONS ---
@@ -488,35 +559,92 @@ var Hexular = (function () {
     return ((k % n) + n) % n;
   }
 
+  function subclass(constructor, superclass) {
+    return constructor == superclass || constructor.prototype instanceof superclass;
+  }
+
+  function orAssign(cur, val) {
+    return cur === undefined ? val : cur;
+  }
+
+  function mult(m, n) {
+    return Array.isArray(n[0]) ? multMatrix(m, n) : multMatrix(m, [n])[0];
+  }
+
+  function multMatrix(m, n) {
+    return n.map((nCol) => {
+      let productRow = [];
+      for (let mRow = 0; mRow < m.length; mRow++) {
+        productRow.push(nCol.reduce((a, nEntry, mCol) => {
+          return a + m[mRow][mCol] * nEntry;
+        }, 0));
+      }
+      return productRow;
+    });
+  }
+
+  function add(u, v) {
+    return Array.isArray(u) ? u.map((e, i) => add(e, v[i])) : u + v;
+  }
+
+  function cartesianToCubic([y, x]) {
+    let [u, v] = mult(math.invBasis, [y, x]);
+    let w = -u - v;
+    return [u, v, w];
+  }
+
+  function roundCubic([u, v, w], radius) {
+    radius = radius || 1;
+
+    let ru = Math.round(u / radius);
+    let rv = Math.round(v / radius);
+    let rw = Math.round(w / radius);
+    // TODO: Do this better
+    let du = Math.abs(ru - u);
+    let dv = Math.abs(rv - v);
+    let dw = Math.abs(rw - w);
+
+    if (du > dv && du > dw)
+      ru = -rv - rw;
+    else if (du > dw)
+      rv = -ru - rw;
+    return [ru, rv, rw];
+  }
+
   // ---
 
-  Hexular.HexError = HexError;
+  const Hexular = (...args) => {
+    return new Model(...args);
+  }
 
-  Hexular.nullRule = nullRule;
-  Hexular.defaultDrawCell = defaultDrawCell;
-  Hexular.defaultDrawSelector = defaultDrawSelector;
-
-  Hexular.elemOp = elemOp;
-  Hexular.mod = mod;
-
-  Hexular.defaults = {
-    renderer: CanvasRenderer,
-    rows: DEFAULT_ROWS,
-    cols: DEFAULT_COLS,
-    defaultRule: DEFAULT_RULE,
-    maxStates: DEFAULT_MAX_STATES,
-    colors: DEFAULT_COLORS,
-    radius: DEFAULT_RADIUS,
-    borderWidth: DEFAULT_BORDER_WIDTH,
-    highlightColor: DEFAULT_HIGHLIGHT_COLOR,
-    highlightLineWidth: DEFAULT_HIGHLIGHT_LINE_WIDTH,
-    timerLength: DEFAULT_TIMER_LENGTH
-  };
-
-  Hexular.renderers = {
-    Renderer,
-    CanvasRenderer
-  };
+  Object.assign(Hexular, {
+    HexError,
+    nullRule,
+    defaultDrawCell,
+    defaultDrawSelector,
+    elemOp,
+    math,
+    mod,
+    defaults: {
+      defaultTopology: OffsetTopology,
+      defaultRenderer: CanvasRenderer,
+      defaultRule: nullRule,
+      rows: DEFAULT_ROWS,
+      cols: DEFAULT_COLS,
+      defaultRule: DEFAULT_RULE,
+      maxStates: DEFAULT_MAX_STATES,
+      colors: DEFAULT_COLORS,
+      radius: DEFAULT_RADIUS,
+      borderWidth: DEFAULT_BORDER_WIDTH,
+      highlightColor: DEFAULT_HIGHLIGHT_COLOR,
+      highlightLineWidth: DEFAULT_HIGHLIGHT_LINE_WIDTH,
+      timerLength: DEFAULT_TIMER_LENGTH
+    },
+    renderers: {
+      Renderer,
+      CanvasRenderer
+    }
+  });
 
   return Hexular;
 })();
