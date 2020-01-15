@@ -2,6 +2,7 @@
 
 const DEFAULT_ROWS = 16;
 const DEFAULT_COLS = 16;
+const DEFAULT_SIZE = 8;
 const DEFAULT_RADIUS = 10;
 const DEFAULT_NUM_STATES = 12;
 
@@ -10,6 +11,8 @@ let hexular, canvas, controls, container, overlay, ruleConfig, ruleMenus,
   key, shift, setting, selected, lastSet, setState, configUp;
 
 window.addEventListener('DOMContentLoaded', function(e) {
+  canvas = document.createElement('canvas');
+
   controls = document.querySelector('.controls');
   container = document.querySelector('.container');
   overlay = document.querySelector('.overlay');
@@ -32,10 +35,10 @@ window.addEventListener('DOMContentLoaded', function(e) {
   document.body.addEventListener('keydown', keydown);
   document.body.addEventListener('keyup', keyup);
 
-  document.body.addEventListener('mousemove', mousemove);
+  canvas.addEventListener('mousemove', mousemove);
   document.body.addEventListener('mousedown', mousedown);
-  document.body.addEventListener('mouseup', mouseup);
-  document.body.addEventListener('mouseout', mouseout);
+  canvas.addEventListener('mouseup', mouseup);
+  canvas.addEventListener('mouseout', mouseout);
 
 
   let argArray = location.search.substring(1).split('&');
@@ -57,6 +60,7 @@ function init(optArgs) {
   let opts = {
     rows: DEFAULT_ROWS,
     cols: DEFAULT_COLS,
+    size: DEFAULT_SIZE,
     radius: DEFAULT_RADIUS,
     numStates: DEFAULT_NUM_STATES,
     defaultRule: rules.simpleIncrementor
@@ -70,7 +74,6 @@ function init(optArgs) {
 
   // Hex init
 
-  canvas = document.createElement('canvas');
   hexular = Hexular(opts, rules.standardOff, rules.standardOn).renderTo(canvas, 10);
 
   while (container.firstChild)
