@@ -225,19 +225,11 @@ var Hexular = (function () {
     }
 
     countAll() {
-      let count = 0
-      for (let i = 0; i < 6; i ++)
-        if (this.neighbors[i].state > 0)
-          count++;
-      return count;
+      return this.neighbors.reduce((a, e) => a + (e.state ? 1 : 0), 0);
     }
 
     count(state) {
-      let count = 0;
-      for (let i = 0; i < 6; i ++)
-        if (this.neighbors[i].state == state)
-          count ++;
-      return count;
+      return this.neighbors.reduce((a, e) =>  a + (e.state == state ? 1 : 0), 0)
     }
 
     stateCounts() {
@@ -253,12 +245,12 @@ var Hexular = (function () {
 
     max(states) {
       states = states || this.stateMap();
-      return Math.max.apply(null, states);
+      return Math.max(...states);
     }
 
     min(states) {
       states = states || this.stateMap();
-      return Math.min.apply(null, states);
+      return Math.min(...states);
     }
 
     offset(i) {

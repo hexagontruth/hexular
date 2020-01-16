@@ -84,6 +84,25 @@ var rules = {
 
   countXor: (cell) => cell.countAll() % 2,
 
+  // Debug rule
+
+  trackOut: (cell) => {
+    let count = cell.countAll();
+    return (count == 1 || count == 2) ? 1 : 0;
+  },
+
+  mrWiggleburg: (cell) => {
+    let count = cell.countAll();
+    if (count == 0)
+      return 0;
+    else if (count < 3)
+      return cell.max() + 1;
+    else if (count > 4)
+      return cell.max() - 1;
+    else
+      return 0;
+  },
+
   // Always set to zero
 
   alwaysOff: (cell) => 0,

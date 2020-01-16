@@ -2,7 +2,7 @@
 
 const DEFAULT_ROWS = 16;
 const DEFAULT_COLS = 16;
-const DEFAULT_SIZE = 8;
+const DEFAULT_SIZE = 3;
 const DEFAULT_RADIUS = 10;
 const DEFAULT_NUM_STATES = 12;
 
