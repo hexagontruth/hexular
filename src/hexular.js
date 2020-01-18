@@ -11,9 +11,8 @@ var Hexular = (function () {
   const DEFAULT_RULE = nullRule;
   const DEFAULT_MAX_STATES = 2; // Only used by modulo filter
 
-  const DEFAULT_RADIUS = 10;
+  const DEFAULT_CELL_RADIUS = 10;
   const DEFAULT_BORDER_WIDTH = 1;
-  const CANVAS_CLASS = 'hexular-canvas';
   const DEFAULT_HIGHLIGHT_COLOR = '#ffbb33';
   const DEFAULT_HIGHLIGHT_LINE_WIDTH = 2;
 
@@ -355,18 +354,18 @@ var Hexular = (function () {
 
   class CubicTopology extends Topology {
     init(model) {
+      const radius = this.radius = model.radius != null ? model.radius : Math.floor((model.cols) - 1 / 2);
+      if (isNaN(radius) || radius == null) throw new HexError('CubicTopology requires radius to be defined');
       this.model = model;
-      const size = this.size = model.size;
-      const rows = this.rows = size * 2 - 1;
-      const radius = this.radius = this.size - 1;
-      this.cells = Array(rows * 2).fill(null);
-
-      if (!this.size) throw new HexError('CubicTopology requires size to be defined');
+      const cols = this.cols = this.radius * 2 + 1;
+      const size = this.size = radius + 1;
+      this.cells = Array(cols * 2).fill(null);
+      
       this.eachCoord(([u, v, w]) => {
           // Being on the edge potentially effects draw actions involving neighbors
           let max = Math.max(abs(u), abs(v), abs(w));
           let edge = max == size - 1;
-          this.cells[u * rows + v] = new Cell(model, [u, v, w], {edge});
+          this.cells[u * cols + v] = new Cell(model, [u, v, w], {edge});
       });
 
       // Connect cells
@@ -390,7 +389,7 @@ var Hexular = (function () {
               nbr[dirB] = -nbr[dir] - nbr[dirA];
             }
           }
-          cell.neighbors[i] = this.cells[nbr[0] * rows + nbr[1]];
+          cell.neighbors[i] = this.cells[nbr[0] * cols + nbr[1]];
         }
 
 
@@ -399,7 +398,7 @@ var Hexular = (function () {
 
     eachCell(fn) {
       return this.eachCoord(([u, v, w]) => {
-        let cell = this.cells[u * this.rows + v];
+        let cell = this.cells[u * this.cols + v];
         return fn(cell, [u, v, w]);
       });
     }
@@ -426,9 +425,9 @@ var Hexular = (function () {
     }
 
     cellAtCubic([u, v, w]) {
-      u -= this.size;
-      v -= this.size;
-      let cell = this.model.cells[u * this.rows + v];
+      // u -= this.size;
+      // v -= this.size;
+      let cell = this.model.cells[u * this.cols + v];
       return cell;
     }
   }
@@ -444,29 +443,22 @@ var Hexular = (function () {
   }
 
   class CanvasRenderer extends Renderer {
-    init(model, canvas, cellRadius) {
+    init(model, context, cellRadius) {
       this.model = model;
       this.topology = model.topology;
-      this.canvas = canvas;
+      this.context = context;
       this.cellRadius = cellRadius;
-      this.context = canvas.getContext('2d');
       const radius = this.radius = model.radius, rows = model.rows, cols = model.cols;
-
-      this.canvas.height  = 2 * radius * (rows + 1.5) * 0.75;
-      this.canvas.width = 2 * radius * (cols + 1.5) * math.apothem;
-      this.context.translate(this.canvas.width / 2, this.canvas.height / 2);
-
-      this.canvas.classList.add(CANVAS_CLASS);
 
       // Precomputed math stuff
 
-      this.innerRadius = radius - this.model.borderWidth / (2 * math.apothem);
+      this.innerRadius = cellRadius - this.model.borderWidth / (2 * math.apothem);
       this.vertices = elemOp(math.vertices, this.innerRadius);
 
-      this.basis = elemOp(math.basis, radius);
+      this.basis = elemOp(math.basis, cellRadius);
 
-      this.yOffset = 2 * radius;
-      this.xOffset = 2 * radius * math.apothem;
+      this.yOffset = 0;
+      this.xOffset = 0;
 
       // For imageData rectangle coords
       this.selectYOffset = Math.ceil(
@@ -498,7 +490,7 @@ var Hexular = (function () {
     // Draw all cells
 
     draw() {
-      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
 
       this.topology.eachCell((cell) => {
         this.drawCell(cell);
@@ -580,9 +572,10 @@ var Hexular = (function () {
     cellAt([y, x]) {
       y -= this.yOffset;
       x -= this.xOffset;
+
       // First convert to cubic coords
       let rawCubic = cartesianToCubic([y, x]);
-      let cubic = roundCubic(rawCubic, this.cellRadius)
+      let cubic = roundCubic(rawCubic, this.cellRadius);
       let cell = this.topology.cellAtCubic(cubic);
       return cell;
     }
@@ -712,7 +705,7 @@ var Hexular = (function () {
       defaultRule: DEFAULT_RULE,
       maxStates: DEFAULT_MAX_STATES,
       colors: DEFAULT_COLORS,
-      radius: DEFAULT_RADIUS,
+      cellRadius: DEFAULT_CELL_RADIUS,
       borderWidth: DEFAULT_BORDER_WIDTH,
       highlightColor: DEFAULT_HIGHLIGHT_COLOR,
       highlightLineWidth: DEFAULT_HIGHLIGHT_LINE_WIDTH,

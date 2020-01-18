@@ -1,17 +1,39 @@
 // --- INIT ---
 
-const DEFAULT_ROWS = 16;
-const DEFAULT_COLS = 16;
-const DEFAULT_SIZE = 6;
-const DEFAULT_RADIUS = 10;
-const DEFAULT_NUM_STATES = 12;
+const CONFIG = {
+  rows: 100,
+  cols: 100,
+  radius: 30,
+  cellRadius: 10,
+  numStates: 6
+};
 
-let hexular, canvas, controls, container, overlay, ruleConfig, ruleMenus,
+class Board {
+  constructor(...args) {
+    this.config = Object.assign({}, CONFIG, ...args);
+    this.bg = document.createElement('canvas');
+    this.fg = document.createElement('canvas');
+    this.bgCtx = this.bg.getContext('2d');
+    this.fgCtx = this.fg.getContext('2d');
+    this.center();
+  }
+
+  center() {
+    for (let ctx of [this.bgCtx, this.fgCtx]) {
+      ctx.canvas.width = 4000;
+      ctx.canvas.height = 4000;
+      ctx.translate(ctx.canvas.width / 2, ctx.canvas.height / 2);
+    }
+  }
+}
+
+let hexular, board;
+
+let controls, container, overlay, ruleConfig, ruleMenus,
   ctlToggle, ctlStep, ctlClear, ctlConfig, ctlStates, ctlRuleAll,
   key, shift, setting, selected, lastSet, setState, configUp;
 
 window.addEventListener('DOMContentLoaded', function(e) {
-  canvas = document.createElement('canvas');
 
   controls = document.querySelector('.controls');
   container = document.querySelector('.container');
@@ -32,15 +54,6 @@ window.addEventListener('DOMContentLoaded', function(e) {
   ctlStates.addEventListener('change', handleStates.bind(ctlStates));
   ctlRuleAll.addEventListener('change', handleRuleAll.bind(ctlRuleAll));
 
-  document.body.addEventListener('keydown', keydown);
-  document.body.addEventListener('keyup', keyup);
-
-  canvas.addEventListener('mousemove', mousemove);
-  document.body.addEventListener('mousedown', mousedown);
-  canvas.addEventListener('mouseup', mouseup);
-  canvas.addEventListener('mouseout', mouseout);
-
-
   let argArray = location.search.substring(1).split('&');
   let opts = {};
   argArray.forEach(function(e, i) {
@@ -51,41 +64,39 @@ window.addEventListener('DOMContentLoaded', function(e) {
     }
   });
 
-  init(opts);
+  board = new Board(opts);
+
+  document.body.addEventListener('keydown', keydown);
+  document.body.addEventListener('keyup', keyup);
+
+  board.fg.addEventListener('mousemove', mousemove);
+  document.body.addEventListener('mousedown', mousedown);
+  board.fg.addEventListener('mouseup', mouseup);
+  board.fg.addEventListener('mouseout', mouseout);
+
+
+  init();
 });
 
-function init(optArgs) {
-  optArgs = optArgs || {};
+function init() {
 
-  let opts = {
-    rows: DEFAULT_ROWS,
-    cols: DEFAULT_COLS,
-    size: DEFAULT_SIZE,
-    radius: DEFAULT_RADIUS,
-    numStates: DEFAULT_NUM_STATES,
-    defaultRule: rules.simpleIncrementor
-  };
-
-  for (let k in optArgs)
-    if (optArgs.hasOwnProperty(k))
-      opts[k] = optArgs[k];
-
-  ctlStates.value = opts.numStates;
+  ctlStates.value = board.config.numStates;
 
   // Hex init
-
-  hexular = Hexular(opts, rules.standardOff, rules.standardOn).renderTo(canvas, 10);
+  hexular = Hexular(board.config, rules.standardOff, rules.standardOn).renderTo(board.bgCtx, 10);
 
   while (container.firstChild)
     container.firstChild.remove();
 
-  container.appendChild(canvas);
+  container.appendChild(board.bg);
+  container.appendChild(board.fg);
 
   hexular.draw();
-
-  window.scrollTo(
-    (document.body.scrollWidth - window.innerWidth) / 2,
-    (document.body.scrollHeight - window.innerHeight) / 2
+  window.requestAnimationFrame(() => 
+    window.scrollTo(
+      (document.body.scrollWidth - window.innerWidth) / 2,
+      (document.body.scrollHeight - window.innerHeight) / 2
+    )
   );
 
   initRuleMenus();
@@ -144,10 +155,7 @@ function initRuleMenus() {
 // --- LISTENERS ---
 
 function mousemove(e) {
-  let cell = hexular.cellAt([
-    e.pageY - canvas.offsetTop,
-    e.pageX - canvas.offsetLeft
-  ]);
+  let cell = hexular.cellAt([e.pageY - 2000, e.pageX - 2000]);
 
   selectCell(cell);
 
@@ -159,7 +167,7 @@ function mousedown(e) {
   if (e.which != 1)
     return;
 
-  if (e.target == canvas) {
+  if (e.target == board.fg) {
     if (e.shiftKey)
       shift = true;
     setCell(selected);
