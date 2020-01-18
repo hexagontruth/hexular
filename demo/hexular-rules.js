@@ -96,9 +96,9 @@ var rules = {
     if (count == 0)
       return 0;
     else if (count < 3)
-      return cell.max() + 1;
+      return cell.offset(1);
     else if (count > 4)
-      return cell.max() - 1;
+      return cell.offset(-1);
     else
       return 0;
   },
