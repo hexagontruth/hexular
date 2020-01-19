@@ -3,9 +3,17 @@
 const CONFIG = {
   rows: 100,
   cols: 100,
-  radius: 30,
+  radius: 60,
   cellRadius: 10,
-  numStates: 6
+  numStates: 6,
+  defaultRules: [
+    rules.standardOff,
+    rules.simpleIncrementor,
+    rules.simpleIncrementor,
+    rules.simpleIncrementor,
+    rules.simpleIncrementor,
+    rules.standardOn
+  ]
 };
 
 class Board {
@@ -13,6 +21,8 @@ class Board {
     this.config = Object.assign({}, CONFIG, ...args);
     this.bg = document.createElement('canvas');
     this.fg = document.createElement('canvas');
+    this.bg.classList.add('canvas', 'canvas-bg');
+    this.fg.classList.add('canvas', 'canvas-fg');
     this.bgCtx = this.bg.getContext('2d');
     this.fgCtx = this.fg.getContext('2d');
     this.center();
@@ -27,7 +37,7 @@ class Board {
   }
 }
 
-let hexular, board;
+let hexular, adapter, board;
 
 let controls, container, overlay, ruleConfig, ruleMenus,
   ctlToggle, ctlStep, ctlClear, ctlConfig, ctlStates, ctlRuleAll,
@@ -83,7 +93,11 @@ function init() {
   ctlStates.value = board.config.numStates;
 
   // Hex init
-  hexular = Hexular(board.config, rules.standardOff, rules.standardOn).renderTo(board.bgCtx, 10);
+  hexular = Hexular(board.config, {rules: board.config.defaultRules});
+  adapter = hexular.addAdapter(
+    Hexular.classes.CanvasAdapter,
+    {renderer: board.bgCtx, selector: board.fgCtx, cellRadius: board.config.cellRadius}
+  );
 
   while (container.firstChild)
     container.firstChild.remove();
@@ -91,7 +105,7 @@ function init() {
   container.appendChild(board.bg);
   container.appendChild(board.fg);
 
-  hexular.draw();
+  adapter.draw();
   window.requestAnimationFrame(() => 
     window.scrollTo(
       (document.body.scrollWidth - window.innerWidth) / 2,
@@ -155,7 +169,7 @@ function initRuleMenus() {
 // --- LISTENERS ---
 
 function mousemove(e) {
-  let cell = hexular.cellAt([e.pageY - 2000, e.pageX - 2000]);
+  let cell = adapter.cellAt([e.pageY - 2000, e.pageX - 2000]);
 
   selectCell(cell);
 
@@ -232,7 +246,7 @@ function keyup(e) {
 
 function selectCell(cell) {
   selected = cell;
-  hexular.selectCell(cell);
+  adapter.selectCell(cell);
 }
 
 function setCell(cell) {
@@ -243,8 +257,8 @@ function setCell(cell) {
         setState = (selected.state + 1) % hexular.numStates;
       cell.state = shift ? 0 : setState;
       lastSet = cell;
-      hexular.selectCell();
-      hexular.drawCell(cell);
+      adapter.selectCell();
+      adapter.drawCell(cell);
     }
   }
   // Null cell
