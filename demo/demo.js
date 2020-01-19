@@ -6,6 +6,8 @@ const CONFIG = {
   radius: 60,
   cellRadius: 10,
   numStates: 6,
+  timerLength: 100,
+  rules: rules,
   defaultRules: [
     rules.standardOff,
     rules.simpleIncrementor,
@@ -16,6 +18,13 @@ const CONFIG = {
   ]
 };
 
+let keyWhitelist = [
+  'Escape',
+  'Shift',
+  'Tab',
+  ' '
+];
+
 class Board {
   constructor(...args) {
     this.config = Object.assign({}, CONFIG, ...args);
@@ -25,6 +34,7 @@ class Board {
     this.fg.classList.add('canvas', 'canvas-fg');
     this.bgCtx = this.bg.getContext('2d');
     this.fgCtx = this.fg.getContext('2d');
+    this.timer = null;
     this.center();
   }
 
@@ -35,13 +45,31 @@ class Board {
       ctx.translate(ctx.canvas.width / 2, ctx.canvas.height / 2);
     }
   }
+
+  toggle(ev) {
+    if (!this.running) {
+      this.timer = setInterval(hexular.step.bind(hexular), this.config.timerLength);
+      ctlStep.disabled = true;
+      ctlToggle.value = 'Stop';
+    }
+    else {
+      clearInterval(this.timer);
+      this.timer = null;
+      ctlStep.disabled = false;
+      ctlToggle.value = 'Start';
+    }
+  }
+
+  get running() {
+    return !!this.timer;
+  }
 }
 
 let hexular, adapter, board;
 
 let controls, container, overlay, ruleConfig, ruleMenus,
   ctlToggle, ctlStep, ctlClear, ctlConfig, ctlStates, ctlRuleAll,
-  key, shift, setting, selected, lastSet, setState, configUp;
+  shift, selected, lastSet, setState, configUp;
 
 window.addEventListener('DOMContentLoaded', function(e) {
 
@@ -57,10 +85,10 @@ window.addEventListener('DOMContentLoaded', function(e) {
   ctlStates = document.querySelector('#ctl_states');
   ctlRuleAll = document.querySelector('#ctl_rule_all');
 
-  ctlToggle.addEventListener('click', handleToggle.bind(ctlToggle));
+  ctlToggle.addEventListener('click', (ev) => board.toggle(ev));
   ctlStep.addEventListener('click', handleStep.bind(ctlStep));
   ctlClear.addEventListener('click', handleClear.bind(ctlClear));
-  ctlConfig.addEventListener('click', handleConfig.bind(ctlConfig));
+  ctlConfig.addEventListener('click', handleConfig);
   ctlStates.addEventListener('change', handleStates.bind(ctlStates));
   ctlRuleAll.addEventListener('change', handleRuleAll.bind(ctlRuleAll));
 
@@ -76,11 +104,10 @@ window.addEventListener('DOMContentLoaded', function(e) {
 
   board = new Board(opts);
 
-  document.body.addEventListener('keydown', keydown);
-  document.body.addEventListener('keyup', keyup);
-
+  window.addEventListener('keydown', keydown);
+  window.addEventListener('mousedown', mousedown);
+  board.fg.addEventListener('contextmenu', contextmenu);
   board.fg.addEventListener('mousemove', mousemove);
-  document.body.addEventListener('mousedown', mousedown);
   board.fg.addEventListener('mouseup', mouseup);
   board.fg.addEventListener('mouseout', mouseout);
 
@@ -141,7 +168,7 @@ function initRuleMenus() {
     ruleMenu.addEventListener('change', handleRule.bind(ruleMenu));
 
     ruleContainer.classList.add('rule-container');
-    ruleContainer.style.borderColor = hexular.colors[i];
+    ruleContainer.style.borderColor = adapter.colors[i];
 
     for (let k in rules) {
       if (!rules.hasOwnProperty(k))
@@ -168,80 +195,77 @@ function initRuleMenus() {
 
 // --- LISTENERS ---
 
-function mousemove(e) {
-  let cell = adapter.cellAt([e.pageY - 2000, e.pageX - 2000]);
+function contextmenu(ev) {
+  ev.preventDefault();
+}
+
+function mousemove(ev) {
+  let cell = adapter.cellAt([ev.pageY - 2000, ev.pageX - 2000]);
 
   selectCell(cell);
 
-  if (setting)
+  if (setState != null)
     setCell(cell);
 }
 
-function mousedown(e) {
-  if (e.which != 1)
-    return;
-
-  if (e.target == board.fg) {
-    if (e.shiftKey)
-      shift = true;
-    setCell(selected);
-    e.preventDefault();
+function mousedown(ev) {
+  if (ev.target == board.fg) {
+    if (ev.buttons & 1) {
+      shift = ev.shiftKey;
+      setState = Hexular.math.mod(selected.state + 1, board.config.numStates);
+      setCell(selected);
+    }
+    else if (ev.buttons & 2) {
+      setState = Hexular.math.mod(selected.state - 1, board.config.numStates);
+      setCell(selected);
+    }
   }
-  else if (e.target == overlay) {
+  else if (ev.target == overlay) {
     handleConfig();
   }
 }
 
-function mouseup(e) {
+function mouseup() {
   setCell();
   shift = false;
 }
 
-function mouseout(e) {
+function mouseout() {
   selectCell();
 }
 
-function keydown(e) {
-  if (!key) {
+function keydown(ev) {
+  if (!ev.repeat) {
     // ESC to hide/show controls
-    if (e.keyCode == 27) {
+    if (ev.key == 'Escape') {
       if (configUp) {
         handleConfig();
       }
       else {
         controls.style.visibility =
           controls.style.visibility == 'hidden' ? 'visible' : 'hidden';
-        key = true;
       }
     }
 
     // TAB to start/stop
-    else if (e.keyCode == 9) {
-      handleToggle();
-      key = true;
+    else if (ev.key == 'Tab') {
+      board.toggle();
+      ev.preventDefault();
     }
 
     // SPACE to step or stop
-    else if (e.keyCode == 32) {
-      if (hexular.running) {
-        handleStop();
+    else if (ev.key == ' ') {
+      if (board.running) {
+        board.toggle();
       }
       else {
         handleStep();
       }
-      key = true;
     }
   }
-
-  if (key) {
-    e.preventDefault();
+  if (keyWhitelist.indexOf(ev.key) != -1) {
+    ev.preventDefault();
   }
-}
-
-function keyup(e) {
-  if (key)
-    e.preventDefault();
-  key = false;
 }
 
 function selectCell(cell) {
@@ -251,10 +275,7 @@ function selectCell(cell) {
 
 function setCell(cell) {
   if (cell) {
-    setting = true;
     if (cell != lastSet) {
-      if (setState == null)
-        setState = (selected.state + 1) % hexular.numStates;
       cell.state = shift ? 0 : setState;
       lastSet = cell;
       adapter.selectCell();
@@ -263,7 +284,6 @@ function setCell(cell) {
   }
   // Null cell
   else {
-    setting = false;
     setState = null;
     lastSet = null;
   }
@@ -271,31 +291,12 @@ function setCell(cell) {
 
 // --- Button handlers ---
 
-function handleToggle() {
-  if (hexular.running)
-    handleStop();
-  else
-    handleStart();
-}
-
-function handleStart() {
-  hexular.start();
-  ctlStep.disabled = true;
-  ctlToggle.value = 'Stop';
-}
-
-function handleStop() {
-  hexular.stop();
-  ctlStep.disabled = false;
-  ctlToggle.value = 'Start';
-}
-
 function handleStep() {
   hexular.step();
 }
 
 function handleClear() {
-  handleStop();
+  if (board.running) board.toggle();
   hexular.clear();
 }
 

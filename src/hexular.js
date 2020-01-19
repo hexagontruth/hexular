@@ -16,8 +16,6 @@ var Hexular = (function () {
   const DEFAULT_HIGHLIGHT_COLOR = '#ffbb33';
   const DEFAULT_HIGHLIGHT_LINE_WIDTH = 2;
 
-  const DEFAULT_TIMER_LENGTH = 100;
-
   var DEFAULT_COLORS = [
     '#ffffff',
     '#cccccc',
@@ -58,10 +56,6 @@ var Hexular = (function () {
     ]
   };
 
-  let index = 0;
-
-  let abs = Math.abs;
-
   /** Class representing a hexagonal error */
 
   class HexError extends Error {}
@@ -79,22 +73,14 @@ var Hexular = (function () {
         defaultTopology: CubicTopology,
         defaultRule: DEFAULT_RULE,
         maxStates: DEFAULT_MAX_STATES,
-        colors: DEFAULT_COLORS,
-        highlightColor: DEFAULT_HIGHLIGHT_COLOR,
-        highlightLineWidth: DEFAULT_HIGHLIGHT_LINE_WIDTH,
-        timerLength: DEFAULT_TIMER_LENGTH,
         rules: []
       };
       Object.assign(this,defaults, ...args);
       this.filters = [];
       this.adapters = new Set();
       this.topology = new this.defaultTopology(this);
-      this.index = index++;
-      this.timer = null;
-      this.running = false;
       this.renderer = null;
-      this.colors = this.colors.slice();
-
+      this._index = Model.created++;
       this.cells = this.topology.cells;
     }
 
@@ -138,28 +124,6 @@ var Hexular = (function () {
 
     // --- Timer/step stuff ---
 
-    startStop() {
-      if (this.timer) {
-        this.stop();
-        return false;
-      }
-      else {
-        this.start();
-        return true;
-      }
-    }
-
-    start() {
-      this.timer = setInterval(this.step.bind(this), this.timerLength);
-      this.running = true;
-    }
-
-    stop() {
-      clearTimeout(this.timer);
-      this.timer = null;
-      this.running = false;
-    }
-
     step() {
       this.eachCell((cell) => {
         cell.nextState = (this.rules[cell.state] || this.defaultRule)(cell);
@@ -182,7 +146,10 @@ var Hexular = (function () {
         renderer.draw();
       });
     }
+
+    get index() { return this._index; }
   }
+  Model.created = 0;
 
   /** Class representing a cell */
 
@@ -356,7 +323,7 @@ var Hexular = (function () {
           nbr[dir2] -= 1;
           nbr[dir3] = -nbr[dir1] - nbr[dir2];
           for (let dir of [dir1, dir2, dir3]) {
-            if (abs(nbr[dir]) > max) {
+            if (Math.abs(nbr[dir]) > max) {
               let sign = Math.sign(nbr[dir]);
               let dirA = (dir + 1) % 3;
               let dirB = (dir + 2) % 3;
@@ -383,7 +350,7 @@ var Hexular = (function () {
       for (let u = -this.max; u < this.radius; u++) {
         for (let v = -this.max; v < this.radius; v++) {
           let w = -u - v;
-          if (abs(w) > this.max) continue;
+          if (Math.abs(w) > this.max) continue;
           if (fn([u, v, -u - v]) === false) return false;
         }
       }
@@ -408,7 +375,7 @@ var Hexular = (function () {
 
   class Adapter {
     validateKeys(...args) {
-      for (key of args)
+      for (let key of args)
         if (!this[key])
            throw new HexError(`${this.constructor.name} requires "${key}" to be defined`);
     }
@@ -423,6 +390,9 @@ var Hexular = (function () {
         model,
         topology: model.topology,
         cellMap: new Map(),
+        colors: DEFAULT_COLORS,
+        highlightColor: DEFAULT_HIGHLIGHT_COLOR,
+        highlightLineWidth: DEFAULT_HIGHLIGHT_LINE_WIDTH,
         cellRadius: DEFAULT_CELL_RADIUS,
         borderWidth: DEFAULT_BORDER_WIDTH
       };
@@ -437,9 +407,9 @@ var Hexular = (function () {
 
       // For imageData rectangle coords
       this.selectYOffset = Math.ceil(
-        this.cellRadius * math.apothem + this.model.highlightLineWidth);
+        this.cellRadius * math.apothem + this.highlightLineWidth);
       this.selectXOffset = Math.ceil(
-        this.cellRadius + this.model.highlightLineWidth);
+        this.cellRadius + this.highlightLineWidth);
       this.selectHeight = this.selectYOffset * 2;
       this.selectWidth = this.selectXOffset * 2;
 
@@ -506,15 +476,15 @@ var Hexular = (function () {
     defaultDrawCell(cell) {
     // Use cell.owner when writing custom drawing callbacks
     this.drawHexPath(this.renderer, cell);
-    this.renderer.fillStyle = this.model.colors[cell.state];
+    this.renderer.fillStyle = this.colors[cell.state];
     this.renderer.fill();
   }
 
     defaultDrawSelector(cell) {
     this.drawHexPath(this.selector, cell);
 
-    this.selector.strokeStyle = this.model.highlightColor;
-    this.selector.lineWidth = this.model.highlightLineWidth;
+    this.selector.strokeStyle = this.highlightColor;
+    this.selector.lineWidth = this.highlightLineWidth;
     this.selector.stroke();
   }
 
@@ -578,14 +548,6 @@ var Hexular = (function () {
     return ((k % n) + n) % n;
   }
 
-  function subclass(constructor, superclass) {
-    return constructor == superclass || constructor.prototype instanceof superclass;
-  }
-
-  function orAssign(cur, val) {
-    return cur === undefined ? val : cur;
-  }
-
   function mult(m, n) {
     return Array.isArray(n[0]) ? multMatrix(m, n) : multMatrix(m, [n])[0];
   }
@@ -607,7 +569,7 @@ var Hexular = (function () {
   }
 
   function absMax(...args) {
-    return Math.max(...args.map((e) => abs(e)));
+    return Math.max(...args.map((e) => Math.abs(e)));
   }
 
   function cartesianToCubic([y, x]) {
@@ -623,9 +585,9 @@ var Hexular = (function () {
     let rv = Math.round(v / radius);
     let rw = Math.round(w / radius);
     // TODO: Do this better
-    let du = abs(ru - u);
-    let dv = abs(rv - v);
-    let dw = abs(rw - w);
+    let du = Math.abs(ru - u);
+    let dv = Math.abs(rv - v);
+    let dw = Math.abs(rw - w);
 
     if (du > dv && du > dw)
       ru = -rv - rw;
