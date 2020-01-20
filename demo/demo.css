@@ -5,6 +5,7 @@
   border: 0;
   font-size: inherit;
   color: inherit;
+  line-height: inherit;
 }
 
 html, body {
@@ -24,7 +25,7 @@ body {
   transition: all 500ms;
 }
 
-body * {
+.header, button, a, input {
   transition: all 250ms;
 }
 
@@ -35,10 +36,36 @@ body * {
   src: url('../vendor/material-icons.woff2') format('woff2');
 }
 
+.icon {
+  font-family: icon;
+}
+
 .container {
   position: relative;
   margin: auto;
 }
+
+button {
+  display: block;
+  color: #fff;
+  background: #3f9fcc;
+  font-weight: normal;
+  font-style: normal;
+  font-family: icon;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: #fb3;
+  color: #fff;
+  border: 0;
+}
+
+button:disabled {
+  cursor: default;
+  color: rgba(255, 255, 255, 0.5);
+}
+
 
 .header {
   position: fixed;
@@ -54,17 +81,11 @@ body * {
 }
 
 .header button {
-  display: block;
   font-size: 1.5rem;
-  color: #fff;
-  background: #3f9fcc;
 /*  border-radius: 0.25rem;*/
   margin: 0.1rem 0.05rem;
   padding: 0.25rem 0.5rem;
-  font-weight: normal;
-  font-style: normal;
-  font-family: icon;
-  cursor: pointer;
+
 }
 
 .header button:first-child {
@@ -73,17 +94,6 @@ body * {
 
 .header button:last-child {
   border-bottom-right-radius: 0.5rem;
-}
-
-.header button:hover:not(:disabled) {
-  background: #fb3;
-  color: #fff;
-  border: 0;
-}
-
-.header button:disabled {
-  cursor: default;
-  color: rgba(255, 255, 255, 0.5);
 }
 
 .header.hidden button {
@@ -118,8 +128,15 @@ canvas.canvas-fg {
   opacity: 0;
 }
 
-.config {
-  display: inline-block;
+.checked {
+  background: #fb3;
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
   padding: 1rem 1rem 0.5rem 1rem;
   max-width: 90%;
   background: #eee;
@@ -127,30 +144,61 @@ canvas.canvas-fg {
   box-shadow: 10px 3px 3px 'red';
 }
 
-.config input, #ctl_rule_all {
-  display: block;
+.group {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: stretch;
+}
+
+.group > * {
+  margin: 0.2rem;
+}
+
+.group textarea, select, input {
   width: 100%;
+  padding: 0.25rem;
+}
+
+.modal button {
+  padding: 0.25rem;
+}
+
+.modal .group input {
+  display: block;
   margin: 0 auto 1rem auto;
 }
-
-.config .rule-config select {
-  display: block;
-  width: 100%;
+.rule-config select[data-disabled='true'] {
+  opacity: 0.5;
 }
 
-.config .rule-config {
+.modal .rule-config {
   column-count: 2;
-  column-gap: 1rem;
-  -moz-column-count: 2;
-  -moz-column-gap: 1rem;
+  column-gap: 0;
 }
 
-.config .rule-container {
-  display: block;
-  border-width: 0 1rem;
-  border-style: solid;
-  margin: 0 0 0.5rem 0;
-  padding: 0 0.25rem;
+.modal .rule-menu {
+  padding: 0.2rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: stretch;
+}
+
+.modal .indicator {
+  width: 2rem;
+  font-family: icon;
+}
+
+.modal .rule-menu select {
+}
+
+.modal .rule-menu:first-child {
+  margin-top: 0;
+}
+
+.modal .rule-menu:last-child {
+  margin-bottom: 0;
 }
 
 @media screen and (max-width: 480px){

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no">
   <script type="text/javascript" src="src/hexular.js"></script>
   <script type="text/javascript" src="demo/rules.js"></script>
+  <script type="text/javascript" src="demo/presets.js"></script>
   <script type="text/javascript" src="demo/demo.js"></script>
   <link rel="stylesheet" type="text/css" href="demo/demo.css"/>
   <link rel="icon" type="image/png" href="demo/icon.png"/>
@@ -15,28 +16,47 @@
   <div class="header">
     <button id="toggle" title="Play (Tab)">play_arrow</button>
     <button id="step" title="Step (Space)">skip_next</button>
-    <button id="clear" title="Clear">clear</button>
-    <button id="config" title="Set state rules">menu</button>
-    <button id="functions" disabled title="Define custom function">functions</button>
-    <button id="save" disabled title="Save state">save</button>
-    <button id="load" disabled title="Load state">backup</button>
+    <button id="config" title="Config">menu</button>
+    <button id="save" title="(S)ave state...">save</button>
+    <button id="load" title="(L)oad state...">backup</button>
+    <button id="clear" title="Clear">block</button>
   </div>
   <div class="overlay hidden">
-    <div class="config">
-      <input type="range" id="states" min="2" max="12" step="1"
-        value="2" list="ticks" title="Number of States (2-12)"/>
-      <datalist id="ticks">
-        <option>2</option>
-        <option>4</option>
-        <option>6</option>
-        <option>8</option>
-        <option>10</option>
-        <option>12</option>
-      </datalist>
-      <select id="rule-all" title="Set all rules">
-        <option value="">&lt;&lt; Set all rules &gt;&gt;</option>
-      </select>
+    <div class="modal">
+      <div class="group">
+        <select id="select-preset">
+          <option value="">- Select preset -</option>
+        </select>
+      </div>
+      <div class="group">
+        <textarea id="custom-rule">{newRule: (cell) => cell.state}</textarea>
+      </div>
+      <div class="group">
+        <button id="check-all">arrow_downward</button>
+        <button id="add-rule">add</button>
+        <select id="set-all">
+          <option value="">- Set selected -</option>
+        </select>
+      </div>
       <div class="rule-config"></div>
+      <div class="group">
+        <input type="range" id="num-states" min="2" max="12" step="1"
+          value="2" list="ticks" title="Number of States (2-12)"/>
+        <datalist id="ticks">
+          <option>2</option>
+          <option>4</option>
+          <option>6</option>
+          <option>8</option>
+          <option>10</option>
+          <option>12</option>
+        </datalist>
+      </div>
+    </div>
+  </div>
+  <div class="assets" style="display: none;">
+    <div class="rule-menu checkable">
+      <div class="indicator"></div>
+      <select class="rule-select"></select>
     </div>
   </div>
 </body>

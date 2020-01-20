@@ -8,7 +8,7 @@ var Hexular = (function () {
   const DEFAULT_ROWS = 60;
   const DEFAULT_COLS = 60;
 
-  const DEFAULT_RULE = nullRule;
+  const DEFAULT_RULE = identityRule;
   const DEFAULT_MAX_STATES = 2; // Only used by modulo filter
 
   const DEFAULT_CELL_RADIUS = 10;
@@ -519,7 +519,7 @@ var Hexular = (function () {
 
   // --- DEFAULT CELL CALLBACKS ---
 
-  function nullRule(cell) {
+  function identityRule(cell) {
     return cell.state;
   }
 
@@ -614,11 +614,11 @@ var Hexular = (function () {
 
   Object.assign(Hexular, {
     utility: {
-      nullRule,
+      identityRule,
       modFilter,
       ruleBuilder
     },
-    nullRule,
+    identityRule,
     math: Object.assign(math, {
       absMax,
       elemOp,

@@ -6,19 +6,14 @@ const DEFAULTS = {
     cols: 100,
     radius: 60,
     numStates: 6,
-    rules: [
-      RULES.standardOff,
-      RULES.simpleIncrementor,
-      RULES.simpleIncrementor,
-      RULES.simpleIncrementor,
-      RULES.simpleIncrementor,
-      RULES.standardOn
-    ],
     cellRadius: 10
   },
   maxNumStates: 12,
   timerLength: 100,
-  rules: RULES
+  rules: RULES,
+  defaultRule: 'identityRule',
+  preset: 'default',
+  presets: PRESETS
 };
 
 let keyWhitelist = [
@@ -27,6 +22,8 @@ let keyWhitelist = [
   'Tab',
   ' '
 ];
+
+let hexular, adapter, board;
 
 class Board {
   constructor(...args) {
@@ -41,17 +38,29 @@ class Board {
       container: document.querySelector('.container'),
       overlay: document.querySelector('.overlay'),
       ruleConfig: document.querySelector('.rule-config'),
-      controls: {
+      buttons: {
         toggle: document.querySelector('#toggle'),
         step: document.querySelector('#step'),
-        clear: document.querySelector('#clear'),
         config: document.querySelector('#config'),
-        states: document.querySelector('#states'),
-        ruleAll: document.querySelector('#rule-all')
+        save: document.querySelector('#save'),
+        load: document.querySelector('#load'),
+        clear: document.querySelector('#clear'),
+      },
+      controls: {
+        selectPreset: document.querySelector('#select-preset'),
+        customRule: document.querySelector('#custom-rule'),
+        addRule: document.querySelector('#add-rule'),
+        checkAll: document.querySelector('#check-all'),
+        setAll: document.querySelector('#set-all'),
+        numStates: document.querySelector('#num-states'),
       }
     };
     Object.assign(this, DEFAULTS, props);
     Object.assign(this.config, ...args);
+    this.config.rules = Object.assign(
+      Array(this.maxNumStates).fill(this.rules[this.defaultRule]),
+      this.presets[this.preset].map((e) => this.rules[e])
+    );
     this.bg = document.createElement('canvas');
     this.fg = document.createElement('canvas');
     this.bg.classList.add('canvas', 'canvas-bg');
@@ -62,7 +71,8 @@ class Board {
     while (this.container.firstChild) this.container.firstChild.remove();
     this.container.appendChild(this.bg);
     this.container.appendChild(this.fg);
-    this.controls.states.value = this.config.numStates;
+    this.controls.numStates.value = this.config.numStates;
+    this.customRuleTemplate = this.controls.customRule.value;
     this.center();
 
     window.onkeydown = (ev) => this.keydown(ev);
@@ -70,12 +80,19 @@ class Board {
     window.onmouseup = (ev) => this.mouseup(ev);
     this.fg.oncontextmenu = (ev) => this.contextmenu(ev);
     this.fg.onmousemove = (ev) => this.mousemove(ev);
-    this.controls.toggle.onclick = (ev) => this.toggle(ev);
-    this.controls.step.onclick = (ev) => this.handleStep(ev);
-    this.controls.clear.onclick = (ev) => this.handleClear(ev);
-    this.controls.config.onclick = (ev) => this.handleConfig(ev);
-    this.controls.states.onchange = (ev) => this.handleStates(ev);
-    this.controls.ruleAll.onchange = (ev) => this.handleRuleAll(ev);
+
+    this.buttons.toggle.onclick = (ev) => this.toggle();
+    this.buttons.step.onclick = (ev) => this.step();
+    this.buttons.config.onclick = (ev) => this.toggleConfig();
+    this.buttons.save.onclick = (ev) => this.save();
+    this.buttons.load.onclick = (ev) => this.load();
+    this.buttons.clear.onclick = (ev) => this.clear();
+
+    this.controls.addRule.onclick = (ev) => this.handleAddRule();
+    this.controls.checkAll.onclick = (ev) => this.checkAll();
+    this.controls.numStates.onchange = (ev) => this.setNumStates(ev.target.value);
+    this.controls.selectPreset.onchange = (ev) => this.selectPreset(ev.target.value);
+    this.controls.setAll.onchange = (ev) => this.setAll(ev.target.value);
   }
 
   center() {
@@ -89,21 +106,88 @@ class Board {
     }
   }
 
-  toggle(ev) {
+  get running() { return !!this.timer; }
+
+  // Button handlers (can also be called directly)
+
+  toggle() {
     if (!this.running) {
       this.timer = setInterval(hexular.step.bind(hexular), this.config.timerLength);
-      this.controls.step.disabled = true;
-      this.controls.toggle.innerHTML = 'pause';
+      this.buttons.step.disabled = true;
+      this.buttons.toggle.innerHTML = 'pause';
     }
     else {
       clearInterval(this.timer);
       this.timer = null;
-      this.controls.step.disabled = false;
-      this.controls.toggle.innerHTML = 'play_arrow';
+      this.buttons.step.disabled = false;
+      this.buttons.toggle.innerHTML = 'play_arrow';
     }
   }
 
-  get running() { return !!this.timer; }
+  step() {
+    hexular.step();
+  }
+
+  toggleConfig() {
+    this.overlay.classList.toggle('hidden');
+  }
+
+  clear() {
+    if (this.running) this.toggle();
+    hexular.clear();
+  }
+
+  save() {
+
+  }
+
+  load() {
+
+  }
+
+  // Page/canvas listeners
+
+  keydown(ev) {
+    let key = ev.key.toLowerCase();
+    if (!ev.repeat) {
+      // ESC to hide/show controls
+      if (ev.key == 'Escape') {
+        if (!this.overlay.classList.contains('hidden')) {
+          this.toggleConfig();
+        }
+        else {
+          this.header.classList.toggle('hidden');
+        }
+      }
+
+      // TAB to start/stop
+      else if (ev.key == 'Tab') {
+        this.toggle();
+        ev.preventDefault();
+      }
+
+      // SPACE to step or stop
+      else if (ev.key == ' ') {
+        if (this.running) {
+          this.toggle();
+        }
+        else {
+          this.step();
+        }
+      }
+
+      else if (key == 's') {
+        this.save();
+      }
+
+      else if (key == 'l') {
+        this.load();
+      }
+    }
+    if (keyWhitelist.indexOf(ev.key) != -1) {
+      ev.preventDefault();
+    }
+  }
 
   contextmenu(ev) { ev.preventDefault(); }
 
@@ -120,7 +204,7 @@ class Board {
       }
     }
     else if (ev.target == this.overlay) {
-      this.handleConfig();
+      this.toggleConfig();
     }
   }
 
@@ -143,39 +227,6 @@ class Board {
     this.setState = null;
   }
 
-  keydown(ev) {
-    if (!ev.repeat) {
-      // ESC to hide/show controls
-      if (ev.key == 'Escape') {
-        if (!this.overlay.classList.contains('hidden')) {
-          this.handleConfig();
-        }
-        else {
-          this.header.classList.toggle('hidden');
-        }
-      }
-
-      // TAB to start/stop
-      else if (ev.key == 'Tab') {
-        this.toggle();
-        ev.preventDefault();
-      }
-
-      // SPACE to step or stop
-      else if (ev.key == ' ') {
-        if (this.running) {
-          this.toggle();
-        }
-        else {
-          this.handleStep();
-        }
-      }
-    }
-    if (keyWhitelist.indexOf(ev.key) != -1) {
-      ev.preventDefault();
-    }
-  }
-
   selectCell(cell) {
     this.selected = cell;
     adapter.selectCell(cell);
@@ -192,80 +243,123 @@ class Board {
     }
   }
 
-  handleStep() {
-    hexular.step();
+  handleAddRule() {
+    try {
+      let obj = new Function(`return (${this.controls.customRule.value})`)();
+      Object.assign(this.rules, obj);
+      this.refreshRules();
+      let ruleNames = Object.keys(obj);
+      this.controls.customRule.disabled = true;
+      this.controls.customRule.value =
+        `Successfully add rule${ruleNames.length > 1 ? 's' : ''} ${ruleNames.join(', ')}.`;
+      setTimeout(() => {
+        this.controls.customRule.disabled = false;
+        this.controls.customRule.value = this.customRuleTemplate;
+      }, 2000);
+    }
+    catch (err) {
+      console.error(`An error occurred while trying to add custom rules: ${err}. Too bad.`);
+    }
   }
 
-  handleClear() {
-    if (this.running) this.toggle();
-    hexular.clear();
+  checkAll() {
+    let check = !this.ruleMenus.every((ruleMenu) => ruleMenu.checked);
+    if (check)
+      this.controls.checkAll.classList.add('checked');
+    else
+      this.controls.checkAll.classList.remove('checked');
+    this.ruleMenus.forEach((ruleMenu) => {
+      ruleMenu.checked = check;
+    });
   }
 
-  handleConfig() {
-    this.overlay.classList.toggle('hidden');
-  }
-
-  handleStates() {
-    const numStates = parseInt(this.controls.states.value);
+  setNumStates(val) {
+    if (val)
+      this.controls.numStates.value = val;
+    const numStates = parseInt(this.controls.numStates.value);
     hexular.numStates = parseInt(numStates);
     this.ruleMenus.forEach((ruleMenu) => {
-      ruleMenu.disabled = ruleMenu.index >= numStates;
+      let disabled = ruleMenu.index >= numStates;
+      ruleMenu.select.setAttribute('data-disabled', disabled);
+      hexular.rules[ruleMenu.index] = this.config.rules[ruleMenu.index];
     });
+    this.checkPreset();
   }
 
-  handleRule(ev) {
-    const ctl = ev.target;
-    hexular.rules[ctl.index] = this.rules[ctl.value] || this.rules.nullRule;
-  }
-
-  handleRuleAll(ev) {
-    const ctl = ev.target;
-    const rule = this.rules[ctl.value] || this.rules.nullRule;
-
+  setAll(ruleName) {
+    const rule = this.rules[ruleName] || this.rules.identityRule;
     this.ruleMenus.forEach((ruleMenu) => {
-      ruleMenu.value = ctl.value;
+      ruleMenu.select.value = ruleName;
       hexular.rules[ruleMenu.index] = rule;
     });
-    ctl.selectedIndex = 0;
+    this.controls.setAll.selectedIndex = 0;
+    this.checkPreset();
+  }
+
+  setRule(ev) {
+    const ctl = ev.target;
+    hexular.rules[ctl.ruleMenu.index] = this.rules[ctl.value] || this.rules.identityRule;
+    this.checkPreset();
+  }
+
+  selectPreset(presetName) {
+    const presetList = this.presets[presetName];
+    if (!presetList)
+      return;
+    this.setNumStates(presetList.length);
+    this.ruleMenus.forEach((ruleMenu) => {
+      let ruleName = presetList[ruleMenu.index] || 'identityRule';
+      let fn = this.rules[ruleName];
+      ruleMenu.select.value = ruleName;
+      hexular.rules[ruleMenu.index] = fn;
+    });
+    this.preset = presetName;
+    this.controls.selectPreset.value = presetName;
+  }
+
+  checkPreset() {
+    const presetList = this.presets[this.preset];
+    if (!presetList)
+      return;
+    let dirty = (() => {
+      if (hexular.numStates != presetList.length)
+        return true;
+      return hexular.rules.slice(0, hexular.numStates).reduce((a, ruleFn, idx) => {
+        return a || this.rules[idx] != ruleFn;
+      }, false);
+    })();
+    if (dirty) {
+      this.controls.selectPreset.selectedIndex = 0;
+      this.preset = null;
+    }
   }
 
   refreshRules() {
-    this.controls.ruleAll.options.length = 1;
-    for (let rule of Object.keys(this.rules)) {
+    // Refresh presets
+    this.controls.selectPreset.options.length = 1;
+    for (let presetName of Object.keys(this.presets)) {
       let option = document.createElement('option');
-      option.text = rule;
-      this.controls.ruleAll.appendChild(option);
+      option.text = presetName;
+      option.selected = presetName == this.preset;
+      this.controls.selectPreset.appendChild(option);
     }
 
-    this.ruleMenus.forEach((ruleMenu) => ruleMenu.parentNode.remove());
+    // Refresh rules
+    this.controls.setAll.options.length = 1;
+    for (let ruleName of Object.keys(this.rules)) {
+      let option = document.createElement('option');
+      option.text = ruleName;
+      this.controls.setAll.appendChild(option);
+    }
+
+    while (this.ruleConfig.firstChild) this.ruleConfig.firstChild.remove();
     this.ruleMenus = [];
 
     for (let i = 0; i < this.maxNumStates; i++) {
-      let ruleMenu = document.createElement('select');
-      let ruleContainer = document.createElement('div');
-
-      ruleMenu.index = i;
-      ruleMenu.title = 'State ' + i;
-      ruleMenu.addEventListener('change', (ev) => this.handleRule(ev));
-
-      ruleContainer.classList.add('rule-container');
-      ruleContainer.style.borderColor = adapter.colors[i];
-
-      for (let [rule, fn] of Object.entries(this.rules)) {
-        let option = document.createElement('option');
-        option.text = rule;
-
-        if (hexular.rules[i] == fn)
-          option.selected = true;
-
-        ruleMenu.appendChild(option);
-      }
-
-      ruleMenu.disabled = i >= hexular.numStates;
-
+      let ruleMenu = new RuleMenu(i, this.rules, hexular.rules[i], i >= hexular.numStates);
+      ruleMenu.select.addEventListener('change', (ev) => this.setRule(ev));
       this.ruleMenus.push(ruleMenu);
-      ruleContainer.appendChild(ruleMenu);
-      this.ruleConfig.appendChild(ruleContainer);
+      this.ruleConfig.appendChild(ruleMenu.container);
     }
   }
 
@@ -273,9 +367,44 @@ class Board {
     this.rules[ruleName] = fn;
     this.refreshRules();
   }
+
+  addPreset(presetName, fnArray) {
+    this.presets[presetName] = fnArray;
+    this.refreshRules();
+  }
 }
 
-let hexular, adapter, board;
+class RuleMenu {
+  constructor(idx, rules, selected, disabled) {
+    this.index = idx;
+    let prototype = document.querySelector('.assets .rule-menu');
+    let container = this.container = prototype.cloneNode(true);
+    let select = this.select = container.querySelector('select');
+    let indicator = this.indicator = container.querySelector('.indicator');
+    select.ruleMenu = this;
+    select.title = `State ${idx}`;
+    select.setAttribute('data-disabled', disabled);
+    indicator.style.backgroundColor = adapter.colors[idx];
+    for (let [ruleName, fn] of Object.entries(rules)) {
+      let option = document.createElement('option');
+      option.text = ruleName;
+      option.selected = selected == fn;
+      select.appendChild(option);
+    }
+    indicator.addEventListener('click', (ev) => {
+      this.checked = !this.checked;
+    });
+  }
+
+  set checked(val) {
+    if (val) this.container.classList.add('checked');
+    else this.container.classList.remove('checked');
+  }
+
+  get checked() {
+    return this.container.classList.contains('checked');
+  }
+}
 
 window.addEventListener('DOMContentLoaded', function(e) {
   let opts = {};

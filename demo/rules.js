@@ -1,52 +1,69 @@
-var RULES = {
+let RULES = {
 
-  // Default identity rule - same as Hexular.nullRule
+  nullRule: (cell) => 0,
 
-  nullRule: (cell) => cell.state,
+  // Default identity rule - same as Hexular.identityRule
 
-  // Standard binary activation rule for off cells
+  identityRule: (cell) => cell.state,
 
-  standardOff: (cell) => {
-    const count = cell.countAll();
-    if (count == 2)
-      return 1;
-    else
-      return 0;
+  binary1: (cell) => cell.countAll() == 1 ? 1 : 0,
+
+  binary2: (cell) => cell.countAll() == 2 ? 1 : 0,
+
+  binary12: (cell) => {
+    let count = cell.countAll();
+    return count == 1 || count == 2 ? 1 : 0;
   },
 
-  // Standard binary activation rule for already-activated cells
-
-  standardOn: (cell) => {
+  binary23: (cell) => {
     const count = cell.countAll();
-    if (count == 3 || count == 4)
-      return 1;
-    else
-      return 0;
+    return count == 2 || count == 3 ? 1 : 0;
   },
 
-  // Same as standardOff, but will activate for either 2 or 3
-
-  easyOff: (cell) => {
+  binary34: (cell) => {
     const count = cell.countAll();
-    if (count == 2 || count == 3)
-      return 1;
-    else
-      return 0;
+    return count == 3 || count == 4 ? 1 : 0;
+  },
+
+  // incBinary is same as binary, but "inclusive" of current cell state
+
+  incBinary2: (cell) => {
+    const count = cell.countAll() + cell.state;
+    return count == 2 ? 1 : 0
+  },
+
+  incBinary12: (cell) => {
+    let count = cell.countAll() + cell.state;
+    return count == 1 || count == 2 ? 1 : 0;
+  },
+
+  incBinary23: (cell) => {
+    const count = cell.countAll() + cell.state;
+    return count == 2 || count == 3 ? 1 : 0
+  },
+
+  incBinary34: (cell) => {
+    const count = cell.countAll() + cell.state;
+    return count == 3 || count == 4 ? 1 : 0;
+  },
+
+  // offset is similar to binary except it increments instead of setting to 1
+
+  offset23: (cell) => {
+    const count = cell.countAll();
+    return count == 2 || count == 3 ? cell.offset(1) : 0;
   },
 
   // Same as standardOn, using states > 1 to represent activation generation
 
-  generationalStandardOn: (cell) => {
+  offset34: (cell) => {
     const count = cell.countAll();
-    if (count == 3 || count == 4)
-      return cell.offset(1) || 1;
-    else
-      return 0;
+    return count == 3 || count == 4 ? cell.offset(1) : 0;
   },
 
   // Simple multistate rule
 
-  simpleIncrementor: (cell) => {
+  duplexOffset23: (cell) => {
     const count = cell.countAll();
     if (count == 2 || count == 3)
       return cell.offset(1);
@@ -56,11 +73,16 @@ var RULES = {
       return 0;
   },
 
-  // Increment each state -- useful for holding activation for fixed period
-
-  cycleRule: (cell) => cell.offset(1),
+  offset34: (cell) => {
+    const count = cell.countAll();
+    if (!cell.state)
+      return 0;
+    else 
+      return count < 4 ? cell.offset(1) : Math.max(0, cell.offset(-1));
+  },
 
   // A random example of a more complex state -- not actually useful
+  // Keeping this in the revised version mainly because I find the name charming
 
   fancytown: (cell) => {
     const tot = cell.total();
@@ -72,9 +94,22 @@ var RULES = {
       return cell.state;
   },
 
-  // Another useless example, similar to simpleIncrementor
+  // Increment each state -- useful for holding activation for fixed period
+  // Generally not helpful to use this as a ground state
+
+  cycle: (cell) => cell.offset(1),
+
+  anticycle: (cell) => cell.offset(-1),
+
+  // A cumulative offset rule
+  // Pretty sure I meant for "isomod" to stand for "isotropic modulo" but I'm not sure what this means here
 
   isomod: (cell) => cell.offset(cell.total()),
+
+  incCountAll: (cell) => {
+    const count = cell.countAll() + cell.state;
+    return count;
+  },
 
   // Total xor
 
@@ -84,12 +119,7 @@ var RULES = {
 
   countXor: (cell) => cell.countAll() % 2,
 
-  // Debug rule
-
-  trackOut: (cell) => {
-    let count = cell.countAll();
-    return (count == 1 || count == 2) ? 1 : 0;
-  },
+  // I made this while testing the new topologies. I am keeping it, again, because of the name
 
   mrWiggleburg: (cell) => {
     let count = cell.countAll();
@@ -102,9 +132,5 @@ var RULES = {
     else
       return 0;
   },
-
-  // Always set to zero
-
-  alwaysOff: (cell) => 0,
 
 };
