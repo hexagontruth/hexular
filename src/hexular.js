@@ -506,7 +506,7 @@ var Hexular = (function () {
 
     // Get cell at y,x coords on canvas
 
-    cellAt([y, x]) {
+    cellAt([x, y]) {
       // First convert to cubic coords
       let rawCubic = cartesianToCubic([y, x]);
       let cubic = roundCubic(rawCubic, this.cellRadius);
@@ -527,6 +527,12 @@ var Hexular = (function () {
 
   function modFilter(state) {
     return mod(state, this.maxStates);
+  }
+
+  function ruleBuilder(n) {
+    return (cell) => {
+      // TODO: This
+    };
   }
 
   // --- UTILITY FUNCTIONS ---
@@ -607,9 +613,12 @@ var Hexular = (function () {
   }
 
   Object.assign(Hexular, {
-    HexError,
+    utility: {
+      nullRule,
+      modFilter,
+      ruleBuilder
+    },
     nullRule,
-    elemOp,
     math: Object.assign(math, {
       absMax,
       elemOp,
@@ -621,6 +630,7 @@ var Hexular = (function () {
       mod
     }),
     classes: {
+      HexError,
       Model,
       Cell,
       HookList,

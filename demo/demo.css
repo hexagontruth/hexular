@@ -1,46 +1,102 @@
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: inherit;
+  color: inherit;
 }
 
 html, body {
-  position: relative;
-  margin: 0;
-  padding: 0;
-  font-size: 16px;
-  font-family: sans-serif;
+  width: 100%;
+  height: 100%;
+}
+
+html {
+  font-size: 20px;
+  font-family: 'DejaVu Sans Mono', 'Lucida Console', 'Lucida Sans Typewriter', Monaco, 'Noto Mono', monospace;
 }
 
 body {
+  display: flex;
   background: #cdd;
   color: #333;
+  transition: all 500ms;
 }
 
-.controls {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 10;
+body * {
+  transition: all 250ms;
 }
 
-.controls input {
-  margin: 0;
-  display: block;
-  float: left;
+@font-face {
+  font-family: icon;
+  font-weight: normal;
+  font-style: normal;
+  src: url('../vendor/material-icons.woff2') format('woff2');
 }
 
 .container {
   position: relative;
-  width: 4000px;
-  height: 4000px;
-  text-align: center;
+  margin: auto;
 }
 
-canvas {
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.header button {
+  display: block;
+  font-size: 1.5rem;
+  color: #fff;
+  background: #3f9fcc;
+/*  border-radius: 0.25rem;*/
+  margin: 0.1rem 0.05rem;
+  padding: 0.25rem 0.5rem;
+  font-weight: normal;
+  font-style: normal;
+  font-family: icon;
+  cursor: pointer;
+}
+
+.header button:first-child {
+  border-bottom-left-radius: 0.5rem;
+}
+
+.header button:last-child {
+  border-bottom-right-radius: 0.5rem;
+}
+
+.header button:hover:not(:disabled) {
+  background: #fb3;
+  color: #fff;
+  border: 0;
+}
+
+.header button:disabled {
+  cursor: default;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.header.hidden button {
+  transform: translateY(calc(-100% - 0.2rem));
+}
+
+canvas.canvas-bg {
+}
+
+canvas.canvas-fg {
   position: absolute;
   left: 0;
   top: 0;
-  width: 100%;
-  height: 100%;
 }
 
 .overlay {
@@ -53,8 +109,13 @@ canvas {
   width: 100%;
   top: 0;
   left: 0;
+  opacity: 1;
   background: rgba(0,0,0,0.5);
-  visibility: hidden;
+}
+
+.overlay.hidden {
+  z-index: -100;
+  opacity: 0;
 }
 
 .config {
@@ -90,4 +151,16 @@ canvas {
   border-style: solid;
   margin: 0 0 0.5rem 0;
   padding: 0 0.25rem;
+}
+
+@media screen and (max-width: 480px){
+  html { font-size: 16px; }
+}
+
+@media screen and (max-width: 360px){
+  html { font-size: 12px; }
+}
+
+@media screen and (min-width: 1920px){
+  html { font-size: 1vw; }
 }

@@ -1,4 +1,4 @@
-var rules = {
+var RULES = {
 
   // Default identity rule - same as Hexular.nullRule
 

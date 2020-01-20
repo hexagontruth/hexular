@@ -1,26 +1,30 @@
 <!DOCTYPE html>
-<html lang='en'>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script type='text/javascript' src='src/hexular.js'></script>
-  <script type='text/javascript' src='demo/rules.js'></script>
-  <script type='text/javascript' src='demo/demo.js'></script>
-  <link rel='stylesheet' type='text/css' href='demo/demo.css'/>
-  <title>Hexular Demo</title>
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no">
+  <script type="text/javascript" src="src/hexular.js"></script>
+  <script type="text/javascript" src="demo/rules.js"></script>
+  <script type="text/javascript" src="demo/demo.js"></script>
+  <link rel="stylesheet" type="text/css" href="demo/demo.css"/>
+  <link rel="icon" type="image/png" href="demo/icon.png"/>
+  <title>Hexular</title>
 </head>
-<body>
-  <div class='container'></div>
-  <div class='controls'>
-    <input type='button' id='ctl_toggle' value='Start'/>
-    <input type='button' id='ctl_step' value='Step'/>
-    <input type='button' id='ctl_clear' value='Clear'/>
-    <input type='button' id='ctl_config' value='Config...'/>
+<body style="opacity: 0;">
+  <div class="container"></div>
+  <div class="header">
+    <button id="toggle" title="Play (Tab)">play_arrow</button>
+    <button id="step" title="Step (Space)">skip_next</button>
+    <button id="clear" title="Clear">clear</button>
+    <button id="config" title="Set state rules">menu</button>
+    <button id="functions" disabled title="Define custom function">functions</button>
+    <button id="save" disabled title="Save state">save</button>
+    <button id="load" disabled title="Load state">backup</button>
   </div>
-  <div class='overlay'>
-    <div class='config'>
-      <input name='ctl_states' type='range' id='ctl_states' min='2' max='12' step='1'
-        value='2' list='ticks' title='Number of States (2-12)'/>
+  <div class="overlay hidden">
+    <div class="config">
+      <input type="range" id="states" min="2" max="12" step="1"
+        value="2" list="ticks" title="Number of States (2-12)"/>
       <datalist id="ticks">
         <option>2</option>
         <option>4</option>
@@ -29,12 +33,11 @@
         <option>10</option>
         <option>12</option>
       </datalist>
-      <select id='ctl_rule_all' title='Set all rules'>
-        <option value=''>&lt;&lt; Set all rules &gt;&gt;</option>
+      <select id="rule-all" title="Set all rules">
+        <option value="">&lt;&lt; Set all rules &gt;&gt;</option>
       </select>
-      <div class='rule-config'></div>
+      <div class="rule-config"></div>
     </div>
   </div>
-
 </body>
 </html>
