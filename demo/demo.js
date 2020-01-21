@@ -416,7 +416,7 @@ window.addEventListener('DOMContentLoaded', function(e) {
   board = new Board(opts);
   hexular = Hexular(board.config);
   adapter = hexular.addAdapter(
-    Hexular.classes.CanvasAdapter,
+    Hexular.CanvasAdapter,
     {renderer: board.bgCtx, selector: board.fgCtx},
     board.config
   );

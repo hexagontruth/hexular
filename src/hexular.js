@@ -59,6 +59,14 @@ var Hexular = (function () {
   /** Class representing a hexagonal error */
 
   class HexError extends Error {}
+  HexError.methodNotImplemented = (methodName) => {
+    throw new HexError(`Method not implemented: ${methodName}`);
+  }
+  HexError.validateKeys = (obj, ...args) => {
+    for (let key of args)
+      if (!obj[key])
+         throw new HexError(`${obj.constructor.name} requires "${key}" to be defined`);
+  }
 
   /** Class representing a complete model instance */
 
@@ -70,18 +78,14 @@ var Hexular = (function () {
     */
     constructor(...args) {
       let defaults = {
-        defaultTopology: CubicTopology,
         defaultRule: DEFAULT_RULE,
         maxStates: DEFAULT_MAX_STATES,
-        rules: []
+        rules: [],
+        filters: [],
+        adapters: new Set(),
+        index: Model.create++,
       };
-      Object.assign(this,defaults, ...args);
-      this.filters = [];
-      this.adapters = new Set();
-      this.topology = new this.defaultTopology(this);
-      this.renderer = null;
-      this._index = Model.created++;
-      this.cells = this.topology.cells;
+      Object.assign(this, defaults, ...args);
     }
 
     addAdapter(Class, ...args) {
@@ -104,25 +108,6 @@ var Hexular = (function () {
       this.filters.splice(idx, 1);
       return idx;
     }
-
-    // Iterate over u,v coords for each valid cell
-
-    eachCoord(callback) {
-      for (let i = 0; i < this.rows; i++) {
-        for (let j = 0; j < this.cols; j++) {
-          if (callback(i, j, this) === false)
-            return;
-          }
-        }
-    }
-
-    // Iterate over cells
-
-    eachCell(fn) {
-      this.topology.eachCell(fn);
-    }
-
-    // --- Timer/step stuff ---
 
     step() {
       this.eachCell((cell) => {
@@ -147,9 +132,161 @@ var Hexular = (function () {
       });
     }
 
-    get index() { return this._index; }
+    // Iterate over u,v coords for each valid cell
+
+    eachCoord(callback) {
+      HexError.HexError.methodNotImplementedError('eachCoord');
+    }
+
+    // Iterate over cells
+
+    eachCell(fn) {
+      HexError.HexError.methodNotImplementedError('eachCell');
+    }
+
   }
   Model.created = 0;
+
+  class OffsetModel extends Model {
+    constructor(...args) {
+      super();
+      let defaults = {
+        rows: DEFAULT_ROWS,
+        cols: DEFAULT_COLS,
+        cells: [],
+      };
+      Object.assign(this, defaults, ...args);
+      HexError.validateKeys(this, 'rows', 'col');
+      this.eachCoord(([i, j]) => {
+        // Being on an edge affects draw actions involving neighbors
+        let edge = (i == 0 || i == this.rows - 1 || j == 0 || j == this.cols - 1);
+        this.cells.push(new Cell(this, [i, j], {edge}));
+      });
+
+      // Connect cells
+      this.eachCell((cell, [i, j]) => {
+        let upRow = mod(i - 1, rows);
+        let downRow = mod(i + 1, rows);
+        let offset = downRow % 2;
+        cell.neighbors[0] = this.cells[upRow * rows + mod(j - offset, cols)];
+        cell.neighbors[1] = this.cells[i * rows + mod(j - 1, cols)];
+        cell.neighbors[2] = this.cells[downRow * rows + mod(j - offset, cols)];
+        cell.neighbors[3] = this.cells[downRow * rows + mod(j - offset + 1, cols)];
+        cell.neighbors[4] = this.cells[i * rows + mod(j + 1, cols)];
+        cell.neighbors[5] = this.cells[upRow * rows + mod(j - offset + 1, cols)];
+      });
+    }
+
+    eachCoord(fn) {
+      for (let i = 0; i < this.rows; i++) {
+        for (let j = 0; j < this.cols; j++) {
+          if (fn([i, j]) === false) return false;
+        }
+      }
+      return true;
+    }
+
+    eachCell(fn) {
+      return this.eachCoord(([i, j]) => {
+        let cell = this.cells[i * this.rows + j];
+        return fn(cell, [i, j]);
+      });
+    }
+
+    getCoords(renderer, cell) {
+      let r = renderer.cellRadius;
+      let [i, j] = cell.coord;
+
+      // We again calculate cubic coords and shift x left once every 2 rows
+      let y = renderer.basis[0][0] * i + renderer.basis[0][1] * j;
+      let x = renderer.basis[1][0] * i + renderer.basis[1][1] * (j - Math.floor(i / 2));
+      return [y, x];
+    }
+
+    cellAtCubic([u, v, w]) {
+      // For offset, we shift every two rows to the left
+      v += Math.floor(u / 2);
+      let cell = this.cells[u * this.rows + v];
+      return cell;
+    }
+  }
+
+  class CubicModel extends Model {
+    constructor(...args) {
+      super(...args);
+      let radius = this.radius = this.radius || DEFAULT_RADIUS;
+      let max = this.max = radius - 1;
+      let cols = this.cols = radius * 2 - 1;
+      let cells = this.cells = Array(cols * 2).fill(null);
+      HexError.validateKeys(this, 'radius');
+
+      this.eachCoord(([u, v, w]) => {
+          // Being on an edge affects draw actions involving neighbors
+          let edge = absMax(u, v, w) == max;
+          this.cells[u * cols + v] = new Cell(this, [u, v, w], {edge});
+      });
+
+      // Connect cells
+      let offset = Array(3);
+      this.eachCell((cell, coord) => {
+        for (let i = 0; i < 6; i++) {
+          let dir1 = i >> 1;
+          let dir2 = (dir1 + 1 + i % 2) % 3;
+          let dir3 = (dir1 + 1 + +!(i % 2)) % 3;
+          let nbr = coord.slice();
+          nbr[dir1] += 1;
+          nbr[dir2] -= 1;
+          nbr[dir3] = -nbr[dir1] - nbr[dir2];
+          for (let dir of [dir1, dir2, dir3]) {
+            if (Math.abs(nbr[dir]) > max) {
+              let sign = Math.sign(nbr[dir]);
+              let dirA = (dir + 1) % 3;
+              let dirB = (dir + 2) % 3;
+              nbr[dir] -= sign * cols;
+              nbr[dirA] += sign * max;
+              nbr[dirB] = -nbr[dir] - nbr[dirA];
+            }
+          }
+          cell.neighbors[i] = this.cells[nbr[0] * cols + nbr[1]];
+        }
+
+
+      });
+    }
+
+    eachCell(fn) {
+      return this.eachCoord(([u, v, w]) => {
+        let cell = this.cells[u * this.cols + v];
+        return fn(cell, [u, v, w]);
+      });
+    }
+
+    eachCoord(fn) {
+      for (let u = -this.max; u < this.radius; u++) {
+        for (let v = -this.max; v < this.radius; v++) {
+          let w = -u - v;
+          if (Math.abs(w) > this.max) continue;
+          if (fn([u, v, -u - v]) === false) return false;
+        }
+      }
+      return true;
+    }
+
+    getCoords(renderer, cell) {
+      let r = renderer.cellRadius;
+      let [u, v, w] = cell.coord;
+
+      let [y, x] = mult(renderer.basis, [u, v]);
+      return [y, x];
+    }
+
+    cellAtCubic([u, v, w]) {
+      if (absMax(u, v, w) > this.max)
+        return null;
+      let cell = this.cells[u * this.cols + v];
+      return cell;
+    }
+  }
 
   /** Class representing a cell */
 
@@ -220,166 +357,8 @@ var Hexular = (function () {
     }
   }
 
-  /** Common abstract class for topologies and adapters */
-
-  class Topology {
-    eachCoord() { methodNotImplemented(); }
-    eachCell() { methodNotImplemented(); }
-  }
-
-  class OffsetTopology extends Topology {
-    constructor(model, ...args) {
-      super();
-      let defaults = {
-        rows: model.rows,
-        cols: model.cols,
-        cells: [],
-        model
-      };
-      Object.assign(this, defaults, ...args);
-      if (!this.rows || !this.cols) throw new HexError('OffsetTopology requires rows and columns to be defined');
-      this.eachCoord(([i, j]) => {
-        // Being on the edge potentially effects draw actions involving neighbors
-        let edge = (i == 0 || i == this.rows - 1 || j == 0 || j == this.cols - 1);
-        this.cells.push(new Cell(model, [i, j], {edge}));
-      });
-
-      // Connect cells
-      this.eachCell((cell, [i, j]) => {
-        let upRow = mod(i - 1, rows);
-        let downRow = mod(i + 1, rows);
-        let offset = downRow % 2;
-        cell.neighbors[0] = this.cells[upRow * rows + mod(j - offset, cols)];
-        cell.neighbors[1] = this.cells[i * rows + mod(j - 1, cols)];
-        cell.neighbors[2] = this.cells[downRow * rows + mod(j - offset, cols)];
-        cell.neighbors[3] = this.cells[downRow * rows + mod(j - offset + 1, cols)];
-        cell.neighbors[4] = this.cells[i * rows + mod(j + 1, cols)];
-        cell.neighbors[5] = this.cells[upRow * rows + mod(j - offset + 1, cols)];
-      });
-    }
-
-    eachCoord(fn) {
-      for (let i = 0; i < this.rows; i++) {
-        for (let j = 0; j < this.cols; j++) {
-          if (fn([i, j]) === false) return false;
-        }
-      }
-      return true;
-    }
-
-    eachCell(fn) {
-      return this.eachCoord(([i, j]) => {
-        let cell = this.cells[i * this.rows + j];
-        return fn(cell, [i, j]);
-      });
-    }
-
-    getCoords(renderer, cell) {
-      let r = renderer.cellRadius;
-      let [i, j] = cell.coord;
-
-      // We again calculate cubic coords and shift x left once every 2 rows
-      let y = renderer.basis[0][0] * i + renderer.basis[0][1] * j;
-      let x = renderer.basis[1][0] * i + renderer.basis[1][1] * (j - Math.floor(i / 2));
-      return [y, x];
-    }
-
-    cellAtCubic([u, v, w]) {
-      // For offset, we shift every two rows to the left
-      v += Math.floor(u / 2);
-      let cell = this.model.cells[u * this.rows + v];
-      return cell;
-    }
-  }
-
-  class CubicTopology extends Topology {
-    constructor(model, ...args) {
-      super();
-      let defaults = {
-        radius: model.radius,
-        model
-      };
-      Object.assign(this, defaults, ...args);
-      let radius = this.radius;
-      let max = this.max = this.radius - 1;
-      let cols = this.cols = this.radius * 2 - 1;
-      if (isNaN(radius) || radius == null) throw new HexError('CubicTopology requires radius to be defined');
-      this.cells = Array(cols * 2).fill(null);
-      this.eachCoord(([u, v, w]) => {
-          // Being on the edge potentially effects draw actions involving neighbors
-          let edge = absMax(u, v, w) == max;
-          this.cells[u * cols + v] = new Cell(model, [u, v, w], {edge});
-      });
-
-      // Connect cells
-      let offset = Array(3);
-      this.eachCell((cell, coord) => {
-        for (let i = 0; i < 6; i++) {
-          let dir1 = i >> 1;
-          let dir2 = (dir1 + 1 + i % 2) % 3;
-          let dir3 = (dir1 + 1 + +!(i % 2)) % 3;
-          let nbr = coord.slice();
-          nbr[dir1] += 1;
-          nbr[dir2] -= 1;
-          nbr[dir3] = -nbr[dir1] - nbr[dir2];
-          for (let dir of [dir1, dir2, dir3]) {
-            if (Math.abs(nbr[dir]) > max) {
-              let sign = Math.sign(nbr[dir]);
-              let dirA = (dir + 1) % 3;
-              let dirB = (dir + 2) % 3;
-              nbr[dir] -= sign * cols;
-              nbr[dirA] += sign * max;
-              nbr[dirB] = -nbr[dir] - nbr[dirA];
-            }
-          }
-          cell.neighbors[i] = this.cells[nbr[0] * cols + nbr[1]];
-        }
-
-
-      });
-    }
-
-    eachCell(fn) {
-      return this.eachCoord(([u, v, w]) => {
-        let cell = this.cells[u * this.cols + v];
-        return fn(cell, [u, v, w]);
-      });
-    }
-
-    eachCoord(fn) {
-      for (let u = -this.max; u < this.radius; u++) {
-        for (let v = -this.max; v < this.radius; v++) {
-          let w = -u - v;
-          if (Math.abs(w) > this.max) continue;
-          if (fn([u, v, -u - v]) === false) return false;
-        }
-      }
-      return true;
-    }
-
-    getCoords(renderer, cell) {
-      let r = renderer.cellRadius;
-      let [u, v, w] = cell.coord;
-
-      let [y, x] = mult(renderer.basis, [u, v]);
-      return [y, x];
-    }
-
-    cellAtCubic([u, v, w]) {
-      if (absMax(u, v, w) > this.max)
-        return null;
-      let cell = this.cells[u * this.cols + v];
-      return cell;
-    }
-  }
-
   class Adapter {
-    validateKeys(...args) {
-      for (let key of args)
-        if (!this[key])
-           throw new HexError(`${this.constructor.name} requires "${key}" to be defined`);
-    }
-    draw() { methodNotImplemented(); }
+    draw() { HexError.methodNotImplemented('draw'); }
   }
 
   /** Class represting a renderer to draw to the DOM */
@@ -388,16 +367,15 @@ var Hexular = (function () {
       super();
       let defaults = {
         model,
-        topology: model.topology,
         cellMap: new Map(),
         colors: DEFAULT_COLORS,
         highlightColor: DEFAULT_HIGHLIGHT_COLOR,
         highlightLineWidth: DEFAULT_HIGHLIGHT_LINE_WIDTH,
         cellRadius: DEFAULT_CELL_RADIUS,
-        borderWidth: DEFAULT_BORDER_WIDTH
+        borderWidth: DEFAULT_BORDER_WIDTH,
       };
       Object.assign(this, defaults, ...args);
-      this.validateKeys('renderer', 'selector', 'cellRadius');
+      HexError.validateKeys(this, 'renderer', 'selector', 'cellRadius');
 
       // Precomputed math stuff
 
@@ -426,8 +404,8 @@ var Hexular = (function () {
         x: 0
       };
 
-      this.topology.eachCell((cell) => {
-        this.cellMap.set(cell, this.topology.getCoords(this, cell));
+      this.model.eachCell((cell) => {
+        this.cellMap.set(cell, this.model.getCoords(this, cell));
       });
     }
 
@@ -435,7 +413,7 @@ var Hexular = (function () {
 
     draw() {
       this.clear(this.renderer);
-      this.topology.eachCell((cell) => {
+      this.model.eachCell((cell) => {
         this.drawCell(cell);
       });
     }
@@ -510,7 +488,7 @@ var Hexular = (function () {
       // First convert to cubic coords
       let rawCubic = cartesianToCubic([y, x]);
       let cubic = roundCubic(rawCubic, this.cellRadius);
-      let cell = this.topology.cellAtCubic(cubic);
+      let cell = this.model.cellAtCubic(cubic);
       return cell;
     }
   }
@@ -602,23 +580,17 @@ var Hexular = (function () {
     return [ru, rv, rw];
   }
 
-  function methodNotImplemented() {
-    throw new HexError('Method not implemented.')
-  }
-
   // ---
 
-  const Hexular = (...args) => {
-    return new Model(...args);
-  }
-
-  Object.assign(Hexular, {
+  let attributes = {
+    defaults: {
+      model: CubicModel
+    },
     utility: {
       identityRule,
       modFilter,
-      ruleBuilder
+      ruleBuilder,
     },
-    identityRule,
     math: Object.assign(math, {
       absMax,
       elemOp,
@@ -627,20 +599,24 @@ var Hexular = (function () {
       add,
       cartesianToCubic,
       roundCubic,
-      mod
+      mod,
     }),
-    classes: {
-      HexError,
-      Model,
-      Cell,
-      HookList,
-      Topology,
-      OffsetTopology,
-      CubicTopology,
-      Adapter,
-      CanvasAdapter
-    }
-  });
+    HexError,
+    Model,
+    OffsetModel,
+    CubicModel,
+    Cell,
+    HookList,
+    Adapter,
+    CanvasAdapter,
+  };
+
+  const Hexular = (...args) => {
+    let Class = (args[0] instanceof Model) ? args.shift() : attributes.defaults.model;
+    return new Class(...args);
+  }
+
+  Object.assign(Hexular, attributes);
 
   return Hexular;
 })();
