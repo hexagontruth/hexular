@@ -9,8 +9,9 @@ var Hexular = (function () {
   const DEFAULT_COLS = 60;
 
   const DEFAULT_RULE = identityRule;
-  const DEFAULT_NUM_STATES = 2; // Only used by modulo filter
+  const DEFAULT_NUM_STATES = 2; // Only used by modulo filter and histogram
   const DEFAULT_GROUND_STATE = 0;
+  const AVAILABLE_NEIGHBORHOODS = [6, 12, 18, 7, 13, 19];
 
   const DEFAULT_CELL_RADIUS = 10;
   const DEFAULT_BORDER_WIDTH = 1.25;
@@ -48,12 +49,12 @@ var Hexular = (function () {
       [-0.5, APOTHEM]
     ],
     basis: [
-      [1.5, 0],
-      [APOTHEM, 2 * APOTHEM]
+      [2 * APOTHEM, APOTHEM],
+      [0,           1.5]
     ],
     invBasis: [
-      [2 / 3, 0],
-      [-1 / 3, 1 / (2 * APOTHEM)]
+      [1 / (2 * APOTHEM), -1 / 3],
+      [0,                 2 / 3]
     ]
   };
 
@@ -82,6 +83,7 @@ var Hexular = (function () {
         defaultRule: DEFAULT_RULE,
         numStates: DEFAULT_NUM_STATES,
         groundState: DEFAULT_GROUND_STATE,
+        availableNeighborhoods: AVAILABLE_NEIGHBORHOODS,
         rules: [],
         filters: new HookList(),
         index: Model.create++,
@@ -103,6 +105,12 @@ var Hexular = (function () {
       return idx;
     }
 
+    setNeighborhood(neighborhood) {
+      this.eachCell((cell) => {
+        cell.neighborhood = neighborhood;
+      });
+    }
+
     step() {
       this.eachCell((cell) => {
         let nextState = (this.rules[cell.state] || this.defaultRule)(cell);
@@ -119,16 +127,18 @@ var Hexular = (function () {
       });
     }
 
-    eachCoord(callback) { HexError.methodNotImplementedError('eachCoord'); }
+    eachCoord(callback) { HexError.methodNotImplemented('eachCoord'); }
 
-    eachCell(fn) { HexError.methodNotImplementedError('eachCell'); }
+    eachCell(fn) { HexError.methodNotImplemented('eachCell'); }
 
-    getCells() { HexError.methodNotImplementedError('getCells'); }
+    getCells() { HexError.methodNotImplemented('getCells'); }
 
-    export() { HexError.methodNotImplementedError('export'); }
+    export() {
+      let bytes = Int8Array.from(this.getCells().map((e) => e.state));
+      return bytes;
+    }
 
-    import(buffer) { HexError.methodNotImplementedError('import'); }
-
+    import(bytes) { HexError.methodNotImplemented('import'); }
   }
   Model.created = 0;
 
@@ -136,35 +146,37 @@ var Hexular = (function () {
     constructor(...args) {
       super();
       let defaults = {
-        rows: DEFAULT_ROWS,
         cols: DEFAULT_COLS,
+        rows: DEFAULT_ROWS,
         cells: [],
       };
       Object.assign(this, defaults, ...args);
-      HexError.validateKeys(this, 'rows', 'col');
+      HexError.validateKeys(this, 'rows', 'cols');
+      let rows = this.rows, cols = this.cols;
       this.eachCoord(([i, j]) => {
         // Being on an edge affects draw actions involving neighbors
-        let edge = (i == 0 || i == this.rows - 1 || j == 0 || j == this.cols - 1);
+        let edge = (i == 0 || i == this.cols - 1 || j == 0 || j == rows - 1);
         this.cells.push(new Cell(this, [i, j], {edge}));
       });
 
       // Connect cells
       this.eachCell((cell, [i, j]) => {
-        let upRow = mod(i - 1, rows);
-        let downRow = mod(i + 1, rows);
+        let upRow = mod(j - 1, rows);
+        let downRow = mod(j + 1, rows);
         let offset = downRow % 2;
-        cell.setNeighbor(6, 0, this.cells[upRow * rows + mod(j - offset, cols)]);
-        cell.setNeighbor(6, 1, this.cells[i * rows + mod(j - 1, cols)]);
-        cell.setNeighbor(6, 2, this.cells[downRow * rows + mod(j - offset, cols)]);
-        cell.setNeighbor(6, 3, this.cells[downRow * rows + mod(j - offset + 1, cols)]);
-        cell.setNeighbor(6, 4, this.cells[i * rows + mod(j + 1, cols)]);
-        cell.setNeighbor(6, 5, this.cells[upRow * rows + mod(j - offset + 1, cols)]);
+
+        cell.nbrs[0] = this.cells[downRow * cols + mod(i - offset + 1, cols)];
+        cell.nbrs[1] = this.cells[j * cols + mod(i + 1, cols)];
+        cell.nbrs[2] = this.cells[upRow * cols + mod(i - offset + 1, cols)];
+        cell.nbrs[3] = this.cells[upRow * cols + mod(i - offset, cols)];
+        cell.nbrs[4] = this.cells[j * cols + mod(i - 1, cols)];
+        cell.nbrs[5] = this.cells[downRow * cols + mod(i - offset, cols)];
       });
     }
 
     eachCoord(fn) {
-      for (let i = 0; i < this.rows; i++) {
-        for (let j = 0; j < this.cols; j++) {
+      for (let j = 0; j < this.rows; j++) {
+        for (let i = 0; i < this.cols; i++) {
           if (fn([i, j]) === false) return false;
         }
       }
@@ -173,7 +185,7 @@ var Hexular = (function () {
 
     eachCell(fn) {
       return this.eachCoord(([i, j]) => {
-        let cell = this.cells[i * this.rows + j];
+        let cell = this.cells[j * this.cols + i];
         return fn(cell, [i, j]);
       });
     }
@@ -182,17 +194,27 @@ var Hexular = (function () {
       let r = renderer.cellRadius;
       let [i, j] = cell.coord;
 
-      // We again calculate cubic coords and shift x left once every 2 rows
-      let y = renderer.basis[0][0] * i + renderer.basis[0][1] * j;
-      let x = renderer.basis[1][0] * i + renderer.basis[1][1] * (j - Math.floor(i / 2));
-      return [y, x];
+      // Like converting to cubic coords but mod 2 wrt x offset
+      let x = renderer.basis[0][0] * i + renderer.basis[0][1] * (j % 2);
+      let y = renderer.basis[1][0] * i + renderer.basis[1][1] * j;
+      return [x, y];
+    }
+
+    getCells() {
+      return this.cells;
     }
 
     cellAtCubic([u, v, w]) {
       // For offset, we shift every two rows to the left
-      v += Math.floor(u / 2);
-      let cell = this.cells[u * this.rows + v];
+      v += u >> 1;
+      let cell = this.cells[u * this.cols + v];
       return cell;
+    }
+
+    import(bytes) {
+      this.getCells().forEach((cell, idx) => {
+        cell.state = bytes[idx] || this.groundState;
+      });
     }
   }
 
@@ -217,7 +239,6 @@ var Hexular = (function () {
       // Connect cells
       let offset = Array(3);
       this.eachCell((cell, coord) => {
-        cell.addNeighborhoods(6);
         for (let i = 0; i < 6; i++) {
           let dir1 = i >> 1;
           let dir2 = (dir1 + 1 + i % 2) % 3;
@@ -236,17 +257,10 @@ var Hexular = (function () {
               nbr[dirB] = -nbr[dir] - nbr[dirA];
             }
           }
-          cell.setNeighbor(6, i, this.cells[nbr[0] * cols + nbr[1]]);
+          cell.nbrs[(i + 5) % 6] = this.cells[nbr[0] * cols + nbr[1]];
         }
 
 
-      });
-    }
-
-    eachCell(fn) {
-      return this.eachCoord(([u, v, w]) => {
-        let cell = this.cells[u * this.cols + v];
-        return fn(cell, [u, v, w]);
       });
     }
 
@@ -261,12 +275,23 @@ var Hexular = (function () {
       return true;
     }
 
+    eachCell(fn) {
+      return this.eachCoord(([u, v, w]) => {
+        let cell = this.cells[u * this.cols + v];
+        return fn(cell, [u, v, w]);
+      });
+    }
+
     getCoords(renderer, cell) {
       let r = renderer.cellRadius;
       let [u, v, w] = cell.coord;
 
-      let [y, x] = mult(renderer.basis, [u, v]);
-      return [y, x];
+      let [x, y] = mult(renderer.basis, [v, u]);
+      return [x, y];
+    }
+
+    getCells() {
+      return Object.values(this.cells).filter((e) => e);
     }
 
     cellAtCubic([u, v, w]) {
@@ -274,15 +299,6 @@ var Hexular = (function () {
         return null;
       let cell = this.cells[u * this.cols + v];
       return cell;
-    }
-
-    getCells() {
-      return Object.values(this.cells).filter((e) => e);
-    }
-
-    export() {
-      let bytes = Int8Array.from(this.getCells().map((e) => e.state));
-      return bytes;
     }
 
     import(bytes) {
@@ -294,7 +310,6 @@ var Hexular = (function () {
         if (cells[cellIdx])
           cells[cellIdx].state = state;
       });
-      this.draw();
     }
   }
 
@@ -307,58 +322,50 @@ var Hexular = (function () {
         coord,
         state: model.groundState,
         nextState: 0,
-        nbr: {
-          1: [self],
-          // Canonical neighborhoods
-          6: Array(6).fill(this),
-          12: Array(12).fill(this),
-          18: Array(18).fill(this),
-          // Derived neighborhoods
-          7: Array(7).fill(this),
-          13: Array(13).fill(this),
-          19: Array(19).fill(this),
+        neighborhoods: {
+          6: new Array(6).fill(this),
         },
-        implementedNeighborhoods: new Set([1]),
       };
       Object.assign(this, defaults, ...args);
-    }
-
-    setNeighbor(canonicalRing, idx, cell) {
-      let neighborhoods = [6, 12, 18].filter((e) => e >= canonicalRing);
-      let cur;
-      while (cur = neighborhoods.pop()) {
-        this.nbr[cur][idx] = cell;
-        this.nbr[cur + 1][idx] = cell;
-      }
+      this.neighborhood = 6;
     }
 
     addNeighborhoods(...neighborhoods) {
+      neighborhoods = neighborhoods.filter((e) => this.model.availableNeighborhoods.includes(e));
       neighborhoods.forEach((e) => {
-        this.implementedNeighborhoods.add(e)
+        this.neighborhoods[e] = Array(e).fill(this);
       });
     }
 
-    implements(neighborhood) {
-      return this.implementedNeighborhoods.has(neighborhood);
+    get neighborhood() {
+      return this._neighborhood;
+    }
+
+    set neighborhood(neighborhood) {
+
+      let nbrs = this.neighborhoods[neighborhood];
+      if (!nbrs) throw new HexError(`Neighborhood ${neighborhood} not defined`);
+      this.nbrs = nbrs;
+      this._neighborhood = 6;
     }
 
     get total() {
-      return this.nbr[6].reduce((a, e) => a + e.state, 0);
+      return this.nbrs.reduce((a, e) => a + e.state, 0);
     }
 
     get count() {
-      return this.nbr[6].reduce((a, e) => a + (e.state ? 1 : 0), 0);
+      return this.nbrs.reduce((a, e) => a + (e.state ? 1 : 0), 0);
     }
 
     get histogram() {
       let values = Array(this.numStates).fill(0);
       for (let i = 0; i < this.numStates; i ++)
-        values[this.nbr[6][i].state] += 1;
+        values[this.nbrs[i].state] += 1;
       return values;
     }
 
     countState(state) {
-      return this.nbr[6].reduce((a, e) =>  a + (e.state == state ? 1 : 0), 0);
+      return this.nbrs.reduce((a, e) =>  a + (e.state == state ? 1 : 0), 0);
     }
   }
 
@@ -422,8 +429,8 @@ var Hexular = (function () {
       this.onDrawSelector.push(this.defaultDrawSelector);
       this.selected = {
         cell: null,
-        y: 0,
-        x: 0
+        x: 0,
+        y: 0
       };
 
       this.model.eachCell((cell) => {
@@ -446,9 +453,9 @@ var Hexular = (function () {
       if (this.selected.cell != cell) {
         this.clear(this.selector);
         if (cell) {
-          let [y, x] = this.cellMap.get(cell);
-          this.selected.y = y - this.selectYOffset;
+          let [x, y] = this.cellMap.get(cell);
           this.selected.x = x - this.selectXOffset;
+          this.selected.y = y - this.selectYOffset;
           this.drawSelector(cell);
         }
         this.selected.cell = cell;
@@ -491,7 +498,7 @@ var Hexular = (function () {
     // Basic cell path for both cells and selector
 
     drawHexPath(ctx, cell) {
-      const [y, x] = this.cellMap.get(cell);
+      const [x, y] = this.cellMap.get(cell);
       const vertices = this.vertices;
       ctx.beginPath();
       ctx.moveTo(x + vertices[0][1], y + vertices[0][0]);
@@ -508,7 +515,7 @@ var Hexular = (function () {
 
     cellAt([x, y]) {
       // First convert to cubic coords
-      let rawCubic = cartesianToCubic([y, x]);
+      let rawCubic = cartesianToCubic([x, y]);
       let cubic = roundCubic(rawCubic, this.cellRadius);
       let cell = this.model.cellAtCubic(cubic);
       return cell;
@@ -582,8 +589,8 @@ var Hexular = (function () {
     return Math.max(...args.map((e) => Math.abs(e)));
   }
 
-  function cartesianToCubic([y, x]) {
-    let [u, v] = mult(math.invBasis, [y, x]);
+  function cartesianToCubic([x, y]) {
+    let [v, u] = mult(math.invBasis, [x, y]);
     let w = -u - v;
     return [u, v, w];
   }
@@ -649,7 +656,7 @@ var Hexular = (function () {
   };
 
   const Hexular = (...args) => {
-    let Class = (args[0] instanceof Model) ? args.shift() : attributes.defaults.model;
+    let Class = (args[0].prototype instanceof Model) ? args.shift() : attributes.defaults.model;
     return new Class(...args);
   }
 
