@@ -60,7 +60,7 @@ var Hexular = (function () {
 
   class HexError extends Error {}
   HexError.methodNotImplemented = (methodName) => {
-    throw new HexError(`Method not implemented: ${methodName}`);
+    throw new HexError(`Method not implemented: "${methodName}"`);
   }
   HexError.validateKeys = (obj, ...args) => {
     for (let key of args)
@@ -82,20 +82,12 @@ var Hexular = (function () {
         maxStates: DEFAULT_MAX_STATES,
         rules: [],
         filters: [],
-        adapters: new Set(),
         index: Model.create++,
       };
       Object.assign(this, defaults, ...args);
-    }
-
-    addAdapter(Class, ...args) {
-      let adapter = new Class(this, ...args);
-      this.adapters.add(adapter);
-      return adapter;
-    }
-
-    removeAdapter(adapter) {
-      this.adapter.delete(adapter);
+      Object.entries(attributes.classes.adapters).forEach(([className, Class]) => {
+        this[className] = (...args) => new Class(this, ...args);
+      });
     }
 
     addFilter(filter, idx) {
@@ -116,33 +108,23 @@ var Hexular = (function () {
       this.eachCell((cell) => {
         cell.state = cell.nextState;
       });
-      this.draw();
     }
 
     clear() {
       this.eachCell((cell) => {
         cell.state = 0;
       });
-      this.draw();
     }
 
-    draw() {
-      this.adapters.forEach((renderer) => {
-        renderer.draw();
-      });
-    }
+    eachCoord(callback) { HexError.methodNotImplementedError('eachCoord'); }
 
-    // Iterate over u,v coords for each valid cell
+    eachCell(fn) { HexError.methodNotImplementedError('eachCell'); }
 
-    eachCoord(callback) {
-      HexError.HexError.methodNotImplementedError('eachCoord');
-    }
+    getCells() { HexError.methodNotImplementedError('getCells'); }
 
-    // Iterate over cells
+    export() { HexError.methodNotImplementedError('export'); }
 
-    eachCell(fn) {
-      HexError.HexError.methodNotImplementedError('eachCell');
-    }
+    import(buffer) { HexError.methodNotImplementedError('import'); }
 
   }
   Model.created = 0;
@@ -215,10 +197,13 @@ var Hexular = (function () {
     constructor(...args) {
       super(...args);
       let radius = this.radius = this.radius || DEFAULT_RADIUS;
+      HexError.validateKeys(this, 'radius');
+      this.size = radius * (radius - 1) * 3 + 1;
       let max = this.max = radius - 1;
       let cols = this.cols = radius * 2 - 1;
       let cells = this.cells = Array(cols * 2).fill(null);
-      HexError.validateKeys(this, 'radius');
+
+
 
       this.eachCoord(([u, v, w]) => {
           // Being on an edge affects draw actions involving neighbors
@@ -285,6 +270,27 @@ var Hexular = (function () {
         return null;
       let cell = this.cells[u * this.cols + v];
       return cell;
+    }
+
+    getCells() {
+      return Object.values(this.cells).filter((e) => e);
+    }
+
+    export() {
+      let bytes = Int8Array.from(this.getCells().map((e) => e.state));
+      return bytes;
+    }
+
+    import(bytes) {
+      let length = bytes.length;
+      let offset = this.size - length;
+      let cells = this.getCells();
+      bytes.forEach((state, idx) => {
+        let cellIdx = idx + offset;
+        if (cells[cellIdx])
+          cells[cellIdx].state = state;
+      });
+      this.draw();
     }
   }
 
@@ -601,14 +607,20 @@ var Hexular = (function () {
       roundCubic,
       mod,
     }),
-    HexError,
-    Model,
-    OffsetModel,
-    CubicModel,
-    Cell,
-    HookList,
-    Adapter,
-    CanvasAdapter,
+    classes: {
+      adapters: {
+        CanvasAdapter,
+      },
+      models: {
+        OffsetModel,
+        CubicModel,
+      },
+      HexError,
+      Model,
+      Cell,
+      HookList,
+      Adapter,
+    },
   };
 
   const Hexular = (...args) => {

@@ -12,8 +12,9 @@ const DEFAULTS = {
   timerLength: 100,
   rules: RULES,
   defaultRule: 'identityRule',
+  defaultFilename: 'hexular.bin',
   preset: 'default',
-  presets: PRESETS
+  presets: PRESETS,
 };
 
 let keyWhitelist = [
@@ -34,6 +35,9 @@ class Board {
       setState: null,
       timer: null,
       ruleMenus: [],
+      backwardStack: [],
+      forwardStack: [],
+      stateChange: new StateChange(),
       header: document.querySelector('.header'),
       container: document.querySelector('.container'),
       overlay: document.querySelector('.overlay'),
@@ -45,6 +49,8 @@ class Board {
         save: document.querySelector('#save'),
         load: document.querySelector('#load'),
         clear: document.querySelector('#clear'),
+        undo: document.querySelector('#undo'),
+        redo: document.querySelector('#redo'),
       },
       controls: {
         selectPreset: document.querySelector('#select-preset'),
@@ -78,6 +84,7 @@ class Board {
     window.onkeydown = (ev) => this.keydown(ev);
     window.onmousedown = (ev) => this.mousedown(ev);
     window.onmouseup = (ev) => this.mouseup(ev);
+    window.onmouseout = (ev) => this.mouseup(ev);
     this.fg.oncontextmenu = (ev) => this.contextmenu(ev);
     this.fg.onmousemove = (ev) => this.mousemove(ev);
 
@@ -87,6 +94,8 @@ class Board {
     this.buttons.save.onclick = (ev) => this.save();
     this.buttons.load.onclick = (ev) => this.load();
     this.buttons.clear.onclick = (ev) => this.clear();
+    this.buttons.undo.onclick = (ev) => this.undo();
+    this.buttons.redo.onclick = (ev) => this.redo();
 
     this.controls.addRule.onclick = (ev) => this.handleAddRule();
     this.controls.checkAll.onclick = (ev) => this.checkAll();
@@ -112,7 +121,7 @@ class Board {
 
   toggle() {
     if (!this.running) {
-      this.timer = setInterval(hexular.step.bind(hexular), this.config.timerLength);
+      this.timer = setInterval(this.step, this.config.timerLength);
       this.buttons.step.disabled = true;
       this.buttons.toggle.innerHTML = 'pause';
     }
@@ -126,6 +135,7 @@ class Board {
 
   step() {
     hexular.step();
+    adapter.draw();
   }
 
   toggleConfig() {
@@ -138,11 +148,34 @@ class Board {
   }
 
   save() {
-
+    let bytes = hexular.export();
+    let blob = new Blob([bytes], {type: 'application/octet-stream'});
+    let a = document.createElement('a');
+    a.href = window.URL.createObjectURL(blob);
+    a.download = this.defaultFilename;
+    a.click();
   }
 
   load() {
-
+    let fileReader = new FileReader();
+    let input = document.createElement('input');
+    input.type = 'file';
+    fileReader.onload = (ev) => {
+      let buffer = ev.target.result;
+      let bytes = new Int8Array(buffer);
+      let cells = hexular.getCells()
+      let curStates = cells.map((e) => e.state);
+      hexular.import(bytes);
+      adapter.draw();
+      this.newStateChange();
+      cells.forEach((cell, idx) => {
+        this.stateChange.add(cell, curStates[idx], cell.state);
+      });
+    };
+    input.onchange = () => {
+      fileReader.readAsArrayBuffer(input.files[0]);
+    };
+    input.click();
   }
 
   // Page/canvas listeners
@@ -225,6 +258,7 @@ class Board {
     this.shift = false;
     this.lastSet = null;
     this.setState = null;
+    this.newStateChange();
   }
 
   selectCell(cell) {
@@ -235,12 +269,44 @@ class Board {
   setCell(cell) {
     if (cell) {
       if (cell != this.lastSet) {
-        cell.state = this.shift ? 0 : this.setState;
+        let setState = this.shift ? 0 : this.setState;
+        this.stateChange.add(cell, cell.state, setState);
+        cell.state = setState;
         this.lastSet = cell;
         adapter.selectCell();
         adapter.drawCell(cell);
       }
     }
+  }
+
+  newStateChange() {
+    if (!this.stateChange.empty) {
+      this.backwardStack.push(this.stateChange);
+      this.forwardStack = [];
+      this.stateChange = new StateChange();
+      this.buttons.undo.disabled = false;
+    }
+  }
+
+  undo() {
+    let stateChange = this.backwardStack.pop();
+    if (!stateChange)
+      return;
+    stateChange.backward();
+    this.forwardStack.push(stateChange);
+    this.buttons.undo.disabled = +!this.backwardStack.length;
+    this.buttons.redo.disabled = +!this.forwardStack.length;
+    adapter.draw();
+  }
+
+  redo() {
+    let stateChange = this.forwardStack.pop();
+    if (!stateChange)
+      return;
+    stateChange.forward();
+    this.backwardStack.push(stateChange);
+    this.buttons.redo.disabled = +!this.forwardStack.length;
+    adapter.draw();
   }
 
   handleAddRule() {
@@ -406,6 +472,36 @@ class RuleMenu {
   }
 }
 
+class StateChange {
+  constructor() {
+    this.backwardMap = new Map();
+    this.forwardMap = new Map();
+  }
+
+  add(cell, oldState, newState) {
+    if (this.backwardMap.has(cell))
+      return;
+    this.backwardMap.set(cell, oldState);
+    this.forwardMap.set(cell, newState);
+  }
+
+  get empty() {
+    return this.backwardMap.size == 0;
+  }
+
+  backward() {
+    this.backwardMap.forEach((state, cell) => {
+      cell.state = state;
+    });
+  }
+
+  forward() {
+    this.forwardMap.forEach((state, cell) => {
+      cell.state = state;
+    });
+  }
+}
+
 window.addEventListener('DOMContentLoaded', function(e) {
   let opts = {};
   location.search.substring(1).split('&').filter((e) => e.length > 0).forEach((e) => {
@@ -415,8 +511,7 @@ window.addEventListener('DOMContentLoaded', function(e) {
   });
   board = new Board(opts);
   hexular = Hexular(board.config);
-  adapter = hexular.addAdapter(
-    Hexular.CanvasAdapter,
+  adapter = hexular.CanvasAdapter(
     {renderer: board.bgCtx, selector: board.fgCtx},
     board.config
   );
