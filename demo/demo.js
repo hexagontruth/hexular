@@ -6,7 +6,8 @@ const DEFAULTS = {
     cols: 100,
     radius: 60,
     numStates: 6,
-    cellRadius: 10
+    cellRadius: 10,
+    groundState: 0
   },
   maxNumStates: 12,
   timerLength: 100,
@@ -45,12 +46,12 @@ class Board {
       buttons: {
         toggle: document.querySelector('#toggle'),
         step: document.querySelector('#step'),
-        config: document.querySelector('#config'),
-        save: document.querySelector('#save'),
-        load: document.querySelector('#load'),
         clear: document.querySelector('#clear'),
         undo: document.querySelector('#undo'),
         redo: document.querySelector('#redo'),
+        save: document.querySelector('#save'),
+        load: document.querySelector('#load'),
+        config: document.querySelector('#config'),
       },
       controls: {
         selectPreset: document.querySelector('#select-preset'),
@@ -90,12 +91,12 @@ class Board {
 
     this.buttons.toggle.onclick = (ev) => this.toggle();
     this.buttons.step.onclick = (ev) => this.step();
-    this.buttons.config.onclick = (ev) => this.toggleConfig();
-    this.buttons.save.onclick = (ev) => this.save();
-    this.buttons.load.onclick = (ev) => this.load();
     this.buttons.clear.onclick = (ev) => this.clear();
     this.buttons.undo.onclick = (ev) => this.undo();
     this.buttons.redo.onclick = (ev) => this.redo();
+    this.buttons.save.onclick = (ev) => this.save();
+    this.buttons.load.onclick = (ev) => this.load();
+    this.buttons.config.onclick = (ev) => this.toggleConfig();
 
     this.controls.addRule.onclick = (ev) => this.handleAddRule();
     this.controls.checkAll.onclick = (ev) => this.checkAll();
@@ -144,7 +145,12 @@ class Board {
 
   clear() {
     if (this.running) this.toggle();
+    hexular.getCells().forEach((cell) => {
+      this.stateChange.add(cell, cell.state, hexular.groundState);
+    });
+    this.newStateChange();
     hexular.clear();
+    adapter.draw();
   }
 
   save() {
@@ -167,10 +173,10 @@ class Board {
       let curStates = cells.map((e) => e.state);
       hexular.import(bytes);
       adapter.draw();
-      this.newStateChange();
       cells.forEach((cell, idx) => {
         this.stateChange.add(cell, curStates[idx], cell.state);
       });
+      this.newStateChange();
     };
     input.onchange = () => {
       fileReader.readAsArrayBuffer(input.files[0]);
@@ -511,6 +517,7 @@ window.addEventListener('DOMContentLoaded', function(e) {
   });
   board = new Board(opts);
   hexular = Hexular(board.config);
+  hexular.addFilter(Hexular.filters.modFilter);
   adapter = hexular.CanvasAdapter(
     {renderer: board.bgCtx, selector: board.fgCtx},
     board.config

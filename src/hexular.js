@@ -9,7 +9,8 @@ var Hexular = (function () {
   const DEFAULT_COLS = 60;
 
   const DEFAULT_RULE = identityRule;
-  const DEFAULT_MAX_STATES = 2; // Only used by modulo filter
+  const DEFAULT_NUM_STATES = 2; // Only used by modulo filter
+  const DEFAULT_GROUND_STATE = 0;
 
   const DEFAULT_CELL_RADIUS = 10;
   const DEFAULT_BORDER_WIDTH = 1.25;
@@ -79,9 +80,10 @@ var Hexular = (function () {
     constructor(...args) {
       let defaults = {
         defaultRule: DEFAULT_RULE,
-        maxStates: DEFAULT_MAX_STATES,
+        numStates: DEFAULT_NUM_STATES,
+        groundState: DEFAULT_GROUND_STATE,
         rules: [],
-        filters: [],
+        filters: new HookList(),
         index: Model.create++,
       };
       Object.assign(this, defaults, ...args);
@@ -103,7 +105,8 @@ var Hexular = (function () {
 
     step() {
       this.eachCell((cell) => {
-        cell.nextState = (this.rules[cell.state] || this.defaultRule)(cell);
+        let nextState = (this.rules[cell.state] || this.defaultRule)(cell);
+        cell.nextState = this.filters.call(nextState);
       });
       this.eachCell((cell) => {
         cell.state = cell.nextState;
@@ -112,7 +115,7 @@ var Hexular = (function () {
 
     clear() {
       this.eachCell((cell) => {
-        cell.state = 0;
+        cell.state = this.groundState;
       });
     }
 
@@ -150,12 +153,12 @@ var Hexular = (function () {
         let upRow = mod(i - 1, rows);
         let downRow = mod(i + 1, rows);
         let offset = downRow % 2;
-        cell.neighbors[0] = this.cells[upRow * rows + mod(j - offset, cols)];
-        cell.neighbors[1] = this.cells[i * rows + mod(j - 1, cols)];
-        cell.neighbors[2] = this.cells[downRow * rows + mod(j - offset, cols)];
-        cell.neighbors[3] = this.cells[downRow * rows + mod(j - offset + 1, cols)];
-        cell.neighbors[4] = this.cells[i * rows + mod(j + 1, cols)];
-        cell.neighbors[5] = this.cells[upRow * rows + mod(j - offset + 1, cols)];
+        cell.setNeighbor(6, 0, this.cells[upRow * rows + mod(j - offset, cols)]);
+        cell.setNeighbor(6, 1, this.cells[i * rows + mod(j - 1, cols)]);
+        cell.setNeighbor(6, 2, this.cells[downRow * rows + mod(j - offset, cols)]);
+        cell.setNeighbor(6, 3, this.cells[downRow * rows + mod(j - offset + 1, cols)]);
+        cell.setNeighbor(6, 4, this.cells[i * rows + mod(j + 1, cols)]);
+        cell.setNeighbor(6, 5, this.cells[upRow * rows + mod(j - offset + 1, cols)]);
       });
     }
 
@@ -214,6 +217,7 @@ var Hexular = (function () {
       // Connect cells
       let offset = Array(3);
       this.eachCell((cell, coord) => {
+        cell.addNeighborhoods(6);
         for (let i = 0; i < 6; i++) {
           let dir1 = i >> 1;
           let dir2 = (dir1 + 1 + i % 2) % 3;
@@ -232,7 +236,7 @@ var Hexular = (function () {
               nbr[dirB] = -nbr[dir] - nbr[dirA];
             }
           }
-          cell.neighbors[i] = this.cells[nbr[0] * cols + nbr[1]];
+          cell.setNeighbor(6, i, this.cells[nbr[0] * cols + nbr[1]]);
         }
 
 
@@ -298,51 +302,63 @@ var Hexular = (function () {
 
   class Cell {
     constructor(model, coord, ...args) {
-      this.model = model;
-      this.coord = coord;
       let defaults = {
-        state: 0,
+        model,
+        coord,
+        state: model.groundState,
         nextState: 0,
-        neighbors: Array(6)
+        nbr: {
+          1: [self],
+          // Canonical neighborhoods
+          6: Array(6).fill(this),
+          12: Array(12).fill(this),
+          18: Array(18).fill(this),
+          // Derived neighborhoods
+          7: Array(7).fill(this),
+          13: Array(13).fill(this),
+          19: Array(19).fill(this),
+        },
+        implementedNeighborhoods: new Set([1]),
       };
       Object.assign(this, defaults, ...args);
     }
 
-    total() {
-      return this.neighbors.reduce((a, e) => a + e.state, 0);
+    setNeighbor(canonicalRing, idx, cell) {
+      let neighborhoods = [6, 12, 18].filter((e) => e >= canonicalRing);
+      let cur;
+      while (cur = neighborhoods.pop()) {
+        this.nbr[cur][idx] = cell;
+        this.nbr[cur + 1][idx] = cell;
+      }
     }
 
-    countAll() {
-      return this.neighbors.reduce((a, e) => a + (e.state ? 1 : 0), 0);
+    addNeighborhoods(...neighborhoods) {
+      neighborhoods.forEach((e) => {
+        this.implementedNeighborhoods.add(e)
+      });
     }
 
-    count(state) {
-      return this.neighbors.reduce((a, e) =>  a + (e.state == state ? 1 : 0), 0)
+    implements(neighborhood) {
+      return this.implementedNeighborhoods.has(neighborhood);
     }
 
-    stateCounts() {
-      let values = Array(this.model.maxStates).fill(0);
-      for (let i = 0; i < 6; i ++)
-        values[this.neighbors[i].state] += 1;
+    get total() {
+      return this.nbr[6].reduce((a, e) => a + e.state, 0);
+    }
+
+    get count() {
+      return this.nbr[6].reduce((a, e) => a + (e.state ? 1 : 0), 0);
+    }
+
+    get histogram() {
+      let values = Array(this.numStates).fill(0);
+      for (let i = 0; i < this.numStates; i ++)
+        values[this.nbr[6][i].state] += 1;
       return values;
     }
 
-    stateMap() {
-      return this.neighbors.map((e) => e.state);
-    }
-
-    max(states) {
-      states = states || this.stateMap();
-      return Math.max(...states);
-    }
-
-    min(states) {
-      states = states || this.stateMap();
-      return Math.min(...states);
-    }
-
-    offset(i) {
-      return mod(this.state + i, this.model.numStates);
+    countState(state) {
+      return this.nbr[6].reduce((a, e) =>  a + (e.state == state ? 1 : 0), 0);
     }
   }
 
@@ -354,12 +370,12 @@ var Hexular = (function () {
       this.owner = owner;
     }
 
-   call() {
-      for (let i = 0; i < this.length; i++)
-        if (this[i].apply(this.owner, arguments) === false)
-          return false;
-
-      return true;
+    call(val) {
+      for (let i = 0; i < this.length; i++) {
+        let newVal = this[i].call(this.owner, val);
+        val = newVal === undefined ? val : newVal;
+      }
+      return val;
     }
   }
 
@@ -507,10 +523,14 @@ var Hexular = (function () {
     return cell.state;
   }
 
+  function nullRule(cell) {
+    return 0;
+  }
+
   // --- OPTIONAL FILTERS ---
 
   function modFilter(state) {
-    return mod(state, this.maxStates);
+    return mod(state, this.numStates);
   }
 
   function ruleBuilder(n) {
@@ -592,9 +612,14 @@ var Hexular = (function () {
     defaults: {
       model: CubicModel
     },
-    utility: {
+    rules: {
       identityRule,
+      nullRule,
+    },
+    filters: {
       modFilter,
+    },
+    utility: {
       ruleBuilder,
     },
     math: Object.assign(math, {
