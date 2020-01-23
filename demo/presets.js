@@ -10,5 +10,19 @@ let PRESETS = {
   labyrinthCatastrophe: [
     'binary1',
     'incBinary34'
-  ]
+  ],
+  classic: [
+    'binary2',
+    'duplexOffset23',
+    'duplexOffset23',
+    'duplexOffset23',
+    'duplexOffset23',
+    'duplexOffset23',
+    'duplexOffset23',
+    'duplexOffset23',
+    'duplexOffset23',
+    'duplexOffset23',
+    'duplexOffset23',
+    'duplexOffset23',
+  ],
 };

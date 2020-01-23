@@ -31,11 +31,12 @@
         </select>
       </div>
       <div class="group">
+        <button id="add-rule">add</button>
         <textarea id="custom-rule">{newRule: (cell) => cell.state}</textarea>
       </div>
       <div class="group">
         <button id="check-all">arrow_downward</button>
-        <button id="add-rule">add</button>
+
         <select id="set-all">
           <option value="">- Set selected -</option>
         </select>
@@ -55,6 +56,7 @@
       </div>
     </div>
   </div>
+  <div class="message"></div>
   <div class="assets" style="display: none;">
     <div class="rule-menu checkable">
       <div class="indicator"></div>

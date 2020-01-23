@@ -35,6 +35,7 @@ class Board {
       lastSet: null,
       setState: null,
       timer: null,
+      messageTimer: null,
       ruleMenus: [],
       backwardStack: [],
       forwardStack: [],
@@ -42,6 +43,7 @@ class Board {
       header: document.querySelector('.header'),
       container: document.querySelector('.container'),
       overlay: document.querySelector('.overlay'),
+      message: document.querySelector('.message'),
       ruleConfig: document.querySelector('.rule-config'),
       buttons: {
         toggle: document.querySelector('#toggle'),
@@ -122,7 +124,7 @@ class Board {
 
   toggle() {
     if (!this.running) {
-      this.timer = setInterval(this.step, this.config.timerLength);
+      this.timer = setInterval(this.step.bind(this), this.config.timerLength);
       this.buttons.step.disabled = true;
       this.buttons.toggle.innerHTML = 'pause';
     }
@@ -135,8 +137,14 @@ class Board {
   }
 
   step() {
-    hexular.step();
-    adapter.draw();
+    try {
+      hexular.step();
+      adapter.draw();
+    }
+    catch (e) {
+      console.log(e);
+      this.setMessage(e, 'error');
+    }
   }
 
   toggleConfig() {
@@ -245,6 +253,9 @@ class Board {
     else if (ev.target == this.overlay) {
       this.toggleConfig();
     }
+    else if (ev.target == this.message) {
+      this.clearMessage();
+    }
   }
 
   mousemove(ev) {
@@ -291,6 +302,7 @@ class Board {
       this.forwardStack = [];
       this.stateChange = new StateChange();
       this.buttons.undo.disabled = false;
+      this.buttons.redo.disabled = true;
     }
   }
 
@@ -315,22 +327,37 @@ class Board {
     adapter.draw();
   }
 
+  setMessage(message, className) {
+    className = className || 'alert';
+    this.message.classList = 'message active ' + className;
+    this.message.innerHTML = message;
+    clearTimeout(this.messageTimer);
+    this.messageTimer = setTimeout(() => {
+      this.clearMessage();
+    }, 5000);
+  }
+
+  clearMessage() {
+    this.message.className = 'message';
+    requestAnimationFrame(() => this.message.innerHTML = '');
+    clearTimeout(this.messageTimer);
+  }
+
   handleAddRule() {
     try {
       let obj = new Function(`return (${this.controls.customRule.value})`)();
+      if (Object.keys(obj).length < 1) {
+        this.setMessage('No rules added. Too bad.');
+        return;
+      }
       Object.assign(this.rules, obj);
       this.refreshRules();
       let ruleNames = Object.keys(obj);
-      this.controls.customRule.disabled = true;
-      this.controls.customRule.value =
-        `Successfully add rule${ruleNames.length > 1 ? 's' : ''} ${ruleNames.join(', ')}.`;
-      setTimeout(() => {
-        this.controls.customRule.disabled = false;
-        this.controls.customRule.value = this.customRuleTemplate;
-      }, 2000);
+      this.controls.customRule.addClass
+      this.setMessage(`Added rule${ruleNames.length > 1 ? 's' : ''} ${ruleNames.join(', ')}.`);
     }
     catch (err) {
-      console.error(`An error occurred while trying to add custom rules: ${err}. Too bad.`);
+      this.setMessage(`An error occurred: ${err}.`, 'error');
     }
   }
 
@@ -352,7 +379,7 @@ class Board {
     hexular.numStates = parseInt(numStates);
     this.ruleMenus.forEach((ruleMenu) => {
       let disabled = ruleMenu.index >= numStates;
-      ruleMenu.select.setAttribute('data-disabled', disabled);
+      ruleMenu.container.setAttribute('data-disabled', disabled);
       hexular.rules[ruleMenu.index] = this.config.rules[ruleMenu.index];
     });
     this.checkPreset();
@@ -361,8 +388,10 @@ class Board {
   setAll(ruleName) {
     const rule = this.rules[ruleName] || this.rules.identityRule;
     this.ruleMenus.forEach((ruleMenu) => {
-      ruleMenu.select.value = ruleName;
-      hexular.rules[ruleMenu.index] = rule;
+      if (ruleMenu.checked) {
+        ruleMenu.select.value = ruleName;
+        hexular.rules[ruleMenu.index] = rule;
+      }
     });
     this.controls.setAll.selectedIndex = 0;
     this.checkPreset();
@@ -454,8 +483,8 @@ class RuleMenu {
     let select = this.select = container.querySelector('select');
     let indicator = this.indicator = container.querySelector('.indicator');
     select.ruleMenu = this;
-    select.title = `State ${idx}`;
-    select.setAttribute('data-disabled', disabled);
+    container.title = `State ${idx}`;
+    container.setAttribute('data-disabled', disabled);
     indicator.style.backgroundColor = adapter.colors[idx];
     for (let [ruleName, fn] of Object.entries(rules)) {
       let option = document.createElement('option');

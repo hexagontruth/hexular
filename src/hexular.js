@@ -479,7 +479,6 @@ var Hexular = (function () {
       this.onDrawSelector.call(cell);
     }
 
-
     defaultDrawCell(cell) {
     // Use cell.owner when writing custom drawing callbacks
     this.drawHexPath(this.renderer, cell);
@@ -541,8 +540,13 @@ var Hexular = (function () {
   }
 
   function ruleBuilder(n) {
+    n = BigInt(n);
     return (cell) => {
-      // TODO: This
+      let mask = (cell.state == 1 ? 1 : 0) << 6;
+      for (let i = 0; i < cell.nbrs.length; i++) {
+        mask = mask | (cell.nbrs[i].state ? 1 : 0) << i;
+      }
+      return Number((n >> BigInt(mask)) % 2n);
     };
   }
 
@@ -626,7 +630,7 @@ var Hexular = (function () {
     filters: {
       modFilter,
     },
-    utility: {
+    util: {
       ruleBuilder,
     },
     math: Object.assign(math, {
