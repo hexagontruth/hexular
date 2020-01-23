@@ -155,7 +155,7 @@ var Hexular = (function () {
         this.cells.push(new Cell(this, [i, j], {edge}));
       });
 
-      // Connect cells
+      // Connect simple neighbors
       this.eachCell((cell, [i, j]) => {
         let upRow = mod(j - 1, rows);
         let downRow = mod(j + 1, rows);
@@ -167,6 +167,11 @@ var Hexular = (function () {
         cell.nbrs[4] = this.cells[upRow * cols + mod(i - offset, cols)];
         cell.nbrs[5] = this.cells[j * cols + mod(i - 1, cols)];
         cell.nbrs[6] = this.cells[downRow * cols + mod(i - offset, cols)];
+      });
+
+      // Connect extended neighbors
+      this.eachCell((cell) => {
+        cell.extendNeighborhood();
       });
     }
 
@@ -228,7 +233,7 @@ var Hexular = (function () {
 
       this.cells = Object.values(this.rhombus).filter((e) => e);
 
-      // Connect immediate neighbors
+      // Connect simple neighbors
       this.eachCell((cell) => {
         for (let i = 0; i < 6; i++) {
           let dir1 = i >> 1;
@@ -254,7 +259,7 @@ var Hexular = (function () {
 
       // Connect extended neighbors
       this.eachCell((cell) => {
-
+        cell.extendNeighborhood();
       });
     }
 
@@ -325,6 +330,14 @@ var Hexular = (function () {
         13: new Neighborhood(this, 0, 13),
         19: new Neighborhood(this, 0, 19),
       };
+    }
+
+    extendNeighborhood() {
+      for (let i = 1; i < 7; i++) {
+        let source12 = 1 + (i + 4) % 6;
+        this.nbrs[i + 6] = this.nbrs[i].nbrs[source12];
+        this.nbrs[i + 12] = this.nbrs[i].nbrs[i];
+      }
     }
 
     get total() { return this.with[this.neighborhood].total; }
@@ -406,8 +419,8 @@ var Hexular = (function () {
       // Precomputed math stuff
 
       this.innerRadius = this.cellRadius - this.borderWidth / (2 * math.apothem);
-      this.vertices = elemOp(math.vertices, this.innerRadius);
-      this.basis = elemOp(math.basis, this.cellRadius);
+      this.vertices = scalarOp(math.vertices, this.innerRadius);
+      this.basis = scalarOp(math.basis, this.cellRadius);
 
       // For imageData rectangle coords
       this.selectYOffset = Math.ceil(
@@ -565,10 +578,10 @@ var Hexular = (function () {
 
   // Recursive element-wise arithmetic
 
-  function elemOp(obj, scalar, op) {
+  function scalarOp(obj, scalar, op) {
     if (obj.length)
       return obj.map(function(val, i) {
-        return elemOp(val, scalar, op);
+        return scalarOp(val, scalar, op);
       });
     else
       return op == '+' ? obj + scalar : obj * scalar;
@@ -646,7 +659,7 @@ var Hexular = (function () {
     },
     math: Object.assign(math, {
       absMax,
-      elemOp,
+      scalarOp,
       mult,
       multMatrix,
       add,
