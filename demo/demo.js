@@ -11,19 +11,13 @@ const DEFAULTS = {
   },
   maxNumStates: 12,
   timerLength: 100,
+  undoStackSize: 64,
   rules: RULES,
   defaultRule: 'identityRule',
   defaultFilename: 'hexular.bin',
   preset: 'default',
   presets: PRESETS,
 };
-
-let keyWhitelist = [
-  'Escape',
-  'Shift',
-  'Tab',
-  ' '
-];
 
 let hexular, adapter, board;
 
@@ -37,9 +31,8 @@ class Board {
       timer: null,
       messageTimer: null,
       ruleMenus: [],
-      backwardStack: [],
-      forwardStack: [],
-      stateChange: new StateChange(),
+      undoStack: [],
+      redoStack: [],
       header: document.querySelector('.header'),
       container: document.querySelector('.container'),
       overlay: document.querySelector('.overlay'),
@@ -84,12 +77,12 @@ class Board {
     this.customRuleTemplate = this.controls.customRule.value;
     this.center();
 
-    window.onkeydown = (ev) => this.keydown(ev);
-    window.onmousedown = (ev) => this.mousedown(ev);
-    window.onmouseup = (ev) => this.mouseup(ev);
-    window.onmouseout = (ev) => this.mouseup(ev);
-    this.fg.oncontextmenu = (ev) => this.contextmenu(ev);
-    this.fg.onmousemove = (ev) => this.mousemove(ev);
+    window.onkeydown = (ev) => this.handleKeydown(ev);
+    window.onmousedown = (ev) => this.handleMousedown(ev);
+    window.onmouseup = (ev) => this.handleMouseup(ev);
+    window.onmouseout = (ev) => this.handleMouseup(ev);
+    window.oncontextmenu = (ev) => this.handleContextmenu(ev);
+    window.onmousemove = (ev) => this.handleMousemove(ev);
 
     this.buttons.toggle.onclick = (ev) => this.toggle();
     this.buttons.step.onclick = (ev) => this.step();
@@ -101,10 +94,10 @@ class Board {
     this.buttons.config.onclick = (ev) => this.toggleConfig();
 
     this.controls.addRule.onclick = (ev) => this.handleAddRule();
-    this.controls.checkAll.onclick = (ev) => this.checkAll();
+    this.controls.checkAll.onclick = (ev) => this.handleCheckAll();
     this.controls.numStates.onchange = (ev) => this.setNumStates(ev.target.value);
     this.controls.selectPreset.onchange = (ev) => this.selectPreset(ev.target.value);
-    this.controls.setAll.onchange = (ev) => this.setAll(ev.target.value);
+    this.controls.setAll.onchange = (ev) => this.handleSetAll(ev);
   }
 
   center() {
@@ -137,6 +130,7 @@ class Board {
   }
 
   step() {
+    this.newHistoryState();
     try {
       hexular.step();
       adapter.draw();
@@ -147,19 +141,30 @@ class Board {
     }
   }
 
+  clear() {
+    this.newHistoryState();
+    if (this.running) this.toggle();
+    hexular.clear();
+    adapter.draw();
+  }
+
   toggleConfig() {
     this.overlay.classList.toggle('hidden');
   }
 
-  clear() {
-    if (this.running) this.toggle();
-    hexular.cells.forEach((cell) => {
-      this.stateChange.add(cell, cell.state, hexular.groundState);
-    });
-    this.newStateChange();
-    hexular.clear();
-    adapter.draw();
+  // Add rule or preset - also use these if adding from console
+
+  addRule(ruleName, fn) {
+    this.rules[ruleName] = fn;
+    this.refreshRules();
   }
+
+  addPreset(presetName, fnArray) {
+    this.presets[presetName] = fnArray;
+    this.refreshRules();
+  }
+
+  // Save/load
 
   save() {
     let bytes = hexular.export();
@@ -171,19 +176,15 @@ class Board {
   }
 
   load() {
+    this.newHistoryState();
     let fileReader = new FileReader();
     let input = document.createElement('input');
     input.type = 'file';
     fileReader.onload = (ev) => {
       let buffer = ev.target.result;
       let bytes = new Int8Array(buffer);
-      let curStates = hexular.cells.map((e) => e.state);
       hexular.import(bytes);
       adapter.draw();
-      hexular.cells.forEach((cell, idx) => {
-        this.stateChange.add(cell, curStates[idx], cell.state);
-      });
-      this.newStateChange();
     };
     input.onchange = () => {
       fileReader.readAsArrayBuffer(input.files[0]);
@@ -193,7 +194,7 @@ class Board {
 
   // Page/canvas listeners
 
-  keydown(ev) {
+  handleKeydown(ev) {
     let key = ev.key.toLowerCase();
     if (!ev.repeat) {
       // ESC to hide/show controls
@@ -204,6 +205,7 @@ class Board {
         else {
           this.header.classList.toggle('hidden');
         }
+        ev.preventDefault();
       }
 
       // TAB to start/stop
@@ -221,24 +223,37 @@ class Board {
           this.step();
         }
       }
+      else if (ev.ctrlKey) {
+        if (key == 'z') {
+          if (ev.shiftKey) {
+            this.redo();
+          }
+          else {
+            this.undo();
+          }
+        }
+        else if (key == 's') {
+          this.save();
+        }
 
-      else if (key == 's') {
-        this.save();
+        else if (key == 'o') {
+          this.load();
+        }
+        else {
+          return; // Do not prevent default for other ctrl key combos
+        }
+        ev.preventDefault();
       }
-
-      else if (key == 'l') {
-        this.load();
-      }
-    }
-    if (keyWhitelist.indexOf(ev.key) != -1) {
-      ev.preventDefault();
     }
   }
 
-  contextmenu(ev) { ev.preventDefault(); }
+  handleContextmenu(ev) {
+    if (ev.target == this.fg) ev.preventDefault();
+  }
 
-  mousedown(ev) {
+  handleMousedown(ev) {
     if (ev.target == this.fg && this.selected) {
+      this.newHistoryState();
       if (ev.buttons & 1) {
         this.shift = ev.shiftKey;
         this.setState = Hexular.math.mod(this.selected.state + 1, this.config.numStates);
@@ -257,25 +272,28 @@ class Board {
     }
   }
 
-  mousemove(ev) {
-    let {x, y} = this.fg.getBoundingClientRect();
-    x = Math.max(0, x);
-    y = Math.max(0, y);
-    let cell = adapter.cellAt([
-      ev.pageX - this.fg.width / 2 - x,
-      ev.pageY - this.fg.height / 2 - y
-    ]);
-    this.selectCell(cell);
-    if (this.setState != null)
-      this.setCell(cell);
+  handleMousemove(ev) {
+    if (ev.target == this.fg) {
+      let {x, y} = this.fg.getBoundingClientRect();
+      x = Math.max(0, x);
+      y = Math.max(0, y);
+      let cell = adapter.cellAt([
+        ev.pageX - this.fg.width / 2 - x,
+        ev.pageY - this.fg.height / 2 - y
+      ]);
+      this.selectCell(cell);
+      if (this.setState != null)
+        this.setCell(cell);
+    }
   }
 
-  mouseup() {
+  handleMouseup() {
     this.shift = false;
     this.lastSet = null;
     this.setState = null;
-    this.newStateChange();
   }
+
+  // Cell selection and setting
 
   selectCell(cell) {
     this.selected = cell;
@@ -285,9 +303,7 @@ class Board {
   setCell(cell) {
     if (cell) {
       if (cell != this.lastSet) {
-        let setState = this.shift ? 0 : this.setState;
-        this.stateChange.add(cell, cell.state, setState);
-        cell.state = setState;
+        cell.state = this.shift ? 0 : this.setState;
         this.lastSet = cell;
         adapter.selectCell();
         adapter.drawCell(cell);
@@ -295,36 +311,44 @@ class Board {
     }
   }
 
-  newStateChange() {
-    if (!this.stateChange.empty) {
-      this.backwardStack.push(this.stateChange);
-      this.forwardStack = [];
-      this.stateChange = new StateChange();
-      this.buttons.undo.disabled = false;
-      this.buttons.redo.disabled = true;
-    }
+  // Undo/redo stuff
+
+  newHistoryState() {
+    this.undoStack.push(hexular.export());
+    if (this.undoStack.length > this.undoStackSize)
+      this.undoStack.shift();
+    this.redoStack = [];
+    this.refreshHistoryButtons();
   }
 
   undo() {
-    let stateChange = this.backwardStack.pop();
-    if (!stateChange)
-      return;
-    stateChange.backward();
-    this.forwardStack.push(stateChange);
-    this.buttons.undo.disabled = +!this.backwardStack.length;
-    this.buttons.redo.disabled = +!this.forwardStack.length;
-    adapter.draw();
+    let nextState = this.undoStack.pop();
+    if (nextState) {
+      let curState = hexular.export()
+      hexular.import(nextState);
+      this.redoStack.push(curState);
+      adapter.draw();
+      this.refreshHistoryButtons();
+    }
   }
 
   redo() {
-    let stateChange = this.forwardStack.pop();
-    if (!stateChange)
-      return;
-    stateChange.forward();
-    this.backwardStack.push(stateChange);
-    this.buttons.redo.disabled = +!this.forwardStack.length;
-    adapter.draw();
+    let nextState = this.redoStack.pop();
+    if (nextState) {
+      let curState = hexular.export()
+      hexular.import(nextState);
+      this.undoStack.push(curState);
+      adapter.draw();
+      this.refreshHistoryButtons();
+    }
   }
+
+  refreshHistoryButtons() {
+    this.buttons.undo.disabled = +!this.undoStack.length;
+    this.buttons.redo.disabled = +!this.redoStack.length;
+  }
+
+  // Alert messages
 
   setMessage(message, className) {
     className = className || 'alert';
@@ -360,7 +384,7 @@ class Board {
     }
   }
 
-  checkAll() {
+  handleCheckAll() {
     let check = !this.ruleMenus.every((ruleMenu) => ruleMenu.checked);
     if (check)
       this.controls.checkAll.classList.add('checked');
@@ -371,20 +395,8 @@ class Board {
     });
   }
 
-  setNumStates(val) {
-    if (val)
-      this.controls.numStates.value = val;
-    const numStates = parseInt(this.controls.numStates.value);
-    hexular.numStates = parseInt(numStates);
-    this.ruleMenus.forEach((ruleMenu) => {
-      let disabled = ruleMenu.index >= numStates;
-      ruleMenu.container.setAttribute('data-disabled', disabled);
-      hexular.rules[ruleMenu.index] = this.config.rules[ruleMenu.index];
-    });
-    this.checkPreset();
-  }
-
-  setAll(ruleName) {
+  handleSetAll(ev) {
+    let ruleName = this.controls.setAll.value;
     const rule = this.rules[ruleName] || this.rules.identityRule;
     this.ruleMenus.forEach((ruleMenu) => {
       if (ruleMenu.checked) {
@@ -396,11 +408,13 @@ class Board {
     this.checkPreset();
   }
 
-  setRule(ev) {
+  handleSetRule(ev) {
     const ctl = ev.target;
     hexular.rules[ctl.ruleMenu.index] = this.rules[ctl.value] || this.rules.identityRule;
     this.checkPreset();
   }
+
+  // Preset setting and checking
 
   selectPreset(presetName) {
     const presetList = this.presets[presetName];
@@ -434,6 +448,19 @@ class Board {
     }
   }
 
+  setNumStates(val) {
+    if (val)
+      this.controls.numStates.value = val;
+    const numStates = parseInt(this.controls.numStates.value);
+    hexular.numStates = parseInt(numStates);
+    this.ruleMenus.forEach((ruleMenu) => {
+      let disabled = ruleMenu.index >= numStates;
+      ruleMenu.container.setAttribute('data-disabled', disabled);
+      hexular.rules[ruleMenu.index] = this.config.rules[ruleMenu.index];
+    });
+    this.checkPreset();
+  }
+
   refreshRules() {
     // Refresh presets
     this.controls.selectPreset.options.length = 1;
@@ -457,20 +484,10 @@ class Board {
 
     for (let i = 0; i < this.maxNumStates; i++) {
       let ruleMenu = new RuleMenu(i, this.rules, hexular.rules[i], i >= hexular.numStates);
-      ruleMenu.select.addEventListener('change', (ev) => this.setRule(ev));
+      ruleMenu.select.addEventListener('change', (ev) => this.handleSetRule(ev));
       this.ruleMenus.push(ruleMenu);
       this.ruleConfig.appendChild(ruleMenu.container);
     }
-  }
-
-  addRule(ruleName, fn) {
-    this.rules[ruleName] = fn;
-    this.refreshRules();
-  }
-
-  addPreset(presetName, fnArray) {
-    this.presets[presetName] = fnArray;
-    this.refreshRules();
   }
 }
 
@@ -503,36 +520,6 @@ class RuleMenu {
 
   get checked() {
     return this.container.classList.contains('checked');
-  }
-}
-
-class StateChange {
-  constructor() {
-    this.backwardMap = new Map();
-    this.forwardMap = new Map();
-  }
-
-  add(cell, oldState, newState) {
-    if (this.backwardMap.has(cell))
-      return;
-    this.backwardMap.set(cell, oldState);
-    this.forwardMap.set(cell, newState);
-  }
-
-  get empty() {
-    return this.backwardMap.size == 0;
-  }
-
-  backward() {
-    this.backwardMap.forEach((state, cell) => {
-      cell.state = state;
-    });
-  }
-
-  forward() {
-    this.forwardMap.forEach((state, cell) => {
-      cell.state = state;
-    });
   }
 }
 
