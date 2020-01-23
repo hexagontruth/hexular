@@ -153,7 +153,7 @@ class Board {
 
   clear() {
     if (this.running) this.toggle();
-    hexular.getCells().forEach((cell) => {
+    hexular.cells.forEach((cell) => {
       this.stateChange.add(cell, cell.state, hexular.groundState);
     });
     this.newStateChange();
@@ -177,11 +177,10 @@ class Board {
     fileReader.onload = (ev) => {
       let buffer = ev.target.result;
       let bytes = new Int8Array(buffer);
-      let cells = hexular.getCells()
-      let curStates = cells.map((e) => e.state);
+      let curStates = hexular.cells.map((e) => e.state);
       hexular.import(bytes);
       adapter.draw();
-      cells.forEach((cell, idx) => {
+      hexular.cells.forEach((cell, idx) => {
         this.stateChange.add(cell, curStates[idx], cell.state);
       });
       this.newStateChange();
