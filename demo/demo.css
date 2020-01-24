@@ -8,6 +8,13 @@
   line-height: inherit;
 }
 
+@font-face {
+  font-family: icon;
+  font-weight: normal;
+  font-style: normal;
+  src: url('../vendor/material-icons.woff2') format('woff2');
+}
+
 html, body {
   width: 100%;
   height: 100%;
@@ -22,18 +29,11 @@ body {
   display: flex;
   background: #cdd;
   color: #333;
-  transition: all 500ms;
+  transition: opacity 500ms;
 }
 
-.header, button, a, input, select, .indicator, .message, .info {
-  transition: all 250ms;
-}
-
-@font-face {
-  font-family: icon;
-  font-weight: normal;
-  font-style: normal;
-  src: url('../vendor/material-icons.woff2') format('woff2');
+body * {
+  transition: opacity 250ms, color 250ms, background-color 250ms, transform 250ms;
 }
 
 .icon {
@@ -66,18 +66,21 @@ button:disabled {
   color: rgba(255, 255, 255, 0.5);
 }
 
+button.text {
+  font-family: inherit;
+}
 
 .header {
   position: fixed;
+  z-index: 10;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 0;
-  z-index: 10;
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: flex-start;
+  width: 100%;
+  height: 0;
 }
 
 .header button {
@@ -100,32 +103,10 @@ button:disabled {
   transform: translateY(calc(-100% - 0.2rem));
 }
 
-canvas.canvas-bg {
-}
-
 canvas.canvas-fg {
   position: absolute;
   left: 0;
   top: 0;
-}
-
-.overlay {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: fixed;
-  z-index: 20;
-  height: 100%;
-  width: 100%;
-  top: 0;
-  left: 0;
-  opacity: 1;
-  background: rgba(0,0,0,0.5);
-}
-
-.overlay.hidden {
-  z-index: -100;
-  opacity: 0;
 }
 
 .info {
@@ -143,21 +124,21 @@ canvas.canvas-fg {
 }
 
 .message {
-  z-index: 20;
   position: fixed;
+  z-index: 20;
   top: 3rem;
   left: 1rem;
   right: 1rem;
+  height: 0;
+  line-height: 2;
   background: #9fcc3f;
   color: #fff;
   font-weight: bold;
-  line-height: 2;
-  height: 0;
   cursor: pointer;
   text-align: center;
   opacity: 0;
-  transition: all 500ms;
   border-radius: 2rem;
+  transition: all 500ms;
 }
 
 .message.active {
@@ -169,13 +150,34 @@ canvas.canvas-fg {
   background: #c33;
 }
 
+.overlay {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  z-index: 20;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  opacity: 1;
+  padding: 2rem;
+  background: rgba(0,0,0,0.5);
+}
+
+.overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
 .modal {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: stretch;
+  flex: 0 1 30rem;
   padding: 1rem 1rem 0.5rem 1rem;
-  max-width: 90%;
   background: #eee;
   border-radius: 1rem;
   box-shadow: 10px 3px 3px 'red';
@@ -198,14 +200,11 @@ canvas.canvas-fg {
 }
 
 .modal button {
-  flex: 0 0 1.5rem;
+  flex: 0 0 2rem;
+  min-height: 2rem;
   padding: 0.25rem;
 }
 
-.modal .group input {
-  display: block;
-  margin: 0 auto 1rem auto;
-}
 .rule-config [data-disabled='true'] {
   opacity: 0.5;
 }
@@ -217,36 +216,28 @@ canvas.canvas-fg {
 }
 
 .modal .rule-menu {
-  margin: 0.4rem 0.2rem;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: stretch;
+  margin: 0.4rem 0.2rem;
 }
 
 .modal .indicator {
   display: flex;
-  flex: 0 0 1.5rem;
+  flex: 0 0 2rem;
   justify-content: center;
   align-items: center;
   width: 2rem;
+  margin-right: 0.4rem;
+  border: 0.2rem solid transparent;
   font-family: icon;
   cursor: pointer;
-  border: 0.2rem solid transparent;
-  margin-right: 0.4rem;
 }
 
 .modal .rule-menu.checked .indicator {
   border-color: #fb3;
 }
-/*
-.modal .indicator::after {
-  content: 'radio_button_unchecked';
-}
-
-.modal .rule-menu.checked .indicator::after {
-  content: 'radio_button_checked';
-}*/
 
 .modal select {
   background: #fff;

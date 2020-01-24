@@ -48,18 +48,20 @@ class Board {
         save: document.querySelector('#save'),
         load: document.querySelector('#load'),
         config: document.querySelector('#config'),
+        resize: document.querySelector('#resize'),
       },
       controls: {
+        numStates: document.querySelector('#num-states'),
         selectPreset: document.querySelector('#select-preset'),
         customRule: document.querySelector('#custom-rule'),
         addRule: document.querySelector('#add-rule'),
         checkAll: document.querySelector('#check-all'),
         setAll: document.querySelector('#set-all'),
-        numStates: document.querySelector('#num-states'),
+        selectNeighborhood: document.querySelector('#select-neighborhood'),
       }
     };
     Object.assign(this, DEFAULTS, props);
-    Object.assign(this.config, ...args);
+    this.config = Object.assign({}, DEFAULTS.config, ...args);
     this.config.rules = Object.assign(
       Array(this.maxNumStates).fill(this.rules[this.defaultRule]),
       this.presets[this.preset].map((e) => this.rules[e])
@@ -93,12 +95,14 @@ class Board {
     this.buttons.save.onclick = (ev) => this.save();
     this.buttons.load.onclick = (ev) => this.load();
     this.buttons.config.onclick = (ev) => this.toggleConfig();
+    this.buttons.resize.onclick = (ev) => this.promptResize();
 
     this.controls.addRule.onclick = (ev) => this.handleAddRule();
     this.controls.checkAll.onclick = (ev) => this.handleCheckAll();
     this.controls.numStates.onchange = (ev) => this.setNumStates(ev.target.value);
     this.controls.selectPreset.onchange = (ev) => this.selectPreset(ev.target.value);
     this.controls.setAll.onchange = (ev) => this.handleSetAll(ev);
+    this.controls.selectNeighborhood.onchange = (ev) => this.setNeighborhood(ev.target.value);
   }
 
   center() {
@@ -135,6 +139,7 @@ class Board {
     try {
       hexular.step();
       adapter.draw();
+      this.storeState();
     }
     catch (e) {
       console.log(e);
@@ -147,10 +152,38 @@ class Board {
     if (this.running) this.toggle();
     hexular.clear();
     adapter.draw();
+    this.storeState();
   }
 
   toggleConfig() {
     this.overlay.classList.toggle('hidden');
+  }
+
+  promptResize() {
+    let newSize = prompt('Plz enter new board size:', hexular.radius);
+    if (newSize == null)
+      return;
+    let n = Number(newSize);
+    console.log(newSize);
+    if (isNaN(n) || n < 2) {
+      this.setMessage('Board size must be natural number > 1', 'error');
+    }
+    else if (n != hexular.radius) {
+      this.storeState();
+      let [base, params] = window.location.href.split('?');
+      let paramMap = {};
+      params = (params || '').split('&').filter((e) => e != '').map((e) => {
+        let [key, value] = e.split('=');
+        paramMap[key] = value;
+      });
+      paramMap.radius = n;
+      if (n == DEFAULTS.config.radius)
+        delete paramMap.radius;
+      let url = base;
+      if (Object.keys(paramMap).length > 0)
+        url += '?' + Object.entries(paramMap).map((e) => e.join('=')).join('&');
+      location.href = url;
+    }
   }
 
   // Add rule or preset - also use these if adding from console
@@ -186,11 +219,67 @@ class Board {
       let bytes = new Int8Array(buffer);
       hexular.import(bytes);
       adapter.draw();
+      this.storeState();
     };
     input.onchange = () => {
       fileReader.readAsArrayBuffer(input.files[0]);
     };
     input.click();
+  }
+
+  storeState(bytes) {
+    bytes = bytes || hexular.export();
+    let str = bytes.join('');
+    sessionStorage.setItem('modelState', str);
+  }
+
+  restoreState() {
+    let modelState = sessionStorage.getItem('modelState');
+    if (modelState) {
+      this.newHistoryState();
+      let bytes = new Int8Array(modelState.split(''));
+      hexular.import(bytes);
+      adapter.draw();
+    }
+  }
+
+ // Undo/redo stuff
+
+  newHistoryState() {
+    this.undoStack.push(hexular.export());
+    if (this.undoStack.length > this.undoStackSize)
+      this.undoStack.shift();
+    this.redoStack = [];
+    this.refreshHistoryButtons();
+  }
+
+  undo() {
+    let nextState = this.undoStack.pop();
+    if (nextState) {
+      let curState = hexular.export()
+      hexular.import(nextState);
+      this.storeState(nextState);
+      this.redoStack.push(curState);
+      adapter.draw();
+      this.refreshHistoryButtons();
+    }
+  }
+
+  redo() {
+    let nextState = this.redoStack.pop();
+    if (nextState) {
+      let curState = hexular.export()
+      hexular.import(nextState);
+      this.storeState(nextState);
+      this.undoStack.push(curState);
+      adapter.draw();
+      this.refreshHistoryButtons();
+    }
+  }
+
+  refreshHistoryButtons() {
+    this.buttons.undo.disabled = +!this.undoStack.length;
+    this.buttons.redo.disabled = +!this.redoStack.length;
   }
 
   // Page/canvas listeners
@@ -303,6 +392,7 @@ class Board {
     this.shift = false;
     this.lastSet = null;
     this.setState = null;
+    this.storeState();
   }
 
   // Cell selection and setting
@@ -321,43 +411,6 @@ class Board {
         adapter.drawCell(cell);
       }
     }
-  }
-
-  // Undo/redo stuff
-
-  newHistoryState() {
-    this.undoStack.push(hexular.export());
-    if (this.undoStack.length > this.undoStackSize)
-      this.undoStack.shift();
-    this.redoStack = [];
-    this.refreshHistoryButtons();
-  }
-
-  undo() {
-    let nextState = this.undoStack.pop();
-    if (nextState) {
-      let curState = hexular.export()
-      hexular.import(nextState);
-      this.redoStack.push(curState);
-      adapter.draw();
-      this.refreshHistoryButtons();
-    }
-  }
-
-  redo() {
-    let nextState = this.redoStack.pop();
-    if (nextState) {
-      let curState = hexular.export()
-      hexular.import(nextState);
-      this.undoStack.push(curState);
-      adapter.draw();
-      this.refreshHistoryButtons();
-    }
-  }
-
-  refreshHistoryButtons() {
-    this.buttons.undo.disabled = +!this.undoStack.length;
-    this.buttons.redo.disabled = +!this.redoStack.length;
   }
 
   // Alert messages
@@ -424,6 +477,12 @@ class Board {
     const ctl = ev.target;
     hexular.rules[ctl.ruleMenu.index] = this.rules[ctl.value] || this.rules.identityRule;
     this.checkPreset();
+  }
+
+  // Set default neighborhood for rules using top-level cell helper functions
+
+  setNeighborhood(neighborhood) {
+    hexular.setNeighborhood(neighborhood);
   }
 
   // Preset setting and checking
@@ -549,6 +608,7 @@ window.addEventListener('DOMContentLoaded', function(e) {
     {renderer: board.bgCtx, selector: board.fgCtx},
     board.config
   );
+  board.restoreState();
 
   window.requestAnimationFrame(() => {
     adapter.draw();
