@@ -83,7 +83,7 @@ var Hexular = (function () {
         numStates: DEFAULT_NUM_STATES,
         groundState: DEFAULT_GROUND_STATE,
         rules: [],
-        filters: new HookList(),
+        filters: new HookList(this),
         index: Model.create++,
         cells: [],
       };
@@ -107,7 +107,7 @@ var Hexular = (function () {
     step() {
       this.eachCell((cell) => {
         let nextState = (this.rules[cell.state] || this.defaultRule)(cell);
-        cell.nextState = this.filters.call(nextState);
+        cell.nextState = this.filters.call(nextState, cell);
       });
       this.eachCell((cell) => {
         cell.state = cell.nextState;
@@ -393,9 +393,9 @@ var Hexular = (function () {
       this.owner = owner;
     }
 
-    call(val) {
+    call(val, ...args) {
       for (let i = 0; i < this.length; i++) {
-        let newVal = this[i].call(this.owner, val);
+        let newVal = this[i].call(this.owner, val, ...args);
         val = newVal === undefined ? val : newVal;
       }
       return val;
@@ -551,8 +551,12 @@ var Hexular = (function () {
 
   // --- OPTIONAL FILTERS ---
 
-  function modFilter(state) {
-    return mod(state, this.numStates);
+  function modFilter(value) {
+   return mod(value, this.numStates);
+  }
+
+  function edgeFilter(value, cell) {
+    return !cell.edge ? value : this.groundState;
   }
 
   /**
@@ -659,6 +663,7 @@ var Hexular = (function () {
     },
     filters: {
       modFilter,
+      edgeFilter,
     },
     util: {
       ruleBuilder,

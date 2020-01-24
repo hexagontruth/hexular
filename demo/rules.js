@@ -119,6 +119,10 @@ let RULES = {
 
   countXor: (cell) => cell.count % 2,
 
+  // Incrementxor
+
+  incrementXor: (cell) => Math.max(0, cell.state + (cell.count % 2 ? 1 : -1)),
+
   // I made this while testing the new topologies. I am keeping it, again, because of the name
 
   mrWiggleburg: (cell) => {
