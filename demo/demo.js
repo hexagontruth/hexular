@@ -37,6 +37,7 @@ class Board {
       container: document.querySelector('.container'),
       overlay: document.querySelector('.overlay'),
       message: document.querySelector('.message'),
+      info: document.querySelector('.info'),
       ruleConfig: document.querySelector('.rule-config'),
       buttons: {
         toggle: document.querySelector('#toggle'),
@@ -204,14 +205,13 @@ class Board {
         }
         else {
           this.header.classList.toggle('hidden');
+          this.info.classList.toggle('hidden');
         }
-        ev.preventDefault();
       }
 
       // TAB to start/stop
       else if (ev.key == 'Tab') {
         this.toggle();
-        ev.preventDefault();
       }
 
       // SPACE to step or stop
@@ -239,11 +239,20 @@ class Board {
         else if (key == 'o') {
           this.load();
         }
+        // We'll use ctrl+c (as SIGINT analog) instead of ctrl+n to clear screen or "new grid" if you will
+        // b/c Webkit devs just want to see the world burn: https://bugs.chromium.org/p/chromium/issues/detail?id=33056
+        else if (key == 'c') {
+          this.clear();
+        }
         else {
           return; // Do not prevent default for other ctrl key combos
         }
-        ev.preventDefault();
+
       }
+      else {
+        return;
+      }
+      ev.preventDefault();
     }
   }
 
@@ -256,11 +265,11 @@ class Board {
       this.newHistoryState();
       if (ev.buttons & 1) {
         this.shift = ev.shiftKey;
-        this.setState = Hexular.math.mod(this.selected.state + 1, this.config.numStates);
+        this.setState = Hexular.math.mod(this.selected.state + 1, hexular.numStates);
         this.setCell(this.selected);
       }
       else if (ev.buttons & 2) {
-        this.setState = Hexular.math.mod(this.selected.state - 1, this.config.numStates);
+        this.setState = Hexular.math.mod(this.selected.state - 1, hexular.numStates);
         this.setCell(this.selected);
       }
     }
@@ -273,11 +282,12 @@ class Board {
   }
 
   handleMousemove(ev) {
+    let cell;
     if (ev.target == this.fg) {
       let {x, y} = this.fg.getBoundingClientRect();
       x = Math.max(0, x);
       y = Math.max(0, y);
-      let cell = adapter.cellAt([
+      cell = adapter.cellAt([
         ev.pageX - this.fg.width / 2 - x,
         ev.pageY - this.fg.height / 2 - y
       ]);
@@ -285,6 +295,8 @@ class Board {
       if (this.setState != null)
         this.setCell(cell);
     }
+    if (ev.target != this.info)
+      this.info.innerHTML = cell && cell.coord.map((c) => (c > 0 ? '+' : '-') + ('0' + Math.abs(c)).slice(-2)) || '';
   }
 
   handleMouseup() {

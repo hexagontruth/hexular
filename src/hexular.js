@@ -85,6 +85,7 @@ var Hexular = (function () {
         rules: [],
         filters: new HookList(),
         index: Model.create++,
+        cells: [],
       };
       Object.assign(this, defaults, ...args);
       Object.entries(attributes.classes.adapters).forEach(([className, Class]) => {
@@ -134,7 +135,11 @@ var Hexular = (function () {
       return bytes;
     }
 
-    import(bytes) { HexError.methodNotImplemented('import'); }
+    import(bytes) {
+      this.cells.forEach((cell, idx) => {
+        cell.state = bytes[idx] || this.groundState;
+      });
+    }
   }
   Model.created = 0;
 
@@ -207,12 +212,6 @@ var Hexular = (function () {
       let cell = this.cells[u * this.cols + v];
       return cell;
     }
-
-    import(bytes) {
-      this.cells.forEach((cell, idx) => {
-        cell.state = bytes[idx] || this.groundState;
-      });
-    }
   }
 
   class CubicModel extends Model {
@@ -231,10 +230,8 @@ var Hexular = (function () {
           this.rhombus[u * cols + v] = new Cell(this, [u, v, w], {edge});
       });
 
-      this.cells = Object.values(this.rhombus).filter((e) => e);
-
       // Connect simple neighbors
-      this.eachCell((cell) => {
+      Object.values(this.rhombus).filter((e) => e).forEach((cell) => {
         for (let i = 0; i < 6; i++) {
           let dir1 = i >> 1;
           let dir2 = (dir1 + 1 + i % 2) % 3;
@@ -256,6 +253,25 @@ var Hexular = (function () {
           cell.nbrs[1 + (i + 5) % 6] = this.rhombus[nbr[0] * cols + nbr[1]];
         }
       });
+
+      // Populate cell array via neighbor traversal
+      // Our goal here is to put cells into center-out mapping so they can be saved and restored between board sizes
+      // This will not work OffsetModel b/c there's no way to infer what size rectangle the cells were on originally
+      this.cells = [this.rhombus[0]];
+      for (let i = 1; i < this.radius; i++) {
+        let cell = this.cells[0];
+        // We select the first simple neighbor in the i-th ring
+        for (let j = 0; j < i; j++)
+          cell = cell.nbrs[1];
+
+        for (let j = 0; j < 6; j++) {
+          let dir = 1 + (j + 2) % 6;
+          for (let k = 0; k < i; k++) {
+            cell = cell.nbrs[dir];
+            this.cells.push(cell);
+          }
+        }
+      }
 
       // Connect extended neighbors
       this.eachCell((cell) => {
@@ -295,16 +311,6 @@ var Hexular = (function () {
         return null;
       let cell = this.rhombus[u * this.cols + v];
       return cell;
-    }
-
-    import(bytes) {
-      let length = bytes.length;
-      let offset = this.size - length;
-      bytes.forEach((state, idx) => {
-        let cellIdx = idx + offset;
-        if (this.cells[cellIdx])
-          this.cells[cellIdx].state = state;
-      });
     }
   }
 
