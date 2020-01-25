@@ -72,6 +72,8 @@ var Hexular = (function () {
 
   /**
    * Class representing a hexular error.
+   *
+   * @augments Error
    */
   class HexError extends Error {}
 
@@ -105,18 +107,67 @@ var Hexular = (function () {
    */
   class Model {
     /**
-    * Creates Model instance
+    * Abstract constructor for creating a `Model` instance.
     *
-    * @param {...object} ...args One or more object of key-value settings to apply to instance
+    * @param {...object} ...args One or more settings objects to apply to model
     */
     constructor(...args) {
       let defaults = {
+        /**
+         * Default rule function to use for states not defined by {@link Model#rules}.
+         *
+         * For non-numeric cell states, arbitrary state keys can be added to this array.
+         *
+         * @name Model#defaultRule
+         * @type function
+         * @default {@link rules.identityRule}
+         */
         defaultRule: DEFAULT_RULE,
+        /**
+         * Total number of states.
+         *
+         * Convenience attribute used by cell neighborhood and filter functions.
+         *
+         * @name Model#numStates
+         * @type number
+         * @default 2
+         */
         numStates: DEFAULT_NUM_STATES,
+        /**
+         * Default ground or "off" state for cells.
+         *
+         * Used by on cell initialization, by {@link Model#import} and {@link Model#clear}, and
+         * potentially by {@link filters} or {@link Adapter|adapters}.
+         *
+         * @name Model#groundState
+         * @type number
+         * @default 0
+         */
         groundState: DEFAULT_GROUND_STATE,
+        /**
+         * Array of rule functions, applied when a cell's state is equal to an entry's index.
+         *
+         * For non-numeric cell states, arbitrary state keys can be added to this array.
+         *
+         * @name Model#rules
+         * @type function[]
+         * @see {@link rules}
+         */
         rules: [],
+        /**
+         * List of filter functions to call on every new cell state.
+         *
+         * @name Model#filters
+         * @type HookList
+         * @default {@link filters.modFilter|[Hexular.filters.modFilter]}
+         */
         filters: new HookList(this),
-        index: Model.created++,
+        /**
+         * Canonical, publicly-exposed one-dimensional array of cells in order defined by subclass.
+         *
+         * @name Model#cells
+         * @type Cell[]
+         */
         cells: [],
       };
       Object.assign(this, defaults, ...args);
@@ -155,6 +206,9 @@ var Hexular = (function () {
       return idx;
     }
 
+    /**
+     * Advance state of each cell according to rule defined in {@link Model.rules|this.rules} for current state key.
+     */
     step() {
       this.eachCell((cell) => {
         let nextState = (this.rules[cell.state] || this.defaultRule)(cell);
@@ -165,27 +219,109 @@ var Hexular = (function () {
       });
     }
 
+    /**
+     * Reset each cell state to {@link Model.groundState|this.groundState}.
+     */
     clear() {
       this.eachCell((cell) => {
         cell.state = this.groundState;
       });
     }
 
+    /**
+     * Set {@link Cell#neighborhood} for each cell to given value.
+     *
+     * @param  {number} neighborhood One of the natural numbers [6, 12, 18, 7, 13, 19].
+     */
     setNeighborhood(neighborhood) {
       this.eachCell((cell) => {
         cell.neighborhood = neighborhood;
       })
     }
 
-    eachCoord(callback) { HexError.methodNotImplemented('eachCoord'); }
+    /**
+     * Method for calling a given function for each cell in a model, and returns an array of return values.
+     *
+     * This is essentially `forEach` on {@link Model#cells} but with array comprehension behavior.
+     *
+     * @param  {function} fn Function to call for each cell, taking the cell as an argument
+     * @return {number[]}    Array of return values with same size as {@link Model#cells|this.cells}
+     */
+    eachCell(fn) {
+     let a = new Array(this.cells.length);
+     for (let i = 0; i < this.cells.length; i++) {
+       a[0] = fn(this.cells[i]);
+     }
+     return a;
+    }
 
-    eachCell(fn) { HexError.methodNotImplemented('eachCell'); }
+    /**
+     * Call a given function for each coordinate defined by a model's topology.
+     *
+     * This is typically used by a model's constructor to instantiate cells, but should be exposed externally as well.
+     *
+     * @param  {function} fn Function to call for each coordinate, taking a coordinate argument that e.g. is used to
+     *                       construct {@link Model#coord}
+     */
+    eachCoord(fn) {
+      HexError.methodNotImplemented('eachCoord');
+    }
 
+    /**
+     * Get coordinates of cell according to a renderer.
+     *
+     * As with {@link Model#cellAtCubic}, this is a somewhat inelegant compromise between the concern domains of models
+     * and adapters. In this case, we wish not to find a cell, but provide a canonical spatial address for each cell
+     * according to a rendering adapter.
+     *
+     * @param  {Adapter} adapter An adapter instance with {@link Adapter#cellRadius} and {@link Adapter#basis} defined
+     * @param  {Cell} cell       The cell to position
+     * @return {number[]}       The cell's [x, y] position relative to the origin of the adapter
+     */
+    getCoords(adapter, cell) {
+      HexError.methodNotImplemented('getCoords');
+    }
+
+    /**
+     * Find cell at given cubic coordinates in model.
+     *
+     * There is at present some contradiction between the concerns addressed by models and those addressed by adapters.
+     * In short, there is no "topologically agnostic" way to spatially locate a cell in any given model. Thus, we
+     * leave the onus on specific `Model` subclasses to to convert cubic coordinates to their internal coordinate
+     * system, and allow e.g. {@link Adapter} instances to look up cells spatially using this convention.
+     *
+     * @param  {number[]} coord Array of [u, v, w] coordinates
+     * @return {Cell}           Cell at coordinates, or null
+     */
+    cellAtCubic([u, v, w]) {
+      HexError.methodNotImplemented('cellAtCubic');
+    }
+
+    /**
+     * Export cell states to a typed byte array.
+     *
+     * Though Hexular is not currently geared towards negative state values, we use a signed type array to preserve
+     * the option of doing so. This method does not export other aspects of a model or its cells, such as
+     * {@link Model#rules} or {@link Cell#neighborhood}., and will not prove effective for non-numeric states or states
+     * outside the range -128...128 (inclusive and exclusive respectively).
+     *
+     * @return {Int8Array} Byte array of cell states
+     * @see {@link Model#import}
+     */
     export() {
       let bytes = Int8Array.from(this.cells.map((e) => e.state));
       return bytes;
     }
 
+    /**
+     * Import cell states from typed byte array.
+     *
+     * Like {@link Model#export}, this only works with integer states no less than -128 and no greater than 127, and
+     * does not change other model or cell attributes such as e.g. {@link Model#rules} or {@link Cell#neighborhood}.
+     *
+     * @param  {Int8Array} bytes Byte array of cell states
+     * @see {@link Model#export}
+     */
     import(bytes) {
       this.cells.forEach((cell, idx) => {
         cell.state = bytes[idx] || this.groundState;
@@ -208,26 +344,36 @@ var Hexular = (function () {
       return chunked.map((e) => ('0' + (e % 256).toString(16)).slice(-2)).join('');
     }
   }
-  Model.created = 0;
 
 /**
  * Class representing an offset, i.e. rectangular, topology.
  *
  * In an offset topology, cells describe a cols x rows grid where every other row is staggered one apothem-length
  * along the x axis. This is useful when trying to fit a grid into a rectangular box, but may cause undesirable
- * wraparound effects. (These effects may be mitigated by using `edgeFilter`.)
+ * wraparound effects. (These effects may be mitigated by using {@link filters.edgeFilter}.)
+ *
+ * @augments Model
  */
-
   class OffsetModel extends Model {
     /**
-    * Creates OffsetModel instance
+    * Creates `OffsetModel` instance
     *
-    * @param {...object} ...args One or more object of key-value settings to apply to instance
+    * @param {...object} ...args One or more settings objects to apply to model
     */
     constructor(...args) {
       super();
       let defaults = {
+        /**
+         * @name OffsetModel#cols
+         * @type number
+         * @default 60
+         */
         cols: DEFAULT_COLS,
+        /**
+         * @name OffsetModel#rows
+         * @type number
+         * @default 60
+         */
         rows: DEFAULT_ROWS,
         cells: [],
       };
@@ -269,13 +415,6 @@ var Hexular = (function () {
       return true;
     }
 
-    eachCell(fn) {
-      return this.eachCoord(([i, j]) => {
-        let cell = this.cells[j * this.cols + i];
-        return fn(cell, [i, j]);
-      });
-    }
-
     getCoords(renderer, cell) {
       let r = renderer.cellRadius;
       let [i, j] = cell.coord;
@@ -303,16 +442,22 @@ var Hexular = (function () {
    *
    * For more information on this system, and how it translates to other coordinate systems, please see the excellent
    * article [Hexagonal Grids]{@link https://www.redblobgames.com/grids/hexagons/} from Red Blob Games.
+   *
+   * @augments Model
    */
-
   class CubicModel extends Model {
     /**
-    * Creates CubicModel instance.
+    * Creates `CubicModel` instance.
     *
-    * @param {...object} ...args One or more object of key-value settings to apply to instance
+    * @param {...object} ...args One or more settings objects to apply to model
     */
     constructor(...args) {
       super(...args);
+      /**
+       * @name CubicModel#radius
+       * @type number
+       * @default 30
+       */
       let radius = this.radius = this.radius || DEFAULT_RADIUS;
       HexError.validateKeys(this, 'radius');
       this.size = radius * (radius - 1) * 3 + 1;
@@ -386,14 +531,6 @@ var Hexular = (function () {
       return true;
     }
 
-    eachCell(fn) {
-      let a = [];
-      for (let i = 0; i < this.cells.length; i++) {
-        a.push(fn(this.cells[i]));
-      }
-      return a;
-    }
-
     getCoords(renderer, cell) {
       let r = renderer.cellRadius;
       let [u, v, w] = cell.coord;
@@ -413,19 +550,82 @@ var Hexular = (function () {
   /**
    * Class representing a cell.
    */
-
   class Cell {
+    /**
+     * Creates `Cell` instance.
+     *
+     * @param  {Model} model       Model for populating {@link Cell#model|this.model}
+     * @param  {number[]} coord    Coordinate array for populating {@link Cell#coord|this.coord}
+     * @param  {...object} ...args One or more settings objects to apply to cell
+     */
     constructor(model, coord, ...args) {
       let defaults = {
+        /**
+         * {@link Model} instance associated with this cell (typically also its instantiator).
+         *
+         * @name Cell#model
+         * @type Model
+         */
         model,
+        /**
+         * An coordinate vector whose shape and range are determined by topology implemented in {@link Cell#model}.
+         *
+         * @name Cell#coord
+         * @type number[]
+         */
         coord,
+        /**
+         * Cell state, used to look up rule index on each {@link Model#step|this.step}.
+         *
+         * @name Cell#state
+         * @type number
+         * */
         state: model.groundState,
+        /**
+         * Used by {@link Model#step|this.model.step()} when calculating next cell states.
+         *
+         * @name Cell#nextState
+         * @type number
+         */
         nextState: 0,
+        /**
+         * Numeric array with default size of 19 with entries for the cell itself and its 18 nearest neighbors.
+         *
+         * - Entry 0 corresponds to the cell itself
+         * - Entries 1-6 correspond to the cell's 6 nearest neighbors, progressing in a continuous arc
+         * - Entries 7-12 correspond to those cells one edge-length from the cell, where `nbrs[7]`` corresponds to the
+         *   cell touching `nbrs[1]` in the opposite direction the first ring progresses, but progressing in the same
+         *   direction as the first ring
+         * - Entries 13-18 correspond to cells one full cell from the cell, where `nbrs[13]` corresponds to the cell
+         *   touching `nbrs[12]` opposite from `nbrs[1]`, also progressing in the same direction as the other two
+         *
+         * I.e., we have 3 rings where the first neighbor in each ring zigzags away from the home cell. This
+         * arrangement allows successive neighborhoods to be iterated through contiguously.
+         *
+         * @name Cell#nbrs
+         * @type number
+         */
         nbrs: new Array(19).fill(null),
+
+        /**
+         * Value indicating which entry in {@link Cell#with|this.with} to look to when calling cell-level helper
+         * functions, e.g. {@link Cell#count|this.count}, &c.
+         *
+         * @name Cell#neighborhood
+         * @type number
+         * @default 6
+         */
         neighborhood: 6,
       };
       Object.assign(this, defaults, ...args);
       this.nbrs[0] = this;
+      /**
+       * Array of {@link Neighborhood} instances, for efficiently calling helper methods over defined neighborhoods.
+       *
+       * @name Cell#with
+       * @type Neighborhood[]
+       * @see {@link Cell#neighborhood}
+       */
       this.with = {
         6: new Neighborhood(this, 1, 7),
         12: new Neighborhood(this, 1, 13),
@@ -436,6 +636,9 @@ var Hexular = (function () {
       };
     }
 
+    /**
+     * Builds out {@link Cell#nbrs|this.nbrs[7:19]} after [1:7} have been populated by {@link Model|this.model}.
+     */
     extendNeighborhood() {
       for (let i = 1; i < 7; i++) {
         let source12 = 1 + (i + 4) % 6;
@@ -444,11 +647,30 @@ var Hexular = (function () {
       }
     }
 
+    /**
+     * Shortcut for {@link Neighborhood#total|this.with[this.neighborhood].total}.
+     *
+     * @readonly
+     */
     get total() { return this.with[this.neighborhood].total; }
-
+    /**
+     * Shortcut for {@link Neighborhood#count|this.with[this.neighborhood].count}.
+     *
+     * @readonly
+     */
     get count() { return this.with[this.neighborhood].count; }
-
+    /**
+     * Shortcut for {@link Neighborhood#histogram|this.with[this.neighborhood].histogram}.
+     *
+     * @readonly
+     */
     get histogram() { return this.with[this.neighborhood].histogram; }
+    /**
+     * Shortcut for {@link Neighborhood#map|this.with[this.neighborhood].map}.
+     *
+     * @readonly
+     */
+    get map() { return this.with[this.neighborhood].map; }
   }
 
   /**
@@ -458,6 +680,13 @@ var Hexular = (function () {
    * we can confine our iteration to the 6, 12, or 18 nearest neighbors, with or without the cell itself.
    */
   class Neighborhood {
+    /**
+     * Creates `Neighborhood` instance.
+     *
+     * @param  {Cell} cell  Parent cell, usually instantiator of neighborhood
+     * @param  {number} min Minimum index (inclusive) of neighborhood in {@link Cell#nbrs|this.cell.nbrs}.
+     * @param  {number} max Maximum index (exclusive) of neighborhood in {@link Cell#nbrs|this.cell.nbrs}.
+     */
     constructor(cell, min, max) {
       this.cell = cell;
       this.nbrs = cell.nbrs;
@@ -466,6 +695,12 @@ var Hexular = (function () {
       this.length = max - min;
     }
 
+    /**
+     * Cumulative total of all neighboring states.
+     *
+     * @return {number}
+     * @readonly
+     */
     get total() {
       let a = 0;
       for (let i = this.min; i < this.max; i++)
@@ -473,6 +708,12 @@ var Hexular = (function () {
       return a;
     }
 
+    /**
+     * Count of all activated (state > 0) neighbors.
+     *
+     * @return {number}
+     * @readonly
+     */
     get count() {
       try {
       let a = 0;
@@ -481,23 +722,76 @@ var Hexular = (function () {
       return a;} catch (e) {console.log(this,this.cell,this.cell.coord); console.trace(); throw e;}
     }
 
+    /**
+     * A `numStates`-sized array containing neighbor counts for that state.
+     *
+     * @return {number[]}
+     * @readonly
+     */
     get histogram() {
-      let a = Array(this.numStates).fill(0);
+      let a = Array(this.cell.model.numStates).fill(0);
       for (let i = this.min; i < this.max; i ++)
-        a[this.nbrs[i].state] += 1;
+        if (this.nbrs[i].state < a.length)
+          a[this.nbrs[i].state] += 1;
+      return a;
+    }
+
+    /**
+     * Array of cell states in neighborhood.
+     *
+     * @return {number[]}
+     * @readonly
+     */
+    get map() {
+      let a = [];
+      for (let i = this.min; i < this.max; i++) {
+        a.push(this.nbrs[i].state);
+      }
       return a;
     }
   }
 
   /**
    * Class representing a list of callback hooks
+   *
+   * This class extends `Array`, and we can use standard array methods - e.g. `push`, &c. - to populate it.
+   *
+   * @augments Array
    */
   class HookList extends Array {
+    /**
+     * Creates `HookList` instance.
+     *
+     * @param  {*} owner Object or value for population {@link HookList#owner|this.owner}
+     */
     constructor(owner) {
       super();
+      /**
+       * Object or value to be bound to functions in hook list.
+       *
+       * Typically a class instance. Overwriting this will have no effect on functions already in hook list.
+       *
+       * @name HookList#owner
+       */
       this.owner = owner;
     }
 
+    /**
+     * Call each function entry in hook list, bound to {@link HookList#owner|this.owner}.
+     *
+     * The first function is called with the arguments as given to this method. When a called
+     * function returns a value besides `undefined`, `val` is set to that value for the next
+     * function. The final state of `val` is returned at the end of the iteration. Thus, if
+     * constituent functions return a value, this operation serves to "filter" a value from one
+     * function to the other. Conversely, if constituent functions do not return an explicit value,
+     * this method essentially iterates over these functions with identitcal arguments.
+     *
+     * Both are good options.
+     *
+     * @param  {*} val        First argument to be passed to at least initial function
+     * @param  {...*} ...args Any additional arguments to pass to functions
+     * @return {*}            Final return value of last function called, or original value
+     */
     call(val, ...args) {
       for (let i = 0; i < this.length; i++) {
         let newVal = this[i].call(this.owner, val, ...args);
@@ -513,28 +807,85 @@ var Hexular = (function () {
    * This doesn't really do much.
    */
   class Adapter {
-    draw() { HexError.methodNotImplemented('draw'); }
+    /**
+     * Creates `Adapter` instance.
+     *
+     * @param  {Model} model       Model to associate with this adapter
+     * @param  {...object} ...args One or more settings objects to apply to adapter
+     */
+    constructor(model, ...args) {
+      /**
+       * `Model` instance to associate with this adapter.
+       *
+       * In the present implementation, this only needs to be a one-way relationship - models have no explicit
+       * knowledge of adapters accessing them, though they can be instantiated via `model.[ClassName]`.
+       *
+       * @name Adapter#model
+       * @type Model
+       */
+       this.model = model;
+       Object.assign(this, ...args);
+    }
   }
 
   /**
    * Class represting a renderer bound to two user agent canvas elements.
+   *
+   * This class is fairly closely-tailored for the needs of the Hexular Demo page, and is probably does not expose
+   * the ideal generalized interface for e.g. browser-based canvas rendering.
+   *
+   * The crux of its functionality is the employment of two ideally overlapping canvas contexts - one for drawing
+   * cells, and one for drawing the highlighted cell selector. This is a change from the original 2017 version, which
+   * just used a single canvas and a somewhat awkward raster buffer for storing the unselected drawn state of the cell
+   * and then redrawing it when the selection changes. This more or less worked but led to occasional platform-specific
+   * artifacts. At any rate, one can easily override the default selector-drawing behavior (see
+   * {@link CanvasAdapter#onDrawSelector}) and use a single canvas.
+   * if desired.
+   *
+   * @augments Adapter
    */
   class CanvasAdapter extends Adapter {
     /**
-    * Creates CanvasAdapter instance
-    *
-    * @param {Model} model       Model to associate with this adapter
-    * @param {...object} ...args One or more object of key-value settings to apply to instance
-    */
+     * Creates `CanvasAdapter` instance.
+     *
+     * @param  {Model} model       Model to associate with this adapter
+     * @param  {...object} ...args One or more settings objects to apply to adapter
+     */
     constructor(model, ...args) {
-      super();
+      super(model);
       let defaults = {
-        model,
         cellMap: new Map(),
+        /**
+         * Array of CSS hex or RGB color codes, for drawing cells with each entry's respective indicial state.
+         *
+         * @name CanvasAdapter#colors
+         * @type string[]
+         */
         colors: DEFAULT_COLORS,
+
+        /**
+         * @name CanvasAdapter#hightlightColor
+         * @type string
+         * @default #ffbb33
+         */
         highlightColor: DEFAULT_HIGHLIGHT_COLOR,
+        /**
+         * @name CanvasAdapter#highlightLineWidth
+         * @type number
+         * @default 2
+         */
         highlightLineWidth: DEFAULT_HIGHLIGHT_LINE_WIDTH,
+        /**
+         * @name CanvasAdapter#cellRadius
+         * @type number
+         * @default 10
+         */
         cellRadius: DEFAULT_CELL_RADIUS,
+        /**
+         * @name CanvasAdapter#borderWidth
+         * @type number
+         * @default 1.25
+         */
         borderWidth: DEFAULT_BORDER_WIDTH,
       };
       Object.assign(this, defaults, ...args);
@@ -545,8 +896,6 @@ var Hexular = (function () {
       this.innerRadius = this.cellRadius - this.borderWidth / (2 * math.apothem);
       this.vertices = scalarOp(math.vertices, this.innerRadius);
       this.basis = scalarOp(math.basis, this.cellRadius);
-
-      // For imageData rectangle coords
       this.selectYOffset = Math.ceil(
         this.cellRadius * math.apothem + this.highlightLineWidth);
       this.selectXOffset = Math.ceil(
@@ -554,11 +903,19 @@ var Hexular = (function () {
       this.selectHeight = this.selectYOffset * 2;
       this.selectWidth = this.selectXOffset * 2;
 
-      // Callback hooks for drawing actions
-
+      /**
+       * @name CanvasAdapter#onDrawCell
+       * @type HookList
+       * @default {@link CanvasAdapter#defaultDrawCell|[this.defaultDawCell]}
+       */
       this.onDrawCell = new HookList(this);
       this.onDrawCell.push(this.defaultDrawCell);
 
+      /**
+       * @name CanvasAdapter#onDrawSelector
+       * @type HookList
+       * @default {@link CanvasAdapter#defaultDrawSelector|[this.defaultDrawSelector]}
+       */
       this.onDrawSelector = new HookList(this);
       this.onDrawSelector.push(this.defaultDrawSelector);
       this.selected = {
@@ -572,8 +929,9 @@ var Hexular = (function () {
       });
     }
 
-    // Draw all cells
-
+    /**
+     * Draw all cell cells on {@link CanvasAdapter#renderer|this.renderer} context.
+     */
     draw() {
       this.clear(this.renderer);
       this.model.eachCell((cell) => {
@@ -581,8 +939,11 @@ var Hexular = (function () {
       });
     }
 
-    // Select cell and highlight on canvas
-
+    /**
+     * Select cell and draw on {@link CanvasAdapter#renderer|this.selector} context.
+     *
+     * @param  {Cell} cell The cell to select
+     */
     selectCell(cell) {
       if (this.selected.cell != cell) {
         this.clear(this.selector);
@@ -596,6 +957,15 @@ var Hexular = (function () {
       }
     }
 
+    /**
+     * Helper function for clearing one of the two canvas contexts (or any other).
+     *
+     * When used with {@link CubicModel}, which is centered on the origin, we assume the context has been translated
+     * to the center of its viewport. This is neither necessary nor assumed however, and we simply save the current
+     * transformation state, clear the visible viewport, and then restore that transformed state.
+     *
+     * @param  {CanvasRenderingContext2D} ctx The 2D canvas context to clear
+     */
     clear(ctx) {
       ctx.save();
       ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -603,34 +973,65 @@ var Hexular = (function () {
       ctx.restore();
     }
 
-    // Draw actions
-
+    /**
+     * Draw individual cell.
+     *
+     * Calls every method of {@link CanvasAdapter#onDrawCell} with the given cell. Used internally by
+     * {@link CanvasAdapter#draw}.
+     *
+     * @param  {Cell} cell The cell to draw
+     */
     drawCell(cell) {
       this.onDrawCell.call(cell);
     }
 
+    /**
+     * Draw selector
+     *
+     * Calls every method of {@link CanvasAdapter#onDrawSelector} with the given cell. Used
+     * internally by {@link CanvasAdapter#selectCell}.
+     *
+     * @param  {Cell} cell The cell to draw
+     */
     drawSelector(cell) {
       this.onDrawSelector.call(cell);
     }
 
+    /**
+     * Default cell drawing method.
+     *
+     * As this is bound separately to the instance via {@link CanvasAdapter#onDrawCell}, it doesn't strictly speaking
+     * need to be an instance method, but is included here for concern relevance.
+     *
+     * @param  {Cell} cell The cell being drawn
+     */
     defaultDrawCell(cell) {
     // Use cell.owner when writing custom drawing callbacks
-    this.drawHexPath(this.renderer, cell);
+    this._drawHexPath(this.renderer, cell);
     this.renderer.fillStyle = this.colors[cell.state];
     this.renderer.fill();
   }
 
+  /**
+   * Default cell selector drawing method.
+   *
+   * @param  {Cell} cell The selected cell being drawn
+   */
     defaultDrawSelector(cell) {
-    this.drawHexPath(this.selector, cell);
+    this._drawHexPath(this.selector, cell);
 
     this.selector.strokeStyle = this.highlightColor;
     this.selector.lineWidth = this.highlightLineWidth;
     this.selector.stroke();
   }
 
-    // Basic cell path for both cells and selector
-
-    drawHexPath(ctx, cell) {
+    /**
+     * Internal method used to draw hexes for both selectors and cells.
+     *
+     * @param  {CanvasRenderingContext2D} ctx  Drawing context
+     * @param  {Cell} cell                     The cell being drawn
+     */
+    _drawHexPath(ctx, cell) {
       const [x, y] = this.cellMap.get(cell);
       const vertices = this.vertices;
       ctx.beginPath();
@@ -640,12 +1041,21 @@ var Hexular = (function () {
       ctx.lineTo(x + vertices[3][1], y + vertices[3][0]);
       ctx.lineTo(x + vertices[4][1], y + vertices[4][0]);
       ctx.lineTo(x + vertices[5][1], y + vertices[5][0]);
-
       ctx.closePath();
     }
 
-    // Get cell at y,x coords on canvas
-
+    /**
+     * Get cell at specific x, y coordinates.
+     *
+     * This is used by Hexular Demo and presumably any other display-facing adapter for locating a cell from e.g. a
+     * user's cursor position.
+     *
+     * @param  {number[]} coord An array consisting of [x, y] coordinates
+     * @return {Cell}           The cell at this location, or null
+     * @see {@link math#cartesianToCubic}
+     * @see {@link math#roundCubic}
+     * @see {@link Model#cellAtCubic}
+     */
     cellAt([x, y]) {
       // First convert to cubic coords
       let rawCubic = cartesianToCubic([x, y]);
@@ -656,8 +1066,6 @@ var Hexular = (function () {
   }
 
   // TODO: Add SVG adapter
-
-  // --- DEFAULT CELL CALLBACKS ---
 
   /**
    * A rule that returns the current state.
