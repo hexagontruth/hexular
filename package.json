@@ -27,6 +27,7 @@
   },
   "homepage": "https://github.com/hexagrahamaton/hexular#readme",
   "devDependencies": {
+    "jsdoc": "^3.6.3",
     "static-server": "^2.2.1"
   }
 }

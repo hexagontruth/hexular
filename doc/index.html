@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Home</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Home</h1>
+
+    
+
+
+
+    
+
+
+    <h3> </h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><h1>Hexular</h1>
+<p>An extensible hexagonal CA platform.</p>
+<p>(C) 2020 Graham Steele. Distributed under the Hexagonal Awareness License.</p>
+<h2>Overview</h2>
+<ul>
+<li>View demo: https://hexagrahamaton.github.io/hexular</li>
+<li>Github: https://github.com/hexagrahamaton/hexular</li>
+</ul>
+<p>Hexular is an extensible hexagonal cellular automata (CA) platform for JavaScript environments, presently built around several core concepts:</p>
+<ul>
+<li>A <strong>model</strong> represents a topology of cells with a given state. Hexular includes two built-in model classes:
+<ul>
+<li><code>CubicModel</code> (default)</li>
+<li><code>OffsetModel</code></li>
+</ul>
+</li>
+<li><strong>Cells</strong> represents individual elements in a model topology. Each is associated with a particular state. Many included helper functions assume this state will be a natural number, but it can be anything.</li>
+<li><strong>Adapters</strong> are extensions for e.g. rendering a model's state. Particularly, e.g., <code>CanvasAdapter</code>, which displays a model on a user agent canvas.</li>
+</ul>
+<p>The <code>Hexular</code> function (defined globally in the DOM or exported by the standalone module) returns a new model instance.</p>
+<p>The <code>Hexular</code> object also contains the following attributes, providing ergonomic access to all functionality necessary for the
+end user to implement her own extensions via the Hexular API:</p>
+<ul>
+<li><code>Hexular</code>
+<ul>
+<li><code>classes</code>
+<ul>
+<li><code>models</code></li>
+<li><code>adapters</code></li>
+</ul>
+</li>
+<li><code>filters</code></li>
+<li><code>math</code></li>
+<li><code>rules</code></li>
+<li><code>util</code></li>
+</ul>
+</li>
+</ul>
+<p>Some useful <code>Model</code> methods:</p>
+<ul>
+<li><code>step()</code> — Perform single state increment step</li>
+<li><code>clear()</code> — Clear all cell states</li>
+</ul>
+<p>States are not drawn or redrawn on screen with adapters. Useful <code>Adapter</code> methods include:</p>
+<ul>
+<li><code>draw()</code> — Draws all cells</li>
+<li><code>drawCell(cell)</code> — Draws an individual cell</li>
+<li><code>selectCell(cell)</code> — Highlights individual cell</li>
+<li><code>cellAt(x, y)</code> — Returns cell at given coordinates on the canvas</li>
+</ul>
+<h2>Customization</h2>
+<h3>General configuration</h3>
+<p>The Hexular constructor accepts option arguments, which differ between different topologies.</p>
+<p><code>CubicModel</code> is morphologically determined by its <code>radius</code>, which gives the number of rings of cells from the center to the edge. So, e.g., a seven-cell grid would have radius 2. Conversely, <code>OffsetModel</code> takes <code>rows</code> and <code>cols</code> arguments (whose meaning should be obvious).</p>
+<p><code>numStates</code> can be similarly set on instantiation or changed at any time, and is only used internally by <code>modFilter</code>, when enabled, to compute cell states.</p>
+<h3>Rules</h3>
+<p>Cell rules are given on a per-state basis, and applied individually to each cell. The rules are stored in the <code>hexular.rules</code> array, and can be reassigned at any time.</p>
+<p>A valid rule is a function that take a cell as an argument, and return a value corresponding to the next desired state. Hexular is generally strongly opinionated towards these states being natural numbers, but they can in principle be anything that can be coerced into a JavaScript object key. The rule function has access to the cell's current state, its neighbors' states (through <code>cell.nbrs</code> and the neighborhood-bound helper functions), and by extension the state of every cell in the grid — though philosophically speaking CAs should only consider cell states within some finite local neighborhood.</p>
+<p>One could, if one were so inclined, create rules utilizing larger local neighborhoods, additional internal state data, etc.</p>
+<h4>Rule helpers</h4>
+<p>Cell instances have several helper methods to perform common rule calculations:</p>
+<ul>
+<li><code>total</code> — Returns sum of all neighboring states</li>
+<li><code>count</code> — Returns count of activated (nonzero) neighbors</li>
+<li><code>histogram</code> — Returns a <code>numStates</code>-sized array with counts of individual states across all neighbors</li>
+</ul>
+<p>A cell's <code>neighborhood</code> property determines which cells to iterate over when a rule calls these methods. The default is a cell's immediate six neighbors, however this can be set to several more expansive options, including the optional ability to include a cell's own state. Rules can call these helper methods on neighborhoods specifically via the <code>cell.with</code> attribute, e.g.:</p>
+<pre><code>    cell.with[19].count
+</code></pre>
+<p>All cell neighborhoods can be set via <code>model.setNeighborhood(n)</code>, where <code>n</code> is one of <code>[6, 12, 18, 7, 13, 19]</code>.</p>
+<h2>Demo</h2>
+<p>The main control buttons are, from left to right:</p>
+<ul>
+<li>Start (Tab) — Step model at 100ms intervals (though this may be significantly slower for larger grids)</li>
+<li>Step (Space) — Perform individual step</li>
+<li>Clear (Ctrl+C)</li>
+<li>Undo (Ctrl+Z)</li>
+<li>Redo (Ctrl+Shift+Z)</li>
+<li>Config — Open configuration modal</li>
+<li>Save (Ctrl+S)</li>
+<li>Load (Ctrl+O)</li>
+<li>Resize board</li>
+<li>Show documentation</li>
+</ul>
+<p>Additionally, <code>&lt;Escape&gt;</code> toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open.</p>
+<p>Cell states are changed by clicking and — on desktops — dragging. The new state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo <code>hexular.numStates</code>. Right clicking, conversely, decrements the cell state by one. Shift clicking clears states.</p>
+<h3>Prepopulated rules</h3>
+<p>Several predefined rules are given in <code>demo/rules.js</code>, though these are largely for convenience and not meant to be exhaustive. Additionally, the rules are organized into several &quot;presets,&quot; or lists of 2-12 rules.</p>
+<h3>Configuration</h3>
+<p>The configuration modal consists of the following fields:</p>
+<ul>
+<li>Slider input to set the number of available states, from 2-12</li>
+<li>Preset dropdown menu</li>
+<li>Text area for entering custom rules</li>
+<li>Bulk rule assignment dropdown with &quot;select all&quot; button</li>
+<li>Individual dropdowns for each of the twelve possible states supported by the demo</li>
+<li>A dropdown to set the default cell neighborhood</li>
+</ul>
+<h3>Customization</h3>
+<p>In the configuration modal, rule assignment select menus are populated with the contents of the <code>rules</code> object loaded from <code>demo/rules.js</code>. Custom rules may be added to this object via the console, via:</p>
+<pre><code>    board.AddRule(name, function)
+</code></pre>
+<p>This can also be affected via the modal by adding rules directly in the given text area. This should be a JavaScript object of one or more key-value pairs, where the value is a function that takes a <code>Cell</code> instance and returns a state value.</p>
+<p>We can also add our own rule presets via the console:</p>
+<pre><code>    board.addPreset(name, array)
+</code></pre>
+<p>And add filters such as e.g. <code>edgeFilter</code>, which has the effect of disabling wraparound topology:</p>
+<pre><code>    hexular.addFilter(Hexular.filters.edgeFilter)
+</code></pre>
+<p>And remove filter, such as the <code>modFilter</code> which is enabled by default:</p>
+<pre><code>    hexular.removeFilter(Hexular.filters.modFilter)
+</code></pre>
+<h2>Links</h2>
+<ul>
+<li>
+<p>This program was originally inspired as a generalization of David Siaw's similarly browser-based Hexlife program: https://github.com/davidsiaw/hexlife</p>
+</li>
+<li>
+<p>Also, Charlotte Dann's Hexagonal Generative Art, which incorporates CA-type rules along with more elaborate logic: http://codepen.io/pouretrebelle/post/hexagons</p>
+</li>
+<li>
+<p>Despite my general expertise in this area, I continue to find Amit Patel's &quot;Hexagonal Grids&quot; page to be an invaluable resource when dealing with hex grids: http://www.redblobgames.com/grids/hexagons/</p>
+</li>
+<li>
+<p>For more information on HEXAGONAL AWARENESS, please visit:</p>
+<ul>
+<li>https://hexnet.org/</li>
+<li>https://twitter.com/hexagonalnews</li>
+<li>https://facebook.com/hexagons</li>
+<li>https://reddit.com/r/hexagons</li>
+</ul>
+</li>
+</ul></article>
+    </section>
+
+
+
+
+
+
+
+
+
+<section>
+
+<header>
+    
+        <h2>hexular.js</h2>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+        
+
+
+<dl class="details">
+
+    
+    <dt class="tag-version">Version:</dt>
+    <dd class="tag-version"><ul class="dummy"><li>0.2</li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-author">Author:</dt>
+    <dd class="tag-author">
+        <ul>
+            <li>graham</li>
+        </ul>
+    </dd>
+    
+
+    
+    <dt class="tag-copyright">Copyright:</dt>
+    <dd class="tag-copyright"><ul class="dummy"><li>2020</li></ul></dd>
+    
+
+    
+    <dt class="tag-license">License:</dt>
+    <dd class="tag-license"><ul class="dummy"><li>Hexagonal Awareness License (HAL)</li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="filters.html">filters</a></li><li><a href="math.html">math</a></li><li><a href="rules.html">rules</a></li><li><a href="util.html">util</a></li></ul><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="CanvasAdapter.html">CanvasAdapter</a></li><li><a href="Cell.html">Cell</a></li><li><a href="CubicModel.html">CubicModel</a></li><li><a href="HexError.html">HexError</a></li><li><a href="HookList.html">HookList</a></li><li><a href="Model.html">Model</a></li><li><a href="Neighborhood.html">Neighborhood</a></li><li><a href="OffsetModel.html">OffsetModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Hexular">Hexular</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Sat Jan 25 2020 01:59:51 GMT-0500 (Eastern Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

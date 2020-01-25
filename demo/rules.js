@@ -10,6 +10,8 @@ let RULES = {
 
   binary2: (cell) => cell.count == 2 ? 1 : 0,
 
+  binary3: (cell) => cell.count == 3 ? 1 : 0,
+
   binary12: (cell) => {
     let count = cell.count;
     return count == 1 || count == 2 ? 1 : 0;
@@ -20,30 +22,13 @@ let RULES = {
     return count == 2 || count == 3 ? 1 : 0;
   },
 
+  binary24: (cell) => {
+    const count = cell.count;
+    return count == 2 || count == 4 ? 1 : 0;
+  },
+
   binary34: (cell) => {
     const count = cell.count;
-    return count == 3 || count == 4 ? 1 : 0;
-  },
-
-  // incBinary is same as binary, but "inclusive" of current cell state
-
-  incBinary2: (cell) => {
-    const count = cell.count + cell.state;
-    return count == 2 ? 1 : 0
-  },
-
-  incBinary12: (cell) => {
-    let count = cell.count + cell.state;
-    return count == 1 || count == 2 ? 1 : 0;
-  },
-
-  incBinary23: (cell) => {
-    const count = cell.count + cell.state;
-    return count == 2 || count == 3 ? 1 : 0
-  },
-
-  incBinary34: (cell) => {
-    const count = cell.count + cell.state;
     return count == 3 || count == 4 ? 1 : 0;
   },
 
@@ -71,14 +56,6 @@ let RULES = {
       return cell.state - 1;
     else
       return 0;
-  },
-
-  offset34: (cell) => {
-    const count = cell.count;
-    if (!cell.state)
-      return 0;
-    else 
-      return count < 4 ? cell.state + 1 : Math.max(0, cell.state - 1);
   },
 
   // A random example of a more complex state -- not actually useful

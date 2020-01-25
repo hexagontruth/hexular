@@ -1,4 +1,32 @@
-/**
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: hexular.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: hexular.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
  * @overview
  * @version 0.2
  * @author graham
@@ -150,7 +178,7 @@ var Hexular = (function () {
     removeFilter(filter) {
       let hash = this._hash(filter.toString());
       let idx = this.filters.findIndex(((e) => e.hash == hash));
-      if (idx < 0) return;
+      if (idx &lt; 0) return;
       this.filters.splice(idx, 1);
       return idx;
     }
@@ -261,8 +289,8 @@ var Hexular = (function () {
     }
 
     eachCoord(fn) {
-      for (let j = 0; j < this.rows; j++) {
-        for (let i = 0; i < this.cols; i++) {
+      for (let j = 0; j &lt; this.rows; j++) {
+        for (let i = 0; i &lt; this.cols; i++) {
           if (fn([i, j]) === false) return false;
         }
       }
@@ -328,7 +356,7 @@ var Hexular = (function () {
 
       // Connect simple neighbors
       Object.values(this.rhombus).filter((e) => e).forEach((cell) => {
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i &lt; 6; i++) {
           let dir1 = i >> 1;
           let dir2 = (dir1 + 1 + i % 2) % 3;
           let dir3 = (dir1 + 1 + +!(i % 2)) % 3;
@@ -354,15 +382,15 @@ var Hexular = (function () {
       // Our goal here is to put cells into center-out mapping so they can be saved and restored between board sizes
       // This will not work OffsetModel b/c there's no way to infer what size rectangle the cells were on originally
       this.cells = [this.rhombus[0]];
-      for (let i = 1; i < this.radius; i++) {
+      for (let i = 1; i &lt; this.radius; i++) {
         let cell = this.cells[0];
         // We select the first simple neighbor in the i-th ring
-        for (let j = 0; j < i; j++)
+        for (let j = 0; j &lt; i; j++)
           cell = cell.nbrs[1];
 
-        for (let j = 0; j < 6; j++) {
+        for (let j = 0; j &lt; 6; j++) {
           let dir = 1 + (j + 2) % 6;
-          for (let k = 0; k < i; k++) {
+          for (let k = 0; k &lt; i; k++) {
             cell = cell.nbrs[dir];
             this.cells.push(cell);
           }
@@ -376,8 +404,8 @@ var Hexular = (function () {
     }
 
     eachCoord(fn) {
-      for (let u = -this.max; u < this.radius; u++) {
-        for (let v = -this.max; v < this.radius; v++) {
+      for (let u = -this.max; u &lt; this.radius; u++) {
+        for (let v = -this.max; v &lt; this.radius; v++) {
           let w = -u - v;
           if (Math.abs(w) > this.max) continue;
           if (fn([u, v, -u - v]) === false) return false;
@@ -388,7 +416,7 @@ var Hexular = (function () {
 
     eachCell(fn) {
       let a = [];
-      for (let i = 0; i < this.cells.length; i++) {
+      for (let i = 0; i &lt; this.cells.length; i++) {
         a.push(fn(this.cells[i]));
       }
       return a;
@@ -437,7 +465,7 @@ var Hexular = (function () {
     }
 
     extendNeighborhood() {
-      for (let i = 1; i < 7; i++) {
+      for (let i = 1; i &lt; 7; i++) {
         let source12 = 1 + (i + 4) % 6;
         this.nbrs[i + 6] = this.nbrs[i].nbrs[source12];
         this.nbrs[i + 12] = this.nbrs[i].nbrs[i];
@@ -468,7 +496,7 @@ var Hexular = (function () {
 
     get total() {
       let a = 0;
-      for (let i = this.min; i < this.max; i++)
+      for (let i = this.min; i &lt; this.max; i++)
         a += this.nbrs[i].state;
       return a;
     }
@@ -476,14 +504,14 @@ var Hexular = (function () {
     get count() {
       try {
       let a = 0;
-      for (let i = this.min; i < this.max; i++)
+      for (let i = this.min; i &lt; this.max; i++)
         a += this.nbrs[i].state ? 1 : 0;
       return a;} catch (e) {console.log(this,this.cell,this.cell.coord); console.trace(); throw e;}
     }
 
     get histogram() {
       let a = Array(this.numStates).fill(0);
-      for (let i = this.min; i < this.max; i ++)
+      for (let i = this.min; i &lt; this.max; i ++)
         a[this.nbrs[i].state] += 1;
       return a;
     }
@@ -499,7 +527,7 @@ var Hexular = (function () {
     }
 
     call(val, ...args) {
-      for (let i = 0; i < this.length; i++) {
+      for (let i = 0; i &lt; this.length; i++) {
         let newVal = this[i].call(this.owner, val, ...args);
         val = newVal === undefined ? val : newVal;
       }
@@ -722,7 +750,7 @@ var Hexular = (function () {
     if (typeof ruleDef == 'object') {
       n = 0n;
       for (let state of ruleDef) {
-        n = n | 1n << BigInt(state);
+        n = n | 1n &lt;&lt; BigInt(state);
       }
     }
     else {
@@ -731,8 +759,8 @@ var Hexular = (function () {
     let startIdx = +!inc;
     return (cell) => {
       let mask = 0;
-      for (let i = startIdx; i < 7; i++) {
-        mask = mask | (cell.nbrs[i].state ? 1 : 0) << (6 - i);
+      for (let i = startIdx; i &lt; 7; i++) {
+        mask = mask | (cell.nbrs[i].state ? 1 : 0) &lt;&lt; (6 - i);
       }
       return Number((n >> BigInt(mask)) % 2n);
     };
@@ -783,7 +811,7 @@ var Hexular = (function () {
     b = v ? [b] : b;
     let product = b.map((bCol) => {
       let productRow = [];
-      for (let aRow = 0; aRow < a.length; aRow++) {
+      for (let aRow = 0; aRow &lt; a.length; aRow++) {
         productRow.push(bCol.reduce((acc, bEntry, aCol) => {
           return acc + a[aRow][aCol] * bEntry;
         }, 0));
@@ -848,7 +876,7 @@ var Hexular = (function () {
     let dv = Math.abs(rv - v);
     let dw = Math.abs(rw - w);
 
-    if (du > dv && du > dw)
+    if (du > dv &amp;&amp; du > dw)
       ru = -rv - rw;
     else if (du > dw)
       rv = -ru - rw;
@@ -916,3 +944,26 @@ var Hexular = (function () {
 
 if (typeof module != 'undefined')
   module.exports = Hexular;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="filters.html">filters</a></li><li><a href="math.html">math</a></li><li><a href="rules.html">rules</a></li><li><a href="util.html">util</a></li></ul><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="CanvasAdapter.html">CanvasAdapter</a></li><li><a href="Cell.html">Cell</a></li><li><a href="CubicModel.html">CubicModel</a></li><li><a href="HexError.html">HexError</a></li><li><a href="HookList.html">HookList</a></li><li><a href="Model.html">Model</a></li><li><a href="Neighborhood.html">Neighborhood</a></li><li><a href="OffsetModel.html">OffsetModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Hexular">Hexular</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Sat Jan 25 2020 01:59:51 GMT-0500 (Eastern Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

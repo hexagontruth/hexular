@@ -45,9 +45,9 @@ class Board {
         clear: document.querySelector('#clear'),
         undo: document.querySelector('#undo'),
         redo: document.querySelector('#redo'),
+        config: document.querySelector('#config'),
         save: document.querySelector('#save'),
         load: document.querySelector('#load'),
-        config: document.querySelector('#config'),
         resize: document.querySelector('#resize'),
       },
       controls: {
@@ -91,9 +91,9 @@ class Board {
     this.buttons.clear.onclick = (ev) => this.clear();
     this.buttons.undo.onclick = (ev) => this.undo();
     this.buttons.redo.onclick = (ev) => this.redo();
+    this.buttons.config.onclick = (ev) => this.toggleConfig();
     this.buttons.save.onclick = (ev) => this.save();
     this.buttons.load.onclick = (ev) => this.load();
-    this.buttons.config.onclick = (ev) => this.toggleConfig();
     this.buttons.resize.onclick = (ev) => this.promptResize();
 
     this.controls.addRule.onclick = (ev) => this.handleAddRule();

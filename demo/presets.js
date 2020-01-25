@@ -9,7 +9,11 @@ let PRESETS = {
   ],
   labyrinthCatastrophe: [
     'binary1',
-    'incBinary34'
+    'incBinary34',
+  ],
+  hexlife: [
+    'binary2',
+    'binary23',
   ],
   classic: [
     'binary2',

@@ -36,6 +36,11 @@ body * {
   transition: opacity 250ms, color 250ms, background-color 250ms, transform 250ms;
 }
 
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
 .icon {
   font-family: icon;
 }
@@ -75,27 +80,34 @@ button.text {
   z-index: 10;
   top: 0;
   left: 0;
+  right: 0;
   display: flex;
   flex-direction: row;
   justify-content: center;
+  flex-wrap: wrap;
   align-items: flex-start;
-  width: 100%;
   height: 0;
+}
+
+.header .group {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  margin: 0 0.5rem;
 }
 
 .header button {
   font-size: 1.5rem;
 /*  border-radius: 0.25rem;*/
-  margin: 0.1rem 0.05rem;
+  margin: 0.1rem 0.05rem 0;
   padding: 0.25rem 0.5rem;
-
 }
 
-.header button:first-child {
+.header .group > button:first-child {
   border-bottom-left-radius: 0.5rem;
 }
 
-.header button:last-child {
+.header .group > button:last-child, .header .group a button {
   border-bottom-right-radius: 0.5rem;
 }
 
@@ -183,18 +195,18 @@ canvas.canvas-fg {
   box-shadow: 10px 3px 3px 'red';
 }
 
-.group {
+.modal .group {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: stretch;
 }
 
-.group > * {
+.modal .group > * {
   margin: 0.2rem;
 }
 
-.group textarea, select, input {
+.modal .group textarea, select, input {
   width: 100%;
   padding: 0.25rem;
 }

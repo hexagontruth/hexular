@@ -1,0 +1,18 @@
+{
+  "opts": {
+    "destination": "./doc/"
+  },
+  "plugins": ["plugins/markdown"],
+  "source": {
+      "include": "src/hexular.js"
+  },
+  "sourceType": "module",
+  "tags": {
+      "allowUnknownTags": true,
+      "dictionaries": ["jsdoc","closure"]
+  },
+  "templates": {
+      "cleverLinks": true,
+      "monospaceLinks": true
+  }
+}

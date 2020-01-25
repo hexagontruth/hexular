@@ -14,15 +14,20 @@
 <body style="opacity: 0;">
   <div class="container"></div>
   <div class="header">
-    <button id="toggle" title="Play (Tab)">play_arrow</button>
-    <button id="step" title="Step (Space)">skip_next</button>
-    <button id="clear" title="Clear (Ctrl+C)">block</button>
-    <button id="undo" title="Undo (Ctrl+Z)" disabled>undo</button>
-    <button id="redo" title="Redo (Ctrl+Shift+Z)" disabled>redo</button>
-    <button id="save" title="Save state... (Ctrl+S)">cloud_download</button>
-    <button id="load" title="Load state... (Ctrl+O)">backup</button>
-    <button id="config" title="Config">settings</button>
-    <button id="resize" title="Resize board">settings_ethernet</button>
+    <div class="group">
+      <button id="toggle" title="Play (Tab)">play_arrow</button>
+      <button id="step" title="Step (Space)">skip_next</button>
+      <button id="clear" title="Clear (Ctrl+C)">block</button>
+      <button id="undo" title="Undo (Ctrl+Z)" disabled>undo</button>
+      <button id="redo" title="Redo (Ctrl+Shift+Z)" disabled>redo</button>
+      <button id="config" title="Config">settings</button>
+    </div>
+    <div class="group">
+      <button id="save" title="Save state... (Ctrl+S)">cloud_download</button>
+      <button id="load" title="Load state... (Ctrl+O)">backup</button>
+      <button id="resize" title="Resize board">settings_ethernet</button>
+      <a target="_blank" href="/doc/"><button id="documentation" title="Show documentation">help</button></a>
+    </div>
   </div>
   <div class="overlay hidden">
     <div class="modal">

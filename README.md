@@ -1,118 +1,145 @@
 Hexular
 =======
 
-An extensible hexagonal CA platform
------------------------------------
+An extensible hexagonal CA platform.
 
-View demo: https://hexagrahamaton.github.io/hexular
+(C) 2020 Graham Steele. Distributed under the Hexagonal Awareness License.
 
-### Overview
+## Overview
 
-Hexular is an extensible platform for creating and running hexagonal cellular automata (CAs) in a browser, released in commemoration of Hexagonal Awareness Month 2017.
+- View demo: https://hexagrahamaton.github.io/hexular
+- Github: https://github.com/hexagrahamaton/hexular
 
-When initialized, a Hexular instance creates a toroidally-connected grid of cells and an associated canvas element. This canvas can then be attached to the DOM with the appropriate event handlers, etc.
+Hexular is an extensible hexagonal cellular automata (CA) platform for JavaScript environments, presently built around several core concepts:
 
-Some useful instance methods:
+ - A **model** represents a topology of cells with a given state. Hexular includes two built-in model classes:
+    - `CubicModel` (default)
+    - `OffsetModel`
+ - **Cells** represents individual elements in a model topology. Each is associated with a particular state. Many included helper functions assume this state will be a natural number, but it can be anything.
+ - **Adapters** are extensions for e.g. rendering a model's state. Particularly, e.g., `CanvasAdapter`, which displays a model on a user agent canvas.
 
-- `draw()` — Draws all cells on canvas.
+ The `Hexular` function (defined globally in the DOM or exported by the standalone module) returns a new model instance.
+
+ The `Hexular` object also contains the following attributes, providing ergonomic access to all functionality necessary for the
+ end user to implement her own extensions via the Hexular API:
+
+ - `Hexular`
+    - `classes`
+      - `models`
+      - `adapters`
+    - `filters`
+    - `math`
+    - `rules`
+    - `util`
+
+Some useful `Model` methods:
+
+- `step()` — Perform single state increment step
+- `clear()` — Clear all cell states
+
+States are not drawn or redrawn on screen with adapters. Useful `Adapter` methods include:
+
+- `draw()` — Draws all cells
 - `drawCell(cell)` — Draws an individual cell
 - `selectCell(cell)` — Highlights individual cell
-- `cellAtPosition(y, x)` — Returns cell at given coordinates on the canvas
-- `start()` — Start step timer
-- `stop()` — Stop step timer
-- `step()` — Perform single state increment step (including redraw)
+- `cellAt(x, y)` — Returns cell at given coordinates on the canvas
 
-### Customization
+## Customization
 
-#### General configuration
+### General configuration
 
-The Hexular constructor accepts one options object, and any number of rule functions. The arguments can be given in any order, but the rule functions are, sensibly, assigned sequentially starting at 0. The available options, along with their default values, can be found at the top of `hexular.js`. Some useful ones:
+The Hexular constructor accepts option arguments, which differ between different topologies.
 
-- rows
-- cols
-- numStates
-- maxStates
-- timer
-- colors
+`CubicModel` is morphologically determined by its `radius`, which gives the number of rings of cells from the center to the edge. So, e.g., a seven-cell grid would have radius 2. Conversely, `OffsetModel` takes `rows` and `cols` arguments (whose meaning should be obvious).
 
-`numStates` can be changed at any time, and is mostly only used internally for performing modular arithmetic calculations in the cell helper functions. Its value should be less than or equal to `maxStates`.
+`numStates` can be similarly set on instantiation or changed at any time, and is only used internally by `modFilter`, when enabled, to compute cell states.
 
-#### Rules
+### Rules
 
 Cell rules are given on a per-state basis, and applied individually to each cell. The rules are stored in the `hexular.rules` array, and can be reassigned at any time.
 
-A valid rule is a function that take a cell as an argument, and return an integer value corresponding to the next desired state. As such, the rule function has access to the cell's current state, its neighbors' states (through `cell.neighbors`), and by extension the state of every cell in the grid.
+A valid rule is a function that take a cell as an argument, and return a value corresponding to the next desired state. Hexular is generally strongly opinionated towards these states being natural numbers, but they can in principle be anything that can be coerced into a JavaScript object key. The rule function has access to the cell's current state, its neighbors' states (through `cell.nbrs` and the neighborhood-bound helper functions), and by extension the state of every cell in the grid — though philosophically speaking CAs should only consider cell states within some finite local neighborhood.
 
-Thus one could, if one were so inclined, create rules utilizing larger local neighborhoods, additional internal state data, etc.
+One could, if one were so inclined, create rules utilizing larger local neighborhoods, additional internal state data, etc.
 
-##### Rule helpers
+#### Rule helpers
 
 Cell instances have several helper methods to perform common rule calculations:
 
-- `total()` — Returns sum of all neighboring states
-- `countAll()` — Returns count of nonzero neighbors
-- `count(state)` — Returns number of neighbors with given state value
-- `counts()` — Returns `numStates`-sized array with neighbor counts for each
-- `stateMap()` — Returns array of neighbor states
-- `max([states])` — Returns maximum of `states` or `stateMap()`
-- `min([states])` — Returns minimum of `states` or `stateMap()`
-- `offset(n)` — Increments state by `n` mod `numStates`
+- `total` — Returns sum of all neighboring states
+- `count` — Returns count of activated (nonzero) neighbors
+- `histogram` — Returns a `numStates`-sized array with counts of individual states across all neighbors
 
-Some of these are computationally expensive and probably not advisable. In a simple two-state system, `total()` and `countAll()` will return the same values, and either will suffice to implement any simple, isotropic neighborhood rule.
+A cell's `neighborhood` property determines which cells to iterate over when a rule calls these methods. The default is a cell's immediate six neighbors, however this can be set to several more expansive options, including the optional ability to include a cell's own state. Rules can call these helper methods on neighborhoods specifically via the `cell.with` attribute, e.g.:
 
-### Demo
+        cell.with[19].count
 
-The main control buttons should be fairly self-explanatory. Cell states are changed by clicking and dragging. The "paint value" is determined by the state of the initially-clicked cell, and is the next state up, mod `numStates`.
+All cell neighborhoods can be set via `model.setNeighborhood(n)`, where `n` is one of `[6, 12, 18, 7, 13, 19]`.
 
-#### Keyboard controls
+## Demo
 
-- ESC — Toggle controls / close config overlay
-- TAB — Start/Stop
-- SPACE — Step
-- SHIFT + CLICK — Set selected state to zero
+The main control buttons are, from left to right:
 
-#### Prepopulated rules
+- Start (Tab) — Step model at 100ms intervals (though this may be significantly slower for larger grids)
+- Step (Space) — Perform individual step
+- Clear (Ctrl+C)
+- Undo (Ctrl+Z)
+- Redo (Ctrl+Shift+Z)
+- Config — Open configuration modal
+- Save (Ctrl+S)
+- Load (Ctrl+O)
+- Resize board
+- Show documentation
 
-Several predefined rules are given in the `hexular-rules.js` file, though these are simply for convenience and not meant to be exhaustive. The default rule for zero cells is "standardOff," which promotes cells to state 1 when they have exactly 2 activated neighbors (state > 0), while the default rule for the remaining states is "simpleIncrementor," which I included largely as a simple Life-like demonstration of the multistate capabilities of Hexular. This rule does however have some interesting properties, such as a tendency to "gliderize" easily. (This seems true to some extent of many multistate rules involving sequential state progression, since they seem to produce "propulsion tails" that impart velocity to local configurations.)
+Additionally, `<Escape>` toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open.
 
-For a more traditional binary state system roughly corresponding to the rules of Conway's Game of Life, set `numStates` to 2 and the state 1 rule to "standardOn" or "generationalStandardOn." The latter uses states > 1 to indicate the generational status of each activated cell (i.e., how many steps it has been active for). This generational state loops back to 1 after reaching `numStates`.
+Cell states are changed by clicking and — on desktops — dragging. The new state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo `hexular.numStates`. Right clicking, conversely, decrements the cell state by one. Shift clicking clears states.
 
-Interesting results can be obtained by mixing and matching rules in different stages and configurations. For instance, combining "generationalStandardOn" and "simpleIncrementor" can produce novel progressions of somewhat stable configurations that aren't characteristic of either rule in isolation.
+### Prepopulated rules
 
-In my experience "standardOff" is typically a good zero-state rule, regardless of higher state behavior.
+Several predefined rules are given in `demo/rules.js`, though these are largely for convenience and not meant to be exhaustive. Additionally, the rules are organized into several "presets," or lists of 2-12 rules.
 
-#### Configuration
+### Configuration
 
-The configuration overlay consists of a range input for `numStates`, twelve select boxes for assigning predefined rules to state values, and an assign-all select box for setting all rules at once. The per-state select boxes are enabled or disabled as appropriate when the number of states is changed.
+The configuration modal consists of the following fields:
 
-#### Customization
+- Slider input to set the number of available states, from 2-12
+- Preset dropdown menu
+- Text area for entering custom rules
+- Bulk rule assignment dropdown with "select all" button
+- Individual dropdowns for each of the twelve possible states supported by the demo
+- A dropdown to set the default cell neighborhood
 
-In the configuration interface provided in `hexular-demo`, the rule assignment select menus are populated with the contents of the `rules` object loaded from `hexular-rules.js`. Custom rules may be added to this object via the console, but the menus will only be refreshed when `initRuleMenus()` is run.
+### Customization
 
-One can replace the entire Hexular instance, and refresh the rules menus, by running
+In the configuration modal, rule assignment select menus are populated with the contents of the `rules` object loaded from `demo/rules.js`. Custom rules may be added to this object via the console, via:
 
-        init([rows, [cols, [numStates]]])
+        board.AddRule(name, function)
 
-### Additional notes
+This can also be affected via the modal by adding rules directly in the given text area. This should be a JavaScript object of one or more key-value pairs, where the value is a function that takes a `Cell` instance and returns a state value.
 
-My consistent adherence to the right-hand rule with respect to coordinate vectors has led me to arrange all screen coordinate tuples in the order (y,x) rather than the more familiar (x,y) whenever possible. I make no apologies for this, and anyone who has a problem with it is wrong and should feel bad.
+We can also add our own rule presets via the console:
 
-Finally, this wasn't really written for backwards compatibility, and may not work at all on older browsers. Replacing `let` and `const` with `var` may help.
+        board.addPreset(name, array)
 
-### Links
+And add filters such as e.g. `edgeFilter`, which has the effect of disabling wraparound topology:
 
-- This program was originally inspired as a generalization of David Siaw's similarly browser-based Hexlife program:
+        hexular.addFilter(Hexular.filters.edgeFilter)
 
-  https://github.com/davidsiaw/hexlife
+And remove filter, such as the `modFilter` which is enabled by default:
 
-- Also, Charlotte Dann's Hexagonal Generative Art, which incorporates CA-type rules along with more elaborate logic:
+        hexular.removeFilter(Hexular.filters.modFilter)
 
-  http://codepen.io/pouretrebelle/post/hexagons
+## Links
 
-- Despite my general expertise in this area, I continue to find Amit Patel's "Hexagonal Grids" page to be an invaluable resource when dealing with hex grids:
+- This program was originally inspired as a generalization of David Siaw's similarly browser-based Hexlife program: https://github.com/davidsiaw/hexlife
 
-  http://www.redblobgames.com/grids/hexagons/
+- Also, Charlotte Dann's Hexagonal Generative Art, which incorporates CA-type rules along with more elaborate logic: http://codepen.io/pouretrebelle/post/hexagons
+
+- Despite my general expertise in this area, I continue to find Amit Patel's "Hexagonal Grids" page to be an invaluable resource when dealing with hex grids: http://www.redblobgames.com/grids/hexagons/
 
 - For more information on HEXAGONAL AWARENESS, please visit:
-
-  https://hexnet.org/
+    - https://hexnet.org/
+    - https://twitter.com/hexagonalnews
+    - https://facebook.com/hexagons
+    - https://reddit.com/r/hexagons
