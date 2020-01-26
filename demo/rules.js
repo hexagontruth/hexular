@@ -1,11 +1,5 @@
 let RULES = {
 
-  nullRule: (cell) => 0,
-
-  // Default identity rule - same as Hexular.identityRule
-
-  identityRule: (cell) => cell.state,
-
   binary1: (cell) => cell.count == 1 ? 1 : 0,
 
   binary2: (cell) => cell.count == 2 ? 1 : 0,

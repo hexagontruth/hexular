@@ -30,16 +30,15 @@
     
         <h2><span class="attribs"><span class="type-signature"></span></span>CanvasAdapter<span class="signature">(model)</span><span class="type-signature"></span></h2>
         
-            <div class="class-description"><p>Class represting a renderer bound to two user agent canvas elements.</p>
-<p>This class is fairly closely-tailored for the needs of the Hexular Demo page, and is probably does not expose
-the ideal generalized interface for e.g. browser-based canvas rendering.</p>
-<p>The crux of its functionality is the employment of two ideally overlapping canvas contexts - one for drawing
+            <div class="class-description"><p>Class representing a renderer bound to two user agent canvas contexts.</p>
+<p>This class is closely tailored to the needs of the Hexular Demo page, and probably does not expose the ideal
+generalized interface for browser-based canvas rendering.</p>
+<p>The crux of its functionality is the employment of two presumably-coterminous canvas contexts — one for drawing
 cells, and one for drawing the highlighted cell selector. This is a change from the original 2017 version, which
-just used a single canvas and a somewhat awkward raster buffer for storing the unselected drawn state of the cell
-and then redrawing it when the selection changes. This more or less worked but led to occasional platform-specific
+used just a single canvas and a somewhat awkward raster buffer for storing the unselected drawn state of the cell
+and then redrawing it when the selection changed. This more or less worked but led to occasional platform-specific
 artifacts. At any rate, one can easily override the default selector-drawing behavior (see
-<a href="CanvasAdapter.html#onDrawSelector"><code>CanvasAdapter#onDrawSelector</code></a>) and use a single canvas.
-if desired.</p></div>
+<a href="CanvasAdapter.html#onDrawSelector"><code>CanvasAdapter#onDrawSelector</code></a>) and use a single canvas if desired.</p></div>
         
     
 </header>
@@ -63,6 +62,8 @@ if desired.</p></div>
 
 <div class="description">
     <p>Creates <code>CanvasAdapter</code> instance.</p>
+<p>Requires at least <a href="CanvasAdapter.html#renderer"><code>CanvasAdapter#renderer</code></a> and <a href="CanvasAdapter.html#selector"><code>CanvasAdapter#selector</code></a> to be given in <code>...args</code>
+settings.</p>
 </div>
 
 
@@ -198,7 +199,7 @@ if desired.</p></div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line854">line 854</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line924">line 924</a>
     </li></ul></dd>
     
 
@@ -259,6 +260,90 @@ if desired.</p></div>
 
         
             
+<h4 class="name" id="basis"><span class="type-signature"></span>basis<span class="type-signature"> :Array.&lt;Array.&lt;number>></span></h4>
+
+
+
+
+<div class="description">
+    <p>A 2*2 row-major transformation matrix for converting arbitrary adapter coordinates to cartesian [x, y] values.</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Array.&lt;Array.&lt;number>></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
+        <a href="Adapter.html#basis">Adapter#basis</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line880">line 880</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="Model.html#getCoord"><code>Model#getCoord</code></a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
 <h4 class="name" id="borderWidth"><span class="type-signature"></span>borderWidth<span class="type-signature"> :number</span></h4>
 
 
@@ -314,7 +399,7 @@ if desired.</p></div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line884">line 884</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line955">line 955</a>
     </li></ul></dd>
     
 
@@ -362,6 +447,11 @@ if desired.</p></div>
     
 
     
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
+        <a href="Adapter.html#cellRadius">Adapter#cellRadius</a>
+    </li></ul></dd>
+    
 
     
 
@@ -387,7 +477,7 @@ if desired.</p></div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line878">line 878</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line949">line 949</a>
     </li></ul></dd>
     
 
@@ -455,11 +545,16 @@ if desired.</p></div>
     
 
     
+    <dt class="tag-default">Default Value:</dt>
+    <dd class="tag-default"><ul class="dummy">
+            <li>Some colors</li>
+        </ul></dd>
+    
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line858">line 858</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line928">line 928</a>
     </li></ul></dd>
     
 
@@ -532,7 +627,7 @@ if desired.</p></div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line872">line 872</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line943">line 943</a>
     </li></ul></dd>
     
 
@@ -605,7 +700,7 @@ if desired.</p></div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line866">line 866</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line937">line 937</a>
     </li></ul></dd>
     
 
@@ -630,8 +725,8 @@ if desired.</p></div>
 
 <div class="description">
     <p><code>Model</code> instance to associate with this adapter.</p>
-<p>In the present implementation, this only needs to be a one-way relationship - models have no explicit
-knowledge of adapters accessing them, though they can be instantiated via <code>model.[ClassName]</code>.</p>
+<p>In the present implementation, this only needs to be a one-way relationship — models have no explicit
+knowledge of adapters accessing them, though they can be instantiated via <code>model.ClassName()</code>.</p>
 </div>
 
 
@@ -684,7 +779,7 @@ knowledge of adapters accessing them, though they can be instantiated via <code>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line817">line 817</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line869">line 869</a>
     </li></ul></dd>
     
 
@@ -757,7 +852,7 @@ knowledge of adapters accessing them, though they can be instantiated via <code>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line906">line 906</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line987">line 987</a>
     </li></ul></dd>
     
 
@@ -830,7 +925,143 @@ knowledge of adapters accessing them, though they can be instantiated via <code>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line914">line 914</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line995">line 995</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="renderer"><span class="type-signature"></span>renderer<span class="type-signature"> :2DCanvasRenderingContext2D</span></h4>
+
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">2DCanvasRenderingContext2D</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line961">line 961</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="selector"><span class="type-signature"></span>selector<span class="type-signature"> :2DCanvasRenderingContext2D</span></h4>
+
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">2DCanvasRenderingContext2D</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line966">line 966</a>
     </li></ul></dd>
     
 
@@ -982,7 +1213,7 @@ knowledge of adapters accessing them, though they can be instantiated via <code>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1034">line 1034</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1115">line 1115</a>
     </li></ul></dd>
     
 
@@ -1026,8 +1257,8 @@ knowledge of adapters accessing them, though they can be instantiated via <code>
 
 
 <div class="description">
-    <p>Get cell at specific x, y coordinates.</p>
-<p>This is used by Hexular Demo and presumably any other display-facing adapter for locating a cell from e.g. a
+    <p>Get cell at specific [x, y] coordinates.</p>
+<p>This is used by Hexular Demo and potentially other display-facing applications for locating a cell from e.g. a
 user's cursor position.</p>
 </div>
 
@@ -1080,7 +1311,7 @@ user's cursor position.</p>
 
             
 
-            <td class="description last"><p>An array consisting of [x, y] coordinates</p></td>
+            <td class="description last"><p>An [x, y] coordinate tuple</p></td>
         </tr>
 
     
@@ -1121,7 +1352,7 @@ user's cursor position.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1059">line 1059</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1140">line 1140</a>
     </li></ul></dd>
     
 
@@ -1131,9 +1362,9 @@ user's cursor position.</p>
     <dt class="tag-see">See:</dt>
     <dd class="tag-see">
         <ul>
-            <li><code>math#cartesianToCubic</code></li>
+            <li><a href="Hexular.math.html#.cartesianToCubic"><code>Hexular.math.cartesianToCubic</code></a></li>
         
-            <li><code>math#roundCubic</code></li>
+            <li><a href="Hexular.math.html#.roundCubic"><code>Hexular.math.roundCubic</code></a></li>
         
             <li><a href="Model.html#cellAtCubic"><code>Model#cellAtCubic</code></a></li>
         </ul>
@@ -1200,8 +1431,8 @@ user's cursor position.</p>
 <div class="description">
     <p>Helper function for clearing one of the two canvas contexts (or any other).</p>
 <p>When used with <a href="CubicModel.html"><code>CubicModel</code></a>, which is centered on the origin, we assume the context has been translated
-to the center of its viewport. This is neither necessary nor assumed however, and we simply save the current
-transformation state, clear the visible viewport, and then restore that transformed state.</p>
+to the center of its viewport. This is neither necessary nor assumed for other models though. Thus we simply
+save the current transformation state, clear the visible viewport, and then restore that transformed state.</p>
 </div>
 
 
@@ -1294,7 +1525,7 @@ transformation state, clear the visible viewport, and then restore that transfor
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line969">line 969</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1052">line 1052</a>
     </li></ul></dd>
     
 
@@ -1433,7 +1664,7 @@ need to be an instance method, but is included here for concern relevance.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1008">line 1008</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1091">line 1091</a>
     </li></ul></dd>
     
 
@@ -1570,7 +1801,7 @@ need to be an instance method, but is included here for concern relevance.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1020">line 1020</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1102">line 1102</a>
     </li></ul></dd>
     
 
@@ -1614,7 +1845,8 @@ need to be an instance method, but is included here for concern relevance.</p>
 
 
 <div class="description">
-    <p>Draw all cell cells on <code>this.renderer</code> context.</p>
+    <p>Draw all cells on <a href="CanvasAdapter.html#renderer"><code>CanvasAdapter#renderer</code></a> context.</p>
+<p>Calls <a href="CanvasAdapter.html#drawCell"><code>CanvasAdapter#drawCell</code></a> internally with each cell.</p>
 </div>
 
 
@@ -1658,7 +1890,7 @@ need to be an instance method, but is included here for concern relevance.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line935">line 935</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1018">line 1018</a>
     </li></ul></dd>
     
 
@@ -1797,7 +2029,7 @@ need to be an instance method, but is included here for concern relevance.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line984">line 984</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1067">line 1067</a>
     </li></ul></dd>
     
 
@@ -1936,7 +2168,7 @@ internally by <a href="CanvasAdapter.html#selectCell"><code>CanvasAdapter#select
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line996">line 996</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1079">line 1079</a>
     </li></ul></dd>
     
 
@@ -1980,7 +2212,7 @@ internally by <a href="CanvasAdapter.html#selectCell"><code>CanvasAdapter#select
 
 
 <div class="description">
-    <p>Select cell and draw on <code>this.selector</code> context.</p>
+    <p>Select cell and draw on <a href="CanvasAdapter.html#renderer"><code>this.selector</code></a> context.</p>
 </div>
 
 
@@ -2073,7 +2305,7 @@ internally by <a href="CanvasAdapter.html#selectCell"><code>CanvasAdapter#select
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line947">line 947</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1030">line 1030</a>
     </li></ul></dd>
     
 
@@ -2119,7 +2351,7 @@ internally by <a href="CanvasAdapter.html#selectCell"><code>CanvasAdapter#select
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="filters.html">filters</a></li><li><a href="math.html">math</a></li><li><a href="rules.html">rules</a></li><li><a href="util.html">util</a></li></ul><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="CanvasAdapter.html">CanvasAdapter</a></li><li><a href="Cell.html">Cell</a></li><li><a href="CubicModel.html">CubicModel</a></li><li><a href="HexError.html">HexError</a></li><li><a href="HookList.html">HookList</a></li><li><a href="Model.html">Model</a></li><li><a href="Neighborhood.html">Neighborhood</a></li><li><a href="OffsetModel.html">OffsetModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Hexular">Hexular</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="Hexular.filters.html">filters</a></li><li><a href="Hexular.math.html">math</a></li><li><a href="Hexular.rules.html">rules</a></li><li><a href="Hexular.util.html">util</a></li></ul><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="CanvasAdapter.html">CanvasAdapter</a></li><li><a href="Cell.html">Cell</a></li><li><a href="CubicModel.html">CubicModel</a></li><li><a href="HexError.html">HexError</a></li><li><a href="HookList.html">HookList</a></li><li><a href="Model.html">Model</a></li><li><a href="Neighborhood.html">Neighborhood</a></li><li><a href="OffsetModel.html">OffsetModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Hexular">Hexular</a></li></ul>
 </nav>
 
 <br class="clear">

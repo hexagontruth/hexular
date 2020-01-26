@@ -31,8 +31,8 @@
         <h2><span class="attribs"><span class="type-signature"></span></span>Neighborhood<span class="signature">(cell, min, max)</span><span class="type-signature"></span></h2>
         
             <div class="class-description"><p>Class representing a neighborhood around a cell.</p>
-<p>A cell's <code>nbrs</code> array contains 19 entries, starting with itself. By selecting particular subsets of this array,
-we can confine our iteration to the 6, 12, or 18 nearest neighbors, with or without the cell itself.</p></div>
+<p>The <a href="Cell.html#nbrs"><code>Cell#nbrs</code></a> array contains 19 entries, starting with the cell itself. By selecting particular subsets of
+this array, we can confine our iteration to the 6, 12, or 18 nearest neighbors, with or without the cell itself.</p></div>
         
     
 </header>
@@ -130,7 +130,7 @@ we can confine our iteration to the 6, 12, or 18 nearest neighbors, with or with
 
             
 
-            <td class="description last"><p>Minimum index (inclusive) of neighborhood in <a href="Cell.html#nbrs"><code>this.cell.nbrs</code></a>.</p></td>
+            <td class="description last"><p>Minimum index (inclusive) of neighborhood in <a href="Cell.html#nbrs"><code>Cell#nbrs</code></a>.</p></td>
         </tr>
 
     
@@ -153,7 +153,7 @@ we can confine our iteration to the 6, 12, or 18 nearest neighbors, with or with
 
             
 
-            <td class="description last"><p>Maximum index (exclusive) of neighborhood in <a href="Cell.html#nbrs"><code>this.cell.nbrs</code></a>.</p></td>
+            <td class="description last"><p>Maximum index (exclusive) of neighborhood in <a href="Cell.html#nbrs"><code>Cell#nbrs</code></a>.</p></td>
         </tr>
 
     
@@ -194,7 +194,7 @@ we can confine our iteration to the 6, 12, or 18 nearest neighbors, with or with
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line690">line 690</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line726">line 726</a>
     </li></ul></dd>
     
 
@@ -288,7 +288,7 @@ we can confine our iteration to the 6, 12, or 18 nearest neighbors, with or with
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line717">line 717</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line766">line 766</a>
     </li></ul></dd>
     
 
@@ -350,7 +350,7 @@ we can confine our iteration to the 6, 12, or 18 nearest neighbors, with or with
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line731">line 731</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line780">line 780</a>
     </li></ul></dd>
     
 
@@ -412,7 +412,71 @@ we can confine our iteration to the 6, 12, or 18 nearest neighbors, with or with
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line745">line 745</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line794">line 794</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="nbrSlice"><span class="type-signature">(readonly) </span>nbrSlice<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    <p>Convenience method for returning limited neighbor array.</p>
+<p>For spatial efficiency purposes we don't keep an internal slice <a href="Cell.html#nbrs"><code>Cell#nbrs</code></a>, but this may be useful for
+e.g. writing certain drawing extensions, etc.</p>
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line743">line 743</a>
     </li></ul></dd>
     
 
@@ -474,7 +538,7 @@ we can confine our iteration to the 6, 12, or 18 nearest neighbors, with or with
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line704">line 704</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line753">line 753</a>
     </li></ul></dd>
     
 
@@ -508,7 +572,7 @@ we can confine our iteration to the 6, 12, or 18 nearest neighbors, with or with
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="filters.html">filters</a></li><li><a href="math.html">math</a></li><li><a href="rules.html">rules</a></li><li><a href="util.html">util</a></li></ul><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="CanvasAdapter.html">CanvasAdapter</a></li><li><a href="Cell.html">Cell</a></li><li><a href="CubicModel.html">CubicModel</a></li><li><a href="HexError.html">HexError</a></li><li><a href="HookList.html">HookList</a></li><li><a href="Model.html">Model</a></li><li><a href="Neighborhood.html">Neighborhood</a></li><li><a href="OffsetModel.html">OffsetModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Hexular">Hexular</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="Hexular.filters.html">filters</a></li><li><a href="Hexular.math.html">math</a></li><li><a href="Hexular.rules.html">rules</a></li><li><a href="Hexular.util.html">util</a></li></ul><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="CanvasAdapter.html">CanvasAdapter</a></li><li><a href="Cell.html">Cell</a></li><li><a href="CubicModel.html">CubicModel</a></li><li><a href="HexError.html">HexError</a></li><li><a href="HookList.html">HookList</a></li><li><a href="Model.html">Model</a></li><li><a href="Neighborhood.html">Neighborhood</a></li><li><a href="OffsetModel.html">OffsetModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Hexular">Hexular</a></li></ul>
 </nav>
 
 <br class="clear">

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Global</title>
+    <title>JSDoc: Namespace: util</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Global</h1>
+    <h1 class="page-title">Namespace: util</h1>
 
     
 
@@ -28,7 +28,8 @@
 
 <header>
     
-        <h2></h2>
+        <h2>
+            <span class="ancestors"><a href="global.html#Hexular">Hexular</a>.</span>util</h2>
         
     
 </header>
@@ -36,6 +37,8 @@
 <article>
     <div class="container-overview">
     
+        
+            <div class="description"><p>Some utility methods. Or maybe just one.</p></div>
         
 
         
@@ -67,6 +70,11 @@
 
     
 
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line27">line 27</a>
+    </li></ul></dd>
     
 
     
@@ -104,7 +112,7 @@
     
 
     
-    <h4 class="name" id="Hexular"><span class="type-signature"></span>Hexular<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="Model.html">Model</a>}</span></h4>
+    <h4 class="name" id=".ruleBuilder"><span class="type-signature">(static) </span>ruleBuilder<span class="signature">(ruleDef, inclusive<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
     
 
     
@@ -112,7 +120,11 @@
 
 
 <div class="description">
-    <p>Principal function object assigned to global <code>Hexular</code> object or returned as module.</p>
+    <p>Generates an elementary rule based on the 6/7-bit state of a cell's neighbors plus optionally itself.</p>
+<p>The highest (left-most) bit represents the cell itself (such that the same rule masks can be used for either the
+6 or 7 bit (exclusive or inclusive) variants, while the lowest bit represents <a href="Cell.html#nbrs"><code>cell.nbrs[6]</code></a>.</p>
+<p>Modeled roughly after Wolfram's
+<a href="http://mathworld.wolfram.com/ElementaryCellularAutomaton.html">Elementary Cellular Automaton</a> rules.</p>
 </div>
 
 
@@ -140,6 +152,8 @@
         
 
         
+        <th>Default</th>
+        
 
         <th class="last">Description</th>
     </tr>
@@ -150,13 +164,16 @@
 
         <tr>
             
-                <td class="name"><code>...args</code></td>
+                <td class="name"><code>ruleDef</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">object</span>
+<span class="param-type">BigInt</span>
+|
+
+<span class="param-type">Array.&lt;number></span>
 
 
             
@@ -169,14 +186,56 @@
                 
 
                 
-                    &lt;repeatable><br>
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>64/128-bit number indicating next position per possible state, or array of 6/7-bit
+numbers giving individual states where next cell state is 1</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>inclusive</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">bool</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
                 
                 </td>
             
 
             
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
 
-            <td class="description last"><p>Arguments to pass to Model constructor</p></td>
+            <td class="description last"><p>Whether to include a cell's own state along with its neighbors</p></td>
         </tr>
 
     
@@ -217,7 +276,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1400">line 1400</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1212">line 1212</a>
     </li></ul></dd>
     
 
@@ -242,28 +301,6 @@
 
 
 
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Model instance</p>
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="Model.html">Model</a></span>
-
-
-    </dd>
-</dl>
-
-    
 
 
 

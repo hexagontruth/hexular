@@ -31,7 +31,7 @@
         <h2><span class="attribs"><span class="type-signature"></span></span>Adapter<span class="signature">(model)</span><span class="type-signature"></span></h2>
         
             <div class="class-description"><p>Abstract class representing an adapter.</p>
-<p>This doesn't really do much.</p></div>
+<p>This doesn't really do much. The minimal adapter interface may change in the future.</p></div>
         
     
 </header>
@@ -190,7 +190,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line816">line 816</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line868">line 868</a>
     </li></ul></dd>
     
 
@@ -240,6 +240,164 @@
 
         
             
+<h4 class="name" id="basis"><span class="type-signature"></span>basis<span class="type-signature"> :Array.&lt;Array.&lt;number>></span></h4>
+
+
+
+
+<div class="description">
+    <p>A 2*2 row-major transformation matrix for converting arbitrary adapter coordinates to cartesian [x, y] values.</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Array.&lt;Array.&lt;number>></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line880">line 880</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="Model.html#getCoord"><code>Model#getCoord</code></a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="cellRadius"><span class="type-signature"></span>cellRadius<span class="type-signature"> :number</span></h4>
+
+
+
+
+<div class="description">
+    <p>Non-negative numeric value defining spatial radius of individual cells.</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">number</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line888">line 888</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="Model.html#getCoord"><code>Model#getCoord</code></a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
 <h4 class="name" id="model"><span class="type-signature"></span>model<span class="type-signature"> :<a href="Model.html">Model</a></span></h4>
 
 
@@ -247,8 +405,8 @@
 
 <div class="description">
     <p><code>Model</code> instance to associate with this adapter.</p>
-<p>In the present implementation, this only needs to be a one-way relationship - models have no explicit
-knowledge of adapters accessing them, though they can be instantiated via <code>model.[ClassName]</code>.</p>
+<p>In the present implementation, this only needs to be a one-way relationship — models have no explicit
+knowledge of adapters accessing them, though they can be instantiated via <code>model.ClassName()</code>.</p>
 </div>
 
 
@@ -296,7 +454,7 @@ knowledge of adapters accessing them, though they can be instantiated via <code>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line817">line 817</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line869">line 869</a>
     </li></ul></dd>
     
 
@@ -330,7 +488,7 @@ knowledge of adapters accessing them, though they can be instantiated via <code>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="filters.html">filters</a></li><li><a href="math.html">math</a></li><li><a href="rules.html">rules</a></li><li><a href="util.html">util</a></li></ul><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="CanvasAdapter.html">CanvasAdapter</a></li><li><a href="Cell.html">Cell</a></li><li><a href="CubicModel.html">CubicModel</a></li><li><a href="HexError.html">HexError</a></li><li><a href="HookList.html">HookList</a></li><li><a href="Model.html">Model</a></li><li><a href="Neighborhood.html">Neighborhood</a></li><li><a href="OffsetModel.html">OffsetModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Hexular">Hexular</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="Hexular.filters.html">filters</a></li><li><a href="Hexular.math.html">math</a></li><li><a href="Hexular.rules.html">rules</a></li><li><a href="Hexular.util.html">util</a></li></ul><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="CanvasAdapter.html">CanvasAdapter</a></li><li><a href="Cell.html">Cell</a></li><li><a href="CubicModel.html">CubicModel</a></li><li><a href="HexError.html">HexError</a></li><li><a href="HookList.html">HookList</a></li><li><a href="Model.html">Model</a></li><li><a href="Neighborhood.html">Neighborhood</a></li><li><a href="OffsetModel.html">OffsetModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Hexular">Hexular</a></li></ul>
 </nav>
 
 <br class="clear">

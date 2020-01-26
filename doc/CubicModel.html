@@ -31,9 +31,9 @@
         <h2><span class="attribs"><span class="type-signature"></span></span>CubicModel<span class="signature">()</span><span class="type-signature"></span></h2>
         
             <div class="class-description"><p>Class representing a hexagonal model with cells addressed using cubic coordinates.</p>
-<p>Here we describe a hexagnal grid of cells addressed by coordinates <code>[u, v, w]</code>. The cell at the origin is
-designated <code>[0, 0, 0]</code>, with tuples of coordinates summing to zero. In the default display provided by
-<a href="CanvasAdapter.html"><code>CanvasAdapter</code></a>, the <code>u</code> points up, <code>v</code> points to the right, and <code>w</code> points to the left.</p>
+<p>Implements a regularly-hexagonal grid of cells addressed by coordinates <code>[u, v, w]</code>. The cell at the origin is
+designated <code>[0, 0, 0]</code>, with all cell coordinate tuples summing to zero. In the default display provided by
+<a href="CanvasAdapter.html"><code>CanvasAdapter</code></a>, <code>u</code> points up, <code>v</code> points to the right, and <code>w</code> points to the left.</p>
 <p>For more information on this system, and how it translates to other coordinate systems, please see the excellent
 article <a href="https://www.redblobgames.com/grids/hexagons/">Hexagonal Grids</a> from Red Blob Games.</p></div>
         
@@ -163,7 +163,7 @@ article <a href="https://www.redblobgames.com/grids/hexagons/">Hexagonal Grids</
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line454">line 454</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line476">line 476</a>
     </li></ul></dd>
     
 
@@ -224,13 +224,88 @@ article <a href="https://www.redblobgames.com/grids/hexagons/">Hexagonal Grids</
 
         
             
+<h4 class="name" id=".cells"><span class="type-signature">(static) </span>cells<span class="type-signature"> :Array.&lt;<a href="Cell.html">Cell</a>></span></h4>
+
+
+
+
+<div class="description">
+    <p><code>CubicModel</code> orders its <code>cells</code> array in rings from the center out, starting with a zero-indexed origin cell.
+This allows cell states to be backed up and restored via <a href="Model.html#export"><code>Model#export</code></a> and <a href="Model.html#import"><code>Model#import</code></a> across
+differently-sized maps. Cells always remain centered and in the correct order, though a smaller map will
+truncate cells outside of its radius.</p>
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Array.&lt;<a href="Cell.html">Cell</a>></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line520">line 520</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
 <h4 class="name" id="cells"><span class="type-signature"></span>cells<span class="type-signature"> :Array.&lt;<a href="Cell.html">Cell</a>></span></h4>
 
 
 
 
 <div class="description">
-    <p>Canonical, publicly-exposed one-dimensional array of cells in order defined by subclass.</p>
+    <p>Canonical, publicly-exposed one-dimensional array of cells in an order defined by a given subclass.</p>
 </div>
 
 
@@ -283,7 +358,7 @@ article <a href="https://www.redblobgames.com/grids/hexagons/">Hexagonal Grids</
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line165">line 165</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line187">line 187</a>
     </li></ul></dd>
     
 
@@ -359,14 +434,14 @@ article <a href="https://www.redblobgames.com/grids/hexagons/">Hexagonal Grids</
     
     <dt class="tag-default">Default Value:</dt>
     <dd class="tag-default"><ul class="dummy">
-            <li><a href="rules.html#.identityRule"><code>rules.identityRule</code></a></li>
+            <li><a href="Hexular.rules.html#.identityRule"><code>Hexular.rules.identityRule</code></a></li>
         </ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line116">line 116</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line137">line 137</a>
     </li></ul></dd>
     
 
@@ -441,14 +516,14 @@ article <a href="https://www.redblobgames.com/grids/hexagons/">Hexagonal Grids</
     
     <dt class="tag-default">Default Value:</dt>
     <dd class="tag-default"><ul class="dummy">
-            <li><a href="filters.html#.modFilter"><code>[Hexular.filters.modFilter]</code></a></li>
+            <li><a href="Hexular.filters.html#.modFilter"><code>[Hexular.filters.modFilter]</code></a></li>
         </ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line157">line 157</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line179">line 179</a>
     </li></ul></dd>
     
 
@@ -473,8 +548,8 @@ article <a href="https://www.redblobgames.com/grids/hexagons/">Hexagonal Grids</
 
 <div class="description">
     <p>Default ground or &quot;off&quot; state for cells.</p>
-<p>Used by on cell initialization, by <a href="Model.html#import"><code>Model#import</code></a> and <a href="Model.html#clear"><code>Model#clear</code></a>, and
-potentially by <a href="filters.html"><code>filters</code></a> or <a href="Adapter.html"><code>adapters</code></a>.</p>
+<p>Used by cell initialization, <a href="Model.html#import"><code>Model#import</code></a>, and <a href="Model.html#clear"><code>Model#clear</code></a>, and
+potentially by <a href="Hexular.filters.html"><code>filters</code></a>, <a href="Adapter.html"><code>adapters</code></a>, and other extensions.</p>
 </div>
 
 
@@ -532,7 +607,7 @@ potentially by <a href="filters.html"><code>filters</code></a> or <a href="Adapt
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line136">line 136</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line157">line 157</a>
     </li></ul></dd>
     
 
@@ -615,7 +690,7 @@ potentially by <a href="filters.html"><code>filters</code></a> or <a href="Adapt
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line126">line 126</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line147">line 147</a>
     </li></ul></dd>
     
 
@@ -688,7 +763,7 @@ potentially by <a href="filters.html"><code>filters</code></a> or <a href="Adapt
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line456">line 456</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line478">line 478</a>
     </li></ul></dd>
     
 
@@ -712,8 +787,9 @@ potentially by <a href="filters.html"><code>filters</code></a> or <a href="Adapt
 
 
 <div class="description">
-    <p>Array of rule functions, applied when a cell's state is equal to an entry's index.</p>
-<p>For non-numeric cell states, arbitrary state keys can be added to this array.</p>
+    <p>Array of rule functions.</p>
+<p>Cells are matched with rules based on their states, with e.g. <code>rules[1]</code> being caled when
+<a href="Cell.html#state"><code>cell.state</code></a> == <code>1</code>. Arbitrary state keys can be added for non-numeric states, if desired.</p>
 </div>
 
 
@@ -766,7 +842,7 @@ potentially by <a href="filters.html"><code>filters</code></a> or <a href="Adapt
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line147">line 147</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line168">line 168</a>
     </li></ul></dd>
     
 
@@ -776,7 +852,7 @@ potentially by <a href="filters.html"><code>filters</code></a> or <a href="Adapt
     <dt class="tag-see">See:</dt>
     <dd class="tag-see">
         <ul>
-            <li><a href="rules.html"><code>rules</code></a></li>
+            <li><a href="Hexular.rules.html"><code>Hexular.rules</code></a></li>
         </ul>
     </dd>
     
@@ -907,7 +983,7 @@ potentially by <a href="filters.html"><code>filters</code></a> or <a href="Adapt
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line337">line 337</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line359">line 359</a>
     </li></ul></dd>
     
 
@@ -1126,7 +1202,7 @@ potentially by <a href="filters.html"><code>filters</code></a> or <a href="Adapt
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line186">line 186</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line208">line 208</a>
     </li></ul></dd>
     
 
@@ -1173,7 +1249,7 @@ potentially by <a href="filters.html"><code>filters</code></a> or <a href="Adapt
     <p>Find cell at given cubic coordinates in model.</p>
 <p>There is at present some contradiction between the concerns addressed by models and those addressed by adapters.
 In short, there is no &quot;topologically agnostic&quot; way to spatially locate a cell in any given model. Thus, we
-leave the onus on specific <code>Model</code> subclasses to to convert cubic coordinates to their internal coordinate
+leave the onus on specific <code>Model</code> subclasses to convert cubic coordinates to their internal coordinate
 system, and allow e.g. <a href="Adapter.html"><code>Adapter</code></a> instances to look up cells spatially using this convention.</p>
 </div>
 
@@ -1272,7 +1348,7 @@ system, and allow e.g. <a href="Adapter.html"><code>Adapter</code></a> instances
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line296">line 296</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line318">line 318</a>
     </li></ul></dd>
     
 
@@ -1387,7 +1463,7 @@ system, and allow e.g. <a href="Adapter.html"><code>Adapter</code></a> instances
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line225">line 225</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line247">line 247</a>
     </li></ul></dd>
     
 
@@ -1431,7 +1507,7 @@ system, and allow e.g. <a href="Adapter.html"><code>Adapter</code></a> instances
 
 
 <div class="description">
-    <p>Method for calling a given function for each cell in a model, and returns an array of return values.</p>
+    <p>Call a given function for each cell in a model, and return an array of that function's return values.</p>
 <p>This is essentially <code>forEach</code> on <a href="Model.html#cells"><code>Model#cells</code></a> but with array comprehension behavior.</p>
 </div>
 
@@ -1484,7 +1560,7 @@ system, and allow e.g. <a href="Adapter.html"><code>Adapter</code></a> instances
 
             
 
-            <td class="description last"><p>Function to call for each cell, taking the cell as an argument</p></td>
+            <td class="description last"><p>Function to call for each <a href="Cell.html"><code>cell</code></a>, taking the cell as an argument</p></td>
         </tr>
 
     
@@ -1530,7 +1606,7 @@ system, and allow e.g. <a href="Adapter.html"><code>Adapter</code></a> instances
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line250">line 250</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line272">line 272</a>
     </li></ul></dd>
     
 
@@ -1650,7 +1726,7 @@ system, and allow e.g. <a href="Adapter.html"><code>Adapter</code></a> instances
             
 
             <td class="description last"><p>Function to call for each coordinate, taking a coordinate argument that e.g. is used to
-construct <code>Model#coord</code></p></td>
+construct <a href="Cell.html#coord"><code>Cell#coord</code></a></p></td>
         </tr>
 
     
@@ -1696,7 +1772,7 @@ construct <code>Model#coord</code></p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line266">line 266</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line288">line 288</a>
     </li></ul></dd>
     
 
@@ -1743,7 +1819,7 @@ construct <code>Model#coord</code></p></td>
     <p>Export cell states to a typed byte array.</p>
 <p>Though Hexular is not currently geared towards negative state values, we use a signed type array to preserve
 the option of doing so. This method does not export other aspects of a model or its cells, such as
-<a href="Model.html#rules"><code>Model#rules</code></a> or <a href="Cell.html#neighborhood"><code>Cell#neighborhood</code></a>., and will not prove effective for non-numeric states or states
+<a href="Model.html#rules"><code>Model#rules</code></a> or <a href="Cell.html#neighborhood"><code>Cell#neighborhood</code></a>, and will not prove effective for non-numeric states or states
 outside the range -128...128 (inclusive and exclusive respectively).</p>
 </div>
 
@@ -1793,7 +1869,7 @@ outside the range -128...128 (inclusive and exclusive respectively).</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line311">line 311</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line333">line 333</a>
     </li></ul></dd>
     
 
@@ -1858,7 +1934,7 @@ outside the range -128...128 (inclusive and exclusive respectively).</p>
     
 
     
-    <h4 class="name" id="getCoords"><span class="type-signature"></span>getCoords<span class="signature">(adapter, cell)</span><span class="type-signature"> &rarr; {Array.&lt;number>}</span></h4>
+    <h4 class="name" id="getCoord"><span class="type-signature"></span>getCoord<span class="signature">(adapter, cell)</span><span class="type-signature"> &rarr; {Array.&lt;number>}</span></h4>
     
 
     
@@ -1921,7 +1997,7 @@ according to a rendering adapter.</p>
 
             
 
-            <td class="description last"><p>An adapter instance with <code>Adapter#cellRadius</code> and <code>Adapter#basis</code> defined</p></td>
+            <td class="description last"><p>An adapter instance with <a href="Adapter.html#cellRadius"><code>Adapter#cellRadius</code></a> and <a href="Adapter.html#basis"><code>Adapter#basis</code></a> defined</p></td>
         </tr>
 
     
@@ -1967,7 +2043,7 @@ according to a rendering adapter.</p>
     
     <dt class="tag-overrides">Overrides:</dt>
     <dd class="tag-overrides"><ul class="dummy"><li>
-        <a href="Model.html#getCoords">Model#getCoords</a>
+        <a href="Model.html#getCoord">Model#getCoord</a>
     </li></ul></dd>
     
 
@@ -1990,7 +2066,7 @@ according to a rendering adapter.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line281">line 281</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line303">line 303</a>
     </li></ul></dd>
     
 
@@ -2019,7 +2095,7 @@ according to a rendering adapter.</p>
 
         
 <div class="param-desc">
-    <p>The cell's [x, y] position relative to the origin of the adapter</p>
+    <p>The cell's [x, y] position in the adapter's frame of reference</p>
 </div>
 
 
@@ -2156,7 +2232,7 @@ does not change other model or cell attributes such as e.g. <a href="Model.html#
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line325">line 325</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line347">line 347</a>
     </li></ul></dd>
     
 
@@ -2209,7 +2285,7 @@ does not change other model or cell attributes such as e.g. <a href="Model.html#
 <div class="description">
     <p>Remove filter function from model.</p>
 <p>Since filters are bound to the model, and anonymous functions lack a name, they can't be directly compared to
-those in <code>this.filters</code>, . This we identify and compare functions based on a hash value derived from the string
+those in <code>this.filters</code>, . Thus we identify and compare functions based on a hash value derived from the string
 version of the function. The upshot being any identically-coded functions will be equivalent.</p>
 </div>
 
@@ -2308,7 +2384,7 @@ version of the function. The upshot being any identically-coded functions will b
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line201">line 201</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line223">line 223</a>
     </li></ul></dd>
     
 
@@ -2450,7 +2526,7 @@ version of the function. The upshot being any identically-coded functions will b
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line236">line 236</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line258">line 258</a>
     </li></ul></dd>
     
 
@@ -2543,7 +2619,7 @@ version of the function. The upshot being any identically-coded functions will b
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line212">line 212</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line234">line 234</a>
     </li></ul></dd>
     
 
@@ -2589,7 +2665,7 @@ version of the function. The upshot being any identically-coded functions will b
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="filters.html">filters</a></li><li><a href="math.html">math</a></li><li><a href="rules.html">rules</a></li><li><a href="util.html">util</a></li></ul><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="CanvasAdapter.html">CanvasAdapter</a></li><li><a href="Cell.html">Cell</a></li><li><a href="CubicModel.html">CubicModel</a></li><li><a href="HexError.html">HexError</a></li><li><a href="HookList.html">HookList</a></li><li><a href="Model.html">Model</a></li><li><a href="Neighborhood.html">Neighborhood</a></li><li><a href="OffsetModel.html">OffsetModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Hexular">Hexular</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="Hexular.filters.html">filters</a></li><li><a href="Hexular.math.html">math</a></li><li><a href="Hexular.rules.html">rules</a></li><li><a href="Hexular.util.html">util</a></li></ul><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="CanvasAdapter.html">CanvasAdapter</a></li><li><a href="Cell.html">Cell</a></li><li><a href="CubicModel.html">CubicModel</a></li><li><a href="HexError.html">HexError</a></li><li><a href="HookList.html">HookList</a></li><li><a href="Model.html">Model</a></li><li><a href="Neighborhood.html">Neighborhood</a></li><li><a href="OffsetModel.html">OffsetModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Hexular">Hexular</a></li></ul>
 </nav>
 
 <br class="clear">

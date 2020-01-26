@@ -10,7 +10,7 @@ const DEFAULTS = {
   maxNumStates: 12,
   timerLength: 100,
   undoStackSize: 64,
-  availableRules: RULES,
+  availableRules: Object.assign({}, Hexular.rules, RULES),
   defaultRule: 'identityRule',
   defaultFilename: 'hexular.bin',
   preset: 'default',
