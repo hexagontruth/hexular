@@ -1,40 +1,84 @@
 <!DOCTYPE html>
-<html lang='en'>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script type='text/javascript' src='hexular.js'></script>
-  <script type='text/javascript' src='hexular-rules.js'></script>
-  <script type='text/javascript' src='hexular-demo.js'></script>
-  <link rel='stylesheet' type='text/css' href='hexular-demo.css'/>
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no">
+  <script type="text/javascript" src="src/hexular.js"></script>
+  <script type="text/javascript" src="demo/rules.js"></script>
+  <script type="text/javascript" src="demo/presets.js"></script>
+  <script type="text/javascript" src="demo/demo.js"></script>
+  <link rel="stylesheet" type="text/css" href="demo/demo.css"/>
+  <link rel="icon" type="image/png" href="demo/icon.png"/>
   <title>Hexular Demo</title>
 </head>
-<body>
-  <div class='container'></div>
-  <div class='controls'>
-    <input type='button' id='ctl_toggle' value='Start'/>
-    <input type='button' id='ctl_step' value='Step'/>
-    <input type='button' id='ctl_clear' value='Clear'/>
-    <input type='button' id='ctl_config' value='Config...'/>
-  </div>
-  <div class='overlay'>
-    <div class='config'>
-      <input name='ctl_states' type='range' id='ctl_states' min='2' max='12' step='1'
-        value='2' list='ticks' title='Number of States (2-12)'/>
-      <datalist id="ticks">
-        <option>2</option>
-        <option>4</option>
-        <option>6</option>
-        <option>8</option>
-        <option>10</option>
-        <option>12</option>
-      </datalist>
-      <select id='ctl_rule_all' title='Set all rules'>
-        <option value=''>&lt;&lt; Set all rules &gt;&gt;</option>
-      </select>
-      <div class='rule-config'></div>
+<body style="opacity: 0;">
+  <div class="container"></div>
+  <div class="header">
+    <div class="group">
+      <button id="toggle" title="Play (Tab)">play_arrow</button>
+      <button id="step" title="Step (Space)">skip_next</button>
+      <button id="clear" title="Clear (Ctrl+C)">block</button>
+      <button id="undo" title="Undo (Ctrl+Z)" disabled>undo</button>
+      <button id="redo" title="Redo (Ctrl+Shift+Z)" disabled>redo</button>
+      <button id="config" title="Config">settings</button>
+    </div>
+    <div class="group">
+      <button id="save" title="Save state... (Ctrl+S)">cloud_download</button>
+      <button id="load" title="Load state... (Ctrl+O)">backup</button>
+      <button id="resize" title="Resize board">settings_ethernet</button>
+      <a target="_blank" href="doc/"><button id="documentation" title="Show documentation">help</button></a>
     </div>
   </div>
+  <div class="overlay hidden">
+    <div class="modal">
+      <div class="group">
+        <input type="range" id="num-states" min="2" max="12" step="1"
+          value="2" list="num-states-ticks" title="Number of States (2-12)"/>
+        <datalist id="num-states-ticks">
+          <option>2</option>
+          <option>4</option>
+          <option>6</option>
+          <option>8</option>
+          <option>10</option>
+          <option>12</option>
+        </datalist>
+      </div>
+      <div class="group">
+        <select id="select-preset">
+          <option value="">- Select preset -</option>
+        </select>
+      </div>
+      <div class="group">
+        <button id="add-rule">add</button>
+        <textarea id="custom-rule">{newRule: (cell) => cell.state}</textarea>
+      </div>
+      <div class="group">
+        <button id="check-all">arrow_downward</button>
 
+        <select id="set-all">
+          <option value="">- Set selected -</option>
+        </select>
+      </div>
+      <div class="rule-config"></div>
+      <div class="group">
+        <select id="select-neighborhood" title="Default neighborhood for cell helper functions">
+          <option value="6" selected>N6: 6 immediate neighbors</option>
+          <option value="12">N12: 12 closest neighbors</option>
+          <option value="18">N18: 18 closest neighbors</option>
+          <option value="7">N7: 6 nighbors + self</option>
+          <option value="13">N13: 12 neighbors + self</option>
+          <option value="19">N19: 19 neighbors + self</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="message"></div>
+  <div class="info"></div>
+  <div class="assets" style="display: none;">
+    <div class="rule-menu checkable">
+      <div class="indicator"></div>
+      <select class="rule-select"></select>
+    </div>
+  </div>
 </body>
 </html>

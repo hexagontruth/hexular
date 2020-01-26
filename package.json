@@ -1,0 +1,33 @@
+{
+  "name": "hexular",
+  "version": "0.2.0-beta",
+  "description": "An extensible platform for hexagonal cellular automata",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hexagrahamaton/hexular.git"
+  },
+  "keywords": [
+    "hexagon",
+    "hexagons",
+    "hexagonal",
+    "cellular",
+    "automaton",
+    "automata",
+    "ca",
+    "math"
+  ],
+  "author": "graham",
+  "license": "HAL",
+  "bugs": {
+    "url": "https://github.com/hexagrahamaton/hexular/issues"
+  },
+  "homepage": "https://github.com/hexagrahamaton/hexular#readme",
+  "devDependencies": {
+    "jsdoc": "^3.6.3",
+    "static-server": "^2.2.1"
+  }
+}
