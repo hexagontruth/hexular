@@ -838,10 +838,10 @@ var Hexular = (function () {
      * arguments.
      *
      * The former mechanism is used by {@link Model#filters}, while the latter is used by
-     * {@link CanvasAdapter#onDrawCell} and {@link CanvasAdapter#onDrawSelector}.
+     * {@link CanvasAdapter#onDrawSelector}, and, when drawing individual cells, by {@link CanvasAdapter#onDrawCell}.
      *
      * @param  {*} val        First argument to be passed to at least initial function
-     * @param  {...*} ...args Any additional arguments to pass to each hook function
+     * @param  {...*} ...args Additional arguments to pass to each hook function
      * @return {*}            Return value of last hook function called, or original `val`
      */
     call(val, ...args) {
@@ -850,6 +850,24 @@ var Hexular = (function () {
         val = newVal === undefined ? val : newVal;
       }
       return val;
+    }
+
+    /**
+     * Call each function entry for every value in the given array, completing each function for all elements in the
+     * array before moving on to the next.
+     *
+     * Used by {@link CanvasAdapter#draw} to finish each successive drawing function for all cells in turn, allowing
+     * more complex intercellular drawings.
+     *
+     * @param  {array} array       Array of values to pass to hook to functions
+     * @param  {...object} ...args Additional arguments to pass to each hook function
+     */
+    callParallel(array, ...args) {
+      for (let i = 0; i < this.length; i++) {
+        for (let j = 0; j < array.length; j++) {
+          this[i].call(this.owner, array[j], ...args);
+        }
+      }
     }
   }
 
@@ -1012,14 +1030,10 @@ var Hexular = (function () {
 
     /**
      * Draw all cells on {@link CanvasAdapter#renderer} context.
-     *
-     * Calls {@link CanvasAdapter#drawCell} internally with each cell.
      */
     draw() {
       this.clear(this.renderer);
-      this.model.eachCell((cell) => {
-        this.drawCell(cell);
-      });
+      this.onDrawCell.callParallel(this.model.cells);
     }
 
     /**
@@ -1059,8 +1073,9 @@ var Hexular = (function () {
     /**
      * Draw individual cell.
      *
-     * Calls every method of {@link CanvasAdapter#onDrawCell} with the given cell. Used internally by
-     * {@link CanvasAdapter#draw}.
+     * Calls every method of {@link CanvasAdapter#onDrawCell} with the given cell.
+     *
+     * This was originally called by {@link CanvasAdapter#draw}, but is now a standalone utility method.
      *
      * @param  {Cell} cell The cell to draw
      */

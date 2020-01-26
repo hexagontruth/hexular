@@ -298,7 +298,7 @@ from one function to the other. Conversely, if constituent functions do not retu
 explicit value, this method essentially iterates over these functions with identical
 arguments.</p>
 <p>The former mechanism is used by <a href="Model.html#filters"><code>Model#filters</code></a>, while the latter is used by
-<a href="CanvasAdapter.html#onDrawCell"><code>CanvasAdapter#onDrawCell</code></a> and <a href="CanvasAdapter.html#onDrawSelector"><code>CanvasAdapter#onDrawSelector</code></a>.</p>
+<a href="CanvasAdapter.html#onDrawSelector"><code>CanvasAdapter#onDrawSelector</code></a>, and, when drawing individual cells, by <a href="CanvasAdapter.html#onDrawCell"><code>CanvasAdapter#onDrawCell</code></a>.</p>
 </div>
 
 
@@ -393,7 +393,7 @@ arguments.</p>
 
             
 
-            <td class="description last"><p>Any additional arguments to pass to each hook function</p></td>
+            <td class="description last"><p>Additional arguments to pass to each hook function</p></td>
         </tr>
 
     
@@ -481,6 +481,189 @@ arguments.</p>
 </dl>
 
     
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="callParallel"><span class="type-signature"></span>callParallel<span class="signature">(array)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Call each function entry for every value in the given array, completing each function for all elements in the
+array before moving on to the next.</p>
+<p>Used by <a href="CanvasAdapter.html#draw"><code>CanvasAdapter#draw</code></a> to finish each successive drawing function for all cells in turn, allowing
+more complex intercellular drawings.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>array</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">array</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Array of values to pass to hook to functions</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>...args</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                    &lt;repeatable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last"><p>Additional arguments to pass to each hook function</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line865">line 865</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

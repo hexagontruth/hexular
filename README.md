@@ -93,7 +93,7 @@ Filters simply take a state value and an optional [`cell`](Cell.html) instance, 
 
 #### Drawing hooks
 
-We can also override or extend the default cell-drawing behavior of `CanvasAdapter` in arbitrary aesthetic ways, to create more complex renderings. For example, the following will add a tasteful red line between any two activated cells in the [1, 0, -1] direction:
+We can also override or extend the default cell-drawing behavior of `CanvasAdapter` in arbitrary aesthetic ways, to create more complex renderings. For example, the following will add a tasteful red triangle between any three activated cells:
 
         adapter.onDrawCell.push(function(cell) {
           if (!cell.state)

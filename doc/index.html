@@ -126,11 +126,11 @@ end user to implement her own extensions via the Hexular API:</p>
 <p>Beyond adding or changing rules and neighborhoods, model behavior can be extended and modified in a number of ways.</p>
 <h4>Filters</h4>
 <p>Filters allow us to, e.g., perform a modulo operation on new cell states, to keep them confined to a certain range. This was historically the default behavior, but has now been spun out into a separate functionality that must be added explicitly to a new model:</p>
-<pre><code>model.addFilter(Hexular.filters.modFilter)
+<pre><code>    model.addFilter(Hexular.filters.modFilter)
 </code></pre>
 <p>Filters simply take a state value and an optional <a href="Cell.html"><code>cell</code></a> instance, and return a filtered state value.</p>
 <h4>Drawing hooks</h4>
-<p>We can also override or extend the default cell-drawing behavior of <code>CanvasAdapter</code> in arbitrary aesthetic ways, to create more complex renderings. For example, the following will add a tasteful red line between any two activated cells in the [1, 0, -1] direction:</p>
+<p>We can also override or extend the default cell-drawing behavior of <code>CanvasAdapter</code> in arbitrary aesthetic ways, to create more complex renderings. For example, the following will add a tasteful red triangle between any three activated cells:</p>
 <pre><code>    adapter.onDrawCell.push(function(cell) {
       if (!cell.state)
         return;
