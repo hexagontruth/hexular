@@ -135,7 +135,9 @@ The demo itself consists of a `CubicModel` instance, centered on the page, with 
 Some useful URL parameters and their default values:
 
   - `radius=60`
+  - `mobileRadius=30`
   - `cellRadius=10`
+  - `mobileCellRadius=20`
   - `timerLength=100`
   - `undoStackSize=64`
   - `modFilter=1`

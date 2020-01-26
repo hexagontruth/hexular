@@ -60,10 +60,14 @@ button {
   cursor: pointer;
 }
 
-button:hover:not(:disabled) {
+body:not(.mobile) button:hover:not(:disabled) {
   background: #fb3;
   color: #fff;
-  border: 0;
+}
+
+body.mobile button:active {
+  background: #fb3;
+  color: #fff;
 }
 
 button:disabled {
@@ -131,7 +135,7 @@ canvas.canvas-fg {
   font-weight: bold;
 }
 
-.info.hidden {
+.info.hidden, body.mobile .info {
   transform: translateY(calc(100% + 0.5rem));
 }
 
@@ -188,6 +192,7 @@ canvas.canvas-fg {
   flex-direction: column;
   justify-content: flex-start;
   align-items: stretch;
+  font-size: 1rem;
   flex: 0 1 30rem;
   padding: 1rem 1rem 0.5rem 1rem;
   background: #eee;
@@ -263,8 +268,12 @@ canvas.canvas-fg {
   margin-bottom: 0;
 }
 
-@media screen and (max-width: 480px){
-  html { font-size: 4vw; }
+@media screen and (max-width: 480px) {
+  .modal { font-size: 0.8rem; }
+}
+
+@media screen and (max-width: 360px){
+  html { font-size: 5.555vw; }
 }
 
 @media screen and (min-width: 2000px){

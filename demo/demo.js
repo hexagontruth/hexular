@@ -1,12 +1,12 @@
 // --- INIT ---
 
 const DEFAULTS = {
-  rows: 100,
-  cols: 100,
   radius: 60,
-  numStates: 12,
+  mobileRadius: 30,
   cellRadius: 10,
+  mobileCellRadius: 20,
   groundState: 0,
+  numStates: 12,
   maxNumStates: 12,
   timerLength: 100,
   undoStackSize: 64,
@@ -77,7 +77,27 @@ class Board {
     this.container.appendChild(this.fg);
     this.controls.numStates.value = this.numStates;
     this.customRuleTemplate = this.controls.customRule.value;
-    this.center();
+
+    let scaleFactor = this.scaleFactor = window.devicePixelRatio || 1;
+    // Let us infer if this is a mobile browser and make some tweaks
+    if (scaleFactor > 1 && screen.width < 640) {
+      this.mobile = true;
+      document.body.classList.add('mobile');
+      this.radius = this.mobileRadius;
+      this.cellRadius = this.mobileCellRadius;
+    }
+    for (let ctx of [this.bgCtx, this.fgCtx]) {
+      let canvas = ctx.canvas;
+      this.width = this.radius * this.cellRadius * Hexular.math.apothem * 4;
+      this.height = this.radius * this.cellRadius * 3;
+      canvas.style.width = this.width + 'px';
+      canvas.style.height = this.height + 'px';
+      canvas.width = this.width * scaleFactor;
+      canvas.height = this.height * scaleFactor;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(scaleFactor, scaleFactor);
+      ctx.translate(this.width / 2, this.height / 2);
+    }
 
     window.onkeydown = (ev) => this.handleKeydown(ev);
     window.onmousedown = (ev) => this.handleMousedown(ev);
@@ -102,15 +122,6 @@ class Board {
     this.controls.selectPreset.onchange = (ev) => this.selectPreset(ev.target.value);
     this.controls.setAll.onchange = (ev) => this.handleSetAll(ev);
     this.controls.selectNeighborhood.onchange = (ev) => this.setNeighborhood(ev.target.value);
-  }
-
-  center() {
-    for (let ctx of [this.bgCtx, this.fgCtx]) {
-      ctx.canvas.width = this.radius * this.cellRadius * Hexular.math.apothem * 4;
-      ctx.canvas.height = this.radius * this.cellRadius * 3;
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.translate(ctx.canvas.width / 2, ctx.canvas.height / 2);
-    }
   }
 
   get running() { return !!this.timer; }
@@ -373,8 +384,8 @@ class Board {
       x = Math.max(0, x);
       y = Math.max(0, y);
       cell = adapter.cellAt([
-        ev.pageX - this.fg.width / 2 - x,
-        ev.pageY - this.fg.height / 2 - y
+        ev.pageX - this.width / 2 - x,
+        ev.pageY - this.height / 2 - y
       ]);
       this.selectCell(cell);
       if (this.setState != null)
@@ -598,8 +609,8 @@ window.addEventListener('DOMContentLoaded', function(e) {
     opts[pair[0]] = Number.isNaN(parsedInt) ? pair[1] : parsedInt;
   });
   board = new Board(opts);
-  let {rules, rows, cols, radius, numStates, groundState, cellRadius} = board;
-  hexular = Hexular({rules, rows, cols, radius, numStates, groundState});
+  let {rules, radius, numStates, groundState, cellRadius} = board;
+  hexular = Hexular({rules, radius, numStates, groundState});
   if (board.modFilter)
     hexular.addFilter(Hexular.filters.modFilter);
   if (board.edgeFilter)
@@ -612,8 +623,8 @@ window.addEventListener('DOMContentLoaded', function(e) {
     board.refreshRules();
     document.body.style.opacity = 1;
     window.scrollTo(
-      (board.fg.width - window.innerWidth) / 2,
-      (board.fg.height- window.innerHeight) / 2
+      (board.width - window.innerWidth) / 2,
+      (board.height- window.innerHeight) / 2
     );
   });
 
