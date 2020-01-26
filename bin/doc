@@ -2,4 +2,4 @@
 
 BASE=$(dirname $0)/..
 
-$BASE/node_modules/.bin/jsdoc -c $BASE/jsdoc.json --readme $BASE/README.md && echo 'Done'
+$BASE/node_modules/.bin/jsdoc -c $BASE/jsdoc/config.json --readme $BASE/README.md && echo 'Done'

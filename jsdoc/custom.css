@@ -1,0 +1,38 @@
+body {
+  margin: 8px;
+}
+
+section h1 {
+  margin: 0 0 24px;
+  padding-left: 1.75em;
+  background-image: url('../demo/icon.png');
+  background-position: 0 center;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+/* wtf */
+#main > h3:first-child {
+  display: none;
+}
+
+nav {
+  position: fixed;
+  top: 36px;
+  right: 8px;
+  margin: 0;
+  min-width: 200px;
+  max-width: 360px;
+}
+
+@media screen and (max-width: 667px){
+  #main {
+    width: calc(100% - 200px);
+  }
+}
+
+@media screen and (min-width: 1200px){
+  #main {
+    width: calc(100% - 360px);
+  }
+}

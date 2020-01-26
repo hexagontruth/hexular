@@ -15,7 +15,13 @@
     "cleverLinks": true,
     "monospaceLinks": true,
     "default": {
-      "includeDate": false
+      "includeDate": false,
+      "layoutFile": "./jsdoc/layout.tmpl",
+      "staticFiles": {
+        "include": [
+          "./jsdoc/custom.css"
+        ]
+      }
     }
   },
   "markdown": {
