@@ -85,4 +85,31 @@ let RULES = {
   // This doesn't do a lot but can be a good utility placeholder in certain states
 
   average: (cell) => cell.average,
+
+  // Here are some examples of the built-in ruleBuilder functionality
+
+  spaceInvaders: Hexular.util.ruleBuilder([
+    // 0b000001,
+    // 0b000010,
+    0b000100,
+    0b001000,
+    // 0b010000,
+    // 0b100000,
+    0b010101,
+    0b101010,
+    0b000111,
+    0b111000,
+    0b001001,
+    0b010010,
+    0b100100,
+    0b011011,
+    0b110110,
+    0b101101,
+  ]),
+
+  fractalLeft: Hexular.util.ruleBuilder([
+    0b010000,
+    0b000100,
+    0b000001,
+  ]),
 };

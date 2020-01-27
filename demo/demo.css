@@ -16,8 +16,7 @@
 }
 
 html, body {
-  width: 100%;
-  height: 100%;
+
 }
 
 html {
@@ -65,7 +64,7 @@ body:not(.mobile) button:hover:not(:disabled) {
   color: #fff;
 }
 
-body.mobile button:active {
+body.mobile button:active, button.active {
   background: #fb3;
   color: #fff;
 }
@@ -79,44 +78,66 @@ button.text {
   font-family: inherit;
 }
 
-.header {
+.toolbar {
   position: fixed;
   z-index: 10;
-  top: 0;
-  left: 0;
-  right: 0;
+  left: 0.5rem;
+  right: 0.5rem;
   display: flex;
   flex-direction: row;
-  justify-content: center;
-  flex-wrap: wrap;
-  align-items: flex-start;
   height: 0;
 }
 
-.header .group {
+.toolbar.top {
+  top: 0;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.toolbar.bottom {
+  bottom: 0;
+  flex-wrap: reverse-wrap;
+  align-items: flex-end;
+  justify-content: flex-start
+}
+
+.toolbar .group {
   display: flex;
   flex-direction: row;
   justify-content: center;
   margin: 0 0.5rem;
 }
 
-.header button {
+.toolbar button {
   font-size: 1.5rem;
 /*  border-radius: 0.25rem;*/
   margin: 0.1rem 0.05rem 0;
   padding: 0.25rem 0.5rem;
 }
 
-.header .group > button:first-child {
+.toolbar.top .group > button:first-child {
   border-bottom-left-radius: 0.5rem;
 }
 
-.header .group > button:last-child, .header .group a button {
+.toolbar.top .group > button:last-child, .toolbar .group a button {
   border-bottom-right-radius: 0.5rem;
 }
 
-.header.hidden button {
+.toolbar.bottom .group > button:first-child {
+  border-top-left-radius: 0.5rem;
+}
+
+.toolbar.bottom .group > button:last-child {
+  border-top-right-radius: 0.5rem;
+}
+
+.toolbar.top.hidden button {
   transform: translateY(calc(-100% - 0.2rem));
+}
+
+.toolbar.bottom.hidden button {
+  transform: translateY(calc(100% + 0.2rem));
 }
 
 canvas.canvas-fg {
@@ -128,7 +149,7 @@ canvas.canvas-fg {
 .info {
   position: fixed;
   z-index: 20;
-  left: 0.5rem;
+  right: 0.5rem;
   bottom: 0.5rem;
   line-height: 1;
   color: #3f9fcc;

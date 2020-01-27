@@ -10,6 +10,7 @@ const DEFAULTS = {
   maxNumStates: 12,
   timerLength: 100,
   undoStackSize: 64,
+  mobileUndoStackSize: 16,
   availableRules: Object.assign({}, Hexular.rules, RULES),
   defaultRule: 'identityRule',
   defaultFilename: 'hexular.bin',
@@ -20,6 +21,17 @@ const DEFAULTS = {
 };
 
 let hexular, adapter, board;
+
+let onCursorEvent = (() => {
+  let handlerFn;
+  let handler = (ev) => handlerFn(ev);
+  ['mousedown', 'mouseup', 'mouseout', 'mousemove', 'touchstart', 'touchmove', 'touchend']
+  .map((e) => window.addEventListener(e, handler, {passive: false}));
+  return (obj, fn) => {
+    handlerFn = fn.bind(obj);
+  };
+})();
+
 
 class Board {
   constructor(...args) {
@@ -33,7 +45,9 @@ class Board {
       ruleMenus: [],
       undoStack: [],
       redoStack: [],
-      header: document.querySelector('.header'),
+      paint: false,
+      toolbarTop: document.querySelector('.toolbar.top'),
+      toolbarBottom: document.querySelector('.toolbar.bottom'),
       container: document.querySelector('.container'),
       overlay: document.querySelector('.overlay'),
       message: document.querySelector('.message'),
@@ -49,6 +63,7 @@ class Board {
         save: document.querySelector('#save'),
         load: document.querySelector('#load'),
         resize: document.querySelector('#resize'),
+        togglePaint: document.querySelector('#toggle-paint'),
       },
       controls: {
         numStates: document.querySelector('#num-states'),
@@ -85,6 +100,13 @@ class Board {
       document.body.classList.add('mobile');
       this.radius = this.mobileRadius;
       this.cellRadius = this.mobileCellRadius;
+      this.undoStackSize = this.mobileUndoStackSize;
+    }
+    // But be more liberal with the paint toggle
+    if (scaleFactor > 1 || screen.width < 960) {
+      console.log(this.buttons.togglePaint.classList);
+      console.log(this.buttons.toolbarBottom);
+      this.toolbarBottom.classList.remove('hidden');
     }
     for (let ctx of [this.bgCtx, this.fgCtx]) {
       let canvas = ctx.canvas;
@@ -100,11 +122,7 @@ class Board {
     }
 
     window.onkeydown = (ev) => this.handleKeydown(ev);
-    window.onmousedown = (ev) => this.handleMousedown(ev);
-    window.onmouseup = (ev) => this.handleMouseup(ev);
-    window.onmouseout = (ev) => this.handleMouseup(ev);
-    window.oncontextmenu = (ev) => this.handleContextmenu(ev);
-    window.onmousemove = (ev) => this.handleMousemove(ev);
+    onCursorEvent(this, this.handleCursor);
 
     this.buttons.toggle.onclick = (ev) => this.toggle();
     this.buttons.step.onclick = (ev) => this.step();
@@ -115,6 +133,7 @@ class Board {
     this.buttons.save.onclick = (ev) => this.save();
     this.buttons.load.onclick = (ev) => this.load();
     this.buttons.resize.onclick = (ev) => this.promptResize();
+    this.buttons.togglePaint.onclick = (ev) => this.togglePaint();
 
     this.controls.addRule.onclick = (ev) => this.handleAddRule();
     this.controls.checkAll.onclick = (ev) => this.handleCheckAll();
@@ -191,6 +210,10 @@ class Board {
         url += '?' + Object.entries(paramMap).map((e) => e.join('=')).join('&');
       location.href = url;
     }
+  }
+
+  togglePaint() {
+    this.paint = this.buttons.togglePaint.classList.toggle('active');
   }
 
   // Add rule or preset - also use these if adding from console
@@ -291,7 +314,12 @@ class Board {
 
   // Page/canvas listeners
 
+  handleContextmenu(ev) {
+    if (ev.target == this.fg) ev.preventDefault();
+  }
+
   handleKeydown(ev) {
+    console.log('curdcake');
     let key = ev.key.toLowerCase();
     if (!ev.repeat) {
       // ESC to hide/show controls
@@ -300,7 +328,8 @@ class Board {
           this.toggleConfig();
         }
         else {
-          this.header.classList.toggle('hidden');
+          this.toolbarTop.classList.toggle('hidden');
+          this.toolbarBottom.classList.toggle('hidden');
           this.info.classList.toggle('hidden');
         }
       }
@@ -352,71 +381,98 @@ class Board {
     }
   }
 
-  handleContextmenu(ev) {
-    if (ev.target == this.fg) ev.preventDefault();
-  }
-
-  handleMousedown(ev) {
-    if (ev.target == this.fg && this.selected) {
-      this.newHistoryState();
-      if (ev.buttons & 1) {
-        this.shift = ev.shiftKey;
-        this.setState = Hexular.math.mod(this.selected.state + 1, hexular.numStates);
-        this.setCell(this.selected);
+  handleCursor(ev) {
+    if (ev instanceof MouseEvent) {
+      if (ev.type == 'mousedown') {
+        if (ev.target == this.fg && this.selected && !this.setState) {
+          this.newHistoryState();
+          if (ev.buttons & 1) {
+            this.shift = ev.shiftKey;
+            this.setState = Hexular.math.mod(this.selected.state + 1, hexular.numStates);
+            this.setCell(this.selected);
+          }
+          else if (ev.buttons & 2) {
+            this.setState = Hexular.math.mod(this.selected.state - 1, hexular.numStates);
+            this.setCell(this.selected);
+          }
+        }
+        else if (ev.target == this.overlay) {
+          this.toggleConfig();
+        }
+        else if (ev.target == this.message) {
+          this.clearMessage();
+        }
       }
-      else if (ev.buttons & 2) {
-        this.setState = Hexular.math.mod(this.selected.state - 1, hexular.numStates);
-        this.setCell(this.selected);
+      else if (ev.type == 'mouseup' && this.setState) {
+        this.clearCursorState();
+      }
+      else if (ev.type == 'mousemove') {
+        let cell;
+        if (ev.target == this.fg) {
+          this.selectCell([ev.pageX, ev.pageY]);
+          if (this.setState != null)
+            this.setCell(this.selected);
+        }
+        if (ev.target != this.info) {
+          let cell = this.selected;
+          this.info.innerHTML = cell && cell.coord.map((c) => (c > 0 ? '+' : '-') + ('0' + Math.abs(c)).slice(-2)) || '';
+        }
       }
     }
-    else if (ev.target == this.overlay) {
-      this.toggleConfig();
-    }
-    else if (ev.target == this.message) {
-      this.clearMessage();
+    // Else is TouchEvent
+    else {
+      if (ev.targetTouches.length == 1 && ev.target == this.fg) {
+        let [x, y] = [ev.targetTouches[0].pageX, ev.targetTouches[0].pageY];
+        if (ev.type == 'touchstart' && this.paint) {
+          if (this.selected) {
+              this.selectCell([x, y]);
+              this.setState = Hexular.math.mod(this.selected.state + 1, hexular.numStates);
+              this.setCell(this.selected);
+          }
+        }
+        if (ev.type == 'touchend') {
+          this.clearCursorState();
+        }
+        if (ev.type == 'touchmove') {
+          this.selectCell([x, y]);
+          this.setCell(this.selected);
+        }
+        if (this.paint) {
+          ev.preventDefault();
+        }
+      }
     }
   }
 
-  handleMousemove(ev) {
-    let cell;
-    if (ev.target == this.fg) {
-      let {x, y} = this.fg.getBoundingClientRect();
-      x = Math.max(0, x);
-      y = Math.max(0, y);
-      cell = adapter.cellAt([
-        ev.pageX - this.width / 2 - x,
-        ev.pageY - this.height / 2 - y
-      ]);
-      this.selectCell(cell);
-      if (this.setState != null)
-        this.setCell(cell);
-    }
-    if (ev.target != this.info)
-      this.info.innerHTML = cell && cell.coord.map((c) => (c > 0 ? '+' : '-') + ('0' + Math.abs(c)).slice(-2)) || '';
-  }
-
-  handleMouseup(ev) {
+  clearCursorState() {
     this.shift = false;
     this.lastSet = null;
     this.setState = null;
     this.storeState();
   }
-
   // Cell selection and setting
 
-  selectCell(cell) {
+  selectCell(coord) {
+    let cell;
+    if (coord) {
+      let {x, y} = this.fg.getBoundingClientRect();
+      x = Math.max(0, x);
+      y = Math.max(0, y);
+      cell = adapter.cellAt([
+        coord[0] - this.width / 2 - x,
+        coord[1] - this.height / 2 - y
+      ]);
+    }
     this.selected = cell;
     adapter.selectCell(cell);
   }
 
   setCell(cell) {
-    if (cell) {
-      if (cell != this.lastSet) {
-        cell.state = this.shift ? 0 : this.setState;
-        this.lastSet = cell;
-        adapter.selectCell();
-        adapter.drawCell(cell);
-      }
+    if (cell && cell != this.lastSet) {
+      cell.state = this.shift ? 0 : this.setState;
+      this.lastSet = cell;
+      adapter.selectCell();
+      adapter.drawCell(cell);
     }
   }
 

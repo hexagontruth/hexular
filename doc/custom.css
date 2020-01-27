@@ -2,6 +2,13 @@ body {
   margin: 8px;
 }
 
+#page {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
 section h1 {
   margin: 0 0 24px;
   padding-left: 1.75em;
@@ -16,23 +23,13 @@ section h1 {
   display: none;
 }
 
+#main {
+}
+
 nav {
-  position: fixed;
-  top: 36px;
-  right: 8px;
-  margin: 0;
-  min-width: 200px;
-  max-width: 360px;
-}
-
-@media screen and (max-width: 667px){
-  #main {
-    width: calc(100% - 200px);
-  }
-}
-
-@media screen and (min-width: 1200px){
-  #main {
-    width: calc(100% - 360px);
-  }
+  background: #fff;
+  position: sticky;
+  top: 8px;
+  min-width: 180px;
+  max-width: 420px;
 }
