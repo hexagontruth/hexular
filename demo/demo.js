@@ -6,17 +6,19 @@ const DEFAULTS = {
   cellRadius: 10,
   mobileCellRadius: 20,
   groundState: 0,
-  numStates: 12,
+  numStates: null,
   maxNumStates: 12,
   timerLength: 100,
   undoStackSize: 64,
   mobileUndoStackSize: 16,
   availableRules: Object.assign({}, Hexular.rules, RULES),
+  rule: null,
   defaultRule: 'identityRule',
   defaultFilename: 'hexular.bin',
   preset: 'default',
   presets: PRESETS,
   modFilter: 1,
+  modFloorFilter: 0,
   edgeFilter: 0,
 };
 
@@ -76,10 +78,28 @@ class Board {
       }
     };
     Object.assign(this, DEFAULTS, props, ...args);
-    this.rules = Object.assign(
-      Array(this.maxNumStates).fill(this.availableRules[this.defaultRule]),
-      this.presets[this.preset].map((e) => this.availableRules[e])
-    );
+    let numStates;
+    if (this.availableRules[this.rule]) {
+      this.rules = Array(this.maxNumStates).fill(this.availableRules[this.rule]);
+      numStates = this.maxNumStates;
+      this.preset = null;
+    }
+    else {
+      this.rules = Object.assign(
+        Array(this.maxNumStates).fill(this.availableRules[this.defaultRule]),
+        this.presets[this.preset].map((e) => this.availableRules[e])
+      );
+      numStates = this.presets[this.preset].length;
+    }
+    console.log(numStates, this.numStates);
+    if (this.numStates && this.numStates != numStates) {
+      this.controls.numStates.value = this.numStates;
+      this.preset = null;
+    }
+    else {
+      this.controls.numStates.value = numStates;
+      this.numStates = numStates;
+    }
     this.bg = document.createElement('canvas');
     this.fg = document.createElement('canvas');
     this.bg.classList.add('canvas', 'canvas-bg');
@@ -90,7 +110,6 @@ class Board {
     while (this.container.firstChild) this.container.firstChild.remove();
     this.container.appendChild(this.bg);
     this.container.appendChild(this.fg);
-    this.controls.numStates.value = this.numStates;
     this.customRuleTemplate = this.controls.customRule.value;
 
     let scaleFactor = this.scaleFactor = window.devicePixelRatio || 1;
@@ -319,7 +338,6 @@ class Board {
   }
 
   handleKeydown(ev) {
-    console.log('curdcake');
     let key = ev.key.toLowerCase();
     if (!ev.repeat) {
       // ESC to hide/show controls
@@ -667,7 +685,9 @@ window.addEventListener('DOMContentLoaded', function(e) {
   board = new Board(opts);
   let {rules, radius, numStates, groundState, cellRadius} = board;
   hexular = Hexular({rules, radius, numStates, groundState});
-  if (board.modFilter)
+  if (board.modFloorFilter)
+    hexular.addFilter(Hexular.filters.modFloorFilter);
+  if (board.modFilter && !board.modFloorFilter)
     hexular.addFilter(Hexular.filters.modFilter);
   if (board.edgeFilter)
     hexular.addFilter(Hexular.filters.edgeFilter);

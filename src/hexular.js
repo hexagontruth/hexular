@@ -1254,7 +1254,16 @@ var Hexular = (function () {
    * @memberof Hexular.filters
    */
   function modFilter(value) {
-   return mod(value, this.numStates);
+    return mod(value, this.numStates);
+  }
+
+  /**
+   * Like {@link Hexular.filters.modFilter}, but with a floor of 0 (i.e., states won't go from 0 to e.g. 11).
+   *
+   * @memberof Hexular.filters
+   */
+  function modFloorFilter(value) {
+    return mod(Math.max(0, value), this.numStates);
   }
 
   /**
@@ -1434,6 +1443,7 @@ var Hexular = (function () {
     },
     filters: {
       modFilter,
+      modFloorFilter,
       edgeFilter,
     },
     util: {
