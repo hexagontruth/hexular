@@ -217,6 +217,15 @@ var Hexular = (function () {
          * @type Cell[]
          */
         cells: [],
+        /**
+         * Boolean flag that is set to true during {@link Model#step} when any {@link Cell#state} is changed.
+         *
+         * Can be used to e.g. automatically stop an auto-incrementing model when it goes "dead."
+         *
+         * @name Model#changed
+         * @type boolean
+         */
+        changed: null,
       };
       Object.assign(this, defaults, ...args);
       // Add available adapter constructors as direct attributes of this instance
@@ -258,9 +267,12 @@ var Hexular = (function () {
      * Advance state of each cell according to rule defined in {@link Model.rules|this.rules} for current state key.
      */
     step() {
+      this.changed = false;
       this.eachCell((cell) => {
         let nextState = (this.rules[cell.state] || this.defaultRule)(cell);
         cell.nextState = this.filters.call(nextState, cell);
+        if (!this.changed &amp;&amp; cell.nextState != cell.state)
+          this.changed = true;
       });
       this.eachCell((cell) => {
         cell.state = cell.nextState;
@@ -1284,12 +1296,23 @@ var Hexular = (function () {
   }
 
   /**
-   * Like {@link Hexular.filters.modFilter}, but with a floor of 0 (i.e., states won't go from 0 to e.g. 11).
+   * Prevent state from going below 0.
+   *
+   * Must be run before {@link Hexular.filters.modFilter}!.
    *
    * @memberof Hexular.filters
    */
-  function modFloorFilter(value) {
-    return mod(Math.max(0, value), this.numStates);
+  function clampBottomFilter(value) {
+    return Math.max(0, value);
+  }
+
+  /**
+   * Prevent state from going above the value defined in {@link Model#numStates}.
+   *
+   * @memberof Hexular.filters
+   */
+  function clampTopFilter(value) {
+    return Math.min(this.numStates - 1, value);
   }
 
   /**
@@ -1305,22 +1328,42 @@ var Hexular = (function () {
   }
 
   /**
-  * Generates an elementary rule based on the 6/7-bit state of a cell's neighbors plus optionally itself.
+  * Generates an elementary rule based on the state of a cell's neighbors plus optionally itself.
   *
-  * The highest (left-most) bit represents the cell itself (such that the same rule masks can be used for either the
-  * 6 or 7 bit (exclusive or inclusive) variants, while the lowest bit represents {@link Cell#nbrs|cell.nbrs[6]}.
+  * The most significant (left-most) bit represents the lowest neighbor number in the selected range, while the least
+  * significant bit represents the highest. Thus, the same rule masks can be used with `opts.range` set to either
+  * `[0, 7]` or `[1, 7]` (default).
   *
   * Modeled roughly after Wolfram's
   * [Elementary Cellular Automaton]{@link http://mathworld.wolfram.com/ElementaryCellularAutomaton.html} rules.
   *
-  * @param {BigInt|number[]} ruleDef 64/128-bit number indicating next position per possible state, or array of 6/7-bit
-  *                                  numbers giving individual states where next cell state is 1
-  * @param {bool} [inclusive=false]  Whether to include a cell's own state along with its neighbors
+  * @param {BigInt|number[]} ruleDef      With default `opts.range`', 64-bit number indicating next position per
+  *                                       possible state, or an array of 6-bit numbers indicating activation states
+  *                                       numbers giving individual states where next cell state is 1
+  * @param {object} opts                  Optional arguments
+  * @param {number[]} [opts.range=[1, 7]] Neighborhood range &amp;mdash; default is N6 (immediate neighbors)
+  * @param {boolean} [opts.inc=true]     `true` increments state on positive rule match, while `false` sets it to 0
+  * @param {boolean} [opts.dec=false]    `true` decrements state on negative rule match, while `false` sets it to 0
+  * @param {boolean} [opts.invert=false]  Invert rule number (pass in negative state masks instead of positive ones)
   * @memberof Hexular.util
+  * @see {@link Cell#nbrs}
   **/
-  function ruleBuilder(ruleDef, inclusive=false) {
-    let n
-    if (typeof ruleDef == 'object') {
+  function ruleBuilder(ruleDef, opts={}) {
+    let defaults = {
+      range: [1, 7],
+      inc: true,
+      dec: false,
+      invert: false
+    };
+    let {range, inc, dec, invert} = Object.assign(defaults, opts);
+    invert = +invert;
+    let [start, stop] = range;
+    let rangeLength = stop - start;
+    let incMask = inc ? -1 : 0;
+    let decMask = dec ? -1 : 0;
+
+    let n;
+    if (ruleDef &amp;&amp; ruleDef.length) {
       n = 0n;
       for (let state of ruleDef) {
         n = n | 1n &lt;&lt; BigInt(state);
@@ -1329,14 +1372,17 @@ var Hexular = (function () {
     else {
       n = BigInt(n);
     }
-    let startIdx = +!inclusive;
+
     return (cell) => {
       let mask = 0;
-      for (let i = startIdx; i &lt; 7; i++) {
-        mask = mask | (cell.nbrs[i].state ? 1 : 0) &lt;&lt; (6 - i);
+      for (let i = 0; i &lt; rangeLength; i++) {
+        mask = mask | ((cell.nbrs[start + i].state ? 1 : 0) &lt;&lt; (rangeLength - i - 1));
       }
-      return Number((n >> BigInt(mask)) % 2n);
+      return (Number((n >> BigInt(mask)) % 2n) ^ invert) ?
+        (cell.state &amp; incMask) + 1 :
+        (cell.state - 1) &amp; decMask;
     };
+
   }
 
   // --- UTILITY FUNCTIONS ---
@@ -1468,8 +1514,9 @@ var Hexular = (function () {
       nullRule,
     },
     filters: {
+      clampBottomFilter,
+      clampTopFilter,
       modFilter,
-      modFloorFilter,
       edgeFilter,
     },
     util: {

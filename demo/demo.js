@@ -14,11 +14,13 @@ const DEFAULTS = {
   availableRules: Object.assign({}, Hexular.rules, RULES),
   rule: null,
   defaultRule: 'identityRule',
+  defaultImagename: 'hexular.png',
   defaultFilename: 'hexular.bin',
   preset: 'default',
   presets: PRESETS,
+  clampBottomFilter: 0,
+  clampTopFilter: 0,
   modFilter: 1,
-  modFloorFilter: 0,
   edgeFilter: 0,
 };
 
@@ -62,6 +64,7 @@ class Board {
         undo: document.querySelector('#undo'),
         redo: document.querySelector('#redo'),
         config: document.querySelector('#config'),
+        saveImage: document.querySelector('#save-image'),
         save: document.querySelector('#save'),
         load: document.querySelector('#load'),
         resize: document.querySelector('#resize'),
@@ -138,21 +141,23 @@ class Board {
     }
 
     window.onkeydown = (ev) => this.handleKeydown(ev);
+    window.oncontextmenu = (ev) => this.handleContextmenu(ev);
     onCursorEvent(this, this.handleCursor);
 
-    this.buttons.toggle.onclick = (ev) => this.toggle();
-    this.buttons.step.onclick = (ev) => this.step();
-    this.buttons.clear.onclick = (ev) => this.clear();
-    this.buttons.undo.onclick = (ev) => this.undo();
-    this.buttons.redo.onclick = (ev) => this.redo();
-    this.buttons.config.onclick = (ev) => this.toggleConfig();
-    this.buttons.save.onclick = (ev) => this.save();
-    this.buttons.load.onclick = (ev) => this.load();
-    this.buttons.resize.onclick = (ev) => this.promptResize();
-    this.buttons.togglePaint.onclick = (ev) => this.togglePaint();
+    this.buttons.toggle.onmouseup = (ev) => this.toggle();
+    this.buttons.step.onmouseup = (ev) => this.step();
+    this.buttons.clear.onmouseup = (ev) => this.clear();
+    this.buttons.undo.onmouseup = (ev) => this.undo();
+    this.buttons.redo.onmouseup = (ev) => this.redo();
+    this.buttons.config.onmouseup = (ev) => this.toggleConfig();
+    this.buttons.saveImage.onmouseup = (ev) => this.saveImage();
+    this.buttons.save.onmouseup = (ev) => this.save();
+    this.buttons.load.onmouseup = (ev) => this.load();
+    this.buttons.resize.onmouseup = (ev) => this.promptResize();
+    this.buttons.togglePaint.onmouseup = (ev) => this.togglePaint();
 
-    this.controls.addRule.onclick = (ev) => this.handleAddRule();
-    this.controls.checkAll.onclick = (ev) => this.handleCheckAll();
+    this.controls.addRule.onmouseup = (ev) => this.handleAddRule();
+    this.controls.checkAll.onmouseup = (ev) => this.handleCheckAll();
     this.controls.numStates.onchange = (ev) => this.setNumStates(ev.target.value);
     this.controls.selectPreset.onchange = (ev) => this.selectPreset(ev.target.value);
     this.controls.setAll.onchange = (ev) => this.handleSetAll(ev);
@@ -183,6 +188,8 @@ class Board {
       hexular.step();
       adapter.draw();
       this.storeState();
+      if (!hexular.changed)
+        this.toggle();
     }
     catch (e) {
       console.log(e);
@@ -247,13 +254,16 @@ class Board {
 
   // Save/load
 
+  saveImage() {
+    let dataUri = this.bg.toDataURL('image/png');
+    this.promptDownload(this.defaultImagename, dataUri);
+  }
+
   save() {
     let bytes = hexular.export();
     let blob = new Blob([bytes], {type: 'application/octet-stream'});
-    let a = document.createElement('a');
-    a.href = window.URL.createObjectURL(blob);
-    a.download = this.defaultFilename;
-    a.click();
+    let dataUri = window.URL.createObjectURL(blob);
+    this.promptDownload(this.defaultFilename, dataUri);
   }
 
   load() {
@@ -272,6 +282,13 @@ class Board {
       fileReader.readAsArrayBuffer(input.files[0]);
     };
     input.click();
+  }
+
+  promptDownload(filename, dataUri) {
+    let a = document.createElement('a');
+    a.href = dataUri;
+    a.download = filename;
+    a.click();
   }
 
   storeState(bytes) {
@@ -393,8 +410,8 @@ class Board {
       else {
         return;
       }
-      ev.preventDefault();
     }
+    ev.preventDefault();
   }
 
   handleCursor(ev) {
@@ -419,7 +436,7 @@ class Board {
           this.clearMessage();
         }
       }
-      else if (ev.type == 'mouseup' && this.setState) {
+      else if (ev.type == 'mouseup' && this.setState != null) {
         this.clearCursorState();
       }
       else if (ev.type == 'mousemove') {
@@ -658,7 +675,7 @@ class RuleMenu {
       option.selected = selected == fn;
       select.appendChild(option);
     }
-    indicator.addEventListener('click', (ev) => {
+    indicator.addEventListener('mouseup', (ev) => {
       this.checked = !this.checked;
     });
   }
@@ -683,15 +700,16 @@ window.addEventListener('DOMContentLoaded', function(e) {
   board = new Board(opts);
   let {rules, radius, numStates, groundState, cellRadius} = board;
   hexular = Hexular({rules, radius, numStates, groundState});
-  if (board.modFloorFilter)
-    hexular.addFilter(Hexular.filters.modFloorFilter);
-  if (board.modFilter && !board.modFloorFilter)
+  if (board.clampBottomFilter)
+    hexular.addFilter(Hexular.filters.clampBottomFilter);
+  if (board.clampTopFilter)
+    hexular.addFilter(Hexular.filters.clampTopFilter);
+  if (board.modFilter)
     hexular.addFilter(Hexular.filters.modFilter);
   if (board.edgeFilter)
     hexular.addFilter(Hexular.filters.edgeFilter);
   adapter = hexular.CanvasAdapter({renderer: board.bgCtx, selector: board.fgCtx, cellRadius});
   board.restoreState();
-
   window.requestAnimationFrame(() => {
     adapter.draw();
     board.refreshRules();

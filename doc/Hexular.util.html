@@ -110,7 +110,7 @@
     
 
     
-    <h4 class="name" id=".ruleBuilder"><span class="type-signature">(static) </span>ruleBuilder<span class="signature">(ruleDef, inclusive<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id=".ruleBuilder"><span class="type-signature">(static) </span>ruleBuilder<span class="signature">(ruleDef, opts)</span><span class="type-signature"></span></h4>
     
 
     
@@ -118,9 +118,10 @@
 
 
 <div class="description">
-    <p>Generates an elementary rule based on the 6/7-bit state of a cell's neighbors plus optionally itself.</p>
-<p>The highest (left-most) bit represents the cell itself (such that the same rule masks can be used for either the
-6 or 7 bit (exclusive or inclusive) variants, while the lowest bit represents <a href="Cell.html#nbrs"><code>cell.nbrs[6]</code></a>.</p>
+    <p>Generates an elementary rule based on the state of a cell's neighbors plus optionally itself.</p>
+<p>The most significant (left-most) bit represents the lowest neighbor number in the selected range, while the least
+significant bit represents the highest. Thus, the same rule masks can be used with <code>opts.range</code> set to either
+<code>[0, 7]</code> or <code>[1, 7]</code> (default).</p>
 <p>Modeled roughly after Wolfram's
 <a href="http://mathworld.wolfram.com/ElementaryCellularAutomaton.html">Elementary Cellular Automaton</a> rules.</p>
 </div>
@@ -146,11 +147,7 @@
         <th>Type</th>
 
         
-        <th>Attributes</th>
-        
 
-        
-        <th>Default</th>
         
 
         <th class="last">Description</th>
@@ -178,7 +175,80 @@
             </td>
 
             
+
+            
+
+            <td class="description last"><p>With default <code>opts.range</code>', 64-bit number indicating next position per
+possible state, or an array of 6-bit numbers indicating activation states
+numbers giving individual states where next cell state is 1</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>opts</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Optional arguments</p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>range</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;number></span>
+
+
+            
+            </td>
+
+            
                 <td class="attributes">
+                
+                    &lt;optional><br>
                 
 
                 
@@ -190,24 +260,64 @@
             
                 <td class="default">
                 
+                    [1, 7]
+                
                 </td>
             
 
-            <td class="description last"><p>64/128-bit number indicating next position per possible state, or array of 6/7-bit
-numbers giving individual states where next cell state is 1</p></td>
+            <td class="description last"><p>Neighborhood range — default is N6 (immediate neighbors)</p></td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>inclusive</code></td>
+                <td class="name"><code>inc</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">bool</span>
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    true
+                
+                </td>
+            
+
+            <td class="description last"><p><code>true</code> increments state on positive rule match, while <code>false</code> sets it to 0</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>dec</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
 
 
             
@@ -233,7 +343,53 @@ numbers giving individual states where next cell state is 1</p></td>
                 </td>
             
 
-            <td class="description last"><p>Whether to include a cell's own state along with its neighbors</p></td>
+            <td class="description last"><p><code>true</code> decrements state on negative rule match, while <code>false</code> sets it to 0</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>invert</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last"><p>Invert rule number (pass in negative state masks instead of positive ones)</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
         </tr>
 
     
@@ -274,12 +430,19 @@ numbers giving individual states where next cell state is 1</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1295">line 1295</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1325">line 1325</a>
     </li></ul></dd>
     
 
     
 
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="Cell.html#nbrs"><code>Cell#nbrs</code></a></li>
+        </ul>
+    </dd>
     
 
     

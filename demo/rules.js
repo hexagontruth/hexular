@@ -88,28 +88,36 @@ let RULES = {
 
   // Here are some examples of the built-in ruleBuilder functionality
 
-  spaceInvaders: Hexular.util.ruleBuilder([
-    // 0b000001,
-    // 0b000010,
-    0b000100,
-    0b001000,
-    // 0b010000,
-    // 0b100000,
-    0b010101,
-    0b101010,
-    0b000111,
-    0b111000,
-    0b001001,
-    0b010010,
-    0b100100,
-    0b011011,
-    0b110110,
-    0b101101,
-  ]),
+  socialMinimalist: Hexular.util.ruleBuilder([
+    0b1000001,
+    0b1000010,
+    0b1000100,
+    0b1001000,
+    0b1010000,
+    0b1100000,
+  ], {range: [0, 7], inc: false}),
 
   fractalLeft: Hexular.util.ruleBuilder([
     0b010000,
     0b000100,
     0b000001,
+  ]),
+
+  lineFilter: Hexular.util.ruleBuilder([
+    0b001001,
+    0b010010,
+    0b100100,
+  ], {invert: true}),
+
+  ennead: Hexular.util.ruleBuilder([
+    0b001001,
+    0b010010,
+    0b100100,
+    0b000011,
+    0b000110,
+    0b001100,
+    0b011000,
+    0b110000,
+    0b100001,
   ]),
 };

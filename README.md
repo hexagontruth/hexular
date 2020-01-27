@@ -89,7 +89,13 @@ All cell neighborhoods can be set via [`model.setNeighborhood(n)`](Model.html#se
 
 #### Rule builder
 
-The [`ruleBuilder`](Hexular.util.html#.ruleBuilder) function allows for "convenient" generation of elementary 6- or 7-bit binary CA rules, analogous to Wolfram's [Elementary Cellular Automaton](http://mathworld.wolfram.com/ElementaryCellularAutomaton.html) rules. The function takes as an input either a single natural number (preferrably in the form of a [BigInt](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt)), or an array of numbers each representing a single 6/7-bit state mask to add. The function also takes an optional boolean indicating whether the rule should be inclusive of the home cell (7 bit) or not (6 bit). The default is the latter. So e.g.. one might use it as follows to create a rule to activate when two oppiste pairs of neighbors are exclusively active:
+The [`ruleBuilder`](Hexular.util.html#.ruleBuilder) function allows for "convenient" generation of elementary binary CA rules, analogous to Wolfram's [Elementary Cellular Automaton](http://mathworld.wolfram.com/ElementaryCellularAutomaton.html) rules. The function takes as an input either a single natural number (preferrably in the form of a [BigInt](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt)), or an array of numbers each representing a single neighborhood state mask to add.
+
+An optional second argument determines the range of neighbors to consider when applying the rule, with the default being `[1, 7]` (corresponding to the immediate neighborhood N6). This can be changed to e.g. `[0, 7]` to include the home cell itself. The individual state masks in the first argument array are thus 6 bits in the default case (0-63), or 7 bits in the latter case (0-127). The "rule number" produced will be up to 64 bits, or 18,446,744,073,709,551,616 possible combinations, for the 6-neighbor default, or up to 128 bits, or 340,282,366,920,938,463,463,374,607,431,768,211,456 possible combinations, for the 7-neighbor variant. If one were to consider the full `[0, 19]` neighborhood, one would have a 157,827-decimal-digit-long number of possible rules, which I will not repeat here.
+
+This representation is obviously a bit less well-suited to the brute indexing approach than Wolfram's 256 one-dimensional rules, but it is hoped that at least the array version will be helpful in constructing simple rules, which may then be composed into more complex rules, &c.
+
+ So e.g.. we might use this function as follows to create a rule to activate if and only if two opposite pairs of neighbors are exclusively active:
 
         let fancyElementaryRule = Hexular.util.ruleBuilder([
           0b001001,
@@ -97,7 +103,7 @@ The [`ruleBuilder`](Hexular.util.html#.ruleBuilder) function allows for "conveni
           0b100100
         ]);
 
-In our case, instead of Wolfram's 256 possible combinations of 3-bit states, we have 2^64 or 18,446,744,073,709,551,616 possible rules for the 6-bit version, and 2^128 or 340,282,366,920,938,463,463,374,607,431,768,211,456 for the 7-bit one. This representation is thus a bit less well-suited than Wolfram's to the brute indexing approach, though it is hoped that at least the array version will be helpful in constructing simple rules, which may then be composed into more complex rules, &c.
+Please see the function documentation for additional details.
 
 ### Customization
 
