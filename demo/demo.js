@@ -14,6 +14,7 @@ const DEFAULTS = {
   availableRules: Object.assign({}, Hexular.rules, RULES),
   rule: null,
   defaultRule: 'identityRule',
+  defaultImagename: 'hexular.png',
   defaultFilename: 'hexular.bin',
   preset: 'default',
   presets: PRESETS,
@@ -62,6 +63,7 @@ class Board {
         undo: document.querySelector('#undo'),
         redo: document.querySelector('#redo'),
         config: document.querySelector('#config'),
+        saveImage: document.querySelector('#save-image'),
         save: document.querySelector('#save'),
         load: document.querySelector('#load'),
         resize: document.querySelector('#resize'),
@@ -146,6 +148,7 @@ class Board {
     this.buttons.undo.onclick = (ev) => this.undo();
     this.buttons.redo.onclick = (ev) => this.redo();
     this.buttons.config.onclick = (ev) => this.toggleConfig();
+    this.buttons.saveImage.onclick = (ev) => this.saveImage();
     this.buttons.save.onclick = (ev) => this.save();
     this.buttons.load.onclick = (ev) => this.load();
     this.buttons.resize.onclick = (ev) => this.promptResize();
@@ -247,13 +250,17 @@ class Board {
 
   // Save/load
 
+  saveImage() {
+    console.log('curd');
+    let dataUri = this.bg.toDataURL('image/png');
+    this.promptDownload(this.defaultImagename, dataUri);
+  }
+
   save() {
     let bytes = hexular.export();
     let blob = new Blob([bytes], {type: 'application/octet-stream'});
-    let a = document.createElement('a');
-    a.href = window.URL.createObjectURL(blob);
-    a.download = this.defaultFilename;
-    a.click();
+    let dataUri = window.URL.createObjectURL(blob);
+    this.promptDownload(this.defaultFilename, dataUri);
   }
 
   load() {
@@ -272,6 +279,13 @@ class Board {
       fileReader.readAsArrayBuffer(input.files[0]);
     };
     input.click();
+  }
+
+  promptDownload(filename, dataUri) {
+    let a = document.createElement('a');
+    a.href = dataUri;
+    a.download = filename;
+    a.click();
   }
 
   storeState(bytes) {
