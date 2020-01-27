@@ -1,0 +1,35 @@
+body {
+  margin: 8px;
+}
+
+#page {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+section h1 {
+  margin: 0 0 24px;
+  padding-left: 1.75em;
+  background-image: url('../icon.png');
+  background-position: 0 center;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+/* wtf */
+#main > h3:first-child {
+  display: none;
+}
+
+#main {
+}
+
+nav {
+  background: #fff;
+  position: sticky;
+  top: 8px;
+  min-width: 180px;
+  max-width: 420px;
+}

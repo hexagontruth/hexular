@@ -1,0 +1,30 @@
+{
+  "opts": {
+    "destination": "./public/doc/"
+  },
+  "plugins": ["plugins/markdown"],
+  "source": {
+    "include": "hexular/hexular.js"
+  },
+  "sourceType": "module",
+  "tags": {
+    "allowUnknownTags": true,
+    "dictionaries": ["jsdoc","closure"]
+  },
+  "templates": {
+    "cleverLinks": true,
+    "monospaceLinks": true,
+    "default": {
+      "includeDate": false,
+      "layoutFile": "./config/jsdoc/layout.tmpl",
+      "staticFiles": {
+        "include": [
+          "./config/jsdoc/custom.css"
+        ]
+      }
+    }
+  },
+  "markdown": {
+    "idInHeadings": true
+  }
+}

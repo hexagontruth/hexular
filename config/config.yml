@@ -1,0 +1,17 @@
+default:
+  port: 8000
+  files:
+    hexularity.js:
+      - hexular/hexular.js
+      - client/rules.js
+      - client/presets.js
+      - client/app.js
+dev:
+  files:
+    vue.js:
+      - client/vendor/vue-dev.js
+
+prod:
+  files:
+    vue.js:
+      - client/vendor/vue.js
