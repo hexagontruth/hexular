@@ -38,15 +38,17 @@ var Hexular = (function () {
   // Default size for offset (rectangular) topology
   const DEFAULT_ROWS = 60;
   const DEFAULT_COLS = 60;
-
+  // Default rule is used whenever a cell state does not have an entry in model.rules
   const DEFAULT_RULE = identityRule;
-  const DEFAULT_NUM_STATES = 2; // Only used by modulo filter and histogram
+  // This is only needed if one is using modFilter or certain cell/neighborhood helper functions
+  const DEFAULT_NUM_STATES = 2;
+  // Some functions depend on the ground sstate evaluating to false so changing this may be weird
   const DEFAULT_GROUND_STATE = 0;
+  // Used by CanvasAdapter
   const DEFAULT_CELL_RADIUS = 10;
-  const DEFAULT_BORDER_WIDTH = 1.25;
+  const DEFAULT_BORDER_WIDTH = 1;
   const DEFAULT_HIGHLIGHT_COLOR = '#ffbb33';
   const DEFAULT_HIGHLIGHT_LINE_WIDTH = 2;
-
   var DEFAULT_COLORS = [
     '#ffffff',
     '#cccccc',

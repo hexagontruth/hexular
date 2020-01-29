@@ -3,9 +3,6 @@
 const DEFAULTS = {
   radius: 60,
   mobileRadius: 30,
-  cellRadius: 10,
-  mobileCellRadius: 20,
-  groundState: 0,
   numStates: null,
   maxNumStates: 12,
   timerLength: 100,
@@ -22,6 +19,48 @@ const DEFAULTS = {
   clampTopFilter: 0,
   modFilter: 1,
   edgeFilter: 0,
+  cellRadius: 10,
+  mobileCellRadius: 20,
+  groundState: 0,
+  borderWidth: 1,
+  theme: 'light',
+};
+
+const THEMES = {
+  dark: {
+    background: '#333333',
+    colors: [
+      '#000000',
+      '#888888',
+      '#aaaaaa',
+      '#cccccc',
+      '#eeeeee',
+      '#cc4444',
+      '#ee7722',
+      '#eebb33',
+      '#66bb33',
+      '#66aaaa',
+      '#4455bb',
+      '#aa55bb',
+    ],
+  },
+  light: {
+    background: '#ccdddd',
+    colors: [
+      '#ffffff',
+      '#cccccc',
+      '#999999',
+      '#666666',
+      '#333333',
+      '#cc4444',
+      '#ee7722',
+      '#eebb33',
+      '#66bb33',
+      '#66aaaa',
+      '#4455bb',
+      '#aa55bb',
+    ]
+  },
 };
 
 let hexular, adapter, board, app;
@@ -34,7 +73,7 @@ window.addEventListener('load', function(e) {
     opts[pair[0]] = Number.isNaN(parsedInt) ? pair[1] : parsedInt;
   });
   board = new Board(opts);
-  let {rules, radius, numStates, groundState, cellRadius} = board;
+  let {rules, radius, numStates, groundState, cellRadius, borderWidth, colors} = board;
   hexular = Hexular({rules, radius, numStates, groundState});
   if (board.clampBottomFilter)
     hexular.addFilter(Hexular.filters.clampBottomFilter);
@@ -44,7 +83,7 @@ window.addEventListener('load', function(e) {
     hexular.addFilter(Hexular.filters.modFilter);
   if (board.edgeFilter)
     hexular.addFilter(Hexular.filters.edgeFilter);
-  adapter = hexular.CanvasAdapter({renderer: board.bgCtx, selector: board.fgCtx, cellRadius});
+  adapter = hexular.CanvasAdapter({renderer: board.bgCtx, selector: board.fgCtx, cellRadius, borderWidth, colors});
   board.restoreState();
   window.requestAnimationFrame(() => {
     adapter.draw();
@@ -173,6 +212,9 @@ class Board {
       ctx.scale(scaleFactor, scaleFactor);
       ctx.translate(this.width / 2, this.height / 2);
     }
+
+    document.body.style.backgroundColor = THEMES[this.theme].background;
+    this.colors = THEMES[this.theme].colors.slice();
 
     window.onkeydown = (ev) => this.handleKeydown(ev);
     window.oncontextmenu = (ev) => this.handleContextmenu(ev);

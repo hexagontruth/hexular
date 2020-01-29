@@ -38,6 +38,7 @@ async function build(filename, paths) {
   let content = Array(paths.length);
   let tasks = paths.map(async (path, idx) => {
     let fileContent = await readFile(join(path), 'utf8');
+    console.log(path, fileContent.length)
     content[idx] = fileContent;
   });
   await Promise.all(tasks);
