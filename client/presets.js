@@ -1,4 +1,4 @@
-let PRESETS = {
+const PRESETS = {
   default: [
     'ennead',
     'ennead',

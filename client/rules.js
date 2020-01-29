@@ -1,4 +1,4 @@
-let RULES = {
+const RULES = {
 
   binary1: (cell) => cell.count == 1 ? 1 : 0,
 

@@ -24,10 +24,44 @@ const DEFAULTS = {
   edgeFilter: 0,
 };
 
-let hexular, adapter, board;
+let hexular, adapter, board, app;
+
+window.addEventListener('load', function(e) {
+  let opts = {};
+  location.search.substring(1).split('&').filter((e) => e.length > 0).forEach((e) => {
+    let pair = e.split('=');
+    let parsedInt = parseInt(pair[1]);
+    opts[pair[0]] = Number.isNaN(parsedInt) ? pair[1] : parsedInt;
+  });
+  board = new Board(opts);
+  let {rules, radius, numStates, groundState, cellRadius} = board;
+  hexular = Hexular({rules, radius, numStates, groundState});
+  if (board.clampBottomFilter)
+    hexular.addFilter(Hexular.filters.clampBottomFilter);
+  if (board.clampTopFilter)
+    hexular.addFilter(Hexular.filters.clampTopFilter);
+  if (board.modFilter)
+    hexular.addFilter(Hexular.filters.modFilter);
+  if (board.edgeFilter)
+    hexular.addFilter(Hexular.filters.edgeFilter);
+  adapter = hexular.CanvasAdapter({renderer: board.bgCtx, selector: board.fgCtx, cellRadius});
+  board.restoreState();
+  window.requestAnimationFrame(() => {
+    adapter.draw();
+    board.refreshRules();
+    document.body.style.opacity = 1;
+    window.scrollTo(
+      (board.width - window.innerWidth) / 2,
+      (board.height- window.innerHeight) / 2
+    );
+  });
+
+});
+
+// --- STUFF ---
 
 let onCursorEvent = (() => {
-  let handlerFn;
+  let handlerFn = () => {};
   let handler = (ev) => handlerFn(ev);
   ['mousedown', 'mouseup', 'mouseout', 'mousemove', 'touchstart', 'touchmove', 'touchend']
   .map((e) => window.addEventListener(e, handler, {passive: false}));
@@ -689,35 +723,3 @@ class RuleMenu {
     return this.container.classList.contains('checked');
   }
 }
-
-window.addEventListener('DOMContentLoaded', function(e) {
-  let opts = {};
-  location.search.substring(1).split('&').filter((e) => e.length > 0).forEach((e) => {
-    let pair = e.split('=');
-    let parsedInt = parseInt(pair[1]);
-    opts[pair[0]] = Number.isNaN(parsedInt) ? pair[1] : parsedInt;
-  });
-  board = new Board(opts);
-  let {rules, radius, numStates, groundState, cellRadius} = board;
-  hexular = Hexular({rules, radius, numStates, groundState});
-  if (board.clampBottomFilter)
-    hexular.addFilter(Hexular.filters.clampBottomFilter);
-  if (board.clampTopFilter)
-    hexular.addFilter(Hexular.filters.clampTopFilter);
-  if (board.modFilter)
-    hexular.addFilter(Hexular.filters.modFilter);
-  if (board.edgeFilter)
-    hexular.addFilter(Hexular.filters.edgeFilter);
-  adapter = hexular.CanvasAdapter({renderer: board.bgCtx, selector: board.fgCtx, cellRadius});
-  board.restoreState();
-  window.requestAnimationFrame(() => {
-    adapter.draw();
-    board.refreshRules();
-    document.body.style.opacity = 1;
-    window.scrollTo(
-      (board.width - window.innerWidth) / 2,
-      (board.height- window.innerHeight) / 2
-    );
-  });
-
-});

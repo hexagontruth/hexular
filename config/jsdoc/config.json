@@ -1,6 +1,6 @@
 {
   "opts": {
-    "destination": "./doc/"
+    "destination": "./public/doc/"
   },
   "plugins": ["plugins/markdown"],
   "source": {
@@ -16,10 +16,10 @@
     "monospaceLinks": true,
     "default": {
       "includeDate": false,
-      "layoutFile": "./jsdoc/layout.tmpl",
+      "layoutFile": "./config/jsdoc/layout.tmpl",
       "staticFiles": {
         "include": [
-          "./jsdoc/custom.css"
+          "./config/jsdoc/custom.css"
         ]
       }
     }

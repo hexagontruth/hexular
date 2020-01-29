@@ -12,7 +12,7 @@ body {
 section h1 {
   margin: 0 0 24px;
   padding-left: 1.75em;
-  background-image: url('../demo/icon.png');
+  background-image: url('../icon.png');
   background-position: 0 center;
   background-size: contain;
   background-repeat: no-repeat;

@@ -1,0 +1,15 @@
+dev:
+    hexularity.js:
+        - src/hexular.js
+        - client/vendor/vue-dev.js
+        - client/rules.js
+        - client/presets.js
+        - client/app.js
+
+prod:
+    hexularity.js:
+      - src/hexular.js
+      # - client/vendor/vue.js
+      - client/rules.js
+      - client/presets.js
+      - client/app.js

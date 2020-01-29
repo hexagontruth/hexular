@@ -12,10 +12,10 @@
   font-family: icon;
   font-weight: normal;
   font-style: normal;
-  src: url('../vendor/material-icons.woff2') format('woff2');
+  src: url('vendor/material-icons.woff2') format('woff2');
 }
 
-html, body {
+html, body, #hexularity {
   width: 100%;
   height: 100%;
 }
@@ -26,7 +26,6 @@ html {
 }
 
 body {
-  display: flex;
   background: #cdd;
   color: #333;
   transition: opacity 500ms;
@@ -77,6 +76,10 @@ button:disabled {
 
 button.text {
   font-family: inherit;
+}
+
+#hexularity {
+  display: flex;
 }
 
 .toolbar {
