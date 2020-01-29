@@ -1,21 +1,28 @@
 #!/usr/bin/env node
 
-const pth = require('path');
 const Server = require('static-server');
-const build = require('./build');
+const Builder = require('../lib/builder');
+const util = require('../lib/util');
 
-const PORT = process.env.port || 8000;
-const ENV = process.env.env || 'dev';
+const config = util.config('dev');
+const builder = new Builder(config);
 
 if (require.main === module) {
-  build.buildAll(ENV);
+  server();
+}
+
+function server() {
+  console.log(util.join('public'));
+  builder.buildAll();
   const server = new Server({
-    rootPath: pth.join(__dirname, '../public'),
-    port: PORT,
+    rootPath: util.join('public'),
+    port: config.port,
     name: 'Hexagonal Awareness'
   });
   server.start(() => {
-    console.log(`Listening on port ${PORT} lol...`);
+    console.log(`Listening on port ${config.port} lol...`);
   });
-  build.watch(ENV);
+  builder.watch();
 }
+
+module.exports = server;
