@@ -177,12 +177,12 @@ end user to implement her own extensions via the Hexular API:</p>
     });
 </code></pre>
 <h2 id="demo">Demo</h2>
-<p>The built-in demo site can be run locally in several different ways:</p>
+<p>The built-in demo site, Hexular, can be run locally using NPM and Node:</p>
 <ul>
-<li>By opening <code>index.html</code> directly in a browser</li>
-<li>With Node and NPM, by running <code>npm install</code> from the project directory, and then <code>npm start</code></li>
-<li>Using any other static web server</li>
+<li>Run <code>npm install</code> from the project directory</li>
+<li>Then run <code>npm start</code></li>
 </ul>
+<p>The build process is fairly minimal, and one can also run the demo page directly from the filesystem by adding a few script tags directly in <code>public/index.html</code>.</p>
 <p>The demo itself consists of a <code>CubicModel</code> instance, centered on the page, with buttons and keyboard shortcuts implementing various functions. A number of settings — including the resolution of the cells drawn on screen, and the radius of the grid, can be set via URL parameters.</p>
 <p>Some useful URL parameters and their default values:</p>
 <ul>
@@ -194,23 +194,33 @@ end user to implement her own extensions via the Hexular API:</p>
 <li><code>undoStackSize=64</code></li>
 <li><code>modFilter=1</code></li>
 <li><code>edgeFilter=0</code></li>
+<li><code>clampBottomFilter=0</code></li>
+<li><code>clampTopFilter=0</code></li>
 <li><code>defaultRule=identityRule</code></li>
+<li><code>shiftTool=move</code></li>
 </ul>
 <p>The main control buttons are, from left to right:</p>
 <ul>
-<li>Start (Tab) — Step model at 100ms intervals (though this may be slower for larger grids, depending on hardware)</li>
+<li>Start (Tab) — Step model at 100ms intervals (this may be slower for larger grids, depending on hardware)</li>
 <li>Step (Space) — Perform individual step</li>
 <li>Clear (Ctrl+C)</li>
 <li>Undo (Ctrl+Z)</li>
 <li>Redo (Ctrl+Shift+Z)</li>
+<li>Re-center (Ctrl+R)</li>
 <li>Config — Open configuration modal</li>
 <li>Save (Ctrl+S)</li>
 <li>Load (Ctrl+O)</li>
-<li>Resize board — Reloads the page with the given <code>radius</code> parameter</li>
+<li>Resize board — Reload the page with the given <code>radius</code> parameter</li>
 <li>Show documentation</li>
 </ul>
-<p>Additionally, <code>&lt;Escape&gt;</code> toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open.</p>
-<p>Cell states are changed by clicking and — on desktop browsers at least — dragging. The new state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo <code>hexular.numStates</code>. Right clicking, conversely, decrements the cell state by one. Shift clicking clears states.</p>
+<p>There are also tool buttons along the bottom:</p>
+<ul>
+<li>Move (H)</li>
+<li>Pain (B)</li>
+</ul>
+<p>Holding shift will temporarily select the move tool by default, or whatever tool is given in the <code>shiftTool</code> parameter.</p>
+<p>Additionally, <code>&lt;Escape&gt;</code> toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open. Scrolling a central mouse wheel or equivalent will zoom the canvas. Press <code>Ctrl+R</code> to reset the canvas to default zoom and translation.</p>
+<p>Cell states are changed by clicking and dragging with the paint tool selected. The painted state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo <code>hexular.numStates</code>. Right clicking, conversely, decrements the cell state by one. Ctrl+clicking clears states.</p>
 <p>The basic flow of the demo is to set one's preferred state using either the mouse or by importing a saved file, setting desired rules, &amp;c. in the configuration modal, and then either starting the timer (tab) or incrementing the state one step at a time (space).</p>
 <h3 id="prepopulated-rules">Prepopulated rules</h3>
 <p>Several predefined rules are given in <code>demo/rules.js</code> though these are largely for convenience and not meant to be exhaustive. There are also several built-in &quot;presets,&quot; or lists of 2-12 rules.</p>

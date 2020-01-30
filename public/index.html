@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no"/>
+  <script src="build/vue.js"></script>
   <script src="build/hexularity.js"></script>
   <link rel="stylesheet" type="text/css" href="app.css"/>
   <link rel="icon" type="image/png" href="icon.png"/>
@@ -18,6 +19,7 @@
         <button id="clear" title="Clear (Ctrl+C)">clear</button>
         <button id="undo" title="Undo (Ctrl+Z)" disabled>undo</button>
         <button id="redo" title="Redo (Ctrl+Shift+Z)" disabled>redo</button>
+        <button id="center" title="Center board (Ctrl+R)">fullscreen_exit</button>
         <button id="config" title="Config">settings</button>
       </div>
       <div class="group">
@@ -28,9 +30,10 @@
         <a target="_blank" href="doc/"><button id="documentation" title="Show documentation">info</button></a>
       </div>
     </div>
-    <div class="toolbar bottom hidden">
-      <div class="group">
-        <button id="toggle-paint">brush</button>
+    <div class="toolbar bottom">
+      <div class="group tools">
+        <button class="tool" id="tool-move" title="Move (H)">open_with</button>
+        <button class="tool" id="tool-paint" title="Paint (B)">brush</button>
       </div>
     </div>
     <div class="overlay hidden">

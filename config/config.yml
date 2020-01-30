@@ -6,6 +6,7 @@ default:
       - client/rules.js
       - client/presets.js
       - client/app.js
+      - client/actions.js
 dev:
   files:
     vue.js:
