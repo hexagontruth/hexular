@@ -45,8 +45,27 @@ a {
 }
 
 .container {
-  position: relative;
-  margin: auto;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.container canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+canvas[data-tool='move'] {
+  cursor: move;
+}
+
+canvas[data-tool='paint'] {
+  cursor: crosshair;
 }
 
 button {
@@ -85,10 +104,11 @@ button.text {
 .toolbar {
   position: fixed;
   z-index: 10;
-  left: 0.5rem;
-  right: 0.5rem;
+  left: 0;
+  right: 0;
   display: flex;
   flex-direction: row;
+  justify-content: center;
   height: 0;
 }
 
@@ -96,14 +116,13 @@ button.text {
   top: 0;
   flex-wrap: wrap;
   align-items: flex-start;
-  justify-content: center;
+
 }
 
 .toolbar.bottom {
   bottom: 0;
   flex-wrap: reverse-wrap;
   align-items: flex-end;
-  justify-content: flex-start
 }
 
 .toolbar .group {
@@ -142,12 +161,6 @@ button.text {
 
 .toolbar.bottom.hidden button {
   transform: translateY(calc(100% + 0.2rem));
-}
-
-canvas.canvas-fg {
-  position: absolute;
-  left: 0;
-  top: 0;
 }
 
 .info {

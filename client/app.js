@@ -24,6 +24,7 @@ const DEFAULTS = {
   groundState: 0,
   borderWidth: 1,
   theme: 'light',
+  tool: 'move',
 };
 
 const THEMES = {
@@ -122,7 +123,7 @@ class Board {
       ruleMenus: [],
       undoStack: [],
       redoStack: [],
-      paint: false,
+      appContainer: document.querySelector('#hexularity'),
       toolbarTop: document.querySelector('.toolbar.top'),
       toolbarBottom: document.querySelector('.toolbar.bottom'),
       container: document.querySelector('.container'),
@@ -141,7 +142,10 @@ class Board {
         save: document.querySelector('#save'),
         load: document.querySelector('#load'),
         resize: document.querySelector('#resize'),
-        togglePaint: document.querySelector('#toggle-paint'),
+      },
+      tools: {
+        move: document.querySelector('#tool-move'),
+        paint: document.querySelector('#tool-paint'),
       },
       controls: {
         numStates: document.querySelector('#num-states'),
@@ -196,28 +200,19 @@ class Board {
       this.cellRadius = this.mobileCellRadius;
       this.undoStackSize = this.mobileUndoStackSize;
     }
-    // But be more liberal with the paint toggle
-    if (scaleFactor > 1 || screen.width < 960) {
-      this.toolbarBottom.classList.remove('hidden');
-    }
-    for (let ctx of [this.bgCtx, this.fgCtx]) {
-      let canvas = ctx.canvas;
-      this.width = this.radius * this.cellRadius * Hexular.math.apothem * 4;
-      this.height = this.radius * this.cellRadius * 3;
-      canvas.style.width = this.width + 'px';
-      canvas.style.height = this.height + 'px';
-      canvas.width = this.width * scaleFactor;
-      canvas.height = this.height * scaleFactor;
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.scale(scaleFactor, scaleFactor);
-      ctx.translate(this.width / 2, this.height / 2);
-    }
+    this.logicalWidth = this.radius * this.cellRadius * Hexular.math.apothem * 4;
+    this.logicalHeight = this.radius * this.cellRadius * 3;
+    this.canvasWidth = this.logicalWidth * scaleFactor;
+    this.canvasHeight = this.logicalHeight * scaleFactor;
+    this.handleResize();
 
     document.body.style.backgroundColor = THEMES[this.theme].background;
     this.colors = THEMES[this.theme].colors.slice();
+    this.setTool(this.tool);
 
     window.onkeydown = (ev) => this.handleKeydown(ev);
     window.oncontextmenu = (ev) => this.handleContextmenu(ev);
+    window.onresize = (ev) => this.handleResize(ev);
     onCursorEvent(this, this.handleCursor);
 
     this.buttons.toggle.onmouseup = (ev) => this.toggle();
@@ -230,7 +225,9 @@ class Board {
     this.buttons.save.onmouseup = (ev) => this.save();
     this.buttons.load.onmouseup = (ev) => this.load();
     this.buttons.resize.onmouseup = (ev) => this.promptResize();
-    this.buttons.togglePaint.onmouseup = (ev) => this.togglePaint();
+
+    this.tools.move.onmouseup = (ev) => this.setTool('move');
+    this.tools.paint.onmouseup = (ev) => this.setTool('paint');
 
     this.controls.addRule.onmouseup = (ev) => this.handleAddRule();
     this.controls.checkAll.onmouseup = (ev) => this.handleCheckAll();
@@ -312,8 +309,11 @@ class Board {
     }
   }
 
-  togglePaint() {
-    this.paint = this.buttons.togglePaint.classList.toggle('active');
+  setTool(tool) {
+    this.tool = tool;
+    Object.values(this.tools).forEach((e) => console.log(e) || e.classList.remove('active'));
+    this.tools[tool].classList.add('active');
+    this.fg.setAttribute('data-tool', tool);
   }
 
   // Add rule or preset - also use these if adding from console
@@ -424,6 +424,20 @@ class Board {
 
   // Page/canvas listeners
 
+  handleResize() {
+    this.scaleX = this.logicalWidth / window.innerWidth;
+    this.scaleY = this.logicalHeight / window.innerHeight;
+    for (let ctx of [this.bgCtx, this.fgCtx]) {
+      let canvas = ctx.canvas;
+      canvas.width = this.canvasWidth;
+      canvas.height = this.canvasHeight;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.translate(this.logicalWidth / 2, this.logicalHeight / 2);
+      ctx.scale(this.scaleX, this.scaleY);
+    }
+    if (adapter) adapter.draw();
+  }
+
   handleContextmenu(ev) {
     if (ev.target == this.fg) ev.preventDefault();
   }
@@ -431,8 +445,33 @@ class Board {
   handleKeydown(ev) {
     let key = ev.key.toLowerCase();
     if (!ev.repeat) {
+      if (ev.ctrlKey) {
+        if (key == 'z') {
+          if (ev.shiftKey) {
+            this.redo();
+          }
+          else {
+            this.undo();
+          }
+        }
+        else if (key == 's') {
+          this.save();
+        }
+
+        else if (key == 'o') {
+          this.load();
+        }
+        // We'll use ctrl+c (as SIGINT analog) instead of ctrl+n to clear screen or "new grid" if you will
+        // b/c Webkit devs just want to see the world burn: https://bugs.chromium.org/p/chromium/issues/detail?id=33056
+        else if (key == 'c') {
+          this.clear();
+        }
+        else {
+          return; // Do not prevent default for other ctrl key combos
+        }
+      }
       // ESC to hide/show controls
-      if (ev.key == 'Escape') {
+      else if (ev.key == 'Escape') {
         if (!this.overlay.classList.contains('hidden')) {
           this.toggleConfig();
         }
@@ -457,31 +496,11 @@ class Board {
           this.step();
         }
       }
-      else if (ev.ctrlKey) {
-        if (key == 'z') {
-          if (ev.shiftKey) {
-            this.redo();
-          }
-          else {
-            this.undo();
-          }
-        }
-        else if (key == 's') {
-          this.save();
-        }
-
-        else if (key == 'o') {
-          this.load();
-        }
-        // We'll use ctrl+c (as SIGINT analog) instead of ctrl+n to clear screen or "new grid" if you will
-        // b/c Webkit devs just want to see the world burn: https://bugs.chromium.org/p/chromium/issues/detail?id=33056
-        else if (key == 'c') {
-          this.clear();
-        }
-        else {
-          return; // Do not prevent default for other ctrl key combos
-        }
-
+      else if (ev.key == 'b') {
+        this.setTool('paint');
+      }
+      else if (ev.key == 'h') {
+        this.setTool('move');
       }
       else {
         return;
@@ -564,13 +583,12 @@ class Board {
   selectCell(coord) {
     let cell;
     if (coord) {
-      let {x, y} = this.fg.getBoundingClientRect();
-      x = Math.max(0, x);
-      y = Math.max(0, y);
-      cell = adapter.cellAt([
-        coord[0] - this.width / 2 - x,
-        coord[1] - this.height / 2 - y
-      ]);
+      let [x, y] = coord;
+      console.log(x, y);
+      x = x + this.logicalWidth / this.scaleX / 2 - window.innerWidth;
+      y = y + this.logicalHeight / this.scaleY / 2 - window.innerHeight;
+      cell = adapter.cellAt([x, y]);
+      console.log(x, y);
     }
     this.selected = cell;
     adapter.selectCell(cell);
