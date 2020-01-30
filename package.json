@@ -7,7 +7,8 @@
     "start": "node bin/server.js",
     "build": "node bin/build.js",
     "doc": "bin/doc.sh",
-    "deploy": "./bin/deploy.sh"
+    "deploy": "./bin/deploy.sh",
+    "clean": "./bin/clean.sh"
   },
   "files": [
     "/index.js",

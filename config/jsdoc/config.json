@@ -4,7 +4,7 @@
   },
   "plugins": ["plugins/markdown"],
   "source": {
-    "include": "src/hexular.js"
+    "include": "hexular/hexular.js"
   },
   "sourceType": "module",
   "tags": {

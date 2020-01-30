@@ -42,7 +42,7 @@ var Hexular = (function () {
   const DEFAULT_RULE = identityRule;
   // This is only needed if one is using modFilter or certain cell/neighborhood helper functions
   const DEFAULT_NUM_STATES = 2;
-  // Some functions depend on the ground sstate evaluating to false so changing this may be weird
+  // Some functions depend on the ground state evaluating to false so changing this may be weird
   const DEFAULT_GROUND_STATE = 0;
   // Used by CanvasAdapter
   const DEFAULT_CELL_RADIUS = 10;
