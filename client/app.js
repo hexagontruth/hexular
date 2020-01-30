@@ -24,7 +24,7 @@ const DEFAULTS = {
   groundState: 0,
   borderWidth: 1,
   theme: 'light',
-  tool: 'move',
+  tool: 'paint',
 };
 
 const THEMES = {
@@ -90,10 +90,6 @@ window.addEventListener('load', function(e) {
     adapter.draw();
     board.refreshRules();
     document.body.style.opacity = 1;
-    window.scrollTo(
-      (board.width - window.innerWidth) / 2,
-      (board.height- window.innerHeight) / 2
-    );
   });
 
 });
@@ -114,7 +110,6 @@ let onCursorEvent = (() => {
 class Board {
   constructor(...args) {
     let props = {
-      shift: null,
       selected: null,
       lastSet: null,
       setState: null,
@@ -123,6 +118,8 @@ class Board {
       ruleMenus: [],
       undoStack: [],
       redoStack: [],
+      shift: false,
+      shiftTool: 'move',
       appContainer: document.querySelector('#hexularity'),
       toolbarTop: document.querySelector('.toolbar.top'),
       toolbarBottom: document.querySelector('.toolbar.bottom'),
@@ -137,6 +134,7 @@ class Board {
         clear: document.querySelector('#clear'),
         undo: document.querySelector('#undo'),
         redo: document.querySelector('#redo'),
+        center: document.querySelector('#center'),
         config: document.querySelector('#config'),
         saveImage: document.querySelector('#save-image'),
         save: document.querySelector('#save'),
@@ -191,28 +189,28 @@ class Board {
     this.container.appendChild(this.fg);
     this.customRuleTemplate = this.controls.customRule.value;
 
-    let scaleFactor = this.scaleFactor = window.devicePixelRatio || 1;
+    this.scaleFactor = 1
     // Let us infer if this is a mobile browser and make some tweaks
-    if (scaleFactor > 1 && screen.width < 640) {
+    if (window.devicePixelRatio > 1 && screen.width < 640) {
+      this.scaleFactor = window.devicePixelRatio;
       this.mobile = true;
       document.body.classList.add('mobile');
       this.radius = this.mobileRadius;
       this.cellRadius = this.mobileCellRadius;
       this.undoStackSize = this.mobileUndoStackSize;
     }
-    this.logicalWidth = this.radius * this.cellRadius * Hexular.math.apothem * 4;
-    this.logicalHeight = this.radius * this.cellRadius * 3;
-    this.canvasWidth = this.logicalWidth * scaleFactor;
-    this.canvasHeight = this.logicalHeight * scaleFactor;
-    this.handleResize();
+    this.resize();
 
     document.body.style.backgroundColor = THEMES[this.theme].background;
     this.colors = THEMES[this.theme].colors.slice();
     this.setTool(this.tool);
 
-    window.onkeydown = (ev) => this.handleKeydown(ev);
+    window.onblur = (ev) => this.handleBlur(ev);
+    window.onkeydown = (ev) => this.handleKey(ev);
+    window.onkeyup = (ev) => this.handleKey(ev);
     window.oncontextmenu = (ev) => this.handleContextmenu(ev);
-    window.onresize = (ev) => this.handleResize(ev);
+    window.onresize = (ev) => this.resize();
+    window.onwheel = (ev) => this.handleScale(ev);
     onCursorEvent(this, this.handleCursor);
 
     this.buttons.toggle.onmouseup = (ev) => this.toggle();
@@ -220,6 +218,7 @@ class Board {
     this.buttons.clear.onmouseup = (ev) => this.clear();
     this.buttons.undo.onmouseup = (ev) => this.undo();
     this.buttons.redo.onmouseup = (ev) => this.redo();
+    this.buttons.center.onmouseup = (ev) => this.resize();
     this.buttons.config.onmouseup = (ev) => this.toggleConfig();
     this.buttons.saveImage.onmouseup = (ev) => this.saveImage();
     this.buttons.save.onmouseup = (ev) => this.save();
@@ -238,6 +237,20 @@ class Board {
   }
 
   get running() { return !!this.timer; }
+
+  eachContext(fn) {
+    [this.bgCtx, this.fgCtx].forEach(fn);
+  }
+
+  draw() {
+    if (adapter && !this.drawQueued) {
+      this.drawQueued = true;
+      requestAnimationFrame(() => {
+        adapter.draw();
+        this.drawQueued = null;
+      });
+    }
+  }
 
   // Button handlers (can also be called directly)
 
@@ -259,7 +272,7 @@ class Board {
     this.newHistoryState();
     try {
       hexular.step();
-      adapter.draw();
+      this.draw();
       this.storeState();
       if (!hexular.changed)
         this.toggle();
@@ -274,7 +287,7 @@ class Board {
     this.newHistoryState();
     if (this.running) this.toggle();
     hexular.clear();
-    adapter.draw();
+    this.draw();
     this.storeState();
   }
 
@@ -310,10 +323,19 @@ class Board {
   }
 
   setTool(tool) {
-    this.tool = tool;
-    Object.values(this.tools).forEach((e) => console.log(e) || e.classList.remove('active'));
-    this.tools[tool].classList.add('active');
-    this.fg.setAttribute('data-tool', tool);
+    if (tool) {
+      this.tool = tool;
+      this.fallbackTool = tool;
+    }
+    else if (this.shift) {
+      this.tool = this.shiftTool;
+    }
+    else if (this.tool != this.fallbackTool) {
+      this.tool = this.fallbackTool;
+    }
+    Object.values(this.tools).forEach((e) => e.classList.remove('active'));
+    this.tools[this.tool].classList.add('active');
+    this.fg.setAttribute('data-tool', this.tool);
   }
 
   // Add rule or preset - also use these if adding from console
@@ -351,7 +373,7 @@ class Board {
       let buffer = ev.target.result;
       let bytes = new Int8Array(buffer);
       hexular.import(bytes);
-      adapter.draw();
+      this.draw();
       this.storeState();
     };
     input.onchange = () => {
@@ -379,7 +401,7 @@ class Board {
       this.newHistoryState();
       let bytes = new Int8Array(modelState.split(''));
       hexular.import(bytes);
-      adapter.draw();
+      this.draw();
     }
   }
 
@@ -400,7 +422,7 @@ class Board {
       hexular.import(nextState);
       this.storeState(nextState);
       this.redoStack.push(curState);
-      adapter.draw();
+      this.draw();
       this.refreshHistoryButtons();
     }
   }
@@ -412,7 +434,7 @@ class Board {
       hexular.import(nextState);
       this.storeState(nextState);
       this.undoStack.push(curState);
-      adapter.draw();
+      this.draw();
       this.refreshHistoryButtons();
     }
   }
@@ -422,19 +444,67 @@ class Board {
     this.buttons.redo.disabled = +!this.redoStack.length;
   }
 
+  // Canvas transform stuff
+
+  resize() {
+    this.logicalWidth = this.radius * this.cellRadius * Hexular.math.apothem * 4;
+    this.logicalHeight = this.radius * this.cellRadius * 3;
+    this.canvasWidth = this.logicalWidth / this.scaleFactor;
+    this.canvasHeight = this.logicalHeight / this.scaleFactor;
+    this.translateX = 0;
+    this.translateY = 0;
+    this.scaleX = 1;
+    this.scaleY = 1;
+    this.offsetX = 0;
+    this.offsetY = 0;
+    this.scaleZoom = 1;
+    this.eachContext((ctx) => {
+      ctx.canvas.width = this.canvasWidth;
+      ctx.canvas.height = this.canvasHeight;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+    });
+    // Resize
+    let [oldX, oldY] = [this.scaleX, this.scaleY];
+    this.scaleX = this.canvasWidth / window.innerWidth;
+    this.scaleY = this.canvasHeight / window.innerHeight;
+    let [scaleX, scaleY] = [this.scaleX / oldX, this.scaleY / oldY];
+    this.eachContext((ctx) => {
+      ctx.scale(scaleX, scaleY);
+    });
+    // Translate to center
+    this.translate([this.canvasWidth / this.scaleX / 2, this.canvasHeight / this.scaleY / 2]);
+    this.draw();
+  }
+
+  translate([x, y]) {
+    this.translateX += x;
+    this.translateY += y;
+    x /= this.scaleZoom;
+    y /= this.scaleZoom;
+    this.eachContext((ctx) => {
+      ctx.translate(x, y);
+    });
+    this.draw();
+  }
+
+  scale(scale) {
+    this.scaleZoom *= scale;
+    this.eachContext((ctx) => {
+      ctx.scale(scale, scale);
+    });
+    this.draw();
+  }
+
   // Page/canvas listeners
 
-  handleResize() {
-    this.scaleX = this.logicalWidth / window.innerWidth;
-    this.scaleY = this.logicalHeight / window.innerHeight;
-    for (let ctx of [this.bgCtx, this.fgCtx]) {
-      let canvas = ctx.canvas;
-      canvas.width = this.canvasWidth;
-      canvas.height = this.canvasHeight;
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.translate(this.logicalWidth / 2, this.logicalHeight / 2);
-      ctx.scale(this.scaleX, this.scaleY);
-    }
+  handleBlur(ev) {
+    this.shift = false;
+    this.setTool();
+  }
+
+  handleScale(ev) {
+    let scale = 1 - Math.sign(ev.deltaY) * 0.1;
+    this.scale(scale);
     if (adapter) adapter.draw();
   }
 
@@ -442,9 +512,17 @@ class Board {
     if (ev.target == this.fg) ev.preventDefault();
   }
 
-  handleKeydown(ev) {
+  handleKey(ev) {
     let key = ev.key.toLowerCase();
-    if (!ev.repeat) {
+    if (ev.key == 'Shift') {
+      this.shift = ev.type == 'keydown';
+      this.setTool();
+      return;
+    }
+    else if (ev.type == 'keyup') {
+      return;
+    }
+    else if (ev.type == 'keydown' && !ev.repeat) {
       if (ev.ctrlKey) {
         if (key == 'z') {
           if (ev.shiftKey) {
@@ -454,20 +532,27 @@ class Board {
             this.undo();
           }
         }
-        else if (key == 's') {
-          this.save();
-        }
-
-        else if (key == 'o') {
-          this.load();
-        }
-        // We'll use ctrl+c (as SIGINT analog) instead of ctrl+n to clear screen or "new grid" if you will
-        // b/c Webkit devs just want to see the world burn: https://bugs.chromium.org/p/chromium/issues/detail?id=33056
-        else if (key == 'c') {
-          this.clear();
+        else if (!ev.shiftKey) {
+          if (key == 's') {
+            this.save();
+          }
+          else if (key == 'o') {
+            this.load();
+          }
+          // We'll use ctrl+c (as SIGINT analog) instead of ctrl+n to clear screen or "new grid" if you will
+          // b/c Webkit devs just want to see the world burn: https://bugs.chromium.org/p/chromium/issues/detail?id=33056
+          else if (key == 'c') {
+            this.clear();
+          }
+          else if (key == 'r') {
+            this.resize();
+          }
+          else {
+            return;
+          }
         }
         else {
-          return; // Do not prevent default for other ctrl key combos
+          return;
         }
       }
       // ESC to hide/show controls
@@ -512,16 +597,14 @@ class Board {
   handleCursor(ev) {
     if (ev instanceof MouseEvent) {
       if (ev.type == 'mousedown') {
-        if (ev.target == this.fg && this.selected && !this.setState) {
+        if (ev.target == this.fg && this.selected && !this.action) {
           this.newHistoryState();
           if (ev.buttons & 1) {
-            this.shift = ev.shiftKey;
-            this.setState = Hexular.math.mod(this.selected.state + 1, hexular.numStates);
-            this.setCell(this.selected);
+            this.startAction(ev);
           }
           else if (ev.buttons & 2) {
-            this.setState = Hexular.math.mod(this.selected.state - 1, hexular.numStates);
-            this.setCell(this.selected);
+            let setState = Hexular.math.mod(this.selected.state - 1, hexular.numStates);
+            this.startAction(ev, {setState});
           }
         }
         else if (ev.target == this.overlay) {
@@ -531,15 +614,14 @@ class Board {
           this.clearMessage();
         }
       }
-      else if (ev.type == 'mouseup' && this.setState != null) {
-        this.clearCursorState();
+      else if (ev.type == 'mouseup' && this.action) {
+        this.endAction(ev);
       }
       else if (ev.type == 'mousemove') {
         let cell;
         if (ev.target == this.fg) {
           this.selectCell([ev.pageX, ev.pageY]);
-          if (this.setState != null)
-            this.setCell(this.selected);
+          this.action && this.action.move(ev);
         }
         if (ev.target != this.info) {
           let cell = this.selected;
@@ -549,59 +631,61 @@ class Board {
     }
     // Else is TouchEvent
     else {
-      if (ev.targetTouches.length == 1 && ev.target == this.fg) {
-        let [x, y] = [ev.targetTouches[0].pageX, ev.targetTouches[0].pageY];
-        if (ev.type == 'touchstart' && this.paint) {
-          if (this.selected) {
-              this.selectCell([x, y]);
-              this.setState = Hexular.math.mod(this.selected.state + 1, hexular.numStates);
-              this.setCell(this.selected);
+      if (ev.target == this.fg) {
+        if (ev.targetTouches.length == 1) {
+          let [x, y] = [ev.targetTouches[0].pageX, ev.targetTouches[0].pageY];
+          if (ev.type == 'touchstart') {
+            this.selectCell([x, y]);
+            this.startAction(ev);
           }
+          if (ev.type == 'touchmove') {
+            this.selectCell([x, y]);
+            this.action && this.action.move(ev);
+          }
+          ev.preventDefault();
         }
         if (ev.type == 'touchend') {
-          this.clearCursorState();
-        }
-        if (ev.type == 'touchmove') {
-          this.selectCell([x, y]);
-          this.setCell(this.selected);
-        }
-        if (this.paint) {
-          ev.preventDefault();
+          this.endAction(ev);
+          this.selectCell();
         }
       }
     }
   }
 
-  clearCursorState() {
-    this.shift = false;
-    this.lastSet = null;
-    this.setState = null;
-    this.storeState();
+  startAction(ev, ...args) {
+    let shift = ev.shiftKey;
+    let Class;
+    if (this.tool == 'move')
+      Class = MoveAction;
+    else if (this.tool == 'paint')
+      Class = PaintAction;
+    this.action = new Class(this);
+    this.action.start(ev, {shift}, ...args);
   }
+
+  endAction(ev) {
+    this.action && this.action.end(ev);
+    this.action = null;
+  }
+
   // Cell selection and setting
 
   selectCell(coord) {
     let cell;
     if (coord) {
       let [x, y] = coord;
-      console.log(x, y);
-      x = x + this.logicalWidth / this.scaleX / 2 - window.innerWidth;
-      y = y + this.logicalHeight / this.scaleY / 2 - window.innerHeight;
+      x -= this.translateX;
+      y -= this.translateY;
+      x -= this.offsetX;
+      x -= this.offsetY;
+      x = x / this.scaleZoom;
+      y = y / this.scaleZoom;
       cell = adapter.cellAt([x, y]);
-      console.log(x, y);
     }
     this.selected = cell;
     adapter.selectCell(cell);
   }
 
-  setCell(cell) {
-    if (cell && cell != this.lastSet) {
-      cell.state = this.shift ? 0 : this.setState;
-      this.lastSet = cell;
-      adapter.selectCell();
-      adapter.drawCell(cell);
-    }
-  }
 
   // Alert messages
 
@@ -713,7 +797,7 @@ class Board {
     if (val)
       this.controls.numStates.value = val;
     const numStates = parseInt(this.controls.numStates.value);
-    hexular.numStates = parseInt(numStates);
+    this.numStates = hexular.numStates = parseInt(numStates);
     this.ruleMenus.forEach((ruleMenu) => {
       let disabled = ruleMenu.index >= numStates;
       ruleMenu.container.setAttribute('data-disabled', disabled);

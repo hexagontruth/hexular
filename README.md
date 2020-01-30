@@ -142,11 +142,12 @@ We can also override or extend the default cell-drawing behavior of `CanvasAdapt
 
 ## Demo
 
-The built-in demo site can be run locally in several different ways:
+The built-in demo site, Hexular, can be run locally using NPM and Node:
 
-  - By opening `index.html` directly in a browser
-  - With Node and NPM, by running `npm install` from the project directory, and then `npm start`
-  - Using any other static web server
+  - Run `npm install` from the project directory
+  - Then run `npm start`
+
+The build process is fairly minimal, and one can also run the demo page directly from the filesystem by adding a few script tags directly in `public/index.html`.
 
 The demo itself consists of a `CubicModel` instance, centered on the page, with buttons and keyboard shortcuts implementing various functions. A number of settings &mdash; including the resolution of the cells drawn on screen, and the radius of the grid, can be set via URL parameters.
 
@@ -160,24 +161,35 @@ Some useful URL parameters and their default values:
   - `undoStackSize=64`
   - `modFilter=1`
   - `edgeFilter=0`
+  - `clampBottomFilter=0`
+  - `clampTopFilter=0`
   - `defaultRule=identityRule`
+  - `shiftTool=move`
 
 The main control buttons are, from left to right:
 
-  - Start (Tab) &mdash; Step model at 100ms intervals (though this may be slower for larger grids, depending on hardware)
+  - Start (Tab) &mdash; Step model at 100ms intervals (this may be slower for larger grids, depending on hardware)
   - Step (Space) &mdash; Perform individual step
   - Clear (Ctrl+C)
   - Undo (Ctrl+Z)
   - Redo (Ctrl+Shift+Z)
+  - Re-center (Ctrl+R)
   - Config &mdash; Open configuration modal
   - Save (Ctrl+S)
   - Load (Ctrl+O)
-  - Resize board &mdash; Reloads the page with the given `radius` parameter
+  - Resize board &mdash; Reload the page with the given `radius` parameter
   - Show documentation
 
-Additionally, `<Escape>` toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open.
+There are also tool buttons along the bottom:
 
-Cell states are changed by clicking and &mdash; on desktop browsers at least &mdash; dragging. The new state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo `hexular.numStates`. Right clicking, conversely, decrements the cell state by one. Shift clicking clears states.
+  - Move (H)
+  - Pain (B)
+
+Holding shift will temporarily select the move tool by default, or whatever tool is given in the `shiftTool` parameter.
+
+Additionally, `<Escape>` toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open. Scrolling a central mouse wheel or equivalent will zoom the canvas. Press `Ctrl+R` to reset the canvas to default zoom and translation.
+
+Cell states are changed by clicking and dragging with the paint tool selected. The painted state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo `hexular.numStates`. Right clicking, conversely, decrements the cell state by one. Ctrl+clicking clears states.
 
 The basic flow of the demo is to set one's preferred state using either the mouse or by importing a saved file, setting desired rules, &c. in the configuration modal, and then either starting the timer (tab) or incrementing the state one step at a time (space).
 
