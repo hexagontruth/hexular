@@ -1,12 +1,15 @@
 default:
   port: 8000
   files:
-    hexularity.js:
+    client.js:
       - hexular/hexular.js
       - client/rules.js
       - client/presets.js
       - client/app.js
       - client/actions.js
+    client.css:
+      - client/vendor/icons.css
+      - client/app.css
 dev:
   files:
     vue.js:

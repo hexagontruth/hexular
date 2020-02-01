@@ -24,7 +24,7 @@ const DEFAULTS = {
   groundState: 0,
   borderWidth: 1,
   theme: 'light',
-  tool: 'paint',
+  tool: 'brush',
 };
 
 const THEMES = {
@@ -110,7 +110,14 @@ class Board {
       redoStack: [],
       shift: false,
       shiftTool: 'move',
-      appContainer: document.querySelector('#hexularity'),
+      toolClasses: {
+        move: MoveAction,
+        brush: BrushAction,
+        line: LineAction,
+        hexfilled: HexFilledAction,
+        hexoutline: HexOutlineAction,
+        pinch: PinchAction,
+      },
       toolbarTop: document.querySelector('.toolbar.top'),
       toolbarBottom: document.querySelector('.toolbar.bottom'),
       container: document.querySelector('.container'),
@@ -133,7 +140,10 @@ class Board {
       },
       tools: {
         move: document.querySelector('#tool-move'),
-        paint: document.querySelector('#tool-paint'),
+        brush: document.querySelector('#tool-brush'),
+        line: document.querySelector('#tool-line'),
+        hexfilled: document.querySelector('#tool-hexfilled'),
+        hexoutline: document.querySelector('#tool-hexoutline'),
       },
       controls: {
         numStates: document.querySelector('#num-states'),
@@ -217,7 +227,10 @@ class Board {
     this.buttons.resize.onmouseup = (ev) => this.promptResize();
 
     this.tools.move.onmouseup = (ev) => this.setTool('move');
-    this.tools.paint.onmouseup = (ev) => this.setTool('paint');
+    this.tools.brush.onmouseup = (ev) => this.setTool('brush');
+    this.tools.line.onmouseup = (ev) => this.setTool('line');
+    this.tools.hexfilled.onmouseup = (ev) => this.setTool('hexfilled');
+    this.tools.hexoutline.onmouseup = (ev) => this.setTool('hexoutline');
 
     this.controls.addRule.onmouseup = (ev) => this.handleAddRule();
     this.controls.checkAll.onmouseup = (ev) => this.handleCheckAll();
@@ -263,13 +276,13 @@ class Board {
     if (!this.running) {
       this.timer = setInterval(this.step.bind(this), this.timerLength);
       this.buttons.step.disabled = true;
-      this.buttons.toggle.innerHTML = 'pause';
+      this.buttons.toggle.className = 'icon-pause';
     }
     else {
       clearInterval(this.timer);
       this.timer = null;
       this.buttons.step.disabled = false;
-      this.buttons.toggle.innerHTML = 'play_arrow';
+      this.buttons.toggle.className = 'icon-play';
     }
   }
 
@@ -588,9 +601,18 @@ class Board {
         }
       }
       else if (ev.key == 'b') {
-        this.setTool('paint');
+        this.setTool('brush');
+      }
+      else if (ev.key == 'g') {
+        this.setTool('hexfilled');
       }
       else if (ev.key == 'h') {
+        this.setTool('hexoutline');
+      }
+      else if (ev.key == 'l') {
+        this.setTool('line');
+      }
+      else if (ev.key == 'm') {
         this.setTool('move');
       }
       else {
@@ -636,6 +658,9 @@ class Board {
         this.info.innerHTML = cell && cell.coord.map((c) => (c > 0 ? '+' : '-') + ('0' + Math.abs(c)).slice(-2)) || '';
       }
     }
+    else if (ev.type == 'mouseout') {
+      this.selectCell();
+    }
   }
 
   handleTouch(ev) {
@@ -670,16 +695,11 @@ class Board {
   }
 
   startAction(ev, ...args) {
+    let ctrl = ev.ctrlKey;
     let shift = ev.shiftKey;
-    let Class;
-    if (this.tool == 'move')
-      Class = MoveAction;
-    else if (this.tool == 'paint')
-      Class = PaintAction;
-    else if (this.tool == 'pinch')
-      Class = PinchAction;
-    this.action = new Class(this);
-    this.action.start(ev, {shift}, ...args);
+    let Class = this.toolClasses[this.tool];
+    this.action = new Class(this, {ctrl, shift}, ...args);
+    this.action.start(ev);
   }
 
   endAction(ev) {
@@ -690,17 +710,7 @@ class Board {
   // Cell selection and setting
 
   selectCell(coord) {
-    let cell;
-    if (coord) {
-      let [x, y] = coord;
-      x -= this.translateX;
-      y -= this.translateY;
-      x -= this.offsetX;
-      x -= this.offsetY;
-      x = x / this.scaleZoom;
-      y = y / this.scaleZoom;
-      cell = this.model.cellAt([x, y]);
-    }
+    let cell = coord && this.cellAt(coord);
     this.selected = cell;
     if (!this.action) {
       this.fgAdapter.clear();
@@ -710,6 +720,15 @@ class Board {
     }
   }
 
+  cellAt([x, y]) {
+    x -= this.translateX;
+    y -= this.translateY;
+    x -= this.offsetX;
+    x -= this.offsetY;
+    x = x / this.scaleZoom;
+    y = y / this.scaleZoom;
+    return this.model.cellAt([x, y]);
+  }
 
   // Alert messages
 

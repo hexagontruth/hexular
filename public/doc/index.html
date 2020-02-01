@@ -9,7 +9,7 @@
   <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css"/>
   <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css"/>
   <link type="text/css" rel="stylesheet" href="custom.css"/>
-  <link type="image/png" rel="icon" href="../demo/icon.png"/>
+  <link type="image/png" rel="icon" href="../icon.png"/>
 </head>
 <body>
 <div id="page">
@@ -45,7 +45,7 @@
 <p>An extensible hexagonal CA platform.</p>
 <p>(C) 2020 Graham Steele. Distributed under the <a href="../LICENSE.txt">Hexagonal Awareness License</a>.</p>
 <ul>
-<li><a href="https://hexagrahamaton.github.io/hexular">Demo</a></li>
+<li><a href="https://hexagrahamaton.github.io/hexular">Hexular Studio (Demo)</a></li>
 <li><a href="https://hexagrahamaton.github.io/hexular/doc/">Documentation</a></li>
 <li><a href="https://github.com/hexagrahamaton/hexular/">GitHub</a></li>
 </ul>
@@ -58,7 +58,7 @@
 <li><a href="#customization">Customization</a></li>
 </ul>
 </li>
-<li><a href="#demo">Demo</a>
+<li><a href="#hexular-studio">Hexular Studio</a>
 <ul>
 <li><a href="#prepopulated-rules">Prepopulated rules</a></li>
 <li><a href="#demo-configuration-and-customization">Demo configuration and customization</a></li>
@@ -176,14 +176,14 @@ end user to implement her own extensions via the Hexular API:</p>
       }
     });
 </code></pre>
-<h2 id="demo">Demo</h2>
-<p>The built-in demo site, Hexular, can be run locally using NPM and Node:</p>
+<h2 id="hexular-studio">Hexular Studio</h2>
+<p>The built-in demo site, Hexular Studio, can be run locally using NPM and Node:</p>
 <ul>
 <li>Run <code>npm install</code> from the project directory</li>
 <li>Then run <code>npm start</code></li>
 </ul>
 <p>The build process is fairly minimal, and one can also run the demo page directly from the filesystem by adding a few script tags directly in <code>public/index.html</code>.</p>
-<p>The demo itself consists of a <code>CubicModel</code> instance, centered on the page, with buttons and keyboard shortcuts implementing various functions. A number of settings — including the resolution of the cells drawn on screen, and the radius of the grid, can be set via URL parameters.</p>
+<p>The principal Studio interface consists of a <code>CubicModel</code> instance, centered on the page, with buttons and keyboard shortcuts implementing various functions. A number of settings — including the resolution of the cells drawn on screen, and the radius of the grid, can be set via URL parameters.</p>
 <p>Some useful URL parameters and their default values:</p>
 <ul>
 <li><code>radius=60</code></li>
@@ -208,6 +208,7 @@ end user to implement her own extensions via the Hexular API:</p>
 <li>Redo (Ctrl+Shift+Z)</li>
 <li>Re-center (Ctrl+R)</li>
 <li>Config — Open configuration modal</li>
+<li>Save image (Ctrl+Shift+S)</li>
 <li>Save (Ctrl+S)</li>
 <li>Load (Ctrl+O)</li>
 <li>Resize board — Reload the page with the given <code>radius</code> parameter</li>
@@ -215,16 +216,19 @@ end user to implement her own extensions via the Hexular API:</p>
 </ul>
 <p>There are also tool buttons along the bottom:</p>
 <ul>
-<li>Move (H)</li>
-<li>Pain (B)</li>
+<li>Move (M)</li>
+<li>Brush (B)</li>
+<li>Line (L)</li>
+<li>Filled Hex (G)</li>
+<li>Outline Hex (H)</li>
 </ul>
 <p>Holding shift will temporarily select the move tool by default, or whatever tool is given in the <code>shiftTool</code> parameter.</p>
 <p>Additionally, <code>&lt;Escape&gt;</code> toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open. Scrolling a central mouse wheel or equivalent will zoom the canvas. Press <code>Ctrl+R</code> to reset the canvas to default zoom and translation.</p>
-<p>Cell states are changed by clicking and dragging with the paint tool selected. The painted state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo <code>hexular.numStates</code>. Right clicking, conversely, decrements the cell state by one. Ctrl+clicking clears states.</p>
-<p>The basic flow of the demo is to set one's preferred state using either the mouse or by importing a saved file, setting desired rules, &amp;c. in the configuration modal, and then either starting the timer (tab) or incrementing the state one step at a time (space).</p>
+<p>Cell states are changed by clicking and dragging with a paint tool selected. The painted state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo <code>hexular.numStates</code>. Right clicking, conversely, decrements the cell state by one. Ctrl+clicking clears states.</p>
+<p>The basic flow of the thing is to set one's preferred state using either the mouse or by importing a saved file, setting desired rules, &amp;c. in the configuration modal, and then either starting the timer (tab) or incrementing the state one step at a time (space).</p>
 <h3 id="prepopulated-rules">Prepopulated rules</h3>
-<p>Several predefined rules are given in <code>demo/rules.js</code> though these are largely for convenience and not meant to be exhaustive. There are also several built-in &quot;presets,&quot; or lists of 2-12 rules.</p>
-<h3 id="demo-configuration-and-customization">Demo configuration and customization</h3>
+<p>Several predefined rules are given in <code>client/rules.js</code> though these are largely for convenience and not meant to be exhaustive. There are also several built-in &quot;presets,&quot; or lists of 2-12 rules, in <code>client/presets.js</code>. (These are compiled to <code>public/build/client.js</code> as part of the build process.)</p>
+<h3 id="studio-configuration-and-customization">Studio configuration and customization</h3>
 <p>The configuration modal consists of the following fields:</p>
 <ul>
 <li>Slider input to set the number of available states, from 2-12</li>
