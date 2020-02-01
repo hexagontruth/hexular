@@ -85,15 +85,16 @@ window.addEventListener('load', function(e) {
 
 // --- STUFF ---
 
-let onCursorEvent = (() => {
+const EventHole = (...events) => {
   let handlerFn = () => {};
   let handler = (ev) => handlerFn(ev);
-  ['mousedown', 'mouseup', 'mouseout', 'mousemove', 'touchstart', 'touchmove', 'touchend']
-  .map((e) => window.addEventListener(e, handler, {passive: false}));
+  events.map((e) => window.addEventListener(e, handler, {passive: false}));
   return (obj, fn) => {
     handlerFn = fn.bind(obj);
   };
-})();
+};
+const onMouseEvent = EventHole('mousedown', 'mouseup', 'mouseout', 'mousemove');
+const onTouchEvent = EventHole('touchstart', 'touchmove', 'touchend');
 
 
 class Board {
@@ -200,7 +201,8 @@ class Board {
     window.oncontextmenu = (ev) => this.handleContextmenu(ev);
     window.onresize = (ev) => this.resize();
     window.onwheel = (ev) => this.handleScale(ev);
-    onCursorEvent(this, this.handleCursor);
+    onMouseEvent(this, this.handleMouse);
+    onTouchEvent(this, this.handleTouch);
 
     this.buttons.toggle.onmouseup = (ev) => this.toggle();
     this.buttons.step.onmouseup = (ev) => this.step();
@@ -325,10 +327,10 @@ class Board {
     }
   }
 
-  setTool(tool) {
+  setTool(tool, fallbackTool) {
     if (tool) {
       this.tool = tool;
-      this.fallbackTool = tool;
+      this.fallbackTool = fallbackTool || tool;
     }
     else if (this.shift) {
       this.tool = this.shiftTool;
@@ -337,7 +339,8 @@ class Board {
       this.tool = this.fallbackTool;
     }
     Object.values(this.tools).forEach((e) => e.classList.remove('active'));
-    this.tools[this.tool].classList.add('active');
+    if (this.tools[this.tool])
+      this.tools[this.tool].classList.add('active');
     this.fg.setAttribute('data-tool', this.tool);
   }
 
@@ -597,63 +600,71 @@ class Board {
     ev.preventDefault();
   }
 
-  handleCursor(ev) {
-    if (ev instanceof MouseEvent) {
-      if (ev.type == 'mousedown') {
-        if (ev.target == this.fg && this.selected && !this.action) {
-          this.newHistoryState();
-          if (ev.buttons & 1) {
-            this.startAction(ev);
-          }
-          else if (ev.buttons & 2) {
-            let setState = Hexular.math.mod(this.selected.state - 1, this.model.numStates);
-            this.startAction(ev, {setState});
-          }
+  handleMouse(ev) {
+    if (ev.type == 'mousedown') {
+      if (ev.target == this.fg && this.selected && !this.action) {
+        this.newHistoryState();
+        if (ev.buttons & 1) {
+          this.startAction(ev);
         }
-        else if (ev.target == this.overlay) {
-          this.toggleConfig();
-        }
-        else if (ev.target == this.message) {
-          this.clearMessage();
+        else if (ev.buttons & 2) {
+          let setState = Hexular.math.mod(this.selected.state - 1, this.model.numStates);
+          this.startAction(ev, {setState});
         }
       }
-      else if (ev.type == 'mouseup' && this.action) {
-        this.endAction(ev);
+      else if (ev.target == this.overlay) {
+        this.toggleConfig();
       }
-      else if (ev.type == 'mousemove') {
-        let cell;
-        if (ev.target == this.fg) {
-          this.selectCell([ev.pageX, ev.pageY]);
-          this.action && this.action.move(ev);
-        }
-        else {
-          this.selectCell();
-        }
-        if (ev.target != this.info) {
-          let cell = this.selected;
-          this.info.innerHTML = cell && cell.coord.map((c) => (c > 0 ? '+' : '-') + ('0' + Math.abs(c)).slice(-2)) || '';
-        }
+      else if (ev.target == this.message) {
+        this.clearMessage();
       }
     }
-    // Else is TouchEvent
-    else {
+    else if (ev.type == 'mouseup' && this.action) {
+      this.endAction(ev);
+    }
+    else if (ev.type == 'mousemove') {
+      let cell;
       if (ev.target == this.fg) {
-        if (ev.targetTouches.length == 1) {
-          let [x, y] = [ev.targetTouches[0].pageX, ev.targetTouches[0].pageY];
-          if (ev.type == 'touchstart') {
-            this.selectCell([x, y]);
-            this.startAction(ev);
-          }
-          if (ev.type == 'touchmove') {
-            this.selectCell([x, y]);
-            this.action && this.action.move(ev);
-          }
-          ev.preventDefault();
+        this.selectCell([ev.pageX, ev.pageY]);
+        this.action && this.action.move(ev);
+      }
+      else {
+        this.selectCell();
+      }
+      if (ev.target != this.info) {
+        let cell = this.selected;
+        this.info.innerHTML = cell && cell.coord.map((c) => (c > 0 ? '+' : '-') + ('0' + Math.abs(c)).slice(-2)) || '';
+      }
+    }
+  }
+
+  handleTouch(ev) {
+    if (ev.target == this.fg) {
+      if (ev.touches.length == 1) {
+        let [x, y] = [ev.touches[0].pageX, ev.touches[0].pageY];
+        if (ev.type == 'touchstart') {
+          this.selectCell([x, y]);
+          this.startAction(ev);
         }
-        if (ev.type == 'touchend') {
-          this.endAction(ev);
-          this.selectCell();
+        if (ev.type == 'touchmove') {
+          this.selectCell([x, y]);
+          this.action && this.action.move(ev);
         }
+        ev.preventDefault();
+      }
+      else if (ev.touches.length == 2) {
+        if (ev.type == 'touchstart') {
+          this.setTool('pinch', this.tool);
+          this.startAction(ev);
+          this.setTool();
+        }
+        if (ev.type == 'touchmove') {
+          this.action && this.action.move(ev);
+        }
+      }
+      if (ev.type == 'touchend') {
+        this.endAction(ev);
+        this.selectCell();
       }
     }
   }
@@ -665,6 +676,8 @@ class Board {
       Class = MoveAction;
     else if (this.tool == 'paint')
       Class = PaintAction;
+    else if (this.tool == 'pinch')
+      Class = PinchAction;
     this.action = new Class(this);
     this.action.start(ev, {shift}, ...args);
   }

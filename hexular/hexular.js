@@ -236,8 +236,9 @@ var Hexular = (function () {
        * @see {@link Model#cellRadius}
        * @see {@link Model#getCoord}
        */
+      console.log(this.cellRadius);
       this.basis = scalarOp(math.basis, this.cellRadius);
-
+      console.log(this.basis.join(':'));
       // Add available adapter constructors as direct attributes of this instance
       Object.entries(attributes.classes.adapters).forEach(([className, Class]) => {
         this[className] = (...args) => new Class(this, ...args);
@@ -461,7 +462,7 @@ var Hexular = (function () {
     * @param {...object} ...args One or more settings objects to apply to model
     */
     constructor(...args) {
-      super();
+      super(...args);
       let defaults = {
         /**
          * @name OffsetModel#cols
@@ -477,7 +478,7 @@ var Hexular = (function () {
         rows: DEFAULT_ROWS,
         cells: [],
       };
-      Object.assign(this, defaults, ...args);
+      Object.assign(this, defaults, args);
       HexError.validateKeys(this, 'rows', 'cols');
       let rows = this.rows, cols = this.cols;
       this.eachCoord(([i, j]) => {
@@ -553,7 +554,7 @@ var Hexular = (function () {
     * @param {...object} ...args One or more settings objects to apply to model
     */
     constructor(...args) {
-      super();
+      super(...args);
       let defaults = {
         /**
          * @name CubicModel#radius
