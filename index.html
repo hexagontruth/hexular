@@ -4,88 +4,89 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no"/>
   <script src="build/vue.js"></script>
-  <script src="build/hexularity.js"></script>
-  <link rel="stylesheet" type="text/css" href="app.css"/>
+  <script src="build/client.js"></script>
+  <link rel="stylesheet" type="text/css" href="build/client.css"/>
   <link rel="icon" type="image/png" href="icon.png"/>
-  <title>Hexularity</title>
+  <title>Hexular Studio</title>
 </head>
 <body style="opacity: 0;">
-  <div id="hexularity">
-    <div class="container"></div>
-    <div class="toolbar top">
-      <div class="group">
-        <button id="toggle" title="Play (Tab)">play_arrow</button>
-        <button id="step" title="Step (Space)">skip_next</button>
-        <button id="clear" title="Clear (Ctrl+C)">clear</button>
-        <button id="undo" title="Undo (Ctrl+Z)" disabled>undo</button>
-        <button id="redo" title="Redo (Ctrl+Shift+Z)" disabled>redo</button>
-        <button id="center" title="Center board (Ctrl+R)">fullscreen_exit</button>
-        <button id="config" title="Config">settings</button>
-      </div>
-      <div class="group">
-        <button id="save-image" title="Save image... (Ctrl+Shift+S)">image</button>
-        <button id="save" title="Save state... (Ctrl+S)">cloud_download</button>
-        <button id="load" title="Load state... (Ctrl+O)">backup</button>
-        <button id="resize" title="Resize board">aspect_ratio</button>
-        <a target="_blank" href="doc/"><button id="documentation" title="Show documentation">info</button></a>
-      </div>
+  <div class="container"></div>
+  <div class="toolbar top">
+    <div class="group">
+      <button id="toggle" title="Play (Tab)" class="icon-play"></button>
+      <button id="step" title="Step (Space)" class="icon-step-forward"></button>
+      <button id="clear" title="Clear (Ctrl+C)" class="icon-clear"></button>
+      <button id="undo" title="Undo (Ctrl+Z)" disabled class="icon-undo"></button>
+      <button id="redo" title="Redo (Ctrl+Shift+Z)" disabled class="icon-redo"></button>
+      <button id="center" title="Center board (Ctrl+R)" class="icon-center"></button>
+      <button id="config" title="Config" class="icon-gear"></button>
     </div>
-    <div class="toolbar bottom">
-      <div class="group tools">
-        <button class="tool" id="tool-move" title="Move (H)">open_with</button>
-        <button class="tool" id="tool-paint" title="Paint (B)">brush</button>
-      </div>
+    <div class="group">
+      <button id="save-image" title="Save image... (Ctrl+Shift+S)" class="icon-image"></button>
+      <button id="save" title="Save state... (Ctrl+S)" class="icon-download"></button>
+      <button id="load" title="Load state... (Ctrl+O)" class="icon-upload"></button>
+      <button id="resize" title="Resize board" class="icon-resize"></button>
+      <a target="_blank" href="doc/"><button id="documentation" title="Show documentation" class="icon-info"></button></a>
     </div>
-    <div class="overlay hidden">
-      <div class="modal">
-        <div class="group">
-          <input type="range" id="num-states" min="2" max="12" step="1"
-            value="2" list="num-states-ticks" title="Number of States (2-12)"/>
-          <datalist id="num-states-ticks">
-            <option>2</option>
-            <option>4</option>
-            <option>6</option>
-            <option>8</option>
-            <option>10</option>
-            <option>12</option>
-          </datalist>
-        </div>
-        <div class="group">
-          <select id="select-preset">
-            <option value="">- Select preset -</option>
-          </select>
-        </div>
-        <div class="group">
-          <button id="add-rule">add</button>
-          <textarea id="custom-rule">{newRule: (cell) => cell.state}</textarea>
-        </div>
-        <div class="group">
-          <button id="check-all">arrow_downward</button>
+  </div>
+  <div class="toolbar bottom">
+    <div class="group tools">
+      <button class="tool icon-move" id="tool-move" title="Move (M)"></button>
+      <button class="tool icon-brush" id="tool-brush" title="Brush (B)"></button>
+      <button class="tool icon-vector-line" id="tool-line" title="Line (L)"></button>
+      <button class="tool icon-hexagon" id="tool-hexfilled" title="Filled Hex (G)"></button>
+       <button class="tool icon-hexagon-outline" id="tool-hexoutline" title="Outline Hex (H)"></button>
+    </div>
+  </div>
+  <div class="overlay hidden">
+    <div class="modal">
+      <div class="group">
+        <input type="range" id="num-states" min="2" max="12" step="1"
+          value="2" list="num-states-ticks" title="Number of States (2-12)"/>
+        <datalist id="num-states-ticks">
+          <option>2</option>
+          <option>4</option>
+          <option>6</option>
+          <option>8</option>
+          <option>10</option>
+          <option>12</option>
+        </datalist>
+      </div>
+      <div class="group">
+        <select id="select-preset">
+          <option value="">- Select preset -</option>
+        </select>
+      </div>
+      <div class="group">
+        <button id="add-rule" class="icon-plus"></button>
+        <textarea id="custom-rule">{newRule: (cell) => cell.state}</textarea>
+      </div>
+      <div class="group">
+        <button id="check-all" class="icon-check-all"></button>
 
-          <select id="set-all">
-            <option value="">- Set selected -</option>
-          </select>
-        </div>
-        <div class="rule-config"></div>
-        <div class="group">
-          <select id="select-neighborhood" title="Default neighborhood for cell helper functions">
-            <option value="6" selected>N6: 6 immediate neighbors</option>
-            <option value="12">N12: 12 closest neighbors</option>
-            <option value="18">N18: 18 closest neighbors</option>
-            <option value="7">N7: 6 nighbors + self</option>
-            <option value="13">N13: 12 neighbors + self</option>
-            <option value="19">N19: 19 neighbors + self</option>
-          </select>
-        </div>
+        <select id="set-all">
+          <option value="">- Set selected -</option>
+        </select>
+      </div>
+      <div class="rule-config"></div>
+      <div class="group">
+        <select id="select-neighborhood" title="Default neighborhood for cell helper functions">
+          <option value="6" selected>N6: 6 immediate neighbors</option>
+          <option value="12">N12: 12 closest neighbors</option>
+          <option value="18">N18: 18 closest neighbors</option>
+          <option value="7">N7: 6 nighbors + self</option>
+          <option value="13">N13: 12 neighbors + self</option>
+          <option value="19">N19: 19 neighbors + self</option>
+        </select>
       </div>
     </div>
-    <div class="message"></div>
-    <div class="info"></div>
-    <div class="assets" style="display: none;">
-      <div class="rule-menu checkable">
-        <div class="indicator"></div>
-        <select class="rule-select"></select>
-      </div>
+  </div>
+  <div class="message"></div>
+  <div class="info"></div>
+  <div class="assets" style="display: none;">
+    <div class="rule-menu checkable">
+      <div class="indicator"></div>
+      <select class="rule-select"></select>
     </div>
   </div>
 </body>

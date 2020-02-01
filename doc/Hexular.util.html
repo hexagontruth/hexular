@@ -9,7 +9,7 @@
   <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css"/>
   <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css"/>
   <link type="text/css" rel="stylesheet" href="custom.css"/>
-  <link type="image/png" rel="icon" href="../demo/icon.png"/>
+  <link type="image/png" rel="icon" href="../icon.png"/>
 </head>
 <body>
 <div id="page">
@@ -36,7 +36,7 @@
     <div class="container-overview">
     
         
-            <div class="description"><p>Some utility methods. Or maybe just one.</p></div>
+            <div class="description"><p>A selection of sundry functions with anticipated general utility.</p></div>
         
 
         
@@ -110,7 +110,197 @@
     
 
     
-    <h4 class="name" id=".ruleBuilder"><span class="type-signature">(static) </span>ruleBuilder<span class="signature">(ruleDef, opts)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id=".hexWrap"><span class="type-signature">(static) </span>hexWrap<span class="signature">(origin, radius)</span><span class="type-signature"> &rarr; {Array.&lt;<a href="Cell.html">Cell</a>>}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Given a cell with immediately-connected neighbors, find all cells out to a given radius, ordered by radial ring.</p>
+<p>This is used to order <a href="CubicModel.html#cells"><code>CubicModel#cells</code></a>, and by the hex-drawing tools in Hexular Studio.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>origin</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Cell.html">Cell</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Central cell</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>radius</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>A natural number greater than 0</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1337">line 1337</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="Cell.html#nbrs"><code>Cell#nbrs</code></a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>An array of cells, including the origin, of length <code>3 * radius * (radius - 1) + 1</code></p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Array.&lt;<a href="Cell.html">Cell</a>></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".ruleBuilder"><span class="type-signature">(static) </span>ruleBuilder<span class="signature">(ruleDef, opts)</span><span class="type-signature"> &rarr; {function}</span></h4>
     
 
     
@@ -430,7 +620,7 @@ numbers giving individual states where next cell state is 1</p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1327">line 1327</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1378">line 1378</a>
     </li></ul></dd>
     
 
@@ -462,6 +652,28 @@ numbers giving individual states where next cell state is 1</p></td>
 
 
 
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>A rule function taking a <a href="Cell.html"><code>Cell</code></a> instance and returning an integer</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">function</span>
+
+
+    </dd>
+</dl>
+
+    
 
 
 
