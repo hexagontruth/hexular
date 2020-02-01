@@ -236,9 +236,8 @@ var Hexular = (function () {
        * @see {@link Model#cellRadius}
        * @see {@link Model#getCoord}
        */
-      console.log(this.cellRadius);
       this.basis = scalarOp(math.basis, this.cellRadius);
-      console.log(this.basis.join(':'));
+      this.apothem = this.cellRadius * math.apothem;
       // Add available adapter constructors as direct attributes of this instance
       Object.entries(attributes.classes.adapters).forEach(([className, Class]) => {
         this[className] = (...args) => new Class(this, ...args);

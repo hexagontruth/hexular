@@ -24,7 +24,7 @@ const DEFAULTS = {
   groundState: 0,
   borderWidth: 1,
   theme: 'light',
-  tool: 'paint',
+  tool: 'brush',
 };
 
 const THEMES = {
@@ -110,6 +110,13 @@ class Board {
       redoStack: [],
       shift: false,
       shiftTool: 'move',
+      toolClasses: {
+        move: MoveAction,
+        brush: BrushAction,
+        line: LineAction,
+        hexfilled: HexFilledAction,
+        hexoutline: HexOutlineAction,
+      },
       appContainer: document.querySelector('#hexularity'),
       toolbarTop: document.querySelector('.toolbar.top'),
       toolbarBottom: document.querySelector('.toolbar.bottom'),
@@ -133,7 +140,10 @@ class Board {
       },
       tools: {
         move: document.querySelector('#tool-move'),
-        paint: document.querySelector('#tool-paint'),
+        brush: document.querySelector('#tool-brush'),
+        line: document.querySelector('#tool-line'),
+        hexFilled: document.querySelector('#tool-hexfilled'),
+        hexOutline: document.querySelector('#tool-hexoutline'),
       },
       controls: {
         numStates: document.querySelector('#num-states'),
@@ -217,7 +227,10 @@ class Board {
     this.buttons.resize.onmouseup = (ev) => this.promptResize();
 
     this.tools.move.onmouseup = (ev) => this.setTool('move');
-    this.tools.paint.onmouseup = (ev) => this.setTool('paint');
+    this.tools.brush.onmouseup = (ev) => this.setTool('brush');
+    this.tools.line.onmouseup = (ev) => this.setTool('line');
+    this.tools.hexFilled.onmouseup = (ev) => this.setTool('hexfilled');
+    this.tools.hexOutline.onmouseup = (ev) => this.setTool('hexoutline');
 
     this.controls.addRule.onmouseup = (ev) => this.handleAddRule();
     this.controls.checkAll.onmouseup = (ev) => this.handleCheckAll();
@@ -588,9 +601,18 @@ class Board {
         }
       }
       else if (ev.key == 'b') {
-        this.setTool('paint');
+        this.setTool('brush');
+      }
+      else if (ev.key == 'g') {
+        this.setTool('hexfilled');
       }
       else if (ev.key == 'h') {
+        this.setTool('hexoutline');
+      }
+      else if (ev.key == 'l') {
+        this.setTool('line');
+      }
+      else if (ev.key == 'm') {
         this.setTool('move');
       }
       else {
@@ -671,13 +693,7 @@ class Board {
 
   startAction(ev, ...args) {
     let shift = ev.shiftKey;
-    let Class;
-    if (this.tool == 'move')
-      Class = MoveAction;
-    else if (this.tool == 'paint')
-      Class = PaintAction;
-    else if (this.tool == 'pinch')
-      Class = PinchAction;
+    let Class = this.toolClasses[this.tool];
     this.action = new Class(this);
     this.action.start(ev, {shift}, ...args);
   }
@@ -690,17 +706,7 @@ class Board {
   // Cell selection and setting
 
   selectCell(coord) {
-    let cell;
-    if (coord) {
-      let [x, y] = coord;
-      x -= this.translateX;
-      y -= this.translateY;
-      x -= this.offsetX;
-      x -= this.offsetY;
-      x = x / this.scaleZoom;
-      y = y / this.scaleZoom;
-      cell = this.model.cellAt([x, y]);
-    }
+    let cell = coord && this.cellAt(coord);
     this.selected = cell;
     if (!this.action) {
       this.fgAdapter.clear();
@@ -710,6 +716,15 @@ class Board {
     }
   }
 
+  cellAt([x, y]) {
+    x -= this.translateX;
+    y -= this.translateY;
+    x -= this.offsetX;
+    x -= this.offsetY;
+    x = x / this.scaleZoom;
+    y = y / this.scaleZoom;
+    return this.model.cellAt([x, y]);
+  }
 
   // Alert messages
 
