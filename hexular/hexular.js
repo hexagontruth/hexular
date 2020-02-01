@@ -1042,7 +1042,7 @@ var Hexular = (function () {
   /**
    * Class binding a agent canvas context to a model instance.
    *
-   * This class is closely tailored to the needs of the Hexularity demo page, and probably does not expose the ideal
+   * This class is closely tailored to the needs of the Hexular Studio client, and probably does not expose the ideal
    * generalized interface for browser-based canvas rendering.
    *
    * The crux of its functionality is the employment of two presumably-coterminous canvas contexts &mdash; one for drawing

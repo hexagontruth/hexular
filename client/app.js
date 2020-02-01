@@ -117,7 +117,6 @@ class Board {
         hexfilled: HexFilledAction,
         hexoutline: HexOutlineAction,
       },
-      appContainer: document.querySelector('#hexularity'),
       toolbarTop: document.querySelector('.toolbar.top'),
       toolbarBottom: document.querySelector('.toolbar.bottom'),
       container: document.querySelector('.container'),

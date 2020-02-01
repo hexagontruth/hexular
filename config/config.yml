@@ -1,7 +1,7 @@
 default:
   port: 8000
   files:
-    hexularity.js:
+    client.js:
       - hexular/hexular.js
       - client/rules.js
       - client/presets.js
