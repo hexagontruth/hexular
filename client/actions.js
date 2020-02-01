@@ -3,15 +3,24 @@ class Action {
     this.board = board;
     this.coords = [];
     this.lastSet = null;
+    this.board.fgAdapter.clear();
   }
 
   setCell(cell) {
     if (cell && cell != this.lastSet) {
-      cell.state = this.shift ? 0 : this.setState;
       this.lastSet = cell;
-      adapter.selectCell();
-      adapter.drawCell(cell);
+      this.board.fgAdapter.stateBuffer.set(cell, this.setState)
+      this.board.fgAdapter.defaultDrawBuffer(cell);
     }
+  }
+
+  applyBuffer() {
+    this.board.fgAdapter.stateBuffer.forEach((state, cell) => {
+      cell.state = state;
+    });
+    this.board.fgAdapter.stateBuffer.clear();
+    this.board.fgAdapter.clear();
+    this.board.bgAdapter.draw();
   }
 
   end() {}
@@ -39,6 +48,7 @@ class PaintAction extends Action {
   }
 
   end() {
+    this.applyBuffer();
     this.board.storeState();
   }
 }

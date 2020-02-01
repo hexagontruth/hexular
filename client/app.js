@@ -64,7 +64,7 @@ const THEMES = {
   },
 };
 
-let hexular, adapter, board, app;
+let board;
 
 window.addEventListener('load', function(e) {
   let opts = {};
@@ -74,20 +74,9 @@ window.addEventListener('load', function(e) {
     opts[pair[0]] = Number.isNaN(parsedInt) ? pair[1] : parsedInt;
   });
   board = new Board(opts);
-  let {rules, radius, numStates, groundState, cellRadius, borderWidth, colors} = board;
-  hexular = Hexular({rules, radius, numStates, groundState});
-  if (board.clampBottomFilter)
-    hexular.addFilter(Hexular.filters.clampBottomFilter);
-  if (board.clampTopFilter)
-    hexular.addFilter(Hexular.filters.clampTopFilter);
-  if (board.modFilter)
-    hexular.addFilter(Hexular.filters.modFilter);
-  if (board.edgeFilter)
-    hexular.addFilter(Hexular.filters.edgeFilter);
-  adapter = hexular.CanvasAdapter({renderer: board.bgCtx, selector: board.fgCtx, cellRadius, borderWidth, colors});
   board.restoreState();
   window.requestAnimationFrame(() => {
-    adapter.draw();
+    board.bgAdapter.draw();
     board.refreshRules();
     document.body.style.opacity = 1;
   });
@@ -234,6 +223,20 @@ class Board {
     this.controls.selectPreset.onchange = (ev) => this.selectPreset(ev.target.value);
     this.controls.setAll.onchange = (ev) => this.handleSetAll(ev);
     this.controls.selectNeighborhood.onchange = (ev) => this.setNeighborhood(ev.target.value);
+
+
+    let {rules, radius, groundState, cellRadius, borderWidth, colors} = this;
+    this.model = Hexular({rules, radius, numStates, groundState, cellRadius});
+    if (this.clampBottomFilter)
+      this.model.addFilter(Hexular.filters.clampBottomFilter);
+    if (this.clampTopFilter)
+      this.model.addFilter(Hexular.filters.clampTopFilter);
+    if (this.modFilter)
+      this.model.addFilter(Hexular.filters.modFilter);
+    if (this.edgeFilter)
+      this.model.addFilter(Hexular.filters.edgeFilter);
+    this.bgAdapter = this.model.CanvasAdapter({context: this.bgCtx, borderWidth, colors});
+    this.fgAdapter = this.model.CanvasAdapter({context: this.fgCtx, borderWidth, colors});
   }
 
   get running() { return !!this.timer; }
@@ -243,10 +246,10 @@ class Board {
   }
 
   draw() {
-    if (adapter && !this.drawQueued) {
+    if (this.bgAdapter && !this.drawQueued) {
       this.drawQueued = true;
       requestAnimationFrame(() => {
-        adapter.draw();
+        this.bgAdapter.draw();
         this.drawQueued = null;
       });
     }
@@ -271,10 +274,10 @@ class Board {
   step() {
     this.newHistoryState();
     try {
-      hexular.step();
+      this.model.step();
       this.draw();
       this.storeState();
-      if (!hexular.changed)
+      if (!this.model.changed)
         this.toggle();
     }
     catch (e) {
@@ -286,7 +289,7 @@ class Board {
   clear() {
     this.newHistoryState();
     if (this.running) this.toggle();
-    hexular.clear();
+    this.model.clear();
     this.draw();
     this.storeState();
   }
@@ -297,14 +300,14 @@ class Board {
 
   promptResize() {
     let radiusParam = this.mobile ? 'mobileRadius' : 'radius';
-    let newSize = prompt('Plz enter new board size > 1 or 0 for default. Rules will be reset and cells outside of new radius will be lost.', hexular.radius);
+    let newSize = prompt('Plz enter new board size > 1 or 0 for default. Rules will be reset and cells outside of new radius will be lost.', this.model.radius);
     if (newSize == null)
       return;
     let n = Number(newSize) || DEFAULTS[radiusParam];
     if (isNaN(n) || n < 0 || n == 1) {
       this.setMessage('Board size must be natural number > 1', 'error');
     }
-    else if (n != hexular.radius) {
+    else if (n != this.model.radius) {
       let [base, params] = window.location.href.split('?');
       let paramMap = {};
       params = (params || '').split('&').filter((e) => e != '').map((e) => {
@@ -358,7 +361,7 @@ class Board {
   }
 
   save() {
-    let bytes = hexular.export();
+    let bytes = this.model.export();
     let blob = new Blob([bytes], {type: 'application/octet-stream'});
     let dataUri = window.URL.createObjectURL(blob);
     this.promptDownload(this.defaultFilename, dataUri);
@@ -372,7 +375,7 @@ class Board {
     fileReader.onload = (ev) => {
       let buffer = ev.target.result;
       let bytes = new Int8Array(buffer);
-      hexular.import(bytes);
+      this.model.import(bytes);
       this.draw();
       this.storeState();
     };
@@ -390,7 +393,7 @@ class Board {
   }
 
   storeState(bytes) {
-    bytes = bytes || hexular.export();
+    bytes = bytes || this.model.export();
     let str = bytes.join('');
     sessionStorage.setItem('modelState', str);
   }
@@ -400,7 +403,7 @@ class Board {
     if (modelState) {
       this.newHistoryState();
       let bytes = new Int8Array(modelState.split(''));
-      hexular.import(bytes);
+      this.model.import(bytes);
       this.draw();
     }
   }
@@ -408,7 +411,7 @@ class Board {
  // Undo/redo stuff
 
   newHistoryState() {
-    this.undoStack.push(hexular.export());
+    this.undoStack.push(this.model.export());
     if (this.undoStack.length > this.undoStackSize)
       this.undoStack.shift();
     this.redoStack = [];
@@ -418,8 +421,8 @@ class Board {
   undo() {
     let nextState = this.undoStack.pop();
     if (nextState) {
-      let curState = hexular.export()
-      hexular.import(nextState);
+      let curState = this.model.export()
+      this.model.import(nextState);
       this.storeState(nextState);
       this.redoStack.push(curState);
       this.draw();
@@ -430,8 +433,8 @@ class Board {
   redo() {
     let nextState = this.redoStack.pop();
     if (nextState) {
-      let curState = hexular.export()
-      hexular.import(nextState);
+      let curState = this.model.export()
+      this.model.import(nextState);
       this.storeState(nextState);
       this.undoStack.push(curState);
       this.draw();
@@ -505,7 +508,7 @@ class Board {
   handleScale(ev) {
     let scale = 1 - Math.sign(ev.deltaY) * 0.1;
     this.scale(scale);
-    if (adapter) adapter.draw();
+    this.draw();
   }
 
   handleContextmenu(ev) {
@@ -603,7 +606,7 @@ class Board {
             this.startAction(ev);
           }
           else if (ev.buttons & 2) {
-            let setState = Hexular.math.mod(this.selected.state - 1, hexular.numStates);
+            let setState = Hexular.math.mod(this.selected.state - 1, this.model.numStates);
             this.startAction(ev, {setState});
           }
         }
@@ -622,6 +625,9 @@ class Board {
         if (ev.target == this.fg) {
           this.selectCell([ev.pageX, ev.pageY]);
           this.action && this.action.move(ev);
+        }
+        else {
+          this.selectCell();
         }
         if (ev.target != this.info) {
           let cell = this.selected;
@@ -680,10 +686,15 @@ class Board {
       x -= this.offsetY;
       x = x / this.scaleZoom;
       y = y / this.scaleZoom;
-      cell = adapter.cellAt([x, y]);
+      cell = this.model.cellAt([x, y]);
     }
     this.selected = cell;
-    adapter.selectCell(cell);
+    if (!this.action) {
+      this.fgAdapter.clear();
+      if (cell) {
+        this.fgAdapter.defaultDrawSelector(cell);
+      }
+    }
   }
 
 
@@ -740,7 +751,7 @@ class Board {
     this.ruleMenus.forEach((ruleMenu) => {
       if (ruleMenu.checked) {
         ruleMenu.select.value = ruleName;
-        hexular.rules[ruleMenu.index] = rule;
+        this.model.rules[ruleMenu.index] = rule;
       }
     });
     this.controls.setAll.selectedIndex = 0;
@@ -749,14 +760,14 @@ class Board {
 
   handleSetRule(ev) {
     const ctl = ev.target;
-    hexular.rules[ctl.ruleMenu.index] = this.availableRules[ctl.value] || this.availableRules.identityRule;
+    this.model.rules[ctl.ruleMenu.index] = this.availableRules[ctl.value] || this.availableRules.identityRule;
     this.checkPreset();
   }
 
   // Set default neighborhood for rules using top-level cell helper functions
 
   setNeighborhood(neighborhood) {
-    hexular.setNeighborhood(neighborhood);
+    this.model.setNeighborhood(neighborhood);
   }
 
   // Preset setting and checking
@@ -770,7 +781,7 @@ class Board {
       let ruleName = presetList[ruleMenu.index] || 'identityRule';
       let fn = this.availableRules[ruleName];
       ruleMenu.select.value = ruleName;
-      hexular.rules[ruleMenu.index] = fn;
+      this.model.rules[ruleMenu.index] = fn;
     });
     this.preset = presetName;
     this.controls.selectPreset.value = presetName;
@@ -781,9 +792,9 @@ class Board {
     if (!presetList)
       return;
     let dirty = (() => {
-      if (hexular.numStates != presetList.length)
+      if (this.model.numStates != presetList.length)
         return true;
-      return hexular.rules.slice(0, hexular.numStates).reduce((a, ruleFn, idx) => {
+      return this.model.rules.slice(0, this.model.numStates).reduce((a, ruleFn, idx) => {
         return a || this.availableRules[idx] != ruleFn;
       }, false);
     })();
@@ -797,11 +808,11 @@ class Board {
     if (val)
       this.controls.numStates.value = val;
     const numStates = parseInt(this.controls.numStates.value);
-    this.numStates = hexular.numStates = parseInt(numStates);
+    this.numStates = this.model.numStates = parseInt(numStates);
     this.ruleMenus.forEach((ruleMenu) => {
       let disabled = ruleMenu.index >= numStates;
       ruleMenu.container.setAttribute('data-disabled', disabled);
-      hexular.rules[ruleMenu.index] = this.rules[ruleMenu.index];
+      this.model.rules[ruleMenu.index] = this.rules[ruleMenu.index];
     });
     this.checkPreset();
   }
@@ -828,7 +839,7 @@ class Board {
     this.ruleMenus = [];
 
     for (let i = 0; i < this.maxNumStates; i++) {
-      let ruleMenu = new RuleMenu(i, this.availableRules, hexular.rules[i], i >= hexular.numStates);
+      let ruleMenu = new RuleMenu(this, i, this.model.rules[i], i >= this.model.numStates);
       ruleMenu.select.addEventListener('change', (ev) => this.handleSetRule(ev));
       this.ruleMenus.push(ruleMenu);
       this.ruleConfig.appendChild(ruleMenu.container);
@@ -837,8 +848,10 @@ class Board {
 }
 
 class RuleMenu {
-  constructor(idx, rules, selected, disabled) {
+  constructor(board, idx, selected, disabled) {
+    this.board = board;
     this.index = idx;
+    let rules = board.availableRules;
     let prototype = document.querySelector('.assets .rule-menu');
     let container = this.container = prototype.cloneNode(true);
     let select = this.select = container.querySelector('select');
@@ -846,7 +859,7 @@ class RuleMenu {
     select.ruleMenu = this;
     container.title = `State ${idx}`;
     container.setAttribute('data-disabled', disabled);
-    indicator.style.backgroundColor = adapter.colors[idx];
+    indicator.style.backgroundColor = board.bgAdapter.colors[idx];
     for (let [ruleName, fn] of Object.entries(rules)) {
       let option = document.createElement('option');
       option.text = ruleName;
