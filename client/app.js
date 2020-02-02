@@ -126,17 +126,19 @@ class Board {
       info: document.querySelector('.info'),
       ruleConfig: document.querySelector('.rule-config'),
       buttons: {
-        toggle: document.querySelector('#toggle'),
+        toggleRecord: document.querySelector('#toggle-record'),
+        togglePlay: document.querySelector('#toggle-play'),
         step: document.querySelector('#step'),
         clear: document.querySelector('#clear'),
         undo: document.querySelector('#undo'),
         redo: document.querySelector('#redo'),
         center: document.querySelector('#center'),
-        config: document.querySelector('#config'),
+        showConfig: document.querySelector('#show-config'),
         saveImage: document.querySelector('#save-image'),
         save: document.querySelector('#save'),
         load: document.querySelector('#load'),
         resize: document.querySelector('#resize'),
+        allNonrecording: document.querySelectorAll('.toolbar .group button:not(#toggle-record)'),
       },
       tools: {
         move: document.querySelector('#tool-move'),
@@ -214,13 +216,14 @@ class Board {
     onMouseEvent(this, this.handleMouse);
     onTouchEvent(this, this.handleTouch);
 
-    this.buttons.toggle.onmouseup = (ev) => this.toggle();
+    this.buttons.toggleRecord.onmouseup = (ev) => this.toggleRecord();
+    this.buttons.togglePlay.onmouseup = (ev) => this.togglePlay();
     this.buttons.step.onmouseup = (ev) => this.step();
     this.buttons.clear.onmouseup = (ev) => this.clear();
     this.buttons.undo.onmouseup = (ev) => this.undo();
     this.buttons.redo.onmouseup = (ev) => this.redo();
     this.buttons.center.onmouseup = (ev) => this.resize();
-    this.buttons.config.onmouseup = (ev) => this.toggleConfig();
+    this.buttons.showConfig.onmouseup = (ev) => this.toggleConfig();
     this.buttons.saveImage.onmouseup = (ev) => this.saveImage();
     this.buttons.save.onmouseup = (ev) => this.save();
     this.buttons.load.onmouseup = (ev) => this.load();
@@ -272,17 +275,35 @@ class Board {
 
   // Button handlers (can also be called directly)
 
-  toggle() {
+  toggleRecord() {
+    if (!this.recording) {
+      if (!this.running) {
+        this.togglePlay();
+      }
+      this.buttons.allNonrecording.forEach((e) => e.disabled = true);
+      this.buttons.toggleRecord.className = 'icon-stop active';
+      this.recording = true;
+    }
+    else {
+      this.togglePlay();
+      this.recording = false;
+      this.buttons.toggleRecord.className = 'icon-record';
+      this.buttons.allNonrecording.forEach((e) => e.disabled = false);
+
+    }
+  }
+
+  togglePlay() {
     if (!this.running) {
       this.timer = setInterval(this.step.bind(this), this.timerLength);
       this.buttons.step.disabled = true;
-      this.buttons.toggle.className = 'icon-pause';
+      this.buttons.togglePlay.className = 'icon-pause';
     }
     else {
       clearInterval(this.timer);
       this.timer = null;
       this.buttons.step.disabled = false;
-      this.buttons.toggle.className = 'icon-play';
+      this.buttons.togglePlay.className = 'icon-play';
     }
   }
 
@@ -293,7 +314,7 @@ class Board {
       this.draw();
       this.storeState();
       if (!this.model.changed)
-        this.toggle();
+        this.togglePlay();
     }
     catch (e) {
       console.log(e);
@@ -303,7 +324,7 @@ class Board {
 
   clear() {
     this.newHistoryState();
-    if (this.running) this.toggle();
+    if (this.running) this.togglePlay();
     this.model.clear();
     this.draw();
     this.storeState();
@@ -459,7 +480,7 @@ class Board {
   }
 
   refreshHistoryButtons() {
-    this.buttons.undo.disabled = +!this.undoStack.length;
+    this.buttons.undo.disabled = +!this.undoStack.length || this.recording;
     this.buttons.redo.disabled = +!this.redoStack.length;
   }
 
@@ -588,13 +609,18 @@ class Board {
 
       // TAB to start/stop
       else if (ev.key == 'Tab') {
-        this.toggle();
+        if (ev.shiftKey) {
+          this.toggleRecord();
+        }
+        else {
+          this.togglePlay();
+        }
       }
 
       // SPACE to step or stop
       else if (ev.key == ' ') {
         if (this.running) {
-          this.toggle();
+          this.togglePlay();
         }
         else {
           this.step();
@@ -614,6 +640,9 @@ class Board {
       }
       else if (ev.key == 'm') {
         this.setTool('move');
+      }
+      else if (ev.key == '`') {
+        this.toggleConfig();
       }
       else {
         return;

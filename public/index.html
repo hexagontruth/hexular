@@ -13,13 +13,12 @@
   <div class="container"></div>
   <div class="toolbar top">
     <div class="group">
-      <button id="toggle" title="Play (Tab)" class="icon-play"></button>
+      <button id="toggle-record" title="Record (Shift+Tab)" class="icon-record"></button>
+      <button id="toggle-play" title="Play (Tab)" class="icon-play"></button>
       <button id="step" title="Step (Space)" class="icon-step-forward"></button>
       <button id="clear" title="Clear (Ctrl+C)" class="icon-clear"></button>
       <button id="undo" title="Undo (Ctrl+Z)" disabled class="icon-undo"></button>
       <button id="redo" title="Redo (Ctrl+Shift+Z)" disabled class="icon-redo"></button>
-      <button id="center" title="Center board (Ctrl+R)" class="icon-center"></button>
-      <button id="config" title="Config" class="icon-gear"></button>
     </div>
     <div class="group">
       <button id="save-image" title="Save image... (Ctrl+Shift+S)" class="icon-image"></button>
@@ -36,6 +35,10 @@
       <button class="tool icon-vector-line" id="tool-line" title="Line (L)"></button>
       <button class="tool icon-hexagon" id="tool-hexfilled" title="Filled Hex (G)"></button>
        <button class="tool icon-hexagon-outline" id="tool-hexoutline" title="Outline Hex (H)"></button>
+    </div> 
+    <div class="group">
+      <button id="center" title="Center board (Ctrl+R)" class="icon-center"></button>
+      <button id="show-config" title="Config (`)" class="icon-gear"></button>
     </div>
   </div>
   <div class="overlay hidden">
