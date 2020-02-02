@@ -11,10 +11,11 @@ const DEFAULTS = {
   availableRules: Object.assign({}, Hexular.rules, RULES),
   rule: null,
   defaultRule: 'identityRule',
-  defaultImagename: 'hexular.png',
-  defaultFilename: 'hexular.bin',
   preset: 'default',
   presets: PRESETS,
+  defaultImageFilename: 'hexular.png',
+  defaultFilename: 'hexular.bin',
+  defaultVideoFilename: 'hexular.webm',
   clampBottomFilter: 0,
   clampTopFilter: 0,
   modFilter: 1,
@@ -46,7 +47,7 @@ const THEMES = {
     ],
   },
   light: {
-    background: '#ccdddd',
+    background: '#eeeeee',
     colors: [
       '#ffffff',
       '#cccccc',
@@ -75,12 +76,10 @@ window.addEventListener('load', function(e) {
   });
   board = new Board(opts);
   board.restoreState();
-  window.requestAnimationFrame(() => {
-    board.bgAdapter.draw();
+  board.draw().then(() => {
     board.refreshRules();
     document.body.style.opacity = 1;
   });
-
 });
 
 // --- STUFF ---
@@ -264,29 +263,35 @@ class Board {
   }
 
   draw() {
-    if (this.bgAdapter && !this.drawQueued) {
-      this.drawQueued = true;
-      requestAnimationFrame(() => {
-        this.bgAdapter.draw();
-        this.drawQueued = null;
+    if (this.bgAdapter && !this.drawPromise) {
+      this.drawPromise = new Promise((resolve, reject) => {
+        requestAnimationFrame(() => {
+          this.bgAdapter.draw(!!this.recorder);
+          this.drawPromise = null;
+          resolve();
+        });
       });
     }
+    return this.drawPromise;
   }
 
   // Button handlers (can also be called directly)
 
   toggleRecord() {
-    if (!this.recording) {
+    if (!this.recorder) {
       if (!this.running) {
         this.togglePlay();
       }
       this.buttons.allNonrecording.forEach((e) => e.disabled = true);
       this.buttons.toggleRecord.className = 'icon-stop active';
-      this.recording = true;
+      this.recorder = new Recorder(this);
+      this.draw().then(() => this.recorder.start());
     }
     else {
+      this.recorder.stop();
+      this.recorder = null;
       this.togglePlay();
-      this.recording = false;
+      this.draw();
       this.buttons.toggleRecord.className = 'icon-record';
       this.buttons.allNonrecording.forEach((e) => e.disabled = false);
 
@@ -300,6 +305,9 @@ class Board {
       this.buttons.togglePlay.className = 'icon-pause';
     }
     else {
+      if (this.recorder) {
+        this.toggleRecord();
+      }
       clearInterval(this.timer);
       this.timer = null;
       this.buttons.step.disabled = false;
@@ -394,7 +402,7 @@ class Board {
 
   saveImage() {
     let dataUri = this.bg.toDataURL('image/png');
-    this.promptDownload(this.defaultImagename, dataUri);
+    this.promptDownload(this.defaultImageFilename, dataUri);
   }
 
   save() {
@@ -456,6 +464,7 @@ class Board {
   }
 
   undo() {
+    if (this.recorder) return;
     let nextState = this.undoStack.pop();
     if (nextState) {
       let curState = this.model.export()
@@ -468,6 +477,7 @@ class Board {
   }
 
   redo() {
+    if (this.recorder) return;
     let nextState = this.redoStack.pop();
     if (nextState) {
       let curState = this.model.export()
@@ -480,7 +490,7 @@ class Board {
   }
 
   refreshHistoryButtons() {
-    this.buttons.undo.disabled = +!this.undoStack.length || this.recording;
+    this.buttons.undo.disabled = +!this.undoStack.length || this.recorder;
     this.buttons.redo.disabled = +!this.redoStack.length;
   }
 
@@ -905,39 +915,5 @@ class Board {
       this.ruleMenus.push(ruleMenu);
       this.ruleConfig.appendChild(ruleMenu.container);
     }
-  }
-}
-
-class RuleMenu {
-  constructor(board, idx, selected, disabled) {
-    this.board = board;
-    this.index = idx;
-    let rules = board.availableRules;
-    let prototype = document.querySelector('.assets .rule-menu');
-    let container = this.container = prototype.cloneNode(true);
-    let select = this.select = container.querySelector('select');
-    let indicator = this.indicator = container.querySelector('.indicator');
-    select.ruleMenu = this;
-    container.title = `State ${idx}`;
-    container.setAttribute('data-disabled', disabled);
-    indicator.style.backgroundColor = board.bgAdapter.colors[idx];
-    for (let [ruleName, fn] of Object.entries(rules)) {
-      let option = document.createElement('option');
-      option.text = ruleName;
-      option.selected = selected == fn;
-      select.appendChild(option);
-    }
-    indicator.addEventListener('mouseup', (ev) => {
-      this.checked = !this.checked;
-    });
-  }
-
-  set checked(val) {
-    if (val) this.container.classList.add('checked');
-    else this.container.classList.remove('checked');
-  }
-
-  get checked() {
-    return this.container.classList.contains('checked');
   }
 }

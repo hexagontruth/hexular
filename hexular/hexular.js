@@ -1154,8 +1154,8 @@ var Hexular = (function () {
     /**
      * Draw all cells on {@link CanvasAdapter#context} context.
      */
-    draw() {
-      this.clear();
+    draw(opaque=false) {
+      this.clear(opaque);
       this.onDrawCell.callParallel(this.model.cells);
     }
 
@@ -1166,10 +1166,15 @@ var Hexular = (function () {
      * to the center of its viewport. This is neither necessary nor assumed for other models though. Thus we simply
      * save the current transformation state, clear the visible viewport, and then restore the original transform.
      */
-    clear() {
+    clear(opaque=false) {
       this.context.save();
       this.context.setTransform(1, 0, 0, 1, 0, 0);
-      this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
+      if (opaque) {
+        this.context.fillStyle = this.colors[this.model.groundState];
+        this.context.fillRect(0, 0, this.context.canvas.width, this.context.canvas.height);
+      } else {
+        this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
+      }
       this.context.restore();
     }
 

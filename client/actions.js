@@ -24,7 +24,7 @@ class Action {
     });
     this.board.fgAdapter.stateBuffer.clear();
     this.board.fgAdapter.clear();
-    this.board.bgAdapter.draw();
+    this.board.draw();
   }
 
   _getCoord(pointerEv) {

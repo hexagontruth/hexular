@@ -6,6 +6,8 @@ default:
       - client/rules.js
       - client/presets.js
       - client/app.js
+      - client/recorder.js
+      - client/rule-menu.js
       - client/actions.js
     client.css:
       - client/vendor/icons.css
