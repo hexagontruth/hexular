@@ -276,17 +276,32 @@ class Board {
   // Button handlers (can also be called directly)
 
   toggleRecord() {
-    if (!this.recording) {
+    if (!this.video) {
       if (!this.running) {
         this.togglePlay();
       }
+      this.blobs = [];
       this.buttons.allNonrecording.forEach((e) => e.disabled = true);
       this.buttons.toggleRecord.className = 'icon-stop active';
-      this.recording = true;
+      this.stream = this.bg.captureStream();
+      this.recorder = new MediaRecorder(this.stream, {mimeType: 'video/webm'});
+      this.video = document.createElement('video');
+      this.recorder.ondataavailable = (ev) => {
+        if (ev.data && ev.data.size > 0)
+          this.blobs.push(ev.data);
+      };
+      this.recorder.onstop = (ev) => {
+        this.buffer = new Blob(this.blobs, {type: 'video/webm'});
+        this.dataUri = window.URL.createObjectURL(this.buffer);
+      this.promptDownload('hexular.webm', this.dataUri);
+      }
+      this.recorder.start(100); 
     }
     else {
       this.togglePlay();
-      this.recording = false;
+      this.recorder.stop();
+      this.stream.getTracks()[0].stop();
+      this.video = null;
       this.buttons.toggleRecord.className = 'icon-record';
       this.buttons.allNonrecording.forEach((e) => e.disabled = false);
 
@@ -480,7 +495,7 @@ class Board {
   }
 
   refreshHistoryButtons() {
-    this.buttons.undo.disabled = +!this.undoStack.length || this.recording;
+    this.buttons.undo.disabled = +!this.undoStack.length || this.video;
     this.buttons.redo.disabled = +!this.redoStack.length;
   }
 
