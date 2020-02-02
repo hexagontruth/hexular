@@ -76,7 +76,7 @@ class PinchAction extends Action {
   _getHypotFromTouch(ev) {
     let t0 = this._getCoord(ev.touches[0]);
     let t1 = this._getCoord(ev.touches[1]);
-    return this.hypot(t0, t1);
+    return this._getHypot(t0, t1);
   }
 }
 
@@ -118,7 +118,7 @@ class LineAction extends PaintAction {
   }
 
   _calculateCells() {
-    let samples = this._getHypot(this.a, this.b) / (this.board.model.cellRadius);
+    let samples = this._getHypot(this.a, this.b) / (this.board.model.cellRadius) / this.board.scaleZoom;
     let [x, y] = this.a.slice();
     let xSample = (this.b[0] - this.a[0]) / samples;
     let ySample = (this.b[1] - this.a[1]) / samples;
@@ -144,7 +144,7 @@ class LineAction extends PaintAction {
 
 class HexAction extends LineAction {
   _calculateCells() {
-    let pixRad = this._getHypot(this.a, this.b);
+    let pixRad = this._getHypot(this.a, this.b) / board.scaleZoom;
     this.radius = Math.ceil(pixRad / (this.board.model.apothem * 2) + 0.5);
     let cells = Hexular.util.hexWrap(this.originCell, this.radius);
     this._hexToBuffer(cells);

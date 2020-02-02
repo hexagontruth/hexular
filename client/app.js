@@ -116,6 +116,7 @@ class Board {
         line: LineAction,
         hexfilled: HexFilledAction,
         hexoutline: HexOutlineAction,
+        pinch: PinchAction,
       },
       toolbarTop: document.querySelector('.toolbar.top'),
       toolbarBottom: document.querySelector('.toolbar.bottom'),

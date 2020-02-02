@@ -5,7 +5,7 @@ An extensible hexagonal CA platform.
 
 (C) 2020 Graham Steele. Distributed under the [Hexagonal Awareness License](../LICENSE.txt).
 
-  - [Demo](https://hexagrahamaton.github.io/hexular)
+  - [Hexular Studio (Demo)](https://hexagrahamaton.github.io/hexular)
   - [Documentation](https://hexagrahamaton.github.io/hexular/doc/)
   - [GitHub](https://github.com/hexagrahamaton/hexular/)
 
@@ -15,7 +15,7 @@ An extensible hexagonal CA platform.
   - [Configuration](#configuration)
     - [Rules](#rules)
     - [Customization](#customization)
-  - [Demo](#demo)
+  - [Hexular Studio](#hexular-studio)
     - [Prepopulated rules](#prepopulated-rules)
     - [Demo configuration and customization](#demo-configuration-and-customization)
   - [More information](#more-information)
@@ -140,16 +140,16 @@ We can also override or extend the default cell-drawing behavior of `CanvasAdapt
           }
         });
 
-## Demo
+## Hexular Studio
 
-The built-in demo site, Hexular, can be run locally using NPM and Node:
+The built-in demo site, Hexular Studio, can be run locally using NPM and Node:
 
   - Run `npm install` from the project directory
   - Then run `npm start`
 
 The build process is fairly minimal, and one can also run the demo page directly from the filesystem by adding a few script tags directly in `public/index.html`.
 
-The demo itself consists of a `CubicModel` instance, centered on the page, with buttons and keyboard shortcuts implementing various functions. A number of settings &mdash; including the resolution of the cells drawn on screen, and the radius of the grid, can be set via URL parameters.
+The principal Studio interface consists of a `CubicModel` instance, centered on the page, with buttons and keyboard shortcuts implementing various functions. A number of settings &mdash; including the resolution of the cells drawn on screen, and the radius of the grid, can be set via URL parameters.
 
 Some useful URL parameters and their default values:
 
@@ -175,6 +175,7 @@ The main control buttons are, from left to right:
   - Redo (Ctrl+Shift+Z)
   - Re-center (Ctrl+R)
   - Config &mdash; Open configuration modal
+  - Save image (Ctrl+Shift+S)
   - Save (Ctrl+S)
   - Load (Ctrl+O)
   - Resize board &mdash; Reload the page with the given `radius` parameter
@@ -182,22 +183,25 @@ The main control buttons are, from left to right:
 
 There are also tool buttons along the bottom:
 
-  - Move (H)
-  - Pain (B)
+  - Move (M)
+  - Brush (B)
+  - Line (L)
+  - Filled Hex (G)
+  - Outline Hex (H)
 
 Holding shift will temporarily select the move tool by default, or whatever tool is given in the `shiftTool` parameter.
 
 Additionally, `<Escape>` toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open. Scrolling a central mouse wheel or equivalent will zoom the canvas. Press `Ctrl+R` to reset the canvas to default zoom and translation.
 
-Cell states are changed by clicking and dragging with the paint tool selected. The painted state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo `hexular.numStates`. Right clicking, conversely, decrements the cell state by one. Ctrl+clicking clears states.
+Cell states are changed by clicking and dragging with a paint tool selected. The painted state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo `hexular.numStates`. Right clicking, conversely, decrements the cell state by one. Ctrl+clicking clears states.
 
-The basic flow of the demo is to set one's preferred state using either the mouse or by importing a saved file, setting desired rules, &c. in the configuration modal, and then either starting the timer (tab) or incrementing the state one step at a time (space).
+The basic flow of the thing is to set one's preferred state using either the mouse or by importing a saved file, setting desired rules, &c. in the configuration modal, and then either starting the timer (tab) or incrementing the state one step at a time (space).
 
 ### Prepopulated rules
 
-Several predefined rules are given in `demo/rules.js` though these are largely for convenience and not meant to be exhaustive. There are also several built-in "presets," or lists of 2-12 rules.
+Several predefined rules are given in `client/rules.js` though these are largely for convenience and not meant to be exhaustive. There are also several built-in "presets," or lists of 2-12 rules, in `client/presets.js`. (These are compiled to `public/build/client.js` as part of the build process.)
 
-### Demo configuration and customization
+### Studio configuration and customization
 
 The configuration modal consists of the following fields:
 
