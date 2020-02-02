@@ -1056,7 +1056,7 @@ the <code>model</code> argument that would normally be passed to the constructor
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1240">line 1240</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1271">line 1271</a>
     </li></ul></dd>
     
 
@@ -1147,7 +1147,7 @@ save the current transformation state, clear the visible viewport, and then rest
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1169">line 1169</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1172">line 1172</a>
     </li></ul></dd>
     
 
@@ -1286,7 +1286,7 @@ batch operation. This is used by e.g. painting tools in Hexular Studio.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1211">line 1211</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1214">line 1214</a>
     </li></ul></dd>
     
 
@@ -1425,7 +1425,7 @@ need to be an instance method, but is included here for concern relevance.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1197">line 1197</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1200">line 1200</a>
     </li></ul></dd>
     
 
@@ -1563,7 +1563,7 @@ need to be an instance method, but is included here for concern relevance.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1227">line 1227</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1230">line 1230</a>
     </li></ul></dd>
     
 
@@ -1599,7 +1599,7 @@ need to be an instance method, but is included here for concern relevance.</p>
     
 
     
-    <h4 class="name" id="draw"><span class="type-signature"></span>draw<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="draw"><span class="type-signature"></span>draw<span class="signature">(fn)</span><span class="type-signature"></span></h4>
     
 
     
@@ -1608,6 +1608,143 @@ need to be an instance method, but is included here for concern relevance.</p>
 
 <div class="description">
     <p>Draw all cells on <a href="CanvasAdapter.html#context"><code>CanvasAdapter#context</code></a> context.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fn</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Optional function to be called after context is cleared, but before cells are drawn.</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1159">line 1159</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="drawBackground"><span class="type-signature"></span>drawBackground<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Draw a background in the style given by <a href="Model.html#groundState"><code>this.colors[this.model.groundState]</code></a>.</p>
 </div>
 
 
@@ -1651,7 +1788,7 @@ need to be an instance method, but is included here for concern relevance.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1157">line 1157</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1240">line 1240</a>
     </li></ul></dd>
     
 
@@ -1790,7 +1927,95 @@ need to be an instance method, but is included here for concern relevance.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1185">line 1185</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1188">line 1188</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="drawCubicBackground"><span class="type-signature"></span>drawCubicBackground<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Draw a hexagonal background appropriate to  in the style given by <a href="Model.html#groundState"><code>this.colors[this.model.groundState]</code></a>.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1251">line 1251</a>
     </li></ul></dd>
     
 

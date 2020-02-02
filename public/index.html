@@ -3,7 +3,6 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no"/>
-  <script src="build/vue.js"></script>
   <script src="build/client.js"></script>
   <link rel="stylesheet" type="text/css" href="build/client.css"/>
   <link rel="icon" type="image/png" href="icon.png"/>
@@ -13,18 +12,16 @@
   <div class="container"></div>
   <div class="toolbar top">
     <div class="group">
-      <button id="toggle" title="Play (Tab)" class="icon-play"></button>
+      <button id="toggle-play" title="Play (Tab)" class="icon-play"></button>
       <button id="step" title="Step (Space)" class="icon-step-forward"></button>
       <button id="clear" title="Clear (Ctrl+C)" class="icon-clear"></button>
       <button id="undo" title="Undo (Ctrl+Z)" disabled class="icon-undo"></button>
       <button id="redo" title="Redo (Ctrl+Shift+Z)" disabled class="icon-redo"></button>
-      <button id="center" title="Center board (Ctrl+R)" class="icon-center"></button>
-      <button id="config" title="Config" class="icon-gear"></button>
+      <button id="toggle-record" title="Record (Shift+Tab)" class="icon-record"></button>
     </div>
     <div class="group">
-      <button id="save-image" title="Save image... (Ctrl+Shift+S)" class="icon-image"></button>
-      <button id="save" title="Save state... (Ctrl+S)" class="icon-download"></button>
-      <button id="load" title="Load state... (Ctrl+O)" class="icon-upload"></button>
+      <button id="show-config" title="Config (`)" class="icon-gear"></button>
+      <button id="center" title="Center board (Ctrl+R)" class="icon-center"></button>
       <button id="resize" title="Resize board" class="icon-resize"></button>
       <a target="_blank" href="doc/"><button id="documentation" title="Show documentation" class="icon-info"></button></a>
     </div>
@@ -32,10 +29,24 @@
   <div class="toolbar bottom">
     <div class="group tools">
       <button class="tool icon-move" id="tool-move" title="Move (M)"></button>
+      <button class="tool icon-color-fill" id="tool-fill" title="Fill (G)"></button>
       <button class="tool icon-brush" id="tool-brush" title="Brush (B)"></button>
       <button class="tool icon-vector-line" id="tool-line" title="Line (L)"></button>
-      <button class="tool icon-hexagon" id="tool-hexfilled" title="Filled Hex (G)"></button>
-       <button class="tool icon-hexagon-outline" id="tool-hexoutline" title="Outline Hex (H)"></button>
+      <button class="tool icon-hexagon" id="tool-hexfilled" title="Filled Hex (F)"></button>
+      <button class="tool icon-hexagon-outline" id="tool-hexoutline" title="Outline Hex (H)"></button>
+    </div>
+    <div class="group tool-sizes">
+      <button class="tool icon-hex-radius-1" id="ts-1" title="One (1)"></button>
+      <button class="tool icon-hex-radius-2" id="ts-2" title="Two (2)"></button>
+      <button class="tool icon-hex-radius-3" id="ts-3" title="Three (3)"></button>
+    </div>
+  </div>
+  <div class="toolbar right">
+    <div class="group">
+      <button id="load" title="Load state... (Ctrl+O)" class="icon-upload"></button>
+      <button id="save" title="Save state... (Ctrl+S)" class="icon-download"></button>
+      <button id="save-image" title="Save image... (Ctrl+Shift+S)" class="icon-image"></button>
+      <button id="import" title="Import custom JavaScript (Ctrl+I)" class="icon-cloud-code"></button>
     </div>
   </div>
   <div class="overlay hidden">
@@ -82,6 +93,7 @@
     </div>
   </div>
   <div class="message"></div>
+  <button class="tool-hider active icon-eye"></button>
   <div class="info"></div>
   <div class="assets" style="display: none;">
     <div class="rule-menu checkable">

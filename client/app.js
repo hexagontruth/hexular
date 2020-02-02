@@ -6,15 +6,17 @@ const DEFAULTS = {
   numStates: null,
   maxNumStates: 12,
   timerLength: 100,
+  autopause: 1,
   undoStackSize: 64,
   mobileUndoStackSize: 16,
   availableRules: Object.assign({}, Hexular.rules, RULES),
   rule: null,
   defaultRule: 'identityRule',
-  defaultImagename: 'hexular.png',
-  defaultFilename: 'hexular.bin',
   preset: 'default',
   presets: PRESETS,
+  defaultImageFilename: 'hexular.png',
+  defaultFilename: 'hexular.bin',
+  defaultVideoFilename: 'hexular.webm',
   clampBottomFilter: 0,
   clampTopFilter: 0,
   modFilter: 1,
@@ -23,44 +25,30 @@ const DEFAULTS = {
   mobileCellRadius: 20,
   groundState: 0,
   borderWidth: 1,
+  showModelBackground: 1,
   theme: 'light',
   tool: 'brush',
+  toolSize: 1,
 };
 
 const THEMES = {
   dark: {
     background: '#333333',
-    colors: [
+    colors: Object.assign(Hexular.DEFAULTS.colors.slice(), [
       '#000000',
       '#888888',
       '#aaaaaa',
       '#cccccc',
       '#eeeeee',
-      '#cc4444',
-      '#ee7722',
-      '#eebb33',
-      '#66bb33',
-      '#66aaaa',
-      '#4455bb',
-      '#aa55bb',
-    ],
+    ]),
   },
   light: {
-    background: '#ccdddd',
-    colors: [
-      '#ffffff',
-      '#cccccc',
-      '#999999',
-      '#666666',
-      '#333333',
-      '#cc4444',
-      '#ee7722',
-      '#eebb33',
-      '#66bb33',
-      '#66aaaa',
-      '#4455bb',
-      '#aa55bb',
-    ]
+    background: '#eeeeee',
+    colors: Hexular.DEFAULTS.colors.slice(),
+  },
+  white: {
+    background: '#ffffff',
+    colors: Hexular.DEFAULTS.colors.slice(),
   },
 };
 
@@ -75,12 +63,10 @@ window.addEventListener('load', function(e) {
   });
   board = new Board(opts);
   board.restoreState();
-  window.requestAnimationFrame(() => {
-    board.bgAdapter.draw();
+  board.draw().then(() => {
     board.refreshRules();
     document.body.style.opacity = 1;
   });
-
 });
 
 // --- STUFF ---
@@ -108,43 +94,59 @@ class Board {
       ruleMenus: [],
       undoStack: [],
       redoStack: [],
+      msgIdx: 0,
       shift: false,
       shiftTool: 'move',
       toolClasses: {
         move: MoveAction,
+        fill: FillAction,
         brush: BrushAction,
         line: LineAction,
         hexfilled: HexFilledAction,
         hexoutline: HexOutlineAction,
         pinch: PinchAction,
       },
-      toolbarTop: document.querySelector('.toolbar.top'),
-      toolbarBottom: document.querySelector('.toolbar.bottom'),
+      sizableTools: [
+        'brush',
+        'line',
+        'hexfilled',
+        'hexoutline',
+      ],
       container: document.querySelector('.container'),
       overlay: document.querySelector('.overlay'),
       message: document.querySelector('.message'),
       info: document.querySelector('.info'),
       ruleConfig: document.querySelector('.rule-config'),
       buttons: {
-        toggle: document.querySelector('#toggle'),
+        toolHider: document.querySelector('.tool-hider'),
+        toggleRecord: document.querySelector('#toggle-record'),
+        togglePlay: document.querySelector('#toggle-play'),
         step: document.querySelector('#step'),
         clear: document.querySelector('#clear'),
         undo: document.querySelector('#undo'),
         redo: document.querySelector('#redo'),
         center: document.querySelector('#center'),
-        config: document.querySelector('#config'),
+        showConfig: document.querySelector('#show-config'),
         saveImage: document.querySelector('#save-image'),
         save: document.querySelector('#save'),
         load: document.querySelector('#load'),
+        import: document.querySelector('#import'),
         resize: document.querySelector('#resize'),
+        allNonrecording: document.querySelectorAll('.toolbar .group button:not(#toggle-record):not(#toggle-play)'),
       },
       tools: {
+        fill: document.querySelector('#tool-fill'),
         move: document.querySelector('#tool-move'),
         brush: document.querySelector('#tool-brush'),
         line: document.querySelector('#tool-line'),
         hexfilled: document.querySelector('#tool-hexfilled'),
         hexoutline: document.querySelector('#tool-hexoutline'),
       },
+      toolSizes: [
+        document.querySelector('#ts-1'),
+        document.querySelector('#ts-2'),
+        document.querySelector('#ts-3'),
+      ],
       controls: {
         numStates: document.querySelector('#num-states'),
         selectPreset: document.querySelector('#select-preset'),
@@ -156,19 +158,17 @@ class Board {
       }
     };
     Object.assign(this, DEFAULTS, props, ...args);
-    let numStates;
-    if (this.availableRules[this.rule]) {
-      this.rules = Array(this.maxNumStates).fill(this.availableRules[this.rule]);
-      numStates = this.maxNumStates;
-      this.preset = null;
-    }
-    else {
-      this.rules = Object.assign(
-        Array(this.maxNumStates).fill(this.availableRules[this.defaultRule]),
-        this.presets[this.preset].map((e) => this.availableRules[e])
-      );
+    Object.assign(this, THEMES[this.theme]);
+    let numStates = this.maxNumStates;
+    this.rules = Array(this.maxNumStates).fill(this.availableRules[this.defaultRule]);
+    if (this.presets[this.preset]) {
+      this.rules = Object.assign(this.rules, this.presets[this.preset].map((e) => this.availableRules[e]));
       numStates = this.presets[this.preset].length;
     }
+    else {
+      this.preset = null;
+    }
+
     if (this.numStates && this.numStates != numStates) {
       this.controls.numStates.value = this.numStates;
       this.preset = null;
@@ -199,11 +199,10 @@ class Board {
       this.cellRadius = this.mobileCellRadius;
       this.undoStackSize = this.mobileUndoStackSize;
     }
-    this.resize();
 
-    document.body.style.backgroundColor = THEMES[this.theme].background;
-    this.colors = THEMES[this.theme].colors.slice();
-    this.setTool(this.tool);
+
+    document.body.style.backgroundColor = this.background;
+    this.colors = this.colors.slice();
 
     window.onblur = (ev) => this.handleBlur(ev);
     window.onkeydown = (ev) => this.handleKey(ev);
@@ -214,23 +213,28 @@ class Board {
     onMouseEvent(this, this.handleMouse);
     onTouchEvent(this, this.handleTouch);
 
-    this.buttons.toggle.onmouseup = (ev) => this.toggle();
+    this.buttons.toolHider.onmouseup = (ev) => this.toggleToolHidden();
+    this.buttons.toggleRecord.onmouseup = (ev) => this.toggleRecord();
+    this.buttons.togglePlay.onmouseup = (ev) => this.togglePlay();
     this.buttons.step.onmouseup = (ev) => this.step();
     this.buttons.clear.onmouseup = (ev) => this.clear();
     this.buttons.undo.onmouseup = (ev) => this.undo();
     this.buttons.redo.onmouseup = (ev) => this.redo();
     this.buttons.center.onmouseup = (ev) => this.resize();
-    this.buttons.config.onmouseup = (ev) => this.toggleConfig();
+    this.buttons.showConfig.onmouseup = (ev) => this.toggleConfig();
     this.buttons.saveImage.onmouseup = (ev) => this.saveImage();
     this.buttons.save.onmouseup = (ev) => this.save();
     this.buttons.load.onmouseup = (ev) => this.load();
+    this.buttons.import.onmouseup = (ev) => this.import();
     this.buttons.resize.onmouseup = (ev) => this.promptResize();
 
     this.tools.move.onmouseup = (ev) => this.setTool('move');
+    this.tools.fill.onmouseup = (ev) => this.setTool('fill');
     this.tools.brush.onmouseup = (ev) => this.setTool('brush');
     this.tools.line.onmouseup = (ev) => this.setTool('line');
     this.tools.hexfilled.onmouseup = (ev) => this.setTool('hexfilled');
     this.tools.hexoutline.onmouseup = (ev) => this.setTool('hexoutline');
+    this.toolSizes.forEach((e, i) => e.onmouseup = (ev) => this.setToolSize(i + 1));
 
     this.controls.addRule.onmouseup = (ev) => this.handleAddRule();
     this.controls.checkAll.onmouseup = (ev) => this.handleCheckAll();
@@ -252,6 +256,9 @@ class Board {
       this.model.addFilter(Hexular.filters.edgeFilter);
     this.bgAdapter = this.model.CanvasAdapter({context: this.bgCtx, borderWidth, colors});
     this.fgAdapter = this.model.CanvasAdapter({context: this.fgCtx, borderWidth, colors});
+    this.setTool(this.tool);
+    this.setToolSize(this.toolSize);
+    this.resize();
   }
 
   get running() { return !!this.timer; }
@@ -261,28 +268,60 @@ class Board {
   }
 
   draw() {
-    if (this.bgAdapter && !this.drawQueued) {
-      this.drawQueued = true;
-      requestAnimationFrame(() => {
-        this.bgAdapter.draw();
-        this.drawQueued = null;
+    if (this.bgAdapter && !this.drawPromise) {
+      this.drawPromise = new Promise((resolve, reject) => {
+        requestAnimationFrame(() => {
+          let callback;
+          if (!!this.recorder)
+            callback = this.bgAdapter.drawBackground;
+          else if (this.showModelBackground)
+            callback = this.bgAdapter.drawCubicBackground;
+          this.bgAdapter.draw(callback);
+          this.drawPromise = null;
+          resolve();
+        });
       });
     }
+    return this.drawPromise;
   }
 
   // Button handlers (can also be called directly)
 
-  toggle() {
+  toggleRecord() {
+    if (!this.recorder) {
+      if (!this.running) {
+        this.togglePlay();
+      }
+      this.buttons.allNonrecording.forEach((e) => e.disabled = true);
+      this.buttons.toggleRecord.className = 'icon-stop active';
+      this.recorder = new Recorder(this);
+      this.draw().then(() => this.recorder.start());
+    }
+    else {
+      this.recorder.stop();
+      this.recorder = null;
+      this.togglePlay();
+      this.draw();
+      this.buttons.toggleRecord.className = 'icon-record';
+      this.buttons.allNonrecording.forEach((e) => e.disabled = false);
+
+    }
+  }
+
+  togglePlay() {
     if (!this.running) {
       this.timer = setInterval(this.step.bind(this), this.timerLength);
       this.buttons.step.disabled = true;
-      this.buttons.toggle.className = 'icon-pause';
+      this.buttons.togglePlay.className = 'icon-pause';
     }
     else {
+      if (this.recorder) {
+        this.toggleRecord();
+      }
       clearInterval(this.timer);
       this.timer = null;
       this.buttons.step.disabled = false;
-      this.buttons.toggle.className = 'icon-play';
+      this.buttons.togglePlay.className = 'icon-play';
     }
   }
 
@@ -292,8 +331,8 @@ class Board {
       this.model.step();
       this.draw();
       this.storeState();
-      if (!this.model.changed)
-        this.toggle();
+      if (this.autopause && !this.model.changed)
+        this.togglePlay();
     }
     catch (e) {
       console.log(e);
@@ -303,7 +342,7 @@ class Board {
 
   clear() {
     this.newHistoryState();
-    if (this.running) this.toggle();
+    if (this.running) this.togglePlay();
     this.model.clear();
     this.draw();
     this.storeState();
@@ -311,6 +350,13 @@ class Board {
 
   toggleConfig() {
     this.overlay.classList.toggle('hidden');
+  }
+
+  toggleToolHidden() {
+    let hidden = document.body.classList.toggle('tool-hidden');
+    this.buttons.toolHider.classList.toggle('active');
+    this.buttons.toolHider.classList.toggle('icon-eye');
+    this.buttons.toolHider.classList.toggle('icon-eye-off');
   }
 
   promptResize() {
@@ -355,6 +401,15 @@ class Board {
     if (this.tools[this.tool])
       this.tools[this.tool].classList.add('active');
     this.fg.setAttribute('data-tool', this.tool);
+    this.drawSelectedCell();
+  }
+
+  setToolSize(size) {
+    this.toolSize = size || 1;
+    this.toolSizes.forEach((e) => e.classList.remove('active'));
+    let selected = this.toolSizes[size - 1];
+    selected && selected.classList.add('active');
+    this.drawSelectedCell();
   }
 
   // Add rule or preset - also use these if adding from console
@@ -373,7 +428,7 @@ class Board {
 
   saveImage() {
     let dataUri = this.bg.toDataURL('image/png');
-    this.promptDownload(this.defaultImagename, dataUri);
+    this.promptDownload(this.defaultImageFilename, dataUri);
   }
 
   save() {
@@ -397,6 +452,32 @@ class Board {
     };
     input.onchange = () => {
       fileReader.readAsArrayBuffer(input.files[0]);
+    };
+    input.click();
+  }
+
+  import() {
+    let fileReader = new FileReader();
+    let input = document.createElement('input');
+    input.type = 'file';
+    fileReader.onload =  (ev) => {
+      let code = ev.target.result;
+      try {
+        eval(code) // lol
+        this.refreshRules();
+        this.setMessage('Custom code imorted!');
+      }
+      catch (e) {
+        this.setMessage(e.toString(), 'error');
+      }
+
+    };
+    input.onchange = () => {
+      let file = input.files[0];
+      if (file.type.indexOf('javascript') != -1)
+        fileReader.readAsText(file);
+      else
+        this.setMessage('Please provide a JavaScript file', 'error');
     };
     input.click();
   }
@@ -435,6 +516,7 @@ class Board {
   }
 
   undo() {
+    if (this.recorder) return;
     let nextState = this.undoStack.pop();
     if (nextState) {
       let curState = this.model.export()
@@ -447,6 +529,7 @@ class Board {
   }
 
   redo() {
+    if (this.recorder) return;
     let nextState = this.redoStack.pop();
     if (nextState) {
       let curState = this.model.export()
@@ -459,7 +542,7 @@ class Board {
   }
 
   refreshHistoryButtons() {
-    this.buttons.undo.disabled = +!this.undoStack.length;
+    this.buttons.undo.disabled = +!this.undoStack.length || this.recorder;
     this.buttons.redo.disabled = +!this.redoStack.length;
   }
 
@@ -563,6 +646,9 @@ class Board {
           else if (key == 'c') {
             this.clear();
           }
+          else if (key == 'i') {
+            this.import();
+          }
           else if (key == 'r') {
             this.resize();
           }
@@ -580,30 +666,36 @@ class Board {
           this.toggleConfig();
         }
         else {
-          this.toolbarTop.classList.toggle('hidden');
-          this.toolbarBottom.classList.toggle('hidden');
-          this.info.classList.toggle('hidden');
+          this.toggleToolHidden();
         }
       }
 
       // TAB to start/stop
       else if (ev.key == 'Tab') {
-        this.toggle();
+        if (ev.shiftKey) {
+          this.toggleRecord();
+        }
+        else {
+          this.togglePlay();
+        }
       }
 
       // SPACE to step or stop
       else if (ev.key == ' ') {
         if (this.running) {
-          this.toggle();
+          this.togglePlay();
         }
         else {
           this.step();
         }
       }
+      else if (ev.key == 'g') {
+        this.setTool('fill');
+      }
       else if (ev.key == 'b') {
         this.setTool('brush');
       }
-      else if (ev.key == 'g') {
+      else if (ev.key == 'f') {
         this.setTool('hexfilled');
       }
       else if (ev.key == 'h') {
@@ -614,6 +706,18 @@ class Board {
       }
       else if (ev.key == 'm') {
         this.setTool('move');
+      }
+      else if (ev.key == '1') {
+        this.setToolSize(1);
+      }
+      else if (ev.key == '2') {
+        this.setToolSize(2);
+      }
+      else if (ev.key == '3') {
+        this.setToolSize(3);
+      }
+      else if (ev.key == '`') {
+        this.toggleConfig();
       }
       else {
         return;
@@ -710,12 +814,17 @@ class Board {
   // Cell selection and setting
 
   selectCell(coord) {
-    let cell = coord && this.cellAt(coord);
-    this.selected = cell;
+    this.selected = coord && this.cellAt(coord);
+    this.drawSelectedCell();
+  }
+
+  drawSelectedCell() {
+    let cell = this.selected;
     if (!this.action) {
       this.fgAdapter.clear();
       if (cell) {
-        this.fgAdapter.defaultDrawSelector(cell);
+        let selectSize = this.sizableTools.includes(this.tool) ? this.toolSize : 1;
+        Hexular.util.hexWrap(cell, selectSize).forEach((e) => this.fgAdapter.defaultDrawSelector(e));
       }
     }
   }
@@ -733,12 +842,14 @@ class Board {
   // Alert messages
 
   setMessage(message, className) {
+    let idx = ++this.msgIdx;
     className = className || 'alert';
     this.message.classList = 'message active ' + className;
     this.message.innerHTML = message;
     clearTimeout(this.messageTimer);
     this.messageTimer = setTimeout(() => {
-      this.clearMessage();
+      if (this.msgIdx == idx)
+        this.clearMessage();
     }, 5000);
   }
 
@@ -876,39 +987,5 @@ class Board {
       this.ruleMenus.push(ruleMenu);
       this.ruleConfig.appendChild(ruleMenu.container);
     }
-  }
-}
-
-class RuleMenu {
-  constructor(board, idx, selected, disabled) {
-    this.board = board;
-    this.index = idx;
-    let rules = board.availableRules;
-    let prototype = document.querySelector('.assets .rule-menu');
-    let container = this.container = prototype.cloneNode(true);
-    let select = this.select = container.querySelector('select');
-    let indicator = this.indicator = container.querySelector('.indicator');
-    select.ruleMenu = this;
-    container.title = `State ${idx}`;
-    container.setAttribute('data-disabled', disabled);
-    indicator.style.backgroundColor = board.bgAdapter.colors[idx];
-    for (let [ruleName, fn] of Object.entries(rules)) {
-      let option = document.createElement('option');
-      option.text = ruleName;
-      option.selected = selected == fn;
-      select.appendChild(option);
-    }
-    indicator.addEventListener('mouseup', (ev) => {
-      this.checked = !this.checked;
-    });
-  }
-
-  set checked(val) {
-    if (val) this.container.classList.add('checked');
-    else this.container.classList.remove('checked');
-  }
-
-  get checked() {
-    return this.container.classList.contains('checked');
   }
 }

@@ -70,7 +70,7 @@ body:not(.mobile) button:hover:not(:disabled) {
 }
 
 body.mobile button:active, button.active {
-  background: #fb3;
+  background: #6fcfff;
   color: #fff;
 }
 
@@ -79,28 +79,72 @@ button:disabled {
   color: rgba(255, 255, 255, 0.5);
 }
 
+.tool-hider {
+  display: none;
+  position: fixed;
+  z-index: 20;
+  top: 0.1rem;
+  left: 0.1rem;
+  padding: 0.2rem;
+  border-radius: 0.2rem;
+  font-size: 0.6rem;
+}
+
 .toolbar {
+  pointer-events: none;
   position: fixed;
   z-index: 10;
-  left: 0;
-  right: 0;
   display: flex;
-  flex-direction: row;
   justify-content: center;
-  height: 0;
+  flex-wrap: wrap;
+}
+
+.toolbar * {
+  pointer-events: auto;
+}
+
+.toolbar button {
+  font-size: 1.2rem;
+/*  border-radius: 0.25rem;*/
+  margin: 0.05rem;
+  padding: 0.2rem 0.4rem;
+}
+
+.toolbar.left button, .toolbar.right button {
+  padding: 0.4rem;
+}
+
+.toolbar.top, .toolbar.bottom {
+  left: 2rem;
+  right: 2rem;
+  flex-direction: row;
+}
+
+.toolbar.left, .toolbar.right {
+  top: 2rem;
+  bottom: 2rem;
+  flex-direction: column;
 }
 
 .toolbar.top {
-  top: 0;
-  flex-wrap: wrap;
+  top: 0.05rem;
   align-items: flex-start;
-
 }
 
 .toolbar.bottom {
-  bottom: 0;
-  flex-wrap: reverse-wrap;
+  bottom: 0.05rem;
+  flex-wrap: wrap-reverse;
   align-items: flex-end;
+  left: 7rem;
+  right: 7rem;
+}
+
+.toolbar.left {
+  left: 0.05rem;
+}
+
+.toolbar.right {
+  right: 0.05rem;
 }
 
 .toolbar .group {
@@ -110,11 +154,9 @@ button:disabled {
   margin: 0 0.5rem;
 }
 
-.toolbar button {
-  font-size: 1.25rem;
-/*  border-radius: 0.25rem;*/
-  margin: 0.1rem 0.05rem 0;
-  padding: 0.25rem 0.5rem;
+.toolbar.left .group, .toolbar.right .group {
+  flex-direction: column;
+  margin: 0.5rem 0rem;
 }
 
 .toolbar.top .group > button:first-child {
@@ -133,12 +175,36 @@ button:disabled {
   border-top-right-radius: 0.5rem;
 }
 
-.toolbar.top.hidden button {
+.toolbar.left .group > button:first-child {
+  border-top-right-radius: 0.5rem;
+}
+
+.toolbar.left .group > button:last-child {
+  border-bottom-right-radius: 0.5rem;
+}
+
+.toolbar.right .group > button:first-child {
+  border-top-left-radius: 0.5rem;
+}
+
+.toolbar.right .group > button:last-child {
+  border-bottom-left-radius: 0.5rem;
+}
+
+.tool-hidden .toolbar.top {
   transform: translateY(calc(-100% - 0.2rem));
 }
 
-.toolbar.bottom.hidden button {
+.tool-hidden .toolbar.bottom {
   transform: translateY(calc(100% + 0.2rem));
+}
+
+.tool-hidden .toolbar.left {
+  transform: translateX(calc(-100% - 0.2rem));
+}
+
+.tool-hidden .toolbar.right {
+  transform: translateX(calc(100% + 0.2rem));
 }
 
 .info {
@@ -151,7 +217,7 @@ button:disabled {
   font-weight: bold;
 }
 
-.info.hidden, body.mobile .info {
+.tool-hidden .info, body.mobile .info {
   transform: translateY(calc(100% + 0.5rem));
 }
 
@@ -283,6 +349,10 @@ button:disabled {
   margin-bottom: 0;
 }
 
+@media screen and (max-width: 600px) {
+  .info { display: none; }
+  .tool-hider { display: block; }
+}
 @media screen and (max-width: 480px) {
   .modal { font-size: 0.8rem; }
 }
