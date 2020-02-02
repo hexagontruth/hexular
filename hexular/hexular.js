@@ -608,21 +608,7 @@ var Hexular = (function () {
        * @name CubicModel.cells
        * @type Cell[]
        */
-      this.cells = [this.rhombus[0]];
-      for (let i = 1; i < this.radius; i++) {
-        let cell = this.cells[0];
-        // We select the first simple neighbor in the i-th ring
-        for (let j = 0; j < i; j++)
-          cell = cell.nbrs[1];
-
-        for (let j = 0; j < 6; j++) {
-          let dir = 1 + (j + 2) % 6;
-          for (let k = 0; k < i; k++) {
-            cell = cell.nbrs[dir];
-            this.cells.push(cell);
-          }
-        }
-      }
+      this.cells = hexWrap(this.rhombus[0], this.radius);
 
       // Connect extended neighbors
       this.eachCell((cell) => {
@@ -1301,6 +1287,27 @@ var Hexular = (function () {
     return !cell.edge ? value : this.groundState;
   }
 
+  // --- UTILITY FUNCTIONS ---
+
+  function hexWrap(origin, radius) {
+    let cells = [origin];
+    for (let i = 1; i < radius; i++) {
+      let cell = origin;
+      // We select the first simple neighbor in the i-th ring
+      for (let j = 0; j < i; j++)
+        cell = cell.nbrs[1];
+
+      for (let j = 0; j < 6; j++) {
+        let dir = 1 + (j + 2) % 6;
+        for (let k = 0; k < i; k++) {
+          cell = cell.nbrs[dir];
+          cells.push(cell);
+        }
+      }
+    }
+    return cells;
+  }
+
   /**
   * Generates an elementary rule based on the state of a cell's neighbors plus optionally itself.
   *
@@ -1359,7 +1366,7 @@ var Hexular = (function () {
 
   }
 
-  // --- UTILITY FUNCTIONS ---
+  // --- MATH STUFF ---
 
   /**
    * Modulo operation for reals.
@@ -1462,10 +1469,11 @@ var Hexular = (function () {
    * @memberof Hexular.math
    */
   function roundCubic([u, v, w], radius = 1) {
-    let ru = Math.round(u / radius);
-    let rv = Math.round(v / radius);
-    let rw = Math.round(w / radius);
-    // TODO: Do this better
+    [u, v, w] = scalarOp([u, v, w], 1 / radius);
+    let ru = Math.round(u);
+    let rv = Math.round(v);
+    let rw = Math.round(w);
+
     let du = Math.abs(ru - u);
     let dv = Math.abs(rv - v);
     let dw = Math.abs(rw - w);
@@ -1474,6 +1482,8 @@ var Hexular = (function () {
       ru = -rv - rw;
     else if (du > dw)
       rv = -ru - rw;
+    else
+      rw = -ru - rv;
     return [ru, rv, rw];
   }
 
@@ -1494,6 +1504,7 @@ var Hexular = (function () {
       edgeFilter,
     },
     util: {
+      hexWrap,
       ruleBuilder,
     },
     math: Object.assign(math, {

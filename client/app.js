@@ -141,8 +141,8 @@ class Board {
         move: document.querySelector('#tool-move'),
         brush: document.querySelector('#tool-brush'),
         line: document.querySelector('#tool-line'),
-        hexFilled: document.querySelector('#tool-hexfilled'),
-        hexOutline: document.querySelector('#tool-hexoutline'),
+        hexfilled: document.querySelector('#tool-hexfilled'),
+        hexoutline: document.querySelector('#tool-hexoutline'),
       },
       controls: {
         numStates: document.querySelector('#num-states'),
@@ -228,8 +228,8 @@ class Board {
     this.tools.move.onmouseup = (ev) => this.setTool('move');
     this.tools.brush.onmouseup = (ev) => this.setTool('brush');
     this.tools.line.onmouseup = (ev) => this.setTool('line');
-    this.tools.hexFilled.onmouseup = (ev) => this.setTool('hexfilled');
-    this.tools.hexOutline.onmouseup = (ev) => this.setTool('hexoutline');
+    this.tools.hexfilled.onmouseup = (ev) => this.setTool('hexfilled');
+    this.tools.hexoutline.onmouseup = (ev) => this.setTool('hexoutline');
 
     this.controls.addRule.onmouseup = (ev) => this.handleAddRule();
     this.controls.checkAll.onmouseup = (ev) => this.handleCheckAll();
@@ -657,6 +657,9 @@ class Board {
         this.info.innerHTML = cell && cell.coord.map((c) => (c > 0 ? '+' : '-') + ('0' + Math.abs(c)).slice(-2)) || '';
       }
     }
+    else if (ev.type == 'mouseout') {
+      this.selectCell();
+    }
   }
 
   handleTouch(ev) {
@@ -691,10 +694,11 @@ class Board {
   }
 
   startAction(ev, ...args) {
+    let ctrl = ev.ctrlKey;
     let shift = ev.shiftKey;
     let Class = this.toolClasses[this.tool];
-    this.action = new Class(this);
-    this.action.start(ev, {shift}, ...args);
+    this.action = new Class(this, {ctrl, shift}, ...args);
+    this.action.start(ev);
   }
 
   endAction(ev) {

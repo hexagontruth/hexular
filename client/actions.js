@@ -1,6 +1,6 @@
 class Action {
-  constructor(board) {
-    this.board = board;
+  constructor(board, ...args) {
+    Object.assign(this, {board}, ...args);
     this.coords = [];
     this.lastSet = null;
     this.board.fgAdapter.clear();
@@ -11,7 +11,7 @@ class Action {
   end() {}
 
   _setCell(cell) {
-    if (cell && cell != this.lastSet) {
+    if (cell) {
       this.lastSet = cell;
       this.board.fgAdapter.stateBuffer.set(cell, this.setState)
       this.board.fgAdapter.defaultDrawBuffer(cell);
@@ -51,7 +51,7 @@ class Action {
 
 
 class MoveAction extends Action {
-  start(ev, ...args) {
+  start(ev) {
     this.startEv = ev;
     this.coords = [this._getPointerCoord(ev)];
   }
@@ -83,7 +83,10 @@ class PinchAction extends Action {
 class PaintAction extends Action {
   constructor(...args) {
     super(...args);
-    this.setState = (this.board.selected.state + 1) % this.board.numStates;
+    if (!this.setState)
+      this.setState = (this.board.selected.state + 1) % this.board.numStates;
+    if (this.ctrl)
+      this.setState = this.board.model.groundState;
   }
 
   end() {
@@ -93,9 +96,7 @@ class PaintAction extends Action {
 }
 
 class BrushAction extends PaintAction {
-  start(ev, ...args) {
-    Object.assign(this, ...args);
-    if (ev.ctrlKey) this.setState = this.board.groundState;
+  start(evs) {
     this._setCell(this.board.selected);
   }
 
@@ -105,49 +106,59 @@ class BrushAction extends PaintAction {
 }
 
 class LineAction extends PaintAction {
-  start(ev, ...args) {
-    this.a = this._getPointerCoord(ev);
-    this.selected = [this.board.selected];
+  start(ev) {
+    this.a = this.b = this._getPointerCoord(ev);
+    this.originCell = this.board.selected;
+    this._calculateCells();
   }
 
   move(ev) {
     this.b = this._getPointerCoord(ev);
-    this._calculateLine();
+    this._calculateCells();
   }
 
-  _calculateLine() {
-    let samples = this._getHypot(this.a, this.b) / (this.board.model.apothem * 2);
+  _calculateCells() {
+    let samples = this._getHypot(this.a, this.b) / (this.board.model.cellRadius);
     let [x, y] = this.a.slice();
     let xSample = (this.b[0] - this.a[0]) / samples;
     let ySample = (this.b[1] - this.a[1]) / samples;
-    this.selected.length = 1;
-    for (let i = 0; i < samples; i++) {
+    let cells = [this.originCell];
+    for (let i = 1; i < samples; i++) {
       x += xSample;
       y += ySample;
       let cell = this.board.cellAt([x, y]);
       // We don't actually care about dups
-      this.selected.push(cell);
+      cells.push(cell);
     }
-    this._selectBuffer();
+    this._bufferCells(cells);
   }
 
-  _selectBuffer() {
+  _bufferCells(cells) {
     this.board.fgAdapter.clear();
     this.board.fgAdapter.stateBuffer.clear();
-    this.selected.forEach((cell) => {
+    cells.forEach((cell) => {
       this._setCell(cell);
     })
   }
 }
 
-class HexAction extends PaintAction {
-
+class HexAction extends LineAction {
+  _calculateCells() {
+    let pixRad = this._getHypot(this.a, this.b);
+    this.radius = Math.ceil(pixRad / (this.board.model.apothem * 2) + 0.5);
+    let cells = Hexular.util.hexWrap(this.originCell, this.radius);
+    this._hexToBuffer(cells);
+  }
 }
 
 class HexFilledAction extends HexAction {
-
+  _hexToBuffer(cells) {
+    this._bufferCells(cells);
+  }
 }
 
 class HexOutlineAction extends HexAction {
-  
+  _hexToBuffer(cells) {
+    this._bufferCells(cells.slice((-this.radius + 1) * 6));
+  }
 }
