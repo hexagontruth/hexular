@@ -7,6 +7,9 @@ default:
       - client/presets.js
       - client/app.js
       - client/actions.js
+    client.css:
+      - client/vendor/icons.css
+      - client/app.css
 dev:
   files:
     vue.js:

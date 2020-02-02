@@ -276,13 +276,13 @@ class Board {
     if (!this.running) {
       this.timer = setInterval(this.step.bind(this), this.timerLength);
       this.buttons.step.disabled = true;
-      this.buttons.toggle.innerHTML = 'pause';
+      this.buttons.toggle.className = 'icon-pause';
     }
     else {
       clearInterval(this.timer);
       this.timer = null;
       this.buttons.step.disabled = false;
-      this.buttons.toggle.innerHTML = 'play_arrow';
+      this.buttons.toggle.className = 'icon-play';
     }
   }
 

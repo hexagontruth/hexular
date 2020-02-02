@@ -8,13 +8,6 @@
   line-height: inherit;
 }
 
-@font-face {
-  font-family: icon;
-  font-weight: normal;
-  font-style: normal;
-  src: url('vendor/material-icons.woff2') format('woff2');
-}
-
 html {
   font-size: 20px;
   font-family: 'DejaVu Sans Mono', 'Lucida Console', 'Lucida Sans Typewriter', Monaco, 'Noto Mono', monospace;
@@ -33,10 +26,6 @@ body * {
 a {
   text-decoration: none;
   color: inherit;
-}
-
-.icon {
-  font-family: icon;
 }
 
 .container {
@@ -72,7 +61,6 @@ button {
   background: #3f9fcc;
   font-weight: normal;
   font-style: normal;
-  font-family: icon;
   cursor: pointer;
 }
 
@@ -89,10 +77,6 @@ body.mobile button:active, button.active {
 button:disabled {
   cursor: default;
   color: rgba(255, 255, 255, 0.5);
-}
-
-button.text {
-  font-family: inherit;
 }
 
 .toolbar {
@@ -127,7 +111,7 @@ button.text {
 }
 
 .toolbar button {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
 /*  border-radius: 0.25rem;*/
   margin: 0.1rem 0.05rem 0;
   padding: 0.25rem 0.5rem;
@@ -280,7 +264,6 @@ button.text {
   width: 2rem;
   margin-right: 0.4rem;
   border: 0.2rem solid transparent;
-  font-family: icon;
   cursor: pointer;
 }
 
