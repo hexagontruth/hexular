@@ -94,6 +94,7 @@ class Board {
       ruleMenus: [],
       undoStack: [],
       redoStack: [],
+      msgIdx: 0,
       shift: false,
       shiftTool: 'move',
       toolClasses: {
@@ -114,6 +115,7 @@ class Board {
       info: document.querySelector('.info'),
       ruleConfig: document.querySelector('.rule-config'),
       buttons: {
+        toolHider: document.querySelector('.tool-hider'),
         toggleRecord: document.querySelector('#toggle-record'),
         togglePlay: document.querySelector('#toggle-play'),
         step: document.querySelector('#step'),
@@ -125,6 +127,7 @@ class Board {
         saveImage: document.querySelector('#save-image'),
         save: document.querySelector('#save'),
         load: document.querySelector('#load'),
+        import: document.querySelector('#import'),
         resize: document.querySelector('#resize'),
         allNonrecording: document.querySelectorAll('.toolbar .group button:not(#toggle-record):not(#toggle-play)'),
       },
@@ -206,6 +209,7 @@ class Board {
     onMouseEvent(this, this.handleMouse);
     onTouchEvent(this, this.handleTouch);
 
+    this.buttons.toolHider.onmouseup = (ev) => this.toggleToolHidden();
     this.buttons.toggleRecord.onmouseup = (ev) => this.toggleRecord();
     this.buttons.togglePlay.onmouseup = (ev) => this.togglePlay();
     this.buttons.step.onmouseup = (ev) => this.step();
@@ -217,6 +221,7 @@ class Board {
     this.buttons.saveImage.onmouseup = (ev) => this.saveImage();
     this.buttons.save.onmouseup = (ev) => this.save();
     this.buttons.load.onmouseup = (ev) => this.load();
+    this.buttons.import.onmouseup = (ev) => this.import();
     this.buttons.resize.onmouseup = (ev) => this.promptResize();
 
     this.tools.move.onmouseup = (ev) => this.setTool('move');
@@ -342,6 +347,13 @@ class Board {
     this.overlay.classList.toggle('hidden');
   }
 
+  toggleToolHidden() {
+    let hidden = document.body.classList.toggle('tool-hidden');
+    this.buttons.toolHider.classList.toggle('active');
+    this.buttons.toolHider.classList.toggle('icon-eye');
+    this.buttons.toolHider.classList.toggle('icon-eye-off');
+  }
+
   promptResize() {
     let radiusParam = this.mobile ? 'mobileRadius' : 'radius';
     let newSize = prompt('Plz enter new board size > 1 or 0 for default. Rules will be reset and cells outside of new radius will be lost.', this.model.radius);
@@ -435,6 +447,32 @@ class Board {
     };
     input.onchange = () => {
       fileReader.readAsArrayBuffer(input.files[0]);
+    };
+    input.click();
+  }
+
+  import() {
+    let fileReader = new FileReader();
+    let input = document.createElement('input');
+    input.type = 'file';
+    fileReader.onload =  (ev) => {
+      let code = ev.target.result;
+      try {
+        eval(code) // lol
+        this.refreshRules();
+        this.setMessage('Custom code imorted!');
+      }
+      catch (e) {
+        this.setMessage(e.toString(), 'error');
+      }
+
+    };
+    input.onchange = () => {
+      let file = input.files[0];
+      if (file.type.indexOf('javascript') != -1)
+        fileReader.readAsText(file);
+      else
+        this.setMessage('Please provide a JavaScript file', 'error');
     };
     input.click();
   }
@@ -603,6 +641,9 @@ class Board {
           else if (key == 'c') {
             this.clear();
           }
+          else if (key == 'i') {
+            this.import();
+          }
           else if (key == 'r') {
             this.resize();
           }
@@ -620,7 +661,7 @@ class Board {
           this.toggleConfig();
         }
         else {
-          document.body.classList.toggle('tool-hidden');
+          this.toggleToolHidden();
         }
       }
 
@@ -793,12 +834,14 @@ class Board {
   // Alert messages
 
   setMessage(message, className) {
+    let idx = ++this.msgIdx;
     className = className || 'alert';
     this.message.classList = 'message active ' + className;
     this.message.innerHTML = message;
     clearTimeout(this.messageTimer);
     this.messageTimer = setTimeout(() => {
-      this.clearMessage();
+      if (this.msgIdx == idx)
+        this.clearMessage();
     }, 5000);
   }
 
