@@ -11,13 +11,17 @@ class Action {
 
   _setCells(...cells) {
     for (let cell of cells) {
+      if (this.board.fgAdapter.stateBuffer.get(cell) == this.setState)
+        continue;
       this.board.fgAdapter.stateBuffer.set(cell, this.setState)
       this.board.fgAdapter.defaultDrawBuffer(cell);
     }
   }
 
-  _selectWithSize(cell) {
-    return cell ? Hexular.util.hexWrap(cell, board.toolSize) : [];
+  _selectWithSize(arg) {
+    if (Array.isArray(arg))
+      return [].concat(...arg.map((e) => this._selectWithSize(e)));
+    return arg ? Hexular.util.hexWrap(arg, board.toolSize) : [];
   }
 
   _applyBuffer() {
@@ -85,7 +89,7 @@ class PinchAction extends Action {
 class PaintAction extends Action {
   constructor(...args) {
     super(...args);
-    if (!this.setState)
+    if (this.setState == null)
       this.setState = (this.board.selected.state + 1) % this.board.numStates;
     if (this.ctrl)
       this.setState = this.board.model.groundState;
@@ -97,12 +101,32 @@ class PaintAction extends Action {
   }
 }
 
+class FillAction extends PaintAction {
+  start() {
+    let homeCell = this.board.selected;
+    let fillState = homeCell.state;
+    let cellSet = new Set();
+    cellSet.add(homeCell);
+    let queue = homeCell.nbrs.slice(1, 7);
+    let cur;
+    while (cur = queue.shift()) {
+      if (cur.state != fillState || cellSet.has(cur))
+        continue;
+      cellSet.add(cur);
+      for (let i = 1; i < 7; i++)
+        queue.push(cur.nbrs[i]);
+    }
+    let cells = Array.from(cellSet);
+    this._setCells(...cells);
+  }
+}
+
 class BrushAction extends PaintAction {
-  start(evs) {
+  start() {
     this._setCells(...this._selectWithSize(this.board.selected));
   }
 
-  move(ev) {
+  move() {
     this._setCells(...this._selectWithSize(this.board.selected));
   }
 }
@@ -149,18 +173,20 @@ class HexAction extends LineAction {
     let pixRad = this._getHypot(this.a, this.b) / board.scaleZoom;
     this.radius = Math.ceil(pixRad / (this.board.model.apothem * 2) + 0.5);
     let cells = Hexular.util.hexWrap(this.originCell, this.radius);
-    this._hexToBuffer(cells);
+    let outline = cells.slice((-this.radius + 1) * 6);
+    let expandedOutline = this._selectWithSize(outline);
+    this._hexToBuffer(cells, expandedOutline);
   }
 }
 
 class HexFilledAction extends HexAction {
-  _hexToBuffer(cells) {
-    this._bufferCells(cells);
+  _hexToBuffer(cells, expandedOutline) {
+    this._bufferCells(cells.concat(expandedOutline));
   }
 }
 
 class HexOutlineAction extends HexAction {
-  _hexToBuffer(cells) {
-    this._bufferCells(cells.slice((-this.radius + 1) * 6));
+  _hexToBuffer(cells, expandedOutline) {
+    this._bufferCells(expandedOutline);
   }
 }

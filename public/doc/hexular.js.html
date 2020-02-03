@@ -1457,7 +1457,7 @@ var Hexular = (function () {
       n = BigInt(n);
     }
 
-    return (cell) => {
+    let rule = (cell) => {
       let mask = 0;
       for (let i = 0; i &lt; rangeLength; i++) {
         mask = mask | ((cell.nbrs[start + i].state ? 1 : 0) &lt;&lt; (rangeLength - i - 1));
@@ -1466,7 +1466,9 @@ var Hexular = (function () {
         (cell.state &amp; incMask) + 1 :
         (cell.state - 1) &amp; decMask;
     };
-
+    rule.n = n;
+    rule.range = range;
+    return rule;
   }
 
   // --- MATH STUFF ---

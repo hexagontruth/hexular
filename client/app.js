@@ -99,6 +99,7 @@ class Board {
       shiftTool: 'move',
       toolClasses: {
         move: MoveAction,
+        fill: FillAction,
         brush: BrushAction,
         line: LineAction,
         hexfilled: HexFilledAction,
@@ -108,6 +109,8 @@ class Board {
       sizableTools: [
         'brush',
         'line',
+        'hexfilled',
+        'hexoutline',
       ],
       container: document.querySelector('.container'),
       overlay: document.querySelector('.overlay'),
@@ -132,6 +135,7 @@ class Board {
         allNonrecording: document.querySelectorAll('.toolbar .group button:not(#toggle-record):not(#toggle-play)'),
       },
       tools: {
+        fill: document.querySelector('#tool-fill'),
         move: document.querySelector('#tool-move'),
         brush: document.querySelector('#tool-brush'),
         line: document.querySelector('#tool-line'),
@@ -225,6 +229,7 @@ class Board {
     this.buttons.resize.onmouseup = (ev) => this.promptResize();
 
     this.tools.move.onmouseup = (ev) => this.setTool('move');
+    this.tools.fill.onmouseup = (ev) => this.setTool('fill');
     this.tools.brush.onmouseup = (ev) => this.setTool('brush');
     this.tools.line.onmouseup = (ev) => this.setTool('line');
     this.tools.hexfilled.onmouseup = (ev) => this.setTool('hexfilled');
@@ -684,10 +689,13 @@ class Board {
           this.step();
         }
       }
+      else if (ev.key == 'g') {
+        this.setTool('fill');
+      }
       else if (ev.key == 'b') {
         this.setTool('brush');
       }
-      else if (ev.key == 'g') {
+      else if (ev.key == 'f') {
         this.setTool('hexfilled');
       }
       else if (ev.key == 'h') {
