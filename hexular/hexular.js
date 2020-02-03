@@ -31,38 +31,38 @@
    */
 
 var Hexular = (function () {
-  // --- SOME EXCITING DEFAULT VALUES ---
-
-  // Default size for cubic (hexagonal) topology
-  const DEFAULT_RADIUS = 30;
-  // Default size for offset (rectangular) topology
-  const DEFAULT_ROWS = 60;
-  const DEFAULT_COLS = 60;
-  // Default rule is used whenever a cell state does not have an entry in model.rules
-  const DEFAULT_RULE = identityRule;
-  // This is only needed if one is using modFilter or certain cell/neighborhood helper functions
-  const DEFAULT_NUM_STATES = 2;
-  // Some functions depend on the ground state evaluating to false so changing this may be weird
-  const DEFAULT_GROUND_STATE = 0;
-  // Used by CanvasAdapter
-  const DEFAULT_CELL_RADIUS = 10;
-  const DEFAULT_BORDER_WIDTH = 1;
-  const DEFAULT_HIGHLIGHT_COLOR = '#ffbb33';
-  const DEFAULT_HIGHLIGHT_LINE_WIDTH = 2;
-  var DEFAULT_COLORS = [
-    '#ffffff',
-    '#cccccc',
-    '#999999',
-    '#666666',
-    '#333333',
-    '#cc4444',
-    '#ee7722',
-    '#eebb33',
-    '#66bb33',
-    '#66aaaa',
-    '#4455bb',
-    '#aa55bb'
-  ];
+  const DEFAULTS = {
+    // Default size for cubic (hexagonal) topology
+    radius: 30,
+    // Default size for offset (rectangular) topology
+    rows: 60,
+    cols: 60,
+    // Default rule is used whenever a cell state does not have an entry in model.rules
+    defaultRule: identityRule,
+    // This is only needed if one is using modFilter or certain cell/neighborhood helper functions
+    numStates: 2,
+    // Some functions depend on the ground state evaluating to false so changing this may be weird
+    groundState: 0,
+    // Used by CanvasAdapter
+    cellRadius: 10,
+    borderWidth: 1,
+    highlightColor: '#ffbb33',
+    highlightLineWidth: 2,
+    colors: [
+      '#ffffff',
+      '#cccccc',
+      '#999999',
+      '#666666',
+      '#333333',
+      '#cc4444',
+      '#ee7722',
+      '#eebb33',
+      '#66bb33',
+      '#66aaaa',
+      '#4455bb',
+      '#aa55bb'
+    ],
+  };
 
   const APOTHEM = Math.sqrt(3) / 2;
 
@@ -159,7 +159,7 @@ var Hexular = (function () {
          * @type function
          * @default {@link Hexular.rules.identityRule}
          */
-        defaultRule: DEFAULT_RULE,
+        defaultRule: DEFAULTS.defaultRule,
         /**
          * Total number of states.
          *
@@ -169,7 +169,7 @@ var Hexular = (function () {
          * @type number
          * @default 2
          */
-        numStates: DEFAULT_NUM_STATES,
+        numStates: DEFAULTS.numStates,
         /**
          * Default ground or "off" state for cells.
          *
@@ -180,7 +180,7 @@ var Hexular = (function () {
          * @type number
          * @default 0
          */
-        groundState: DEFAULT_GROUND_STATE,
+        groundState: DEFAULTS.groundState,
         /**
          * Non-negative numberic value defining cell radius for spatial rendering.
          *
@@ -193,7 +193,7 @@ var Hexular = (function () {
          * @see {@link Model#basis}
          * @see {@link Model#getCoord}
          */
-        cellRadius: DEFAULT_CELL_RADIUS,
+        cellRadius: DEFAULTS.cellRadius,
         /**
          * Array of rule functions.
          *
@@ -489,13 +489,13 @@ var Hexular = (function () {
          * @type number
          * @default 60
          */
-        cols: DEFAULT_COLS,
+        cols: DEFAULTS.cols,
         /**
          * @name OffsetModel#rows
          * @type number
          * @default 60
          */
-        rows: DEFAULT_ROWS,
+        rows: DEFAULTS.rows,
         cells: [],
       };
       Object.assign(this, defaults, args);
@@ -581,7 +581,7 @@ var Hexular = (function () {
          * @type number
          * @default 30
          */
-        radius: DEFAULT_RADIUS,
+        radius: DEFAULTS.radius,
       };
       Object.assign(this, defaults, ...args);
       HexError.validateKeys(this, 'radius');
@@ -1087,32 +1087,32 @@ var Hexular = (function () {
          * @type string[]
          * @default Some colors
          */
-        colors: DEFAULT_COLORS,
+        colors: DEFAULTS.colors,
 
         /**
          * @name CanvasAdapter#hightlightColor
          * @type string
          * @default #ffbb33
          */
-        highlightColor: DEFAULT_HIGHLIGHT_COLOR,
+        highlightColor: DEFAULTS.highlightColor,
         /**
          * @name CanvasAdapter#highlightLineWidth
          * @type number
          * @default 2
          */
-        highlightLineWidth: DEFAULT_HIGHLIGHT_LINE_WIDTH,
+        highlightLineWidth: DEFAULTS.highlightLineWidth,
         /**
          * @name CanvasAdapter#cellRadius
          * @type number
          * @default 10
          */
-        cellRadius: DEFAULT_CELL_RADIUS,
+        cellRadius: DEFAULTS.cellRadius,
         /**
          * @name CanvasAdapter#borderWidth
          * @type number
          * @default 1
          */
-        borderWidth: DEFAULT_BORDER_WIDTH,
+        borderWidth: DEFAULTS.borderWidth,
         /**
         * @name CanvasAdapter#context
         * @type 2DCanvasRenderingContext2D
@@ -1153,9 +1153,12 @@ var Hexular = (function () {
 
     /**
      * Draw all cells on {@link CanvasAdapter#context} context.
+     *
+     * @param  {function} fn Optional function to be called after context is cleared, but before cells are drawn.
      */
-    draw(opaque=false) {
-      this.clear(opaque);
+    draw(fn) {
+      this.clear();
+      fn && fn.bind(this)();
       this.onDrawCell.callParallel(this.model.cells);
     }
 
@@ -1166,15 +1169,10 @@ var Hexular = (function () {
      * to the center of its viewport. This is neither necessary nor assumed for other models though. Thus we simply
      * save the current transformation state, clear the visible viewport, and then restore the original transform.
      */
-    clear(opaque=false) {
+    clear() {
       this.context.save();
       this.context.setTransform(1, 0, 0, 1, 0, 0);
-      if (opaque) {
-        this.context.fillStyle = this.colors[this.model.groundState];
-        this.context.fillRect(0, 0, this.context.canvas.width, this.context.canvas.height);
-      } else {
-        this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
-      }
+      this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
       this.context.restore();
     }
 
@@ -1234,6 +1232,34 @@ var Hexular = (function () {
       this.context.strokeStyle = this.highlightColor;
       this.context.lineWidth = this.highlightLineWidth;
       this.context.stroke();
+    }
+
+    /**
+     * Draw a background in the style given by {@link Model#groundState|this.colors[this.model.groundState]}.
+     */
+    drawBackground() {
+      this.context.save();
+      this.context.setTransform(1, 0, 0, 1, 0, 0);
+      this.context.fillStyle = this.colors[this.model.groundState];
+      this.context.fillRect(0, 0, this.context.canvas.width, this.context.canvas.height);
+      this.context.restore();
+    }
+
+    /**
+     * Draw a hexagonal background appropriate to  in the style given by {@link Model#groundState|this.colors[this.model.groundState]}.
+     */
+    drawCubicBackground() {
+      if (!this.model.radius) return;
+      let radius = this.model.radius * this.cellRadius * APOTHEM * 2;
+      this.context.beginPath();
+      this.context.moveTo(radius, 0);
+      for (let i = 0; i < 6; i++) {
+        let a = Math.PI / 3 * i;
+        this.context.lineTo(Math.cos(a) * radius, Math.sin(a) * radius);
+      }
+      this.context.closePath();
+      this.context.fillStyle = this.colors[this.model.groundState];
+      this.context.fill();
     }
 
     /**
@@ -1541,9 +1567,7 @@ var Hexular = (function () {
   // ---
 
   let attributes = {
-    defaults: {
-      model: CubicModel
-    },
+    DEFAULTS: Object.assign(DEFAULTS, {model: CubicModel}),
     rules: {
       identityRule,
       nullRule,
@@ -1591,7 +1615,7 @@ var Hexular = (function () {
    * @global
    */
   const Hexular = (...args) => {
-    let Class = (args[0] && args[0].prototype instanceof Model) ? args.shift() : attributes.defaults.model;
+    let Class = (args[0] && args[0].prototype instanceof Model) ? args.shift() : attributes.DEFAULTS.model;
     return new Class(...args);
   }
 

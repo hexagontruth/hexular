@@ -6,6 +6,7 @@ const DEFAULTS = {
   numStates: null,
   maxNumStates: 12,
   timerLength: 100,
+  autopause: 1,
   undoStackSize: 64,
   mobileUndoStackSize: 16,
   availableRules: Object.assign({}, Hexular.rules, RULES),
@@ -24,6 +25,7 @@ const DEFAULTS = {
   mobileCellRadius: 20,
   groundState: 0,
   borderWidth: 1,
+  showModelBackground: 1,
   theme: 'light',
   tool: 'brush',
 };
@@ -31,37 +33,21 @@ const DEFAULTS = {
 const THEMES = {
   dark: {
     background: '#333333',
-    colors: [
+    colors: Object.assign(Hexular.DEFAULTS.colors.slice(), [
       '#000000',
       '#888888',
       '#aaaaaa',
       '#cccccc',
       '#eeeeee',
-      '#cc4444',
-      '#ee7722',
-      '#eebb33',
-      '#66bb33',
-      '#66aaaa',
-      '#4455bb',
-      '#aa55bb',
-    ],
+    ]),
   },
   light: {
     background: '#eeeeee',
-    colors: [
-      '#ffffff',
-      '#cccccc',
-      '#999999',
-      '#666666',
-      '#333333',
-      '#cc4444',
-      '#ee7722',
-      '#eebb33',
-      '#66bb33',
-      '#66aaaa',
-      '#4455bb',
-      '#aa55bb',
-    ]
+    colors: Hexular.DEFAULTS.colors.slice(),
+  },
+  white: {
+    background: '#ffffff',
+    colors: Hexular.DEFAULTS.colors.slice(),
   },
 };
 
@@ -137,7 +123,7 @@ class Board {
         save: document.querySelector('#save'),
         load: document.querySelector('#load'),
         resize: document.querySelector('#resize'),
-        allNonrecording: document.querySelectorAll('.toolbar .group button:not(#toggle-record)'),
+        allNonrecording: document.querySelectorAll('.toolbar .group button:not(#toggle-record):not(#toggle-play)'),
       },
       tools: {
         move: document.querySelector('#tool-move'),
@@ -157,6 +143,7 @@ class Board {
       }
     };
     Object.assign(this, DEFAULTS, props, ...args);
+    Object.assign(this, THEMES[this.theme]);
     let numStates;
     if (this.availableRules[this.rule]) {
       this.rules = Array(this.maxNumStates).fill(this.availableRules[this.rule]);
@@ -202,8 +189,8 @@ class Board {
     }
     this.resize();
 
-    document.body.style.backgroundColor = THEMES[this.theme].background;
-    this.colors = THEMES[this.theme].colors.slice();
+    document.body.style.backgroundColor = this.background;
+    this.colors = this.colors.slice();
     this.setTool(this.tool);
 
     window.onblur = (ev) => this.handleBlur(ev);
@@ -266,7 +253,12 @@ class Board {
     if (this.bgAdapter && !this.drawPromise) {
       this.drawPromise = new Promise((resolve, reject) => {
         requestAnimationFrame(() => {
-          this.bgAdapter.draw(!!this.recorder);
+          let callback;
+          if (!!this.recorder)
+            callback = this.bgAdapter.drawBackground;
+          else if (this.showModelBackground)
+            callback = this.bgAdapter.drawCubicBackground;
+          this.bgAdapter.draw(callback);
           this.drawPromise = null;
           resolve();
         });
@@ -321,7 +313,7 @@ class Board {
       this.model.step();
       this.draw();
       this.storeState();
-      if (!this.model.changed)
+      if (this.autopause && !this.model.changed)
         this.togglePlay();
     }
     catch (e) {
