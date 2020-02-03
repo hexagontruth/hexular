@@ -13,11 +13,7 @@ default:
       - client/vendor/icons.css
       - client/app.css
 dev:
-  files:
-    vue.js:
-      - client/vendor/vue-dev.js
+  files: {}
 
 prod:
-  files:
-    vue.js:
-      - client/vendor/vue.js
+  files: {}
