@@ -28,6 +28,7 @@ const DEFAULTS = {
   showModelBackground: 1,
   theme: 'light',
   tool: 'brush',
+  toolSize: 1,
 };
 
 const THEMES = {
@@ -103,8 +104,10 @@ class Board {
         hexoutline: HexOutlineAction,
         pinch: PinchAction,
       },
-      toolbarTop: document.querySelector('.toolbar.top'),
-      toolbarBottom: document.querySelector('.toolbar.bottom'),
+      sizableTools: [
+        'brush',
+        'line',
+      ],
       container: document.querySelector('.container'),
       overlay: document.querySelector('.overlay'),
       message: document.querySelector('.message'),
@@ -132,6 +135,11 @@ class Board {
         hexfilled: document.querySelector('#tool-hexfilled'),
         hexoutline: document.querySelector('#tool-hexoutline'),
       },
+      toolSizes: [
+        document.querySelector('#ts-1'),
+        document.querySelector('#ts-2'),
+        document.querySelector('#ts-3'),
+      ],
       controls: {
         numStates: document.querySelector('#num-states'),
         selectPreset: document.querySelector('#select-preset'),
@@ -144,19 +152,16 @@ class Board {
     };
     Object.assign(this, DEFAULTS, props, ...args);
     Object.assign(this, THEMES[this.theme]);
-    let numStates;
-    if (this.availableRules[this.rule]) {
-      this.rules = Array(this.maxNumStates).fill(this.availableRules[this.rule]);
-      numStates = this.maxNumStates;
-      this.preset = null;
-    }
-    else {
-      this.rules = Object.assign(
-        Array(this.maxNumStates).fill(this.availableRules[this.defaultRule]),
-        this.presets[this.preset].map((e) => this.availableRules[e])
-      );
+    let numStates = this.maxNumStates;
+    this.rules = Array(this.maxNumStates).fill(this.availableRules[this.defaultRule]);
+    if (this.presets[this.preset]) {
+      this.rules = Object.assign(this.rules, this.presets[this.preset].map((e) => this.availableRules[e]));
       numStates = this.presets[this.preset].length;
     }
+    else {
+      this.preset = null;
+    }
+
     if (this.numStates && this.numStates != numStates) {
       this.controls.numStates.value = this.numStates;
       this.preset = null;
@@ -187,11 +192,10 @@ class Board {
       this.cellRadius = this.mobileCellRadius;
       this.undoStackSize = this.mobileUndoStackSize;
     }
-    this.resize();
+
 
     document.body.style.backgroundColor = this.background;
     this.colors = this.colors.slice();
-    this.setTool(this.tool);
 
     window.onblur = (ev) => this.handleBlur(ev);
     window.onkeydown = (ev) => this.handleKey(ev);
@@ -220,6 +224,7 @@ class Board {
     this.tools.line.onmouseup = (ev) => this.setTool('line');
     this.tools.hexfilled.onmouseup = (ev) => this.setTool('hexfilled');
     this.tools.hexoutline.onmouseup = (ev) => this.setTool('hexoutline');
+    this.toolSizes.forEach((e, i) => e.onmouseup = (ev) => this.setToolSize(i + 1));
 
     this.controls.addRule.onmouseup = (ev) => this.handleAddRule();
     this.controls.checkAll.onmouseup = (ev) => this.handleCheckAll();
@@ -241,6 +246,9 @@ class Board {
       this.model.addFilter(Hexular.filters.edgeFilter);
     this.bgAdapter = this.model.CanvasAdapter({context: this.bgCtx, borderWidth, colors});
     this.fgAdapter = this.model.CanvasAdapter({context: this.fgCtx, borderWidth, colors});
+    this.setTool(this.tool);
+    this.setToolSize(this.toolSize);
+    this.resize();
   }
 
   get running() { return !!this.timer; }
@@ -376,6 +384,15 @@ class Board {
     if (this.tools[this.tool])
       this.tools[this.tool].classList.add('active');
     this.fg.setAttribute('data-tool', this.tool);
+    this.drawSelectedCell();
+  }
+
+  setToolSize(size) {
+    this.toolSize = size || 1;
+    this.toolSizes.forEach((e) => e.classList.remove('active'));
+    let selected = this.toolSizes[size - 1];
+    selected && selected.classList.add('active');
+    this.drawSelectedCell();
   }
 
   // Add rule or preset - also use these if adding from console
@@ -603,9 +620,7 @@ class Board {
           this.toggleConfig();
         }
         else {
-          this.toolbarTop.classList.toggle('hidden');
-          this.toolbarBottom.classList.toggle('hidden');
-          this.info.classList.toggle('hidden');
+          document.body.classList.toggle('tool-hidden');
         }
       }
 
@@ -642,6 +657,15 @@ class Board {
       }
       else if (ev.key == 'm') {
         this.setTool('move');
+      }
+      else if (ev.key == '1') {
+        this.setToolSize(1);
+      }
+      else if (ev.key == '2') {
+        this.setToolSize(2);
+      }
+      else if (ev.key == '3') {
+        this.setToolSize(3);
       }
       else if (ev.key == '`') {
         this.toggleConfig();
@@ -741,12 +765,17 @@ class Board {
   // Cell selection and setting
 
   selectCell(coord) {
-    let cell = coord && this.cellAt(coord);
-    this.selected = cell;
+    this.selected = coord && this.cellAt(coord);
+    this.drawSelectedCell();
+  }
+
+  drawSelectedCell() {
+    let cell = this.selected;
     if (!this.action) {
       this.fgAdapter.clear();
       if (cell) {
-        this.fgAdapter.defaultDrawSelector(cell);
+        let selectSize = this.sizableTools.includes(this.tool) ? this.toolSize : 1;
+        Hexular.util.hexWrap(cell, selectSize).forEach((e) => this.fgAdapter.defaultDrawSelector(e));
       }
     }
   }

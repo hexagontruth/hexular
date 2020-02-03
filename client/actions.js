@@ -2,7 +2,6 @@ class Action {
   constructor(board, ...args) {
     Object.assign(this, {board}, ...args);
     this.coords = [];
-    this.lastSet = null;
     this.board.fgAdapter.clear();
   }
 
@@ -10,12 +9,15 @@ class Action {
   move() {}
   end() {}
 
-  _setCell(cell) {
-    if (cell) {
-      this.lastSet = cell;
+  _setCells(...cells) {
+    for (let cell of cells) {
       this.board.fgAdapter.stateBuffer.set(cell, this.setState)
       this.board.fgAdapter.defaultDrawBuffer(cell);
     }
+  }
+
+  _selectWithSize(cell) {
+    return cell ? Hexular.util.hexWrap(cell, board.toolSize) : [];
   }
 
   _applyBuffer() {
@@ -97,11 +99,11 @@ class PaintAction extends Action {
 
 class BrushAction extends PaintAction {
   start(evs) {
-    this._setCell(this.board.selected);
+    this._setCells(...this._selectWithSize(this.board.selected));
   }
 
   move(ev) {
-    this._setCell(this.board.selected);
+    this._setCells(...this._selectWithSize(this.board.selected));
   }
 }
 
@@ -127,8 +129,8 @@ class LineAction extends PaintAction {
       x += xSample;
       y += ySample;
       let cell = this.board.cellAt([x, y]);
-      // We don't actually care about dups
-      cells.push(cell);
+      // We don't actually care about dups tho this probably could be tightened up a bit
+      cells = cells.concat(this._selectWithSize(cell));
     }
     this._bufferCells(cells);
   }
@@ -137,7 +139,7 @@ class LineAction extends PaintAction {
     this.board.fgAdapter.clear();
     this.board.fgAdapter.stateBuffer.clear();
     cells.forEach((cell) => {
-      this._setCell(cell);
+      this._setCells(cell);
     })
   }
 }
