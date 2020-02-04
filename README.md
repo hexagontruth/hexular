@@ -173,29 +173,35 @@ The main control buttons are, from left to right:
   - Clear (Ctrl+C)
   - Undo (Ctrl+Z)
   - Redo (Ctrl+Shift+Z)
-  - Re-center (Ctrl+R)
-  - Config &mdash; Open configuration modal
-  - Save image (Ctrl+Shift+S)
-  - Save (Ctrl+S)
+  - Record (Shift+Tab)
+  - Configure (Ctrl+K)
+  - Resize board (Ctrl+J)
+  - Re-scale and re-center (Ctrl+R)
+  - Show documentation (F1)
   - Load (Ctrl+O)
-  - Resize board &mdash; Reload the page with the given `radius` parameter
-  - Show documentation
+  - Save (Ctrl+S)
+  - Save image (Ctrl+Shift+S)
+    Import custom JavaScript (Ctrl+I)
 
 There are also tool buttons along the bottom:
 
   - Move (M)
+  - Fill (G)
   - Brush (B)
   - Line (L)
-  - Filled Hex (G)
+  - Filled Hex (F)
   - Outline Hex (H)
+  - Tool size 1 (1)
+  - Tool size 2 (2)
+  - Tool size 3 (3)
 
 Holding shift will temporarily select the move tool by default, or whatever tool is given in the `shiftTool` parameter.
 
-Additionally, `<Escape>` toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open. Scrolling a central mouse wheel or equivalent will zoom the canvas. Press `Ctrl+R` to reset the canvas to default zoom and translation.
+Additionally, `<Escape>` toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open. Scrolling a central mouse wheel or equivalent will zoom the canvas.
 
-Cell states are changed by clicking and dragging with a paint tool selected. The painted state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo `hexular.numStates`. Right clicking, conversely, decrements the cell state by one. Ctrl+clicking clears states.
+Cell states are changed by clicking and dragging with a paint tool selected. The painted state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo `Board.instance.model.numStates`. Right clicking, conversely, decrements the cell state by one. Ctrl+clicking clears states.
 
-The basic flow of the thing is to set one's preferred state using either the mouse or by importing a saved file, setting desired rules, &c. in the configuration modal, and then either starting the timer (tab) or incrementing the state one step at a time (space).
+The basic flow of the program is to set one's preferred state using either the mouse or by importing a saved file, setting desired rules, &c. in the configuration modal, and then either starting the timer (tab) or incrementing the state one step at a time (space).
 
 ### Prepopulated rules
 
@@ -214,15 +220,15 @@ The configuration modal consists of the following fields:
 
 In the configuration modal, rule assignment select menus are populated with the contents of the `rules` object loaded from `demo/rules.js`, merged with those already available in Hexular core. Custom rules may be added to this object via the console:
 
-        board.addRule(name, function)
+        Board.instance.addRule(name, function)
 
 This can also be effected via the modal by adding rules directly in the given text area. The entered code should be a JavaScript object of one or more key-value pairs, where the value is a function that takes a `Cell` instance and returns a state value. This will overwrite existing rules under a given name, though if in use the new rules will have to be re-selected from the dropdowns.
 
 We can also add our own rule presets via the console:
 
-        board.addPreset(name, array)
+        Board.instance.addPreset(name, array)
 
-Additional customization on the global `hexular` model can be performed as described above and in the documentation.
+Additional customization on the global `Board.instance.model` model can be performed as described above and in the documentation.
 
 ## More information
 

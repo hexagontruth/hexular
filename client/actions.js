@@ -21,7 +21,7 @@ class Action {
   _selectWithSize(arg) {
     if (Array.isArray(arg))
       return [].concat(...arg.map((e) => this._selectWithSize(e)));
-    return arg ? Hexular.util.hexWrap(arg, board.toolSize) : [];
+    return arg ? Hexular.util.hexWrap(arg, this.board.toolSize) : [];
   }
 
   _applyBuffer() {
@@ -97,7 +97,7 @@ class PaintAction extends Action {
 
   end() {
     this._applyBuffer();
-    this.board.storeState();
+    this.board.storeModelState();
   }
 }
 
@@ -148,7 +148,7 @@ class LineAction extends PaintAction {
     let [x, y] = this.a.slice();
     let xSample = (this.b[0] - this.a[0]) / samples;
     let ySample = (this.b[1] - this.a[1]) / samples;
-    let cells = [this.originCell];
+    let cells = this._selectWithSize(this.originCell);
     for (let i = 1; i < samples; i++) {
       x += xSample;
       y += ySample;
@@ -170,7 +170,7 @@ class LineAction extends PaintAction {
 
 class HexAction extends LineAction {
   _calculateCells() {
-    let pixRad = this._getHypot(this.a, this.b) / board.scaleZoom;
+    let pixRad = this._getHypot(this.a, this.b) / this.board.scaleZoom;
     this.radius = Math.ceil(pixRad / (this.board.model.apothem * 2) + 0.5);
     let cells = Hexular.util.hexWrap(this.originCell, this.radius);
     let outline = cells.slice((-this.radius + 1) * 6);

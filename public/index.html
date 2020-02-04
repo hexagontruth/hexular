@@ -20,10 +20,10 @@
       <button id="toggle-record" title="Record (Shift+Tab)" class="icon-record"></button>
     </div>
     <div class="group">
-      <button id="show-config" title="Config (`)" class="icon-gear"></button>
+      <button id="show-config" title="Config (Ctrl+K)" class="icon-gear"></button>
+      <button id="resize" title="Resize board (Ctrl+J)" class="icon-compass"></button>
       <button id="center" title="Center board (Ctrl+R)" class="icon-center"></button>
-      <button id="resize" title="Resize board" class="icon-resize"></button>
-      <a target="_blank" href="doc/"><button id="documentation" title="Show documentation" class="icon-info"></button></a>
+      <button id="show-documentation" title="Show documentation (F1)" class="icon-question"></button>
     </div>
   </div>
   <div class="toolbar bottom">
@@ -50,7 +50,26 @@
     </div>
   </div>
   <div class="overlay hidden">
-    <div class="modal">
+    <div class="modal resize hidden">
+      <div class="group">
+        <input type="range" id="resize-slider" min="0" max="144" step="1"
+          value="60" list="resize-ticks"-ticks" title="Board radius"/>
+        <datalist id="resize-ticks">
+          <option>18</option>
+          <option>36</option>
+          <option>54</option>
+          <option>72</option>
+          <option>90</option>
+          <option>108</option>
+          <option>126</option>
+          <option>144</option>
+        </datalist>
+      </div>
+      <div class="group buttons">
+        <button id="resize-set"></button>
+      </div>
+    </div>
+    <div class="modal config hidden">
       <div class="group">
         <input type="range" id="num-states" min="2" max="12" step="1"
           value="2" list="num-states-ticks" title="Number of States (2-12)"/>
@@ -69,8 +88,8 @@
         </select>
       </div>
       <div class="group">
-        <button id="add-rule" class="icon-plus"></button>
-        <textarea id="custom-rule">{newRule: (cell) => cell.state}</textarea>
+        <button id="add-rule" class="icon-function" title="Add custom functions"></button>
+        <textarea id="custom-rule" placeholder="{newRule: (cell) => cell.state}"></textarea>
       </div>
       <div class="group">
         <button id="check-all" class="icon-check-all"></button>

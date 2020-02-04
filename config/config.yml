@@ -9,6 +9,7 @@ default:
       - client/recorder.js
       - client/rule-menu.js
       - client/actions.js
+      - client/modals.js
     client.css:
       - client/vendor/icons.css
       - client/app.css

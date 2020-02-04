@@ -48,6 +48,7 @@ canvas[data-tool='move'] {
   cursor: move;
 }
 
+canvas[data-tool='fill'],
 canvas[data-tool='brush'],
 canvas[data-tool='line'],
 canvas[data-tool='hexfilled'],
@@ -159,36 +160,8 @@ button:disabled {
   margin: 0.5rem 0rem;
 }
 
-.toolbar.top .group > button:first-child {
-  border-bottom-left-radius: 0.5rem;
-}
-
-.toolbar.top .group > button:last-child, .toolbar .group a button {
-  border-bottom-right-radius: 0.5rem;
-}
-
-.toolbar.bottom .group > button:first-child {
-  border-top-left-radius: 0.5rem;
-}
-
-.toolbar.bottom .group > button:last-child {
-  border-top-right-radius: 0.5rem;
-}
-
-.toolbar.left .group > button:first-child {
-  border-top-right-radius: 0.5rem;
-}
-
-.toolbar.left .group > button:last-child {
-  border-bottom-right-radius: 0.5rem;
-}
-
-.toolbar.right .group > button:first-child {
-  border-top-left-radius: 0.5rem;
-}
-
-.toolbar.right .group > button:last-child {
-  border-bottom-left-radius: 0.5rem;
+.toolbar .group button {
+  border-radius: 0.5rem;
 }
 
 .tool-hidden .toolbar.top {
@@ -269,6 +242,10 @@ button:disabled {
   visibility: hidden;
 }
 
+.modal.hidden {
+  display: none;
+}
+
 .modal {
   display: flex;
   flex-direction: column;
@@ -276,9 +253,9 @@ button:disabled {
   align-items: stretch;
   font-size: 1rem;
   flex: 0 1 30rem;
-  padding: 1rem 1rem 0.5rem 1rem;
+  padding: 0.5em 1em 1em 1em;
   background: #eee;
-  border-radius: 1rem;
+  border-radius: 1em;
   box-shadow: 10px 3px 3px 'red';
 }
 
@@ -290,18 +267,32 @@ button:disabled {
 }
 
 .modal .group > * {
-  margin: 0.2rem;
+  margin: 0.2em;
 }
 
 .modal .group textarea, select, input {
   width: 100%;
-  padding: 0.25rem;
+  padding: 0.25em;
+  border-radius: 0.5em;
+  background: #fff;
 }
 
 .modal button {
-  flex: 0 0 2rem;
-  min-height: 2rem;
-  padding: 0.25rem;
+  flex: 0 0 2em;
+  min-height: 2em;
+  padding: 0.25em;
+  border-radius: 0.5em;
+}
+
+.modal.resize .group button {
+  font-family: inherit;
+  flex: 1 1 auto;
+  padding: 0 1em;
+  border-radius: 3em;
+}
+
+.modal .group.buttons button.stretch {
+  width: 100%;
 }
 
 .rule-config [data-disabled='true'] {
@@ -311,7 +302,7 @@ button:disabled {
 .modal .rule-config {
   column-count: 2;
   column-gap: 0;
-  margin: 0.2rem 0;
+  margin: 0.2em 0;
 }
 
 .modal .rule-menu {
@@ -319,26 +310,23 @@ button:disabled {
   flex-direction: row;
   justify-content: space-between;
   align-items: stretch;
-  margin: 0.4rem 0.2rem;
+  margin: 0.4em 0.2em;
 }
 
 .modal .indicator {
   display: flex;
-  flex: 0 0 2rem;
+  flex: 0 0 2em;
   justify-content: center;
   align-items: center;
-  width: 2rem;
-  margin-right: 0.4rem;
-  border: 0.2rem solid transparent;
+  width: 2em;
+  margin-right: 0.4em;
+  border: 0.2em solid transparent;
   cursor: pointer;
+  border-radius: 0.5em;
 }
 
 .modal .rule-menu.checked .indicator {
   border-color: #fb3;
-}
-
-.modal select {
-  background: #fff;
 }
 
 .modal .rule-menu:first-child {
@@ -359,6 +347,10 @@ button:disabled {
 
 @media screen and (max-width: 360px){
   html { font-size: 5.555vw; }
+}
+
+@media screen and (max-height: 540px){
+  .modal { font-size: 3.333vh; }
 }
 
 @media screen and (min-width: 2000px){

@@ -1,72 +1,81 @@
 // --- INIT ---
 
-const DEFAULTS = {
-  radius: 60,
-  mobileRadius: 30,
-  numStates: null,
-  maxNumStates: 12,
-  timerLength: 100,
-  autopause: 1,
-  undoStackSize: 64,
-  mobileUndoStackSize: 16,
-  availableRules: Object.assign({}, Hexular.rules, RULES),
-  rule: null,
-  defaultRule: 'identityRule',
-  preset: 'default',
-  presets: PRESETS,
-  defaultImageFilename: 'hexular.png',
-  defaultFilename: 'hexular.bin',
-  defaultVideoFilename: 'hexular.webm',
-  clampBottomFilter: 0,
-  clampTopFilter: 0,
-  modFilter: 1,
-  edgeFilter: 0,
-  cellRadius: 10,
-  mobileCellRadius: 20,
-  groundState: 0,
-  borderWidth: 1,
-  showModelBackground: 1,
-  theme: 'light',
-  tool: 'brush',
-  toolSize: 1,
-};
+const DEFAULTS = (() => {
+  let defaults = {
+    radius: 60,
+    mobileRadius: 30,
+    numStates: null,
+    maxNumStates: 12,
+    timerLength: 100,
+    autopause: 1,
+    undoStackSize: 64,
+    mobileUndoStackSize: 16,
+    availableRules: Object.assign({}, Hexular.rules, RULES),
+    rule: null,
+    defaultRule: 'identityRule',
+    preset: 'default',
+    presets: PRESETS,
+    defaultImageFilename: 'hexular.png',
+    defaultFilename: 'hexular.bin',
+    defaultVideoFilename: 'hexular.webm',
+    clampBottomFilter: 0,
+    clampTopFilter: 0,
+    modFilter: 1,
+    edgeFilter: 0,
+    cellRadius: 10,
+    mobileCellRadius: 20,
+    groundState: 0,
+    borderWidth: 1,
+    showModelBackground: 1,
+    theme: 'light',
+    tool: 'brush',
+    shiftTool: 'move',
+    toolSize: 1,
+    themes: {
+      dark: {
+        background: '#333333',
+        colors: Object.assign(Hexular.DEFAULTS.colors.slice(), [
+          '#000000',
+          '#888888',
+          '#aaaaaa',
+          '#cccccc',
+          '#eeeeee',
+        ]),
+      },
+      light: {
+        background: '#eeeeee',
+        colors: Hexular.DEFAULTS.colors.slice(),
+      },
+      white: {
+        background: '#ffffff',
+        colors: Hexular.DEFAULTS.colors.slice(),
+      },
+    },
+  };
 
-const THEMES = {
-  dark: {
-    background: '#333333',
-    colors: Object.assign(Hexular.DEFAULTS.colors.slice(), [
-      '#000000',
-      '#888888',
-      '#aaaaaa',
-      '#cccccc',
-      '#eeeeee',
-    ]),
-  },
-  light: {
-    background: '#eeeeee',
-    colors: Hexular.DEFAULTS.colors.slice(),
-  },
-  white: {
-    background: '#ffffff',
-    colors: Hexular.DEFAULTS.colors.slice(),
-  },
-};
-
-let board;
-
-window.addEventListener('load', function(e) {
   let opts = {};
   location.search.substring(1).split('&').filter((e) => e.length > 0).forEach((e) => {
     let pair = e.split('=');
     let parsedInt = parseInt(pair[1]);
     opts[pair[0]] = Number.isNaN(parsedInt) ? pair[1] : parsedInt;
   });
-  board = new Board(opts);
-  board.restoreState();
-  board.draw().then(() => {
-    board.refreshRules();
-    document.body.style.opacity = 1;
-  });
+
+  defaults.scaleFactor = 1
+  // Let us infer if this is a mobile browser and make some tweaks
+  if (window.devicePixelRatio > 1 && screen.width < 640) {
+    defaults.scaleFactor = window.devicePixelRatio;
+    defaults.mobile = true;
+    defaults.radius = defaults.mobileRadius;
+    defaults.cellRadius = defaults.mobileCellRadius;
+    defaults.undoStackSize = defaults.mobileUndoStackSize;
+  }
+  return Object.assign(defaults, defaults.themes[defaults.theme], opts);
+})();
+
+window.addEventListener('load', function(e) {
+  if (DEFAULTS.mobile)
+    document.body.classList.add('mobile');
+  Board.resize();
 });
 
 // --- STUFF ---
@@ -79,11 +88,21 @@ const EventHole = (...events) => {
     handlerFn = fn.bind(obj);
   };
 };
-const onMouseEvent = EventHole('mousedown', 'mouseup', 'mouseout', 'mousemove');
+const onMouseEvent = EventHole('mousedown', 'mouseup', 'mouseout', 'mousemove', 'click');
 const onTouchEvent = EventHole('touchstart', 'touchmove', 'touchend');
 
-
 class Board {
+  static resize(radius) {
+    let opts = Object.assign({}, DEFAULTS);
+    if (radius)
+      opts.radius = radius;
+    let board = Board.instance = new Board(opts);
+    board.draw().then(() => {
+      board.modals.config.update();
+      document.body.style.opacity = 1;
+    });
+  }
+
   constructor(...args) {
     let props = {
       selected: null,
@@ -91,12 +110,10 @@ class Board {
       setState: null,
       timer: null,
       messageTimer: null,
-      ruleMenus: [],
       undoStack: [],
       redoStack: [],
       msgIdx: 0,
       shift: false,
-      shiftTool: 'move',
       toolClasses: {
         move: MoveAction,
         fill: FillAction,
@@ -112,11 +129,11 @@ class Board {
         'hexfilled',
         'hexoutline',
       ],
+      modal: null,
       container: document.querySelector('.container'),
       overlay: document.querySelector('.overlay'),
       message: document.querySelector('.message'),
       info: document.querySelector('.info'),
-      ruleConfig: document.querySelector('.rule-config'),
       buttons: {
         toolHider: document.querySelector('.tool-hider'),
         toggleRecord: document.querySelector('#toggle-record'),
@@ -125,13 +142,14 @@ class Board {
         clear: document.querySelector('#clear'),
         undo: document.querySelector('#undo'),
         redo: document.querySelector('#redo'),
-        center: document.querySelector('#center'),
         showConfig: document.querySelector('#show-config'),
-        saveImage: document.querySelector('#save-image'),
-        save: document.querySelector('#save'),
-        load: document.querySelector('#load'),
-        import: document.querySelector('#import'),
         resize: document.querySelector('#resize'),
+        center: document.querySelector('#center'),
+        showDocumentation: document.querySelector('#show-documentation'),
+        load: document.querySelector('#load'),
+        save: document.querySelector('#save'),
+        saveImage: document.querySelector('#save-image'),
+        import: document.querySelector('#import'),
         allNonrecording: document.querySelectorAll('.toolbar .group button:not(#toggle-record):not(#toggle-play)'),
       },
       tools: {
@@ -147,18 +165,14 @@ class Board {
         document.querySelector('#ts-2'),
         document.querySelector('#ts-3'),
       ],
-      controls: {
-        numStates: document.querySelector('#num-states'),
-        selectPreset: document.querySelector('#select-preset'),
-        customRule: document.querySelector('#custom-rule'),
-        addRule: document.querySelector('#add-rule'),
-        checkAll: document.querySelector('#check-all'),
-        setAll: document.querySelector('#set-all'),
-        selectNeighborhood: document.querySelector('#select-neighborhood'),
+      modals: {
+        config: new ConfigModal(this, 'config'),
+        resize: new ResizeModal(this, 'resize'),
       }
     };
-    Object.assign(this, DEFAULTS, props, ...args);
-    Object.assign(this, THEMES[this.theme]);
+    Object.assign(this, props, ...args);
+
+    // Set numStates and presets
     let numStates = this.maxNumStates;
     this.rules = Array(this.maxNumStates).fill(this.availableRules[this.defaultRule]);
     if (this.presets[this.preset]) {
@@ -170,13 +184,32 @@ class Board {
     }
 
     if (this.numStates && this.numStates != numStates) {
-      this.controls.numStates.value = this.numStates;
+      this.modals.config.numStates.value = this.numStates;
       this.preset = null;
     }
     else {
-      this.controls.numStates.value = numStates;
+      this.modals.config.numStates.value = numStates;
       this.numStates = numStates;
     }
+
+    // Set logical size and scale small boards
+    let width = this.radius * this.cellRadius * Hexular.math.apothem * 4;
+    let height = this.radius * this.cellRadius * 3;
+    let scaleThreshold = 10 / 12;
+    let scaleRatio = 1;
+    if (width < window.innerWidth * scaleThreshold) {
+      scaleRatio = window.innerWidth * scaleThreshold / width;
+    }
+    if (height < window.innerHeight * scaleThreshold) {
+      scaleRatio = window.innerWidth * scaleThreshold / width;
+    }
+    this.cellRadius *= scaleRatio;
+    width *= scaleRatio;
+    height *= scaleRatio;
+    this.logicalWidth = width;
+    this.logicalHeight = height;
+
+    // Initialize canvases
     this.bg = document.createElement('canvas');
     this.fg = document.createElement('canvas');
     this.bg.classList.add('canvas', 'canvas-bg');
@@ -187,19 +220,6 @@ class Board {
     while (this.container.firstChild) this.container.firstChild.remove();
     this.container.appendChild(this.bg);
     this.container.appendChild(this.fg);
-    this.customRuleTemplate = this.controls.customRule.value;
-
-    this.scaleFactor = 1
-    // Let us infer if this is a mobile browser and make some tweaks
-    if (window.devicePixelRatio > 1 && screen.width < 640) {
-      this.scaleFactor = window.devicePixelRatio;
-      this.mobile = true;
-      document.body.classList.add('mobile');
-      this.radius = this.mobileRadius;
-      this.cellRadius = this.mobileCellRadius;
-      this.undoStackSize = this.mobileUndoStackSize;
-    }
-
 
     document.body.style.backgroundColor = this.background;
     this.colors = this.colors.slice();
@@ -214,19 +234,20 @@ class Board {
     onTouchEvent(this, this.handleTouch);
 
     this.buttons.toolHider.onmouseup = (ev) => this.toggleToolHidden();
-    this.buttons.toggleRecord.onmouseup = (ev) => this.toggleRecord();
     this.buttons.togglePlay.onmouseup = (ev) => this.togglePlay();
     this.buttons.step.onmouseup = (ev) => this.step();
     this.buttons.clear.onmouseup = (ev) => this.clear();
     this.buttons.undo.onmouseup = (ev) => this.undo();
     this.buttons.redo.onmouseup = (ev) => this.redo();
+    this.buttons.toggleRecord.onmouseup = (ev) => this.toggleRecord();
+    this.buttons.showConfig.onmouseup = (ev) => this.toggleModal('config');
+    this.buttons.resize.onmouseup = (ev) => this.toggleModal('resize');
     this.buttons.center.onmouseup = (ev) => this.resize();
-    this.buttons.showConfig.onmouseup = (ev) => this.toggleConfig();
-    this.buttons.saveImage.onmouseup = (ev) => this.saveImage();
-    this.buttons.save.onmouseup = (ev) => this.save();
+    this.buttons.showDocumentation.onmouseup = (ev) => this.showDocumentation();
     this.buttons.load.onmouseup = (ev) => this.load();
+    this.buttons.save.onmouseup = (ev) => this.save();
+    this.buttons.saveImage.onmouseup = (ev) => this.saveImage();
     this.buttons.import.onmouseup = (ev) => this.import();
-    this.buttons.resize.onmouseup = (ev) => this.promptResize();
 
     this.tools.move.onmouseup = (ev) => this.setTool('move');
     this.tools.fill.onmouseup = (ev) => this.setTool('fill');
@@ -235,14 +256,6 @@ class Board {
     this.tools.hexfilled.onmouseup = (ev) => this.setTool('hexfilled');
     this.tools.hexoutline.onmouseup = (ev) => this.setTool('hexoutline');
     this.toolSizes.forEach((e, i) => e.onmouseup = (ev) => this.setToolSize(i + 1));
-
-    this.controls.addRule.onmouseup = (ev) => this.handleAddRule();
-    this.controls.checkAll.onmouseup = (ev) => this.handleCheckAll();
-    this.controls.numStates.onchange = (ev) => this.setNumStates(ev.target.value);
-    this.controls.selectPreset.onchange = (ev) => this.selectPreset(ev.target.value);
-    this.controls.setAll.onchange = (ev) => this.handleSetAll(ev);
-    this.controls.selectNeighborhood.onchange = (ev) => this.setNeighborhood(ev.target.value);
-
 
     let {rules, radius, groundState, cellRadius, borderWidth, colors} = this;
     this.model = Hexular({rules, radius, numStates, groundState, cellRadius});
@@ -256,9 +269,12 @@ class Board {
       this.model.addFilter(Hexular.filters.edgeFilter);
     this.bgAdapter = this.model.CanvasAdapter({context: this.bgCtx, borderWidth, colors});
     this.fgAdapter = this.model.CanvasAdapter({context: this.fgCtx, borderWidth, colors});
+
+    this.restoreState();
     this.setTool(this.tool);
     this.setToolSize(this.toolSize);
     this.resize();
+    this.toggleModal();
   }
 
   get running() { return !!this.timer; }
@@ -330,7 +346,7 @@ class Board {
     try {
       this.model.step();
       this.draw();
-      this.storeState();
+      this.storeModelState();
       if (this.autopause && !this.model.changed)
         this.togglePlay();
     }
@@ -345,11 +361,23 @@ class Board {
     if (this.running) this.togglePlay();
     this.model.clear();
     this.draw();
-    this.storeState();
+    this.storeModelState();
   }
 
-  toggleConfig() {
-    this.overlay.classList.toggle('hidden');
+  toggleModal(modal) {
+    Object.values(this.modals).forEach((e) => e.close());
+    let selected = this.modals[modal];
+    let current = this.modal;
+    if (!selected || current == selected) {
+      this.modal = null;
+      this.overlay.classList.add('hidden');
+      return;
+    }
+    this.modals[modal].open();
+  }
+
+  showDocumentation() {
+    window.open('doc/', '_blank');
   }
 
   toggleToolHidden() {
@@ -359,37 +387,11 @@ class Board {
     this.buttons.toolHider.classList.toggle('icon-eye-off');
   }
 
-  promptResize() {
-    let radiusParam = this.mobile ? 'mobileRadius' : 'radius';
-    let newSize = prompt('Plz enter new board size > 1 or 0 for default. Rules will be reset and cells outside of new radius will be lost.', this.model.radius);
-    if (newSize == null)
-      return;
-    let n = Number(newSize) || DEFAULTS[radiusParam];
-    if (isNaN(n) || n < 0 || n == 1) {
-      this.setMessage('Board size must be natural number > 1', 'error');
-    }
-    else if (n != this.model.radius) {
-      let [base, params] = window.location.href.split('?');
-      let paramMap = {};
-      params = (params || '').split('&').filter((e) => e != '').map((e) => {
-        let [key, value] = e.split('=');
-        paramMap[key] = value;
-      });
-
-      paramMap[radiusParam] = n;
-      if (n == DEFAULTS[radiusParam])
-        delete paramMap[radiusParam];
-      let url = base;
-      if (Object.keys(paramMap).length > 0)
-        url += '?' + Object.entries(paramMap).map((e) => e.join('=')).join('&');
-      location.href = url;
-    }
-  }
-
   setTool(tool, fallbackTool) {
     if (tool) {
       this.tool = tool;
       this.fallbackTool = fallbackTool || tool;
+      this.storeState({toolState: this.tool});
     }
     else if (this.shift) {
       this.tool = this.shiftTool;
@@ -406,6 +408,7 @@ class Board {
 
   setToolSize(size) {
     this.toolSize = size || 1;
+    this.storeState({toolSizeState: this.toolSize});
     this.toolSizes.forEach((e) => e.classList.remove('active'));
     let selected = this.toolSizes[size - 1];
     selected && selected.classList.add('active');
@@ -416,12 +419,12 @@ class Board {
 
   addRule(ruleName, fn) {
     this.availableRules[ruleName] = fn;
-    this.refreshRules();
+    this.modals.config.update();
   }
 
   addPreset(presetName, fnArray) {
     this.presets[presetName] = fnArray;
-    this.refreshRules();
+    this.modas.config.update();
   }
 
   // Save/load
@@ -448,7 +451,7 @@ class Board {
       let bytes = new Int8Array(buffer);
       this.model.import(bytes);
       this.draw();
-      this.storeState();
+      this.storeModelState();
     };
     input.onchange = () => {
       fileReader.readAsArrayBuffer(input.files[0]);
@@ -464,7 +467,7 @@ class Board {
       let code = ev.target.result;
       try {
         eval(code) // lol
-        this.refreshRules();
+        this.modals.config.update();
         this.setMessage('Custom code imorted!');
       }
       catch (e) {
@@ -489,19 +492,33 @@ class Board {
     a.click();
   }
 
-  storeState(bytes) {
+  storeModelState(bytes) {
     bytes = bytes || this.model.export();
     let str = bytes.join('');
-    sessionStorage.setItem('modelState', str);
+    this.storeState({modelState: str});
+  }
+
+  storeState(opts={}) {
+    Object.entries(opts).forEach(([key, value]) => {
+      sessionStorage.setItem(key, value);
+    });
   }
 
   restoreState() {
     let modelState = sessionStorage.getItem('modelState');
+    let toolState = sessionStorage.getItem('toolState');
+    let toolSizeState = sessionStorage.getItem('toolSizeState');
     if (modelState) {
       this.newHistoryState();
       let bytes = new Int8Array(modelState.split(''));
       this.model.import(bytes);
       this.draw();
+    }
+    if (toolState) {
+      this.setTool(toolState);
+    }
+    if (toolSizeState) {
+      this.setToolSize(toolSizeState);
     }
   }
 
@@ -521,7 +538,7 @@ class Board {
     if (nextState) {
       let curState = this.model.export()
       this.model.import(nextState);
-      this.storeState(nextState);
+      this.storeModelState(nextState);
       this.redoStack.push(curState);
       this.draw();
       this.refreshHistoryButtons();
@@ -534,7 +551,7 @@ class Board {
     if (nextState) {
       let curState = this.model.export()
       this.model.import(nextState);
-      this.storeState(nextState);
+      this.storeModelState(nextState);
       this.undoStack.push(curState);
       this.draw();
       this.refreshHistoryButtons();
@@ -549,8 +566,6 @@ class Board {
   // Canvas transform stuff
 
   resize() {
-    this.logicalWidth = this.radius * this.cellRadius * Hexular.math.apothem * 4;
-    this.logicalHeight = this.radius * this.cellRadius * 3;
     this.canvasWidth = this.logicalWidth / this.scaleFactor;
     this.canvasHeight = this.logicalHeight / this.scaleFactor;
     this.translateX = 0;
@@ -595,6 +610,7 @@ class Board {
       ctx.scale(scale, scale);
     });
     this.draw();
+    this.drawSelectedCell();
   }
 
   // Page/canvas listeners
@@ -615,6 +631,10 @@ class Board {
   }
 
   handleKey(ev) {
+    let types = ['textarea', 'input', 'select'];
+    if (types.includes(ev.target.type)) {
+      return;
+    }
     let key = ev.key.toLowerCase();
     if (ev.key == 'Shift') {
       this.shift = ev.type == 'keydown';
@@ -651,6 +671,12 @@ class Board {
           }
           else if (key == 'r') {
             this.resize();
+          } 
+          else if (key == 'k') {
+            this.toggleModal('config');
+          }
+          else if (key == 'j') {
+            this.toggleModal('resize');
           }
           else {
             return;
@@ -662,8 +688,8 @@ class Board {
       }
       // ESC to hide/show controls
       else if (ev.key == 'Escape') {
-        if (!this.overlay.classList.contains('hidden')) {
-          this.toggleConfig();
+        if (this.modal) {
+          this.toggleModal();
         }
         else {
           this.toggleToolHidden();
@@ -689,6 +715,11 @@ class Board {
           this.step();
         }
       }
+      // F1 to show documentation
+      else if (ev.key == 'F1') {
+        this.showDocumentation();
+      }
+      // Tool and lesser keys
       else if (ev.key == 'g') {
         this.setTool('fill');
       }
@@ -716,9 +747,6 @@ class Board {
       else if (ev.key == '3') {
         this.setToolSize(3);
       }
-      else if (ev.key == '`') {
-        this.toggleConfig();
-      }
       else {
         return;
       }
@@ -738,15 +766,18 @@ class Board {
           this.startAction(ev, {setState});
         }
       }
-      else if (ev.target == this.overlay) {
-        this.toggleConfig();
+    }
+    else if (ev.type == 'mouseup' && this.action) {
+      this.endAction(ev);
+    }
+    else if (ev.type == 'click') {
+      if (ev.target == this.overlay) {
+        this.toggleModal();
+        ev.stopPropagation();
       }
       else if (ev.target == this.message) {
         this.clearMessage();
       }
-    }
-    else if (ev.type == 'mouseup' && this.action) {
-      this.endAction(ev);
     }
     else if (ev.type == 'mousemove') {
       let cell;
@@ -857,135 +888,5 @@ class Board {
     this.message.className = 'message';
     requestAnimationFrame(() => this.message.innerHTML = '');
     clearTimeout(this.messageTimer);
-  }
-
-  handleAddRule() {
-    try {
-      let obj = new Function(`return (${this.controls.customRule.value})`)();
-      if (Object.keys(obj).length < 1) {
-        this.setMessage('No rules added. Too bad.');
-        return;
-      }
-      Object.assign(this.availableRules, obj);
-      this.refreshRules();
-      let ruleNames = Object.keys(obj);
-      this.controls.customRule.addClass
-      this.setMessage(`Added rule${ruleNames.length > 1 ? 's' : ''} ${ruleNames.join(', ')}.`);
-    }
-    catch (err) {
-      this.setMessage(`An error occurred: ${err}.`, 'error');
-    }
-  }
-
-  handleCheckAll() {
-    let check = !this.ruleMenus.every((ruleMenu) => ruleMenu.checked);
-    if (check)
-      this.controls.checkAll.classList.add('checked');
-    else
-      this.controls.checkAll.classList.remove('checked');
-    this.ruleMenus.forEach((ruleMenu) => {
-      ruleMenu.checked = check;
-    });
-  }
-
-  handleSetAll(ev) {
-    let ruleName = this.controls.setAll.value;
-    const rule = this.availableRules[ruleName] || this.rules.identityRule;
-    this.ruleMenus.forEach((ruleMenu) => {
-      if (ruleMenu.checked) {
-        ruleMenu.select.value = ruleName;
-        this.model.rules[ruleMenu.index] = rule;
-      }
-    });
-    this.controls.setAll.selectedIndex = 0;
-    this.checkPreset();
-  }
-
-  handleSetRule(ev) {
-    const ctl = ev.target;
-    this.model.rules[ctl.ruleMenu.index] = this.availableRules[ctl.value] || this.availableRules.identityRule;
-    this.checkPreset();
-  }
-
-  // Set default neighborhood for rules using top-level cell helper functions
-
-  setNeighborhood(neighborhood) {
-    this.model.setNeighborhood(neighborhood);
-  }
-
-  // Preset setting and checking
-
-  selectPreset(presetName) {
-    const presetList = this.presets[presetName];
-    if (!presetList)
-      return;
-    this.setNumStates(presetList.length);
-    this.ruleMenus.forEach((ruleMenu) => {
-      let ruleName = presetList[ruleMenu.index] || 'identityRule';
-      let fn = this.availableRules[ruleName];
-      ruleMenu.select.value = ruleName;
-      this.model.rules[ruleMenu.index] = fn;
-    });
-    this.preset = presetName;
-    this.controls.selectPreset.value = presetName;
-  }
-
-  checkPreset() {
-    const presetList = this.presets[this.preset];
-    if (!presetList)
-      return;
-    let dirty = (() => {
-      if (this.model.numStates != presetList.length)
-        return true;
-      return this.model.rules.slice(0, this.model.numStates).reduce((a, ruleFn, idx) => {
-        return a || this.availableRules[idx] != ruleFn;
-      }, false);
-    })();
-    if (dirty) {
-      this.controls.selectPreset.selectedIndex = 0;
-      this.preset = null;
-    }
-  }
-
-  setNumStates(val) {
-    if (val)
-      this.controls.numStates.value = val;
-    const numStates = parseInt(this.controls.numStates.value);
-    this.numStates = this.model.numStates = parseInt(numStates);
-    this.ruleMenus.forEach((ruleMenu) => {
-      let disabled = ruleMenu.index >= numStates;
-      ruleMenu.container.setAttribute('data-disabled', disabled);
-      this.model.rules[ruleMenu.index] = this.rules[ruleMenu.index];
-    });
-    this.checkPreset();
-  }
-
-  refreshRules() {
-    // Refresh presets
-    this.controls.selectPreset.options.length = 1;
-    for (let presetName of Object.keys(this.presets)) {
-      let option = document.createElement('option');
-      option.text = presetName;
-      option.selected = presetName == this.preset;
-      this.controls.selectPreset.appendChild(option);
-    }
-
-    // Refresh rules
-    this.controls.setAll.options.length = 1;
-    for (let ruleName of Object.keys(this.availableRules)) {
-      let option = document.createElement('option');
-      option.text = ruleName;
-      this.controls.setAll.appendChild(option);
-    }
-
-    while (this.ruleConfig.firstChild) this.ruleConfig.firstChild.remove();
-    this.ruleMenus = [];
-
-    for (let i = 0; i < this.maxNumStates; i++) {
-      let ruleMenu = new RuleMenu(this, i, this.model.rules[i], i >= this.model.numStates);
-      ruleMenu.select.addEventListener('change', (ev) => this.handleSetRule(ev));
-      this.ruleMenus.push(ruleMenu);
-      this.ruleConfig.appendChild(ruleMenu.container);
-    }
   }
 }
