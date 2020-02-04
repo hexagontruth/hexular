@@ -156,22 +156,22 @@ end user to implement her own extensions via the Hexular API:</p>
 </code></pre>
 <p>Filters simply take a state value and an optional <a href="Cell.html"><code>cell</code></a> instance, and return a filtered state value.</p>
 <h4 id="drawing-hooks">Drawing hooks</h4>
-<p>We can also override or extend the default cell-drawing behavior of <code>CanvasAdapter</code> in arbitrary aesthetic ways, to create more complex renderings. For example, the following will add a tasteful red triangle between any three activated cells:</p>
-<pre><code>    adapter.onDrawCell.push(function(cell) {
+<p>We can also override or extend the default cell-drawing behavior of <code>CanvasAdapter</code> in arbitrary aesthetic ways, to create more complex renderings. For example opening the console in the Hexular Studio interface and running the following will add a tasteful red triangle between any three activated cells:</p>
+<pre><code>    Board.instance.bgAdapter.onDrawCell.push(function(cell) {
       if (!cell.state)
         return;
       let slice = cell.with[6].nbrSlice;
-      this.renderer.fillStyle = '#ff3300';
+      this.context.fillStyle = '#ff3300';
       for (let i = 0; i &lt; 5; i++) {
         let n1 = slice[i];
         let n2 = slice[(i + 1) % 6];
         if (n1.state &amp;&amp; n2.state &amp;&amp; !n1.edge &amp;&amp; !n2.edge) {
-          this.renderer.beginPath();
-          this.renderer.moveTo(...this.cellMap.get(cell));
-          this.renderer.lineTo(...this.cellMap.get(n1));
-          this.renderer.lineTo(...this.cellMap.get(n2));
-          this.renderer.closePath();
-          this.renderer.fill();
+          this.context.beginPath();
+          this.context.moveTo(...this.model.cellMap.get(cell));
+          this.context.lineTo(...this.model.cellMap.get(n1));
+          this.context.lineTo(...this.model.cellMap.get(n2));
+          this.context.closePath();
+          this.context.fill();
         }
       }
     });
@@ -206,26 +206,33 @@ end user to implement her own extensions via the Hexular API:</p>
 <li>Clear (Ctrl+C)</li>
 <li>Undo (Ctrl+Z)</li>
 <li>Redo (Ctrl+Shift+Z)</li>
-<li>Re-center (Ctrl+R)</li>
-<li>Config — Open configuration modal</li>
-<li>Save image (Ctrl+Shift+S)</li>
-<li>Save (Ctrl+S)</li>
+<li>Record (Shift+Tab)</li>
+<li>Configure (Ctrl+K)</li>
+<li>Resize board (Ctrl+J)</li>
+<li>Re-scale and re-center (Ctrl+R)</li>
+<li>Show documentation (F1)</li>
 <li>Load (Ctrl+O)</li>
-<li>Resize board — Reload the page with the given <code>radius</code> parameter</li>
-<li>Show documentation</li>
+<li>Save (Ctrl+S)</li>
+<li>Save image (Ctrl+Shift+S)
+Import custom JavaScript (Ctrl+I)</li>
 </ul>
 <p>There are also tool buttons along the bottom:</p>
 <ul>
 <li>Move (M)</li>
+<li>Fill (G)</li>
 <li>Brush (B)</li>
 <li>Line (L)</li>
-<li>Filled Hex (G)</li>
+<li>Filled Hex (F)</li>
 <li>Outline Hex (H)</li>
+<li>Tool size 1 (1)</li>
+<li>Tool size 2 (2)</li>
+<li>Tool size 3 (3)</li>
+<li>Color mode toggle (C)</li>
 </ul>
 <p>Holding shift will temporarily select the move tool by default, or whatever tool is given in the <code>shiftTool</code> parameter.</p>
-<p>Additionally, <code>&lt;Escape&gt;</code> toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open. Scrolling a central mouse wheel or equivalent will zoom the canvas. Press <code>Ctrl+R</code> to reset the canvas to default zoom and translation.</p>
-<p>Cell states are changed by clicking and dragging with a paint tool selected. The painted state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo <code>hexular.numStates</code>. Right clicking, conversely, decrements the cell state by one. Ctrl+clicking clears states.</p>
-<p>The basic flow of the thing is to set one's preferred state using either the mouse or by importing a saved file, setting desired rules, &amp;c. in the configuration modal, and then either starting the timer (tab) or incrementing the state one step at a time (space).</p>
+<p>Additionally, <code>&lt;Escape&gt;</code> toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open. Scrolling a central mouse wheel or equivalent will zoom the canvas.</p>
+<p>Cell states are changed by clicking and dragging with a paint tool selected. By default, the painting state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo <code>Board.instance.model.numStates</code>. Right clicking, conversely, decrements the cell state by one, and ctrl+clicking clears to the ground state. Setting a specific state color can be effected by toggling the color mode button on the bottom right. Toggling color mode off brings back the default behavior.</p>
+<p>The basic flow of the program is to set one's preferred state using either the mouse or by importing a saved file, setting desired rules, &amp;c. in the configuration modal, and then either starting the timer (tab) or incrementing the state one step at a time (space).</p>
 <h3 id="prepopulated-rules">Prepopulated rules</h3>
 <p>Several predefined rules are given in <code>client/rules.js</code> though these are largely for convenience and not meant to be exhaustive. There are also several built-in &quot;presets,&quot; or lists of 2-12 rules, in <code>client/presets.js</code>. (These are compiled to <code>public/build/client.js</code> as part of the build process.)</p>
 <h3 id="studio-configuration-and-customization">Studio configuration and customization</h3>
@@ -239,13 +246,13 @@ end user to implement her own extensions via the Hexular API:</p>
 <li>A dropdown to set the default cell neighborhood</li>
 </ul>
 <p>In the configuration modal, rule assignment select menus are populated with the contents of the <code>rules</code> object loaded from <code>demo/rules.js</code>, merged with those already available in Hexular core. Custom rules may be added to this object via the console:</p>
-<pre><code>    board.addRule(name, function)
+<pre><code>    Board.instance.addRule(name, function)
 </code></pre>
 <p>This can also be effected via the modal by adding rules directly in the given text area. The entered code should be a JavaScript object of one or more key-value pairs, where the value is a function that takes a <code>Cell</code> instance and returns a state value. This will overwrite existing rules under a given name, though if in use the new rules will have to be re-selected from the dropdowns.</p>
 <p>We can also add our own rule presets via the console:</p>
-<pre><code>    board.addPreset(name, array)
+<pre><code>    Board.instance.addPreset(name, array)
 </code></pre>
-<p>Additional customization on the global <code>hexular</code> model can be performed as described above and in the documentation.</p>
+<p>Additional customization on the global <code>Board.instance.model</code> model can be performed as described above and in the documentation.</p>
 <h2 id="more-information">More information</h2>
 <ul>
 <li>
@@ -256,6 +263,9 @@ end user to implement her own extensions via the Hexular API:</p>
 </li>
 <li>
 <p>Despite my general expertise in this area, I continue to find Amit Patel's <a href="http://www.redblobgames.com/grids/hexagons/">Hexagonal Grids</a> page to be an invaluable resource when dealing with hex grids, and much of the terminology I've used around cubic coordinates is taken from his distillation of the topic.</p>
+</li>
+<li>
+<p>Many of the icons used in the Hexular Studio interface are taken from the <a href="https://materialdesignicons.com/">Material Design Icons</a> project, and distributed under the Open Font License. The font itself was compiled using <a href="http://fontello.com/">Fontello</a>.</p>
 </li>
 <li>
 <p>For more information on HEXAGONAL AWARENESS, please check out:</p>
@@ -298,7 +308,7 @@ end user to implement her own extensions via the Hexular API:</p>
 
     
     <dt class="tag-version">Version:</dt>
-    <dd class="tag-version"><ul class="dummy"><li>0.2</li></ul></dd>
+    <dd class="tag-version"><ul class="dummy"><li>0.2-beta</li></ul></dd>
     
 
     

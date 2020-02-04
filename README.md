@@ -119,23 +119,23 @@ Filters simply take a state value and an optional [`cell`](Cell.html) instance, 
 
 #### Drawing hooks
 
-We can also override or extend the default cell-drawing behavior of `CanvasAdapter` in arbitrary aesthetic ways, to create more complex renderings. For example, the following will add a tasteful red triangle between any three activated cells:
+We can also override or extend the default cell-drawing behavior of `CanvasAdapter` in arbitrary aesthetic ways, to create more complex renderings. For example opening the console in the Hexular Studio interface and running the following will add a tasteful red triangle between any three activated cells:
 
-        adapter.onDrawCell.push(function(cell) {
+        Board.instance.bgAdapter.onDrawCell.push(function(cell) {
           if (!cell.state)
             return;
           let slice = cell.with[6].nbrSlice;
-          this.renderer.fillStyle = '#ff3300';
+          this.context.fillStyle = '#ff3300';
           for (let i = 0; i < 5; i++) {
             let n1 = slice[i];
             let n2 = slice[(i + 1) % 6];
             if (n1.state && n2.state && !n1.edge && !n2.edge) {
-              this.renderer.beginPath();
-              this.renderer.moveTo(...this.cellMap.get(cell));
-              this.renderer.lineTo(...this.cellMap.get(n1));
-              this.renderer.lineTo(...this.cellMap.get(n2));
-              this.renderer.closePath();
-              this.renderer.fill();
+              this.context.beginPath();
+              this.context.moveTo(...this.model.cellMap.get(cell));
+              this.context.lineTo(...this.model.cellMap.get(n1));
+              this.context.lineTo(...this.model.cellMap.get(n2));
+              this.context.closePath();
+              this.context.fill();
             }
           }
         });
@@ -173,29 +173,36 @@ The main control buttons are, from left to right:
   - Clear (Ctrl+C)
   - Undo (Ctrl+Z)
   - Redo (Ctrl+Shift+Z)
-  - Re-center (Ctrl+R)
-  - Config &mdash; Open configuration modal
-  - Save image (Ctrl+Shift+S)
-  - Save (Ctrl+S)
+  - Record (Shift+Tab)
+  - Configure (Ctrl+K)
+  - Resize board (Ctrl+J)
+  - Re-scale and re-center (Ctrl+R)
+  - Show documentation (F1)
   - Load (Ctrl+O)
-  - Resize board &mdash; Reload the page with the given `radius` parameter
-  - Show documentation
+  - Save (Ctrl+S)
+  - Save image (Ctrl+Shift+S)
+    Import custom JavaScript (Ctrl+I)
 
 There are also tool buttons along the bottom:
 
   - Move (M)
+  - Fill (G)
   - Brush (B)
   - Line (L)
-  - Filled Hex (G)
+  - Filled Hex (F)
   - Outline Hex (H)
+  - Tool size 1 (1)
+  - Tool size 2 (2)
+  - Tool size 3 (3)
+  - Color mode toggle (C)
 
 Holding shift will temporarily select the move tool by default, or whatever tool is given in the `shiftTool` parameter.
 
-Additionally, `<Escape>` toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open. Scrolling a central mouse wheel or equivalent will zoom the canvas. Press `Ctrl+R` to reset the canvas to default zoom and translation.
+Additionally, `<Escape>` toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open. Scrolling a central mouse wheel or equivalent will zoom the canvas.
 
-Cell states are changed by clicking and dragging with a paint tool selected. The painted state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo `hexular.numStates`. Right clicking, conversely, decrements the cell state by one. Ctrl+clicking clears states.
+Cell states are changed by clicking and dragging with a paint tool selected. By default, the painting state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo `Board.instance.model.numStates`. Right clicking, conversely, decrements the cell state by one, and ctrl+clicking clears to the ground state. Setting a specific state color can be effected by toggling the color mode button on the bottom right. Toggling color mode off brings back the default behavior.
 
-The basic flow of the thing is to set one's preferred state using either the mouse or by importing a saved file, setting desired rules, &c. in the configuration modal, and then either starting the timer (tab) or incrementing the state one step at a time (space).
+The basic flow of the program is to set one's preferred state using either the mouse or by importing a saved file, setting desired rules, &c. in the configuration modal, and then either starting the timer (tab) or incrementing the state one step at a time (space).
 
 ### Prepopulated rules
 
@@ -214,15 +221,15 @@ The configuration modal consists of the following fields:
 
 In the configuration modal, rule assignment select menus are populated with the contents of the `rules` object loaded from `demo/rules.js`, merged with those already available in Hexular core. Custom rules may be added to this object via the console:
 
-        board.addRule(name, function)
+        Board.instance.addRule(name, function)
 
 This can also be effected via the modal by adding rules directly in the given text area. The entered code should be a JavaScript object of one or more key-value pairs, where the value is a function that takes a `Cell` instance and returns a state value. This will overwrite existing rules under a given name, though if in use the new rules will have to be re-selected from the dropdowns.
 
 We can also add our own rule presets via the console:
 
-        board.addPreset(name, array)
+        Board.instance.addPreset(name, array)
 
-Additional customization on the global `hexular` model can be performed as described above and in the documentation.
+Additional customization on the global `Board.instance.model` model can be performed as described above and in the documentation.
 
 ## More information
 
@@ -231,6 +238,8 @@ Additional customization on the global `hexular` model can be performed as descr
   - Also, Charlotte Dann's [Hexagonal Generative Art](http://codepen.io/pouretrebelle/post/hexagons), which incorporates CA-type rules along with more elaborate structural elements.
 
   - Despite my general expertise in this area, I continue to find Amit Patel's [Hexagonal Grids](http://www.redblobgames.com/grids/hexagons/) page to be an invaluable resource when dealing with hex grids, and much of the terminology I've used around cubic coordinates is taken from his distillation of the topic.
+
+  - Many of the icons used in the Hexular Studio interface are taken from the [Material Design Icons](https://materialdesignicons.com/) project, and distributed under the Open Font License. The font itself was compiled using [Fontello](http://fontello.com/).
 
   - For more information on HEXAGONAL AWARENESS, please check out:
     - [https://twitter.com/hexagonalnews](https://twitter.com/hexagonalnews)

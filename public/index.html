@@ -20,10 +20,11 @@
       <button id="toggle-record" title="Record (Shift+Tab)" class="icon-record"></button>
     </div>
     <div class="group">
-      <button id="show-config" title="Config (`)" class="icon-gear"></button>
+      <button id="show-config" title="Config (Ctrl+K)" class="icon-gear"></button>
+      <button id="resize" title="Resize board (Ctrl+J)" class="icon-compass"></button>
+      <button id="show-custom" title="Add custom code" class="icon-function"></button>
       <button id="center" title="Center board (Ctrl+R)" class="icon-center"></button>
-      <button id="resize" title="Resize board" class="icon-resize"></button>
-      <a target="_blank" href="doc/"><button id="documentation" title="Show documentation" class="icon-info"></button></a>
+      <button id="show-documentation" title="Show documentation (F1)" class="icon-question"></button>
     </div>
   </div>
   <div class="toolbar bottom">
@@ -32,16 +33,17 @@
       <button class="tool icon-color-fill" id="tool-fill" title="Fill (G)"></button>
       <button class="tool icon-brush" id="tool-brush" title="Brush (B)"></button>
       <button class="tool icon-vector-line" id="tool-line" title="Line (L)"></button>
-      <button class="tool icon-hexagon" id="tool-hexfilled" title="Filled Hex (F)"></button>
-      <button class="tool icon-hexagon-outline" id="tool-hexoutline" title="Outline Hex (H)"></button>
+      <button class="tool icon-hexagon rotate" id="tool-hexfilled" title="Filled Hex (F)"></button>
+      <button class="tool icon-hexagon-outline rotate" id="tool-hexoutline" title="Outline Hex (H)"></button>
     </div>
     <div class="group tool-sizes">
       <button class="tool icon-hex-radius-1" id="ts-1" title="One (1)"></button>
       <button class="tool icon-hex-radius-2" id="ts-2" title="Two (2)"></button>
       <button class="tool icon-hex-radius-3" id="ts-3" title="Three (3)"></button>
+      <button class="tool icon-palette" id="tool-color" title="Color mode (C)"></button>
     </div>
   </div>
-  <div class="toolbar right">
+  <div class="toolbar left">
     <div class="group">
       <button id="load" title="Load state... (Ctrl+O)" class="icon-upload"></button>
       <button id="save" title="Save state... (Ctrl+S)" class="icon-download"></button>
@@ -49,8 +51,51 @@
       <button id="import" title="Import custom JavaScript (Ctrl+I)" class="icon-cloud-code"></button>
     </div>
   </div>
+  <div class="toolbar right colors hidden">
+    <div class="group">
+      <button></button>
+      <button></button>
+      <button></button>
+      <button></button>
+      <button></button>
+      <button></button>
+      <button></button>
+      <button></button>
+      <button></button>
+      <button></button>
+      <button></button>
+      <button></button>
+    </div>
+  </div>
   <div class="overlay hidden">
-    <div class="modal">
+    <div class="modal resize hidden">
+      <div class="group">
+        <input type="range" id="resize-slider" min="0" max="144" step="1"
+          value="60" list="resize-ticks"-ticks" title="Board radius"/>
+        <datalist id="resize-ticks">
+          <option>18</option>
+          <option>36</option>
+          <option>54</option>
+          <option>72</option>
+          <option>90</option>
+          <option>108</option>
+          <option>126</option>
+          <option>144</option>
+        </datalist>
+      </div>
+      <div class="group buttons">
+        <button id="resize-set"></button>
+      </div>
+    </div>
+    <div class="modal custom hidden">
+      <div class="group">
+        <textarea id="custom-code" placeholder="Board.instance.addRule('newRule', (cell) => cell.state)"></textarea>
+      </div>
+      <div class="group buttons">
+        <button id="add-custom-code">Add custom code</button>
+      </div>
+    </div>
+    <div class="modal config hidden">
       <div class="group">
         <input type="range" id="num-states" min="2" max="12" step="1"
           value="2" list="num-states-ticks" title="Number of States (2-12)"/>
@@ -64,13 +109,10 @@
         </datalist>
       </div>
       <div class="group">
+        <button id="add-preset" class="icon-plus"></button>
         <select id="select-preset">
           <option value="">- Select preset -</option>
         </select>
-      </div>
-      <div class="group">
-        <button id="add-rule" class="icon-plus"></button>
-        <textarea id="custom-rule">{newRule: (cell) => cell.state}</textarea>
       </div>
       <div class="group">
         <button id="check-all" class="icon-check-all"></button>
@@ -85,7 +127,7 @@
           <option value="6" selected>N6: 6 immediate neighbors</option>
           <option value="12">N12: 12 closest neighbors</option>
           <option value="18">N18: 18 closest neighbors</option>
-          <option value="7">N7: 6 nighbors + self</option>
+          <option value="7">N7: 6 neighbors + self</option>
           <option value="13">N13: 12 neighbors + self</option>
           <option value="19">N19: 19 neighbors + self</option>
         </select>
@@ -94,7 +136,8 @@
   </div>
   <div class="message"></div>
   <button class="tool-hider active icon-eye"></button>
-  <div class="info"></div>
+  <div class="info info-cursor"></div>
+  <div class="info info-tool"></div>
   <div class="assets" style="display: none;">
     <div class="rule-menu checkable">
       <div class="indicator"></div>
