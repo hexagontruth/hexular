@@ -156,22 +156,22 @@ end user to implement her own extensions via the Hexular API:</p>
 </code></pre>
 <p>Filters simply take a state value and an optional <a href="Cell.html"><code>cell</code></a> instance, and return a filtered state value.</p>
 <h4 id="drawing-hooks">Drawing hooks</h4>
-<p>We can also override or extend the default cell-drawing behavior of <code>CanvasAdapter</code> in arbitrary aesthetic ways, to create more complex renderings. For example, the following will add a tasteful red triangle between any three activated cells:</p>
-<pre><code>    adapter.onDrawCell.push(function(cell) {
+<p>We can also override or extend the default cell-drawing behavior of <code>CanvasAdapter</code> in arbitrary aesthetic ways, to create more complex renderings. For example opening the console in the Hexular Studio interface and running the following will add a tasteful red triangle between any three activated cells:</p>
+<pre><code>    Board.instance.bgAdapter.onDrawCell.push(function(cell) {
       if (!cell.state)
         return;
       let slice = cell.with[6].nbrSlice;
-      this.renderer.fillStyle = '#ff3300';
+      this.context.fillStyle = '#ff3300';
       for (let i = 0; i &lt; 5; i++) {
         let n1 = slice[i];
         let n2 = slice[(i + 1) % 6];
         if (n1.state &amp;&amp; n2.state &amp;&amp; !n1.edge &amp;&amp; !n2.edge) {
-          this.renderer.beginPath();
-          this.renderer.moveTo(...this.cellMap.get(cell));
-          this.renderer.lineTo(...this.cellMap.get(n1));
-          this.renderer.lineTo(...this.cellMap.get(n2));
-          this.renderer.closePath();
-          this.renderer.fill();
+          this.context.beginPath();
+          this.context.moveTo(...this.model.cellMap.get(cell));
+          this.context.lineTo(...this.model.cellMap.get(n1));
+          this.context.lineTo(...this.model.cellMap.get(n2));
+          this.context.closePath();
+          this.context.fill();
         }
       }
     });
@@ -227,10 +227,11 @@ Import custom JavaScript (Ctrl+I)</li>
 <li>Tool size 1 (1)</li>
 <li>Tool size 2 (2)</li>
 <li>Tool size 3 (3)</li>
+<li>Color mode toggle (C)</li>
 </ul>
 <p>Holding shift will temporarily select the move tool by default, or whatever tool is given in the <code>shiftTool</code> parameter.</p>
 <p>Additionally, <code>&lt;Escape&gt;</code> toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open. Scrolling a central mouse wheel or equivalent will zoom the canvas.</p>
-<p>Cell states are changed by clicking and dragging with a paint tool selected. The painted state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo <code>Board.instance.model.numStates</code>. Right clicking, conversely, decrements the cell state by one. Ctrl+clicking clears states.</p>
+<p>Cell states are changed by clicking and dragging with a paint tool selected. By default, the painting state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo <code>Board.instance.model.numStates</code>. Right clicking, conversely, decrements the cell state by one, and ctrl+clicking clears to the ground state. Setting a specific state color can be effected by toggling the color mode button on the bottom right. Toggling color mode off brings back the default behavior.</p>
 <p>The basic flow of the program is to set one's preferred state using either the mouse or by importing a saved file, setting desired rules, &amp;c. in the configuration modal, and then either starting the timer (tab) or incrementing the state one step at a time (space).</p>
 <h3 id="prepopulated-rules">Prepopulated rules</h3>
 <p>Several predefined rules are given in <code>client/rules.js</code> though these are largely for convenience and not meant to be exhaustive. There are also several built-in &quot;presets,&quot; or lists of 2-12 rules, in <code>client/presets.js</code>. (These are compiled to <code>public/build/client.js</code> as part of the build process.)</p>
@@ -262,6 +263,9 @@ Import custom JavaScript (Ctrl+I)</li>
 </li>
 <li>
 <p>Despite my general expertise in this area, I continue to find Amit Patel's <a href="http://www.redblobgames.com/grids/hexagons/">Hexagonal Grids</a> page to be an invaluable resource when dealing with hex grids, and much of the terminology I've used around cubic coordinates is taken from his distillation of the topic.</p>
+</li>
+<li>
+<p>Many of the icons used in the Hexular Studio interface are taken from the <a href="https://materialdesignicons.com/">Material Design Icons</a> project, and distributed under the Open Font License. The font itself was compiled using <a href="http://fontello.com/">Fontello</a>.</p>
 </li>
 <li>
 <p>For more information on HEXAGONAL AWARENESS, please check out:</p>
@@ -304,7 +308,7 @@ Import custom JavaScript (Ctrl+I)</li>
 
     
     <dt class="tag-version">Version:</dt>
-    <dd class="tag-version"><ul class="dummy"><li>0.2</li></ul></dd>
+    <dd class="tag-version"><ul class="dummy"><li>0.2-beta</li></ul></dd>
     
 
     

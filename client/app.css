@@ -84,8 +84,8 @@ button:disabled {
   display: none;
   position: fixed;
   z-index: 20;
-  top: 0.1rem;
-  left: 0.1rem;
+  top: 0.2rem;
+  left: 0.2rem;
   padding: 0.2rem;
   border-radius: 0.2rem;
   font-size: 0.6rem;
@@ -164,6 +164,52 @@ button:disabled {
   border-radius: 0.5rem;
 }
 
+.toolbar.colors .group {
+  background: #3f9fcc;
+  border-radius: 3rem;
+  margin: 0.2rem;
+}
+
+.toolbar.colors .group button {
+  position: relative;
+  width: 1rem;
+  height: 1rem;
+  margin: -0.1rem;
+  border: 0.2rem solid #3f9fcc;
+  border-radius: 0;
+}
+
+.toolbar.colors .group button:first-child {
+  margin-top: 0;
+  border-top-left-radius: 3rem;
+  border-top-right-radius: 3rem;
+}
+
+.toolbar.colors .group button:last-child {
+  margin-bottom: 0;
+  border-bottom-left-radius: 3rem;
+  border-bottom-right-radius: 3rem;
+}
+
+.toolbar.colors .group button.active-0,
+.toolbar.colors .group button.active-1 {
+  z-index: 20;
+}
+
+.toolbar.colors .group button.active-0 {
+  border-color: #6fcfff;
+  border-right-color: #3f9fcc !important;
+}
+
+.toolbar.colors .group button.active-1 {
+  border-color: #6fcfff;
+  border-left-color: #3f9fcc !important;
+}
+
+.toolbar.colors .group button.active-0.active-1 {
+  border-color: #6fcfff !important;
+}
+
 .tool-hidden .toolbar.top {
   transform: translateY(calc(-100% - 0.2rem));
 }
@@ -176,7 +222,7 @@ button:disabled {
   transform: translateX(calc(-100% - 0.2rem));
 }
 
-.tool-hidden .toolbar.right {
+.tool-hidden .toolbar.right, .toolbar.right.hidden {
   transform: translateX(calc(100% + 0.2rem));
 }
 
@@ -184,14 +230,26 @@ button:disabled {
   position: fixed;
   z-index: 20;
   right: 0.5rem;
-  bottom: 0.5rem;
+
   line-height: 1;
   color: #3f9fcc;
   font-weight: bold;
 }
 
-.tool-hidden .info, body.mobile .info {
+.info-cursor {
+  bottom: 0.5rem;
+}
+
+.info-tool {
+  top: 0.5rem;
+}
+
+.tool-hidden .info-cursor, body.mobile .info {
   transform: translateY(calc(100% + 0.5rem));
+}
+
+.tool-hidden .info-tool, body.mobile .info {
+  transform: translateY(calc(-100% - 0.5rem));
 }
 
 .message {

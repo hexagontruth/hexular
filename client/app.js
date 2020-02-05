@@ -31,9 +31,11 @@ const DEFAULTS = (() => {
     tool: 'brush',
     shiftTool: 'move',
     toolSize: 1,
+    colorMode: 0,
+    paintColors: [1, 0],
     themes: {
       dark: {
-        background: '#333333',
+        background: '#222222',
         colors: Object.assign(Hexular.DEFAULTS.colors.slice(), [
           '#000000',
           '#888888',
@@ -49,6 +51,23 @@ const DEFAULTS = (() => {
       white: {
         background: '#ffffff',
         colors: Hexular.DEFAULTS.colors.slice(),
+      },
+      darkRainbow: {
+        background: '#222222',
+        colors: Object.assign(Hexular.DEFAULTS.colors.slice(), [
+          '#000000',
+          '#ff0000',
+          '#ffaa00',
+          '#aaff00',
+          '#00ff00',
+          '#00ffff',
+          '#00aaff',
+          '#0066ff',
+          '#0000ff',
+          '#aa00ff',
+          '#ff00ff',
+          '#ff00aa',
+        ]),
       },
     },
   };
@@ -69,7 +88,8 @@ const DEFAULTS = (() => {
     defaults.cellRadius = defaults.mobileCellRadius;
     defaults.undoStackSize = defaults.mobileUndoStackSize;
   }
-  return Object.assign(defaults, defaults.themes[defaults.theme], opts);
+  let theme = opts.theme || defaults.theme;
+  return Object.assign(defaults, defaults.themes[theme], opts);
 })();
 
 window.addEventListener('load', function(e) {
@@ -133,7 +153,10 @@ class Board {
       container: document.querySelector('.container'),
       overlay: document.querySelector('.overlay'),
       message: document.querySelector('.message'),
-      info: document.querySelector('.info'),
+      infoCursor: document.querySelector('.info-cursor'),
+      infoTool: document.querySelector('.info-tool'),
+      toolInfo: document.querySelector('.tool-info'),
+      colorToolbar: document.querySelector('.toolbar.colors'),
       buttons: {
         toolHider: document.querySelector('.tool-hider'),
         toggleRecord: document.querySelector('#toggle-record'),
@@ -165,6 +188,10 @@ class Board {
         document.querySelector('#ts-2'),
         document.querySelector('#ts-3'),
       ],
+      toolMisc: {
+        color: document.querySelector('#tool-color'),
+      },
+      colorButtons: Array.from(document.querySelectorAll('.toolbar.colors button')),
       modals: {
         config: new ConfigModal(this, 'config'),
         resize: new ResizeModal(this, 'resize'),
@@ -191,6 +218,7 @@ class Board {
       this.modals.config.numStates.value = numStates;
       this.numStates = numStates;
     }
+    this.maxNumStates = Math.max(this.maxNumStates, this.numStates);
 
     // Set logical size and scale small boards
     let width = this.radius * this.cellRadius * Hexular.math.apothem * 4;
@@ -255,7 +283,12 @@ class Board {
     this.tools.line.onmouseup = (ev) => this.setTool('line');
     this.tools.hexfilled.onmouseup = (ev) => this.setTool('hexfilled');
     this.tools.hexoutline.onmouseup = (ev) => this.setTool('hexoutline');
+    this.toolMisc.color.onmouseup = (ev) => this.setColorMode();
     this.toolSizes.forEach((e, i) => e.onmouseup = (ev) => this.setToolSize(i + 1));
+    this.colorButtons.forEach((button, i) => {
+      button.onmousedown = (ev) => this.handleSetColor(ev, i);
+      button.style.backgroundColor = this.colors[i];
+    });
 
     let {rules, radius, groundState, cellRadius, borderWidth, colors} = this;
     this.model = Hexular({rules, radius, numStates, groundState, cellRadius});
@@ -273,6 +306,9 @@ class Board {
     this.restoreState();
     this.setTool(this.tool);
     this.setToolSize(this.toolSize);
+    this.setColorMode(this.colorMode);
+    this.setColor(0, this.paintColors[0]);
+    this.setColor(1, this.mobile ? -1 : this.paintColors[1]);
     this.resize();
     this.toggleModal();
   }
@@ -391,7 +427,7 @@ class Board {
     if (tool) {
       this.tool = tool;
       this.fallbackTool = fallbackTool || tool;
-      this.storeState({toolState: this.tool});
+      this.storeState({tool: this.tool});
     }
     else if (this.shift) {
       this.tool = this.shiftTool;
@@ -408,11 +444,48 @@ class Board {
 
   setToolSize(size) {
     this.toolSize = size || 1;
-    this.storeState({toolSizeState: this.toolSize});
+    this.storeState({toolSize: this.toolSize});
     this.toolSizes.forEach((e) => e.classList.remove('active'));
     let selected = this.toolSizes[size - 1];
     selected && selected.classList.add('active');
     this.drawSelectedCell();
+  }
+
+  setColorMode(mode) {
+    this.colorMode = mode != null ? mode : +!this.colorMode;
+    this.storeState({colorMode: this.colorMode});
+    if (this.colorMode) {
+      this.toolMisc.color.classList.add('active');
+      this.colorToolbar.classList.remove('hidden');
+    }
+    else {
+      this.colorToolbar.classList.add('hidden');
+      this.toolMisc.color.classList.remove('active');
+    }
+  }
+
+  setColor(idx, color) {
+    this.paintColors[idx] = color;
+    this.storeState({paintColors: this.paintColors.join(',')});
+    let className = `active-${idx}`;
+    this.colorButtons.forEach((e) => e.classList.remove(className));
+    this.colorButtons[color] && this.colorButtons[color].classList.add(className);
+  }
+
+  getPaintColor(idx) {
+    let offset = idx ? -1 : 1;
+    return this.colorMode ? this.paintColors[idx] : Hexular.math.mod(this.selected.state + offset, this.numStates);
+  }
+
+  updateInfoCursorInfo() {
+    let cell = this.selected;
+    this.infoCursor.innerHTML =
+      cell && cell.coord.map((c) => (c > 0 ? '+' : '-') + ('0' + Math.abs(c)).slice(-2)) || '';
+  }
+
+  updateInfoTool() {
+    let info = this.action && this.action.info;
+    this.infoTool.innerHTML = info != null ? info : '';
   }
 
   // Add rule or preset - also use these if adding from console
@@ -494,7 +567,8 @@ class Board {
 
   storeModelState(bytes) {
     bytes = bytes || this.model.export();
-    let str = bytes.join('');
+    window.bytes = bytes;
+    let str = Array.from(bytes).map((e) => e.toString(36)).join('');
     this.storeState({modelState: str});
   }
 
@@ -506,19 +580,24 @@ class Board {
 
   restoreState() {
     let modelState = sessionStorage.getItem('modelState');
-    let toolState = sessionStorage.getItem('toolState');
-    let toolSizeState = sessionStorage.getItem('toolSizeState');
+    let tool = sessionStorage.getItem('tool');
+    let toolSize = sessionStorage.getItem('toolSize');
+    let colorMode = parseInt(sessionStorage.getItem('colorMode'));
+    let paintColors = sessionStorage.getItem('paintColors');
     if (modelState) {
       this.newHistoryState();
-      let bytes = new Int8Array(modelState.split(''));
+      let numArray = modelState.split('').map((e) => parseInt(e, 36));
+      let bytes = new Int8Array(numArray);
       this.model.import(bytes);
       this.draw();
     }
-    if (toolState) {
-      this.setTool(toolState);
-    }
-    if (toolSizeState) {
-      this.setToolSize(toolSizeState);
+    tool && this.setTool(tool);
+    toolSize && this.setToolSize(toolSize);
+    colorMode != null && this.setColorMode(colorMode);
+    if (paintColors) {
+      paintColors.split(',').forEach((e, i) => {
+        this.setColor(i, parseInt(e));
+      })
     }
   }
 
@@ -615,6 +694,13 @@ class Board {
 
   // Page/canvas listeners
 
+  handleSetColor(ev, color) {
+    if (ev.buttons & 1)
+      this.setColor(0, color);
+    if (ev.buttons & 2)
+      this.setColor(1, color);
+  }
+
   handleBlur(ev) {
     this.shift = false;
     this.setTool();
@@ -627,7 +713,8 @@ class Board {
   }
 
   handleContextmenu(ev) {
-    if (ev.target == this.fg) ev.preventDefault();
+    if (ev.target == this.fg || this.colorButtons.includes(ev.target))
+      ev.preventDefault();
   }
 
   handleKey(ev) {
@@ -747,6 +834,21 @@ class Board {
       else if (ev.key == '3') {
         this.setToolSize(3);
       }
+      else if (ev.key == 'c') {
+        this.setColorMode();
+      }
+      else if (ev.shiftKey && this.colorMode && ev.key == 'ArrowUp') {
+        this.setColor(1, Hexular.math.mod(this.paintColors[1] - 1, this.colorButtons.length));
+      }
+      else if (ev.shiftKey && this.colorMode && ev.key == 'ArrowDown') {
+        this.setColor(1, Hexular.math.mod(this.paintColors[1] + 1, this.colorButtons.length));
+      }
+      else if (this.colorMode && ev.key == 'ArrowUp') {
+        this.setColor(0, Hexular.math.mod(this.paintColors[0] - 1, this.colorButtons.length));
+      }
+      else if (this.colorMode && ev.key == 'ArrowDown') {
+        this.setColor(0, Hexular.math.mod(this.paintColors[0] + 1, this.colorButtons.length));
+      }
       else {
         return;
       }
@@ -762,7 +864,7 @@ class Board {
           this.startAction(ev);
         }
         else if (ev.buttons & 2) {
-          let setState = Hexular.math.mod(this.selected.state - 1, this.model.numStates);
+          let setState = this.getPaintColor(1);
           this.startAction(ev, {setState});
         }
       }
@@ -783,14 +885,13 @@ class Board {
       let cell;
       if (ev.target == this.fg) {
         this.selectCell([ev.pageX, ev.pageY]);
-        this.action && this.action.move(ev);
+        this.moveAction(ev);
       }
       else {
         this.selectCell();
       }
       if (ev.target != this.info) {
-        let cell = this.selected;
-        this.info.innerHTML = cell && cell.coord.map((c) => (c > 0 ? '+' : '-') + ('0' + Math.abs(c)).slice(-2)) || '';
+        this.updateInfoCursorInfo();
       }
     }
     else if (ev.type == 'mouseout') {
@@ -808,7 +909,7 @@ class Board {
         }
         if (ev.type == 'touchmove') {
           this.selectCell([x, y]);
-          this.action && this.action.move(ev);
+          this.moveAction(ev);
         }
         ev.preventDefault();
       }
@@ -819,7 +920,7 @@ class Board {
           this.setTool();
         }
         if (ev.type == 'touchmove') {
-          this.action && this.action.move(ev);
+          this.moveAction(ev);
         }
       }
       if (ev.type == 'touchend') {
@@ -835,11 +936,20 @@ class Board {
     let Class = this.toolClasses[this.tool];
     this.action = new Class(this, {ctrl, shift}, ...args);
     this.action.start(ev);
+    this.updateInfoTool();
+  }
+
+  moveAction(ev) {
+    if (this.action) {
+      this.action.move(ev);
+      this.updateInfoTool();
+    }
   }
 
   endAction(ev) {
     this.action && this.action.end(ev);
     this.action = null;
+    this.updateInfoTool();
   }
 
   // Cell selection and setting

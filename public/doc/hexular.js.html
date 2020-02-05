@@ -26,7 +26,7 @@
         <article>
             <pre class="prettyprint source linenums"><code>/**
  * @overview
- * @version 0.2
+ * @version 0.2-beta
  * @author graham
  * @copyright 2020
  * @license Hexagonal Awareness License (HAL)
@@ -282,11 +282,11 @@ var Hexular = (function () {
       /**
        * Apothem computed from {@link Model#cellRadius}.
        *
-       * @name Model#apothem
+       * @name Model#cellApothem
        * @type number
        *
        */
-      this.apothem = this.cellRadius * math.apothem;
+      this.cellApothem = this.cellRadius * math.apothem;
       // Add available adapter constructors as direct attributes of this instance
       Object.entries(attributes.classes.adapters).forEach(([className, Class]) => {
         this[className] = (...args) => new Class(this, ...args);

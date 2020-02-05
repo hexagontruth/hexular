@@ -21,6 +21,10 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+[class^="icon-"].rotate::before, [class*=" icon-"].rotate::before {
+  transform: rotate(30deg);
+}
+
 .icon-question:before { content: '\e800'; }
 .icon-compass:before { content: '\e801'; }
 .icon-resize-horizontal:before { content: '\e802'; }

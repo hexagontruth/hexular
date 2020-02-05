@@ -119,23 +119,23 @@ Filters simply take a state value and an optional [`cell`](Cell.html) instance, 
 
 #### Drawing hooks
 
-We can also override or extend the default cell-drawing behavior of `CanvasAdapter` in arbitrary aesthetic ways, to create more complex renderings. For example, the following will add a tasteful red triangle between any three activated cells:
+We can also override or extend the default cell-drawing behavior of `CanvasAdapter` in arbitrary aesthetic ways, to create more complex renderings. For example opening the console in the Hexular Studio interface and running the following will add a tasteful red triangle between any three activated cells:
 
-        adapter.onDrawCell.push(function(cell) {
+        Board.instance.bgAdapter.onDrawCell.push(function(cell) {
           if (!cell.state)
             return;
           let slice = cell.with[6].nbrSlice;
-          this.renderer.fillStyle = '#ff3300';
+          this.context.fillStyle = '#ff3300';
           for (let i = 0; i < 5; i++) {
             let n1 = slice[i];
             let n2 = slice[(i + 1) % 6];
             if (n1.state && n2.state && !n1.edge && !n2.edge) {
-              this.renderer.beginPath();
-              this.renderer.moveTo(...this.cellMap.get(cell));
-              this.renderer.lineTo(...this.cellMap.get(n1));
-              this.renderer.lineTo(...this.cellMap.get(n2));
-              this.renderer.closePath();
-              this.renderer.fill();
+              this.context.beginPath();
+              this.context.moveTo(...this.model.cellMap.get(cell));
+              this.context.lineTo(...this.model.cellMap.get(n1));
+              this.context.lineTo(...this.model.cellMap.get(n2));
+              this.context.closePath();
+              this.context.fill();
             }
           }
         });
@@ -194,12 +194,13 @@ There are also tool buttons along the bottom:
   - Tool size 1 (1)
   - Tool size 2 (2)
   - Tool size 3 (3)
+  - Color mode toggle (C)
 
 Holding shift will temporarily select the move tool by default, or whatever tool is given in the `shiftTool` parameter.
 
 Additionally, `<Escape>` toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open. Scrolling a central mouse wheel or equivalent will zoom the canvas.
 
-Cell states are changed by clicking and dragging with a paint tool selected. The painted state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo `Board.instance.model.numStates`. Right clicking, conversely, decrements the cell state by one. Ctrl+clicking clears states.
+Cell states are changed by clicking and dragging with a paint tool selected. By default, the painting state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo `Board.instance.model.numStates`. Right clicking, conversely, decrements the cell state by one, and ctrl+clicking clears to the ground state. Setting a specific state color can be effected by toggling the color mode button on the bottom right. Toggling color mode off brings back the default behavior.
 
 The basic flow of the program is to set one's preferred state using either the mouse or by importing a saved file, setting desired rules, &c. in the configuration modal, and then either starting the timer (tab) or incrementing the state one step at a time (space).
 
@@ -237,6 +238,8 @@ Additional customization on the global `Board.instance.model` model can be perfo
   - Also, Charlotte Dann's [Hexagonal Generative Art](http://codepen.io/pouretrebelle/post/hexagons), which incorporates CA-type rules along with more elaborate structural elements.
 
   - Despite my general expertise in this area, I continue to find Amit Patel's [Hexagonal Grids](http://www.redblobgames.com/grids/hexagons/) page to be an invaluable resource when dealing with hex grids, and much of the terminology I've used around cubic coordinates is taken from his distillation of the topic.
+
+  - Many of the icons used in the Hexular Studio interface are taken from the [Material Design Icons](https://materialdesignicons.com/) project, and distributed under the Open Font License. The font itself was compiled using [Fontello](http://fontello.com/).
 
   - For more information on HEXAGONAL AWARENESS, please check out:
     - [https://twitter.com/hexagonalnews](https://twitter.com/hexagonalnews)

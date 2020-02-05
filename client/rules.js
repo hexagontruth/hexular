@@ -23,26 +23,45 @@ const RULES = {
 
   binary34: (cell) => {
     const count = cell.count;
-    return count == 3 || count == 4 ? 1 : 0;
+    return count == 3 || count == 4 ? cell.state + 1 : 0;
   },
 
-  // offset is similar to binary except it increments instead of setting to 1
+  offset1: (cell) => cell.count == 1 ? cell.state + 1 : 0,
+
+  offset2: (cell) => cell.count == 2 ? cell.state + 1 : 0,
+
+  offset3: (cell) => cell.count == 3 ? cell.state + 1 : 0,
+
+  offset12: (cell) => {
+    const count = cell.count;
+    return count == 1 || count == 2 ? cell.state + 1 : 0;
+  },
 
   offset23: (cell) => {
     const count = cell.count;
     return count == 2 || count == 3 ? cell.state + 1 : 0;
   },
 
-  // Same as standardOn, using states > 1 to represent activation generation
+  offset24: (cell) => {
+    const count = cell.count;
+    return count == 2 || count == 4 ? cell.state + 1 : 0;
+  },
 
   offset34: (cell) => {
     const count = cell.count;
     return count == 3 || count == 4 ? cell.state + 1 : 0;
   },
 
-  // Simple multistate rule
 
-  offset23minus: (cell) => {
+  // Increment or decrement each state -- useful for holding activation for fixed period
+
+  stepDown: (cell) => cell.state - 1,
+
+  stepUp: (cell) => cell.state + 1,
+
+  // Simple multistate rule - was the original higher-state ruel in the "classic" Hexular demo
+
+  classicDuplex23: (cell) => {
     const count = cell.count;
     if (count == 2 || count == 3)
       return cell.state + 1;
@@ -62,52 +81,28 @@ const RULES = {
       return cell.state;
   },
 
-  // Increment each state -- useful for holding activation for fixed period
-  // Generally not helpful to use this as a ground state
-
-  cycle: (cell) => cell.state + 1,
-
-  anticycle: (cell) => cell.state - 1,
-
-  // A cumulative offset rule
-  // Pretty sure I meant for "isomod" to stand for "isotropic modulo" but I'm not sure what this means here
+  // A simple cumulative offset rule - can also be effected by total rule + N7 neighborhood
+  // Pretty sure I meant for "isomod" to stand for "isotropic modulo" but I'm not sure what that means here
 
   isomod: (cell) => cell.state + cell.total,
 
   // Some xor-inspired rules
 
-  totalXor: (cell) => cell.total % 2,
+  xorCount: (cell) => cell.count % 2,
 
-  countXor: (cell) => cell.count % 2,
+  xorTotal: (cell) => cell.total % 2,
 
-  incrementXor: (cell) => Math.max(0, cell.state + (cell.count % 2 ? 1 : -1)),
+  xorIncrement: (cell) => cell.state + (cell.count % 2 ? 1 : -1),
 
-  // This doesn't do a lot but can be a good utility placeholder in certain states
+  // Basic passhtrough functions
 
   average: (cell) => cell.average,
 
+  count: (cell) => cell.count,
+
+  total: (cell) => cell.total,
+
   // Here are some examples of the built-in ruleBuilder functionality
-
-  socialMinimalist: Hexular.util.ruleBuilder([
-    0b1000001,
-    0b1000010,
-    0b1000100,
-    0b1001000,
-    0b1010000,
-    0b1100000,
-  ], {range: [0, 7], inc: false}),
-
-  fractalLeft: Hexular.util.ruleBuilder([
-    0b010000,
-    0b000100,
-    0b000001,
-  ]),
-
-  lineFilter: Hexular.util.ruleBuilder([
-    0b001001,
-    0b010010,
-    0b100100,
-  ], {invert: true}),
 
   ennead: Hexular.util.ruleBuilder([
     0b001001,
@@ -120,4 +115,52 @@ const RULES = {
     0b110000,
     0b100001,
   ]),
+
+  fractalLeft: Hexular.util.ruleBuilder([
+    0b010000,
+    0b000100,
+    0b000001,
+  ]),
+
+  fractalRight: Hexular.util.ruleBuilder([
+    0b100000,
+    0b001000,
+    0b000010,
+  ]),
+
+  lineFilter: Hexular.util.ruleBuilder([
+    0b001001,
+    0b010010,
+    0b100100,
+  ], {invert: true}),
+
+  patternedOffset: Hexular.util.ruleBuilder([
+
+    0b010101,
+    0b101010,
+    0b000101,
+    0b001010,
+    0b010100,
+    0b101000,
+    0b010001,
+    0b100010,
+    0b001001,
+    0b010010,
+    0b100100,
+    0b000011,
+    0b000110,
+    0b001100,
+    0b011000,
+    0b110000,
+    0b100001,
+  ], {dec: true}),
+
+  socialMinimalist: Hexular.util.ruleBuilder([
+    0b1000001,
+    0b1000010,
+    0b1000100,
+    0b1001000,
+    0b1010000,
+    0b1100000,
+  ], {range: [0, 7], inc: false}),
 };

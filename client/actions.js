@@ -90,7 +90,7 @@ class PaintAction extends Action {
   constructor(...args) {
     super(...args);
     if (this.setState == null)
-      this.setState = (this.board.selected.state + 1) % this.board.numStates;
+      this.setState = this.board.getPaintColor(0);
     if (this.ctrl)
       this.setState = this.board.model.groundState;
   }
@@ -135,16 +135,19 @@ class LineAction extends PaintAction {
   start(ev) {
     this.a = this.b = this._getPointerCoord(ev);
     this.originCell = this.board.selected;
+    this.info = 0;
     this._calculateCells();
   }
 
   move(ev) {
     this.b = this._getPointerCoord(ev);
+    this.length = this._getHypot(this.a, this.b);
+    this.info = (this.length / this.board.model.cellApothem / 2 / this.board.scaleZoom).toFixed(2);
     this._calculateCells();
   }
 
   _calculateCells() {
-    let samples = this._getHypot(this.a, this.b) / (this.board.model.cellRadius) / this.board.scaleZoom;
+    let samples =  this.length / (this.board.model.cellRadius) / this.board.scaleZoom;
     let [x, y] = this.a.slice();
     let xSample = (this.b[0] - this.a[0]) / samples;
     let ySample = (this.b[1] - this.a[1]) / samples;
@@ -170,8 +173,8 @@ class LineAction extends PaintAction {
 
 class HexAction extends LineAction {
   _calculateCells() {
-    let pixRad = this._getHypot(this.a, this.b) / this.board.scaleZoom;
-    this.radius = Math.ceil(pixRad / (this.board.model.apothem * 2) + 0.5);
+    let pixRad = this.length / this.board.scaleZoom;
+    this.radius = Math.ceil(pixRad / (this.board.model.cellApothem * 2) + 0.5);
     let cells = Hexular.util.hexWrap(this.originCell, this.radius);
     let outline = cells.slice((-this.radius + 1) * 6);
     let expandedOutline = this._selectWithSize(outline);
