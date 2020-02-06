@@ -46,25 +46,53 @@ class ResizeModal extends Modal {
   }
 }
 
+class CustomModal extends Modal {
+  constructor(...args) {
+    super(...args);
+    this.customCode = document.querySelector('#custom-code');
+    this.button = document.querySelector('#add-custom-code');
+    this.button.onclick = (ev) => {
+      if (this.customCode.value == '') {
+        this.board.setMessage('Nothing to run!', 'error');
+        return;
+      }
+      try {
+        let evalFn = new Function('Hexular', 'Board', this.customCode.value)
+        evalFn(Hexular, Board);
+        this.board.setMessage('Done');
+      }
+      catch (err) {
+        this.board.setMessage(`An error occurred: ${err}.`, 'error');
+      }
+    }
+  }
+
+  reset() {
+    if (this.customCode.value == '')
+      this.customCode.value = this.customCode.placeholder;
+  }
+}
+
 class ConfigModal extends Modal {
   constructor(...args) {
     super(...args);
     this.ruleMenus = [];
     this.ruleConfig = document.querySelector('.rule-config');
     this.numStates = document.querySelector('#num-states');
+    this.addPreset = document.querySelector('#add-preset');
     this.selectPreset = document.querySelector('#select-preset');
-    this.customRule = document.querySelector('#custom-rule');
-    this.addRule = document.querySelector('#add-rule');
     this.checkAll = document.querySelector('#check-all');
     this.setAll = document.querySelector('#set-all');
     this.selectNh = document.querySelector('#select-neighborhood');
-    this.addRule.onmouseup = (ev) => this._handleAddRule();
-    this.checkAll.onmouseup = (ev) => this._handleCheckAll();
+    this.checkAll.onclick = (ev) => this._handleCheckAll();
     this.numStates.onchange = (ev) => this._setNumStates(ev.target.value);
+    this.addPreset.onclick = (ev) => this._handleAddPreset();
     this.selectPreset.onchange = (ev) => this._selectPreset(ev.target.value);
     this.setAll.onchange = (ev) => this._handleSetAll(ev);
     this.selectNh.onchange = (ev) => this._setNh(ev.target.value);
-    this.customRule.value = '{newRule: (cell) => cell.state}';
+
+    this._updateRules();
+    this._restoreConfigState();
   }
 
   update() {
@@ -87,66 +115,35 @@ class ConfigModal extends Modal {
       this.board.model.rules[ruleMenu.index] = this.board.rules[ruleMenu.index];
     });
     this._checkPreset();
+    this._storeConfigState();
   }
 
-  // Preset setting and checking
+  _handleAddPreset() {
+    // TODO: Remove native prompt
+    let presetName = window.prompt('Please enter a preset name:');
+    if (presetName) {
+      let rules = this.ruleMenus.slice(0, this.board.numStates).map((e) => e.select.value);
+      let preset = new Preset(rules, {nh: this.board.nh});
+      this.board.addPreset(presetName, preset);
+      this._selectPreset(presetName);
+    }
+  }
 
   _selectPreset(presetName) {
-    const presetList = this.board.presets[presetName];
-    if (!presetList)
+    const preset = this.board.presets[presetName];
+    if (!preset) {
+      this.board.preset = null;
       return;
-    this._setNumStates(presetList.length);
-    this.ruleMenus.forEach((ruleMenu) => {
-      let ruleName = presetList[ruleMenu.index] || 'identityRule';
-      let fn = this.board.availableRules[ruleName];
-      ruleMenu.select.value = ruleName;
-      this.board.model.rules[ruleMenu.index] = fn;
+    }
+    this._setNumStates(preset.numStates);
+    preset.rules.forEach((ruleName, idx) => {
+      this.ruleMenus[idx].set(ruleName);
     });
-    if (presetList.nh)
-      this._setNh(presetList.nh);
+    this._setNh(preset.nh);
     this.board.preset = presetName;
     this.selectPreset.value = presetName;
-  }
-
-  _checkPreset() {
-    const presetList = this.board.presets[this.board.preset];
-    if (!presetList)
-      return;
-    let dirty = (() => {
-      if (this.board.model.numStates != presetList.length)
-        return true;
-      if (presetList.nh && this.board.model.neighborhood != presetList.nh) {
-        return true;
-      }
-      return this.board.model.rules.slice(0, this.board.model.numStates).reduce((a, ruleFn, idx) => {
-        return  a || this.board.availableRules[presetList[idx]] != ruleFn;
-      }, false);
-    })();
-    if (dirty) {
-      this.selectPreset.selectedIndex = 0;
-      this.board.preset = null;
-    }
-  }
-
-  _handleAddRule() {
-    if (this.customRule.value == '') {
-      this.board.setMessage('Please enter a valid rule object', 'error');
-      return;
-    }
-    try {
-      let obj = new Function(`return (${this.customRule.value})`)();
-      if (Object.keys(obj).length < 1) {
-        this.board.setMessage('No rules added. Too bad.');
-        return;
-      }
-      Object.assign(this.board.availableRules, obj);
-      this._updateRules();
-      let ruleNames = Object.keys(obj);
-      this.board.setMessage(`Added rule${ruleNames.length > 1 ? 's' : ''} ${ruleNames.join(', ')}.`);
-    }
-    catch (err) {
-      this.board.setMessage(`An error occurred: ${err}.`, 'error');
-    }
+    this.addPreset.disabled = true;
+    this._storeConfigState();
   }
 
   _handleCheckAll() {
@@ -164,20 +161,31 @@ class ConfigModal extends Modal {
     let ruleName = this.setAll.value;
     const rule = this.board.availableRules[ruleName] || this.board.rules.identityRule;
     this.ruleMenus.forEach((ruleMenu) => {
-      if (ruleMenu.checked) {
-        ruleMenu.select.value = ruleName;
-        this.board.model.rules[ruleMenu.index] = rule;
-      }
+      ruleMenu.checked && ruleMenu.set(ruleName);
     });
     this.setAll.selectedIndex = 0;
     this._checkPreset();
+    this._storeConfigState();
   }
 
   _handleSetRule(ev) {
     const ctl = ev.target;
-    this.board.model.rules[ctl.ruleMenu.index] =
-      this.board.availableRules[ctl.value] || this.board.availableRules.identityRule;
+    const idx = ctl.ruleMenu.index;
+    const ruleName = ctl.value;
+    this.ruleMenus[idx].set(ruleName);
     this._checkPreset();
+    this._storeConfigState();
+  }
+
+  // Set default neighborhood for rules using top-level cell helper functions
+
+  _setNh(nh) {
+    if (!nh)
+      return;
+    this.selectNh.value = nh;
+    this.board.setNh(parseInt(nh));
+    this._checkPreset();
+    this._storeConfigState();
   }
 
   _updateRules() {
@@ -209,11 +217,57 @@ class ConfigModal extends Modal {
     }
   }
 
-  // Set default neighborhood for rules using top-level cell helper functions
+  _checkPreset() {
+    const preset = this.board.presets[this.board.preset];
+    if (!preset)
+      return;
+    let dirty = (() => {
+      if (this.board.model.numStates != preset.rules.length) {
+        return true;
+      }
+      if (preset.nh && this.board.nh != preset.nh) {
+        return true;
+      }
+      return this.board.model.rules.slice(0, this.board.model.numStates).reduce((a, ruleFn, idx) => {
+        return  a || this.board.availableRules[preset.rules[idx]] != ruleFn;
+      }, false);
+    })();
+    if (dirty) {
+      this.selectPreset.selectedIndex = 0;
+      this.addPreset.disabled = false;
+      this.board.preset = null;
+    }
+  }
 
-  _setNh(nh) {
-    this.selectNh.value = nh;
-    this.board.setNh(nh);
-    this._checkPreset();
+  _storeConfigState() {
+    let obj = {
+      numStates: this.board.numStates,
+      preset: this.selectPreset.value,
+      rules: this.ruleMenus.map((e) => e.select.value),
+      nh: this.board.nh
+    };
+    this.board.storeState({config: JSON.stringify(obj)});
+  }
+
+  _restoreConfigState() {
+    let obj;
+    try {
+      obj = JSON.parse(this.board.storage.getItem('config'));
+    }
+    catch {}
+    obj = obj || {};
+
+    if (obj.preset) {
+       this._selectPreset(obj.preset);
+    }
+    else {
+      let {numStates, nh} = this.board;
+      this._selectPreset(this.board.preset);
+      this._setNumStates(obj.numStates || numStates);
+      this._setNh(obj.nh || nh);
+      this.board.preset || obj.rules && this.ruleMenus.forEach((ruleMenu, idx) => {
+        ruleMenu.set(obj.rules[idx] || this.board.defaultRule);
+      });
+    }
   }
 }

@@ -328,11 +328,18 @@ button:disabled {
   margin: 0.2em;
 }
 
-.modal .group textarea, select, input {
+textarea,  select, input {
   width: 100%;
   padding: 0.25em;
   border-radius: 0.5em;
   background: #fff;
+}
+
+.modal .group textarea {
+  height: 10em;
+  margin: 0.5em 0;
+  padding: 0.75em;
+  border-radius: 1em;
 }
 
 .modal button {
@@ -342,7 +349,7 @@ button:disabled {
   border-radius: 0.5em;
 }
 
-.modal.resize .group button {
+.modal .group.buttons button {
   font-family: inherit;
   flex: 1 1 auto;
   padding: 0 1em;

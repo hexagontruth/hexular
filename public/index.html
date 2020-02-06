@@ -22,6 +22,7 @@
     <div class="group">
       <button id="show-config" title="Config (Ctrl+K)" class="icon-gear"></button>
       <button id="resize" title="Resize board (Ctrl+J)" class="icon-compass"></button>
+      <button id="show-custom" title="Add custom code" class="icon-function"></button>
       <button id="center" title="Center board (Ctrl+R)" class="icon-center"></button>
       <button id="show-documentation" title="Show documentation (F1)" class="icon-question"></button>
     </div>
@@ -86,6 +87,14 @@
         <button id="resize-set"></button>
       </div>
     </div>
+    <div class="modal custom hidden">
+      <div class="group">
+        <textarea id="custom-code" placeholder="Board.instance.addRule('newRule', (cell) => cell.state)"></textarea>
+      </div>
+      <div class="group buttons">
+        <button id="add-custom-code">Add custom code</button>
+      </div>
+    </div>
     <div class="modal config hidden">
       <div class="group">
         <input type="range" id="num-states" min="2" max="12" step="1"
@@ -100,13 +109,10 @@
         </datalist>
       </div>
       <div class="group">
+        <button id="add-preset" class="icon-plus"></button>
         <select id="select-preset">
           <option value="">- Select preset -</option>
         </select>
-      </div>
-      <div class="group">
-        <button id="add-rule" class="icon-function" title="Add custom functions"></button>
-        <textarea id="custom-rule" placeholder="{newRule: (cell) => cell.state}"></textarea>
       </div>
       <div class="group">
         <button id="check-all" class="icon-check-all"></button>

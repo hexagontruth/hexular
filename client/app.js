@@ -3,7 +3,6 @@
 const DEFAULTS = new OptParser({
   radius: 60,
   mobileRadius: 30,
-  numStates: null,
   maxNumStates: 12,
   timerLength: 100,
   autopause: 1,
@@ -17,11 +16,11 @@ const DEFAULTS = new OptParser({
   defaultImageFilename: 'hexular.png',
   defaultFilename: 'hexular.bin',
   defaultVideoFilename: 'hexular.webm',
+  storage: 'sessionStorage',
   clampBottomFilter: 0,
   clampTopFilter: 0,
   modFilter: 1,
   edgeFilter: 0,
-  nh: 6,
   cellRadius: 10,
   mobileCellRadius: 20,
   scaleFactor: 1,
@@ -34,6 +33,8 @@ const DEFAULTS = new OptParser({
   toolSize: 1,
   colorMode: 0,
   paintColors: [1, 0],
+  numStates: null,
+  nh: null,
   themes: {
     dark: {
       background: '#111111',
@@ -89,7 +90,7 @@ const EventHole = (...events) => {
     handlerFn = fn.bind(obj);
   };
 };
-const onMouseEvent = EventHole('mousedown', 'mouseup', 'mouseout', 'mousemove', 'click');
+const onMouseEvent = EventHole('mousedown', 'mouseup', 'mouseout', 'mousemove');
 const onTouchEvent = EventHole('touchstart', 'touchmove', 'touchend');
 
 // Main board class
@@ -101,7 +102,6 @@ class Board {
       opts.radius = radius;
     let board = Board.instance = new Board(opts);
     board.draw().then(() => {
-      board.modals.config.update();
       document.body.style.opacity = 1;
     });
   }
@@ -150,6 +150,7 @@ class Board {
         redo: document.querySelector('#redo'),
         showConfig: document.querySelector('#show-config'),
         resize: document.querySelector('#resize'),
+        showCustom: document.querySelector('#show-custom'),
         center: document.querySelector('#center'),
         showDocumentation: document.querySelector('#show-documentation'),
         load: document.querySelector('#load'),
@@ -175,33 +176,11 @@ class Board {
         color: document.querySelector('#tool-color'),
       },
       colorButtons: Array.from(document.querySelectorAll('.toolbar.colors button')),
-      modals: {
-        config: new ConfigModal(this, 'config'),
-        resize: new ResizeModal(this, 'resize'),
-      }
     };
     Object.assign(this, props, ...args);
+    this.storage = window[this.storage] || {getItem: () => null, setItem: () => null};
 
-    // Set numStates and presets
-    let numStates = this.maxNumStates;
     this.rules = Array(this.maxNumStates).fill(this.availableRules[this.defaultRule]);
-    if (this.presets[this.preset]) {
-      this.rules = Object.assign(this.rules, this.presets[this.preset].map((e) => this.availableRules[e]));
-      numStates = this.presets[this.preset].length;
-    }
-    else {
-      this.preset = null;
-    }
-
-    if (this.numStates && this.numStates != numStates) {
-      this.modals.config.numStates.value = this.numStates;
-      this.preset = null;
-    }
-    else {
-      this.modals.config.numStates.value = numStates;
-      this.numStates = numStates;
-    }
-    this.maxNumStates = Math.max(this.maxNumStates, this.numStates);
 
     // Set logical size and scale small boards
     let width = this.radius * this.cellRadius * Hexular.math.apothem * 4;
@@ -253,6 +232,7 @@ class Board {
     this.buttons.toggleRecord.onmouseup = (ev) => this.toggleRecord();
     this.buttons.showConfig.onmouseup = (ev) => this.toggleModal('config');
     this.buttons.resize.onmouseup = (ev) => this.toggleModal('resize');
+    this.buttons.showCustom.onmouseup = (ev) => this.toggleModal('custom');
     this.buttons.center.onmouseup = (ev) => this.resize();
     this.buttons.showDocumentation.onmouseup = (ev) => this.showDocumentation();
     this.buttons.load.onmouseup = (ev) => this.load();
@@ -273,7 +253,7 @@ class Board {
       button.style.backgroundColor = this.colors[i];
     });
 
-    let {rules, radius, groundState, cellRadius, borderWidth, colors} = this;
+    let {rules, radius, numStates, groundState, cellRadius, borderWidth, colors} = this;
     this.model = Hexular({rules, radius, numStates, groundState, cellRadius});
     if (this.clampBottomFilter)
       this.model.addFilter(Hexular.filters.clampBottomFilter);
@@ -294,6 +274,12 @@ class Board {
     this.setColor(1, this.mobile ? -1 : this.paintColors[1]);
     this.setNh(this.nh);
     this.resize();
+    this.loadPresets();
+    this.modals = {
+      config: new ConfigModal(this, 'config'),
+      custom: new CustomModal(this, 'custom'),
+      resize: new ResizeModal(this, 'resize'),
+    }
     this.toggleModal();
   }
 
@@ -484,9 +470,20 @@ class Board {
     this.modals.config.update();
   }
 
-  addPreset(presetName, fnArray) {
-    this.presets[presetName] = fnArray;
-    this.modas.config.update();
+  addPreset(presetName, preset) {
+    this.presets[presetName] = preset
+    this.storeState({presets: JSON.stringify(this.presets)});
+    this.modals && this.modals.config && this.modals.config.update();
+  }
+
+  loadPresets() {
+    let presets = this.storage.getItem('presets');
+    if (!presets)
+      return;
+    let obj = JSON.parse(presets) || {};
+    Object.entries(obj).forEach(([presetName, presetObj]) => {
+      this.addPreset(presetName, presetObj);
+    });
   }
 
   // Save/load
@@ -508,6 +505,7 @@ class Board {
     let fileReader = new FileReader();
     let input = document.createElement('input');
     input.type = 'file';
+    input.accept = '.bin';
     fileReader.onload = (ev) => {
       let buffer = ev.target.result;
       let bytes = new Int8Array(buffer);
@@ -525,6 +523,7 @@ class Board {
     let fileReader = new FileReader();
     let input = document.createElement('input');
     input.type = 'file';
+    input.accept = '.js';
     fileReader.onload =  (ev) => {
       let code = ev.target.result;
       try {
@@ -563,16 +562,16 @@ class Board {
 
   storeState(opts={}) {
     Object.entries(opts).forEach(([key, value]) => {
-      sessionStorage.setItem(key, value);
+      this.storage.setItem(key, value);
     });
   }
 
   restoreState() {
-    let modelState = sessionStorage.getItem('modelState');
-    let tool = sessionStorage.getItem('tool');
-    let toolSize = sessionStorage.getItem('toolSize');
-    let colorMode = parseInt(sessionStorage.getItem('colorMode'));
-    let paintColors = sessionStorage.getItem('paintColors');
+    let modelState = this.storage.getItem('modelState');
+    let tool = this.storage.getItem('tool');
+    let toolSize = this.storage.getItem('toolSize');
+    let colorMode = parseInt(this.storage.getItem('colorMode'));
+    let paintColors = this.storage.getItem('paintColors');
     if (modelState) {
       this.newHistoryState();
       let numArray = modelState.split('').map((e) => parseInt(e, 36));
@@ -857,17 +856,19 @@ class Board {
           this.startAction(ev, {setState});
         }
       }
+      this.clickTarget = ev.target;
     }
-    else if (ev.type == 'mouseup' && this.action) {
-      this.endAction(ev);
-    }
-    else if (ev.type == 'click') {
-      if (ev.target == this.overlay) {
-        this.toggleModal();
-        ev.stopPropagation();
-      }
-      else if (ev.target == this.message) {
-        this.clearMessage();
+    else if (ev.type == 'mouseup') {
+      if (this.action)
+        this.endAction(ev);
+      else if (this.clickTarget == ev.target) {
+        if (ev.target == this.overlay) {
+          this.toggleModal();
+        }
+        else if (ev.target == this.message) {
+          this.clearMessage()
+        }
+        this.clickTarget = null;
       }
     }
     else if (ev.type == 'mousemove') {

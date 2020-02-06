@@ -1,17 +1,20 @@
-class Preset extends Array {
+class Preset {
   static fromString(str) {
     let obj = JSON.parse(str);
-    return new Preset(obj.rules, obj.nh);
+    return new Preset(obj);
   }
 
-  constructor(functions, nh) {
-    super(functions.length);
-    Object.assign(this, functions);
-    this.nh = nh;
+  constructor(...args) {
+    this.nh = 6;
+    for (let arg of args)
+      if (arg.length)
+        this.rules = arg.slice();
+      else
+        Object.assign(this, arg);
+    this.numStates = this.numStates || this.rules.length;
   }
 
   toString() {
-    let obj = {rules: this, nh: this.nh};
-    return JSON.stringify(obj);
+    return JSON.stringify(this);
   }
 }

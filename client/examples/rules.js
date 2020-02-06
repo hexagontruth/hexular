@@ -106,28 +106,6 @@ const RULES = (() => {
 
     // Here are some examples of the built-in ruleBuilder functionality
 
-    hexad: Hexular.util.ruleBuilder([
-      0b001001,
-      0b010010,
-      0b100100,
-      0b111000,
-      0b000111,
-      0b111100,
-      0b001111,
-      0b011110,
-      0b111100,
-      0b111001,
-      0b110011,
-      0b100111,
-      0b000011,
-      0b000110,
-      0b001100,
-      0b011000,
-      0b110000,
-      0b100001,
-      0b111111,
-    ]),
-
     ennead: Hexular.util.ruleBuilder([
       0b001001,
       0b010010,
@@ -178,8 +156,6 @@ const RULES = (() => {
       0b110000,
       0b100001,
     ], {dec: true}),
-
-    reverseEnnead: (cell) => RULES.ennead(cell) ? cell.state - 1 : 0,
 
     socialMinimalist: Hexular.util.ruleBuilder([
       0b1000001,

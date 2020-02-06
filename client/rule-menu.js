@@ -30,4 +30,14 @@ class RuleMenu {
   get checked() {
     return this.container.classList.contains('checked');
   }
+
+  set(ruleName) {
+    let fn = this.board.availableRules[ruleName];
+    if (!fn) {
+      fn = this.board.availableRules[this.board.defaultRule];
+      ruleName = this.board.defaultRule;
+    }
+    this.select.value = ruleName;
+    this.board.model.rules[this.index] = fn;
+  }
 }

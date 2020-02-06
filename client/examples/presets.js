@@ -72,5 +72,5 @@ const PRESETS = {
     'fancytown',
     'fancytown',
     'fancytown',
-  ], 19),
+  ], {nh: 19}),
 };
