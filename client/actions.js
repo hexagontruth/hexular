@@ -25,17 +25,21 @@ class Action {
   }
 
   _applyBuffer() {
-    this.board.fgAdapter.stateBuffer.forEach((state, cell) => {
-      cell.state = state;
-    });
-    this.board.fgAdapter.stateBuffer.clear();
-    this.board.fgAdapter.clear();
-    this.board.draw();
+    if (this.board.fgAdapter.stateBuffer.size > 0) {
+      this.board.newHistoryState();
+      this.board.fgAdapter.stateBuffer.forEach((state, cell) => {
+        cell.state = state;
+      });
+      this.board.fgAdapter.stateBuffer.clear();
+      this.board.fgAdapter.clear();
+      this.board.draw();
+    }
   }
 
   _getCoord(pointerEv) {
     return [pointerEv.pageX, pointerEv.pageY];
   }
+
   _getPointerCoord(ev) {
     let x, y;
     if (ev.pageX)
@@ -44,14 +48,20 @@ class Action {
       [x, y] = this._getCoord(ev.touches[0]);
     return [x, y];
   }
+
   _getAllCoords(ev) {
     if (ev.pageX)
       return [this._getCoord(ev)];
     else if (ev.touches)
       return Array.from(ev.touches).map((e) => this._getCoord(e));
   }
+
   _getHypot(a, b) {
     return Math.hypot(b[0] - a[0], b[1] - a[1]);
+  }
+
+  _hypotToModel(h) {
+    return h / this.board.model.cellApothem / this.board.scaleZoom;
   }
 }
 
@@ -133,21 +143,20 @@ class BrushAction extends PaintAction {
 
 class LineAction extends PaintAction {
   start(ev) {
-    this.a = this.b = this._getPointerCoord(ev);
     this.originCell = this.board.selected;
-    this.info = 0;
-    this._calculateCells();
+    this.a = this.board.modelToWindow(this.board.model.getCoord(this.originCell));
+    this.move(ev);
   }
 
   move(ev) {
     this.b = this._getPointerCoord(ev);
     this.length = this._getHypot(this.a, this.b);
-    this.info = (this.length / this.board.model.cellApothem / 2 / this.board.scaleZoom).toFixed(2);
+    this.info = (this._hypotToModel(this.length) / 2).toFixed(2);
     this._calculateCells();
   }
 
   _calculateCells() {
-    let samples =  this.length / (this.board.model.cellRadius) / this.board.scaleZoom;
+    let samples =  this._hypotToModel(this.length);
     let [x, y] = this.a.slice();
     let xSample = (this.b[0] - this.a[0]) / samples;
     let ySample = (this.b[1] - this.a[1]) / samples;
@@ -168,6 +177,24 @@ class LineAction extends PaintAction {
     cells.forEach((cell) => {
       this._setCells(cell);
     })
+  }
+}
+
+class LocklineAction extends LineAction {
+  move(ev) {
+    this.b = this._getPointerCoord(ev);
+    let x = this.b[0] - this.a[0];
+    let y = this.b[1] - this.a[1];
+    let h = this.length = this._getHypot(this.a, this.b);
+    let a = Math.acos(x / h) / Hexular.math.hextant;
+    if (Math.sin(y / h) < 0)
+      a = 6 - a;
+    let aRound = Math.round(a) % 6;
+    let xRound = Math.cos(aRound * Hexular.math.hextant) * h;
+    let yRound = Math.sin(aRound * Hexular.math.hextant) * h;
+    this.b = [this.a[0] + xRound, this.a[1] + yRound];
+    this.info = (this._hypotToModel(this.length) / 2).toFixed(2);
+    this._calculateCells();
   }
 }
 

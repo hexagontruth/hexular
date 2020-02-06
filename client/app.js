@@ -4,15 +4,15 @@ const DEFAULTS = new OptParser({
   radius: 60,
   mobileRadius: 30,
   maxNumStates: 12,
-  timerLength: 100,
+  interval: 100,
   autopause: 1,
   undoStackSize: 64,
   mobileUndoStackSize: 16,
-  availableRules: Object.assign({}, Hexular.rules, RULES),
+  availableRules: Object.assign({}, Hexular.rules, Rules),
   rule: null,
   defaultRule: 'identityRule',
   preset: 'default',
-  presets: PRESETS,
+  presets: Presets,
   defaultImageFilename: 'hexular.png',
   defaultFilename: 'hexular.bin',
   defaultVideoFilename: 'hexular.webm',
@@ -35,43 +35,9 @@ const DEFAULTS = new OptParser({
   paintColors: [1, 0],
   numStates: null,
   nh: null,
-  themes: {
-    dark: {
-      background: '#111111',
-      colors: Object.assign(Hexular.DEFAULTS.colors.slice(), [
-        '#000000',
-        '#888888',
-        '#aaaaaa',
-        '#cccccc',
-        '#eeeeee',
-      ]),
-    },
-    light: {
-      background: '#eeeeee',
-      colors: Hexular.DEFAULTS.colors.slice(),
-    },
-    white: {
-      background: '#ffffff',
-      colors: Hexular.DEFAULTS.colors.slice(),
-    },
-    darkRainbow: {
-      background: '#111111',
-      colors:[
-        '#000000',
-        '#ff0000',
-        '#ffaa00',
-        '#aaff00',
-        '#00ff00',
-        '#00ffff',
-        '#00aaff',
-        '#0066ff',
-        '#0000ff',
-        '#aa00ff',
-        '#ff00ff',
-        '#ff00aa',
-      ],
-    },
-  },
+  lastSteps: null,
+  steps: 0,
+  themes: Themes,
 });
 
 window.addEventListener('load', function(e) {
@@ -122,6 +88,7 @@ class Board {
         fill: FillAction,
         brush: BrushAction,
         line: LineAction,
+        lockline: LocklineAction,
         hexfilled: HexFilledAction,
         hexoutline: HexOutlineAction,
         pinch: PinchAction,
@@ -129,6 +96,7 @@ class Board {
       sizableTools: [
         'brush',
         'line',
+        'lockline',
         'hexfilled',
         'hexoutline',
       ],
@@ -136,10 +104,13 @@ class Board {
       container: document.querySelector('.container'),
       overlay: document.querySelector('.overlay'),
       message: document.querySelector('.message'),
-      infoCursor: document.querySelector('.info-cursor'),
-      infoTool: document.querySelector('.info-tool'),
       toolInfo: document.querySelector('.tool-info'),
       colorToolbar: document.querySelector('.toolbar.colors'),
+      infoBoxes: {
+        steps: document.querySelector('.info-steps'),
+        tool: document.querySelector('.info-tool'),
+        cursor: document.querySelector('.info-cursor'),
+      },
       buttons: {
         toolHider: document.querySelector('.tool-hider'),
         toggleRecord: document.querySelector('#toggle-record'),
@@ -149,21 +120,26 @@ class Board {
         undo: document.querySelector('#undo'),
         redo: document.querySelector('#redo'),
         showConfig: document.querySelector('#show-config'),
-        resize: document.querySelector('#resize'),
+        showResize: document.querySelector('#show-resize'),
         showCustom: document.querySelector('#show-custom'),
         center: document.querySelector('#center'),
-        showDocumentation: document.querySelector('#show-documentation'),
+        showDoc: document.querySelector('#show-doc'),
+        saveSnapshot: document.querySelector('#snapshot-save'),
+        loadSnapshot: document.querySelector('#snapshot-load'),
         load: document.querySelector('#load'),
         save: document.querySelector('#save'),
         saveImage: document.querySelector('#save-image'),
         import: document.querySelector('#import'),
-        allNonrecording: document.querySelectorAll('.toolbar .group button:not(#toggle-record):not(#toggle-play)'),
+        allNonrecording: document.querySelectorAll(
+          '.toolbar .group button:not(#toggle-record):not(#toggle-play):not(#show-config):not(#show-doc)'
+        ),
       },
       tools: {
         fill: document.querySelector('#tool-fill'),
         move: document.querySelector('#tool-move'),
         brush: document.querySelector('#tool-brush'),
         line: document.querySelector('#tool-line'),
+        lockline: document.querySelector('#tool-lockline'),
         hexfilled: document.querySelector('#tool-hexfilled'),
         hexoutline: document.querySelector('#tool-hexoutline'),
       },
@@ -231,10 +207,12 @@ class Board {
     this.buttons.redo.onmouseup = (ev) => this.redo();
     this.buttons.toggleRecord.onmouseup = (ev) => this.toggleRecord();
     this.buttons.showConfig.onmouseup = (ev) => this.toggleModal('config');
-    this.buttons.resize.onmouseup = (ev) => this.toggleModal('resize');
+    this.buttons.showResize.onmouseup = (ev) => this.toggleModal('resize');
     this.buttons.showCustom.onmouseup = (ev) => this.toggleModal('custom');
     this.buttons.center.onmouseup = (ev) => this.resize();
-    this.buttons.showDocumentation.onmouseup = (ev) => this.showDocumentation();
+    this.buttons.showDoc.onmouseup = (ev) => this.showDoc();
+    this.buttons.saveSnapshot.onmouseup = (ev) => this.saveSnapshot();
+    this.buttons.loadSnapshot.onmouseup = (ev) => this.loadSnapshot();
     this.buttons.load.onmouseup = (ev) => this.load();
     this.buttons.save.onmouseup = (ev) => this.save();
     this.buttons.saveImage.onmouseup = (ev) => this.saveImage();
@@ -244,6 +222,7 @@ class Board {
     this.tools.fill.onmouseup = (ev) => this.setTool('fill');
     this.tools.brush.onmouseup = (ev) => this.setTool('brush');
     this.tools.line.onmouseup = (ev) => this.setTool('line');
+    this.tools.lockline.onmouseup = (ev) => this.setTool('lockline');
     this.tools.hexfilled.onmouseup = (ev) => this.setTool('hexfilled');
     this.tools.hexoutline.onmouseup = (ev) => this.setTool('hexoutline');
     this.toolMisc.color.onmouseup = (ev) => this.setColorMode();
@@ -274,6 +253,7 @@ class Board {
     this.setColor(1, this.mobile ? -1 : this.paintColors[1]);
     this.setNh(this.nh);
     this.resize();
+    this.setSteps(this.steps);
     this.loadPresets();
     this.modals = {
       config: new ConfigModal(this, 'config'),
@@ -311,20 +291,37 @@ class Board {
 
   toggleRecord() {
     if (!this.recorder) {
-      if (!this.running) {
-        this.togglePlay();
-      }
+      if (!this.running)
+        requestAnimationFrame(() => this.togglePlay());
       this.buttons.allNonrecording.forEach((e) => e.disabled = true);
       this.buttons.toggleRecord.className = 'icon-stop active';
+      this.setButtonTitle(this.buttons.toggleRecord, 'Stop');
       this.recorder = new Recorder(this);
+      this.recordStart = Date.now();
+      let sexFmt = (i) => ('00' + i).slice(-2);
+      this.recordInterval = setInterval(() => {
+        let delta = Date.now() - this.recordStart;
+        let rawSecs = Math.floor(delta / 1000);
+        let thirds = Math.floor((delta % 1000) * 60 / 1000);
+        let secs = rawSecs % 60;
+        let mins = Math.floor(rawSecs / 60) % 60;
+        let hours = Math.floor(rawSecs / 3600) % 60;
+        let str = `<span class='timer'>${sexFmt(hours)}:${sexFmt(mins)}:${sexFmt(secs)}:${sexFmt(thirds)}</span>`;
+        this.setInfoBox('tool', str);
+      }, 50);
       this.draw().then(() => this.recorder.start());
     }
     else {
       this.recorder.stop();
       this.recorder = null;
+      clearInterval(this.recordInterval);
+      this.setInfoBox('tool');
+      this.recordInterval = null;
+      this.recordStart = null;
       this.togglePlay();
       this.draw();
       this.buttons.toggleRecord.className = 'icon-record';
+      this.setButtonTitle(this.buttons.toggleRecord, 'Record');
       this.buttons.allNonrecording.forEach((e) => e.disabled = false);
 
     }
@@ -332,9 +329,10 @@ class Board {
 
   togglePlay() {
     if (!this.running) {
-      this.timer = setInterval(this.step.bind(this), this.timerLength);
+      this.timer = setInterval(this.step.bind(this), this.interval);
       this.buttons.step.disabled = true;
       this.buttons.togglePlay.className = 'icon-pause';
+      this.setButtonTitle(this.buttons.togglePlay, 'Pause');
     }
     else {
       if (this.recorder) {
@@ -344,6 +342,7 @@ class Board {
       this.timer = null;
       this.buttons.step.disabled = false;
       this.buttons.togglePlay.className = 'icon-play';
+      this.setButtonTitle(this.buttons.togglePlay, 'Play');
     }
   }
 
@@ -353,8 +352,13 @@ class Board {
       this.model.step();
       this.draw();
       this.storeModelState();
-      if (this.autopause && !this.model.changed)
+      if (this.autopause && !this.model.changed) {
         this.togglePlay();
+        this.undo(true);
+      }
+      else {
+        this.setSteps(this.steps + 1);
+      }
     }
     catch (e) {
       console.log(e);
@@ -368,6 +372,7 @@ class Board {
     this.model.clear();
     this.draw();
     this.storeModelState();
+    this.setSteps(0);
   }
 
   toggleModal(modal) {
@@ -382,7 +387,7 @@ class Board {
     this.modals[modal].open();
   }
 
-  showDocumentation() {
+  showDoc() {
     window.open('doc/', '_blank');
   }
 
@@ -452,15 +457,21 @@ class Board {
     this.nh = nh;
   }
 
-  updateInfoCursorInfo() {
-    let cell = this.selected;
-    this.infoCursor.innerHTML =
-      cell && cell.coord.map((c) => (c > 0 ? '+' : '-') + ('0' + Math.abs(c)).slice(-2)) || '';
+  setButtonTitle(button, title) {
+    let cur = button.title.split(' ');
+    cur[0] = title;
+    button.title = cur.join(' ');
   }
 
-  updateInfoTool() {
+  setCursorInfoInfo() {
+    let cell = this.selected;
+    let coord = cell && cell.coord.map((c) => (c > 0 ? '+' : '-') + ('0' + Math.abs(c)).slice(-2));
+    this.setInfoBox('cursor', coord);
+  }
+
+  setToolInfo() {
     let info = this.action && this.action.info;
-    this.infoTool.innerHTML = info != null ? info : '';
+    this.setInfoBox('tool', info);
   }
 
   // Add rule or preset - also use these if adding from console
@@ -488,6 +499,36 @@ class Board {
 
   // Save/load
 
+  saveSnapshot() {
+    this.storeModel('modelSnapshot', this.model.export());
+    this.setMessage('Snapshot saved!');
+  }
+
+  loadSnapshot() {
+    this.newHistoryState();
+    let bytes = this.loadModel('modelSnapshot');
+    if (bytes) {
+      let cur = this.model.export();
+      let diff = false;
+      for (let i = 0; i < cur.length; i++)
+        if (cur[i] != bytes[i]) {
+          diff = true;
+          break;
+        }
+      if (diff) {
+        this.model.import(bytes);
+        this.draw();
+        this.setMessage('Snapshot loaded!');
+      }
+      else {
+        this.setMessage('Snapshot already loaded!', 'warning');
+      }
+    }
+    else {
+      this.setMessage('No snapshot found!', 'warning');
+    }
+  }
+
   saveImage() {
     let dataUri = this.bg.toDataURL('image/png');
     this.promptDownload(this.defaultImageFilename, dataUri);
@@ -502,30 +543,20 @@ class Board {
 
   load() {
     this.newHistoryState();
-    let fileReader = new FileReader();
-    let input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.bin';
-    fileReader.onload = (ev) => {
-      let buffer = ev.target.result;
-      let bytes = new Int8Array(buffer);
+    let fileLoader = new FileLoader('.bin', {reader: 'readAsArrayBuffer'});
+    fileLoader.onload = (result) => {
+      let bytes = new Int8Array(result);
       this.model.import(bytes);
       this.draw();
       this.storeModelState();
+      this.setMessage('Model loaded!');
     };
-    input.onchange = () => {
-      fileReader.readAsArrayBuffer(input.files[0]);
-    };
-    input.click();
+    fileLoader.prompt();
   }
 
   import() {
-    let fileReader = new FileReader();
-    let input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.js';
-    fileReader.onload =  (ev) => {
-      let code = ev.target.result;
+    let fileLoader = new FileLoader('.js', {multiple: true});
+    fileLoader.onload =  (code) => {
       try {
         eval(code) // lol
         this.modals.config.update();
@@ -536,14 +567,12 @@ class Board {
       }
 
     };
-    input.onchange = () => {
-      let file = input.files[0];
-      if (file.type.indexOf('javascript') != -1)
-        fileReader.readAsText(file);
-      else
-        this.setMessage('Please provide a JavaScript file', 'error');
+    fileLoader.filter = (files) => {
+      let result = files.map((file) => file.type.indexOf('javascript') >= 0);
+      result.some((e) => !e) && this.setMessage('Not all selected files are JavaScript files', 'error');
+      return result;
     };
-    input.click();
+    fileLoader.prompt();
   }
 
   promptDownload(filename, dataUri) {
@@ -555,9 +584,31 @@ class Board {
 
   storeModelState(bytes) {
     bytes = bytes || this.model.export();
-    window.bytes = bytes;
-    let str = Array.from(bytes).map((e) => e.toString(36)).join('');
-    this.storeState({modelState: str});
+    this.storeModel('modelState', bytes);
+  }
+
+  restoreState() {
+    let modelState = this.storage.getItem('modelState');
+    let steps = this.storage.getItem('steps');
+    let tool = this.storage.getItem('tool');
+    let toolSize = this.storage.getItem('toolSize');
+    let colorMode = this.storage.getItem('colorMode');
+    let paintColors = this.storage.getItem('paintColors');
+    if (modelState) {
+      this.newHistoryState();
+      let bytes = this.loadModel('modelState');
+      this.model.import(bytes);
+      this.draw();
+    }
+    steps != null && this.setSteps(parseInt(steps));
+    tool && this.setTool(tool);
+    toolSize && this.setToolSize(toolSize);
+    colorMode && this.setColorMode(parseInt(colorMode));
+    if (paintColors) {
+      paintColors.split(',').forEach((e, i) => {
+        this.setColor(i, parseInt(e));
+      })
+    }
   }
 
   storeState(opts={}) {
@@ -566,60 +617,58 @@ class Board {
     });
   }
 
-  restoreState() {
-    let modelState = this.storage.getItem('modelState');
-    let tool = this.storage.getItem('tool');
-    let toolSize = this.storage.getItem('toolSize');
-    let colorMode = parseInt(this.storage.getItem('colorMode'));
-    let paintColors = this.storage.getItem('paintColors');
-    if (modelState) {
-      this.newHistoryState();
-      let numArray = modelState.split('').map((e) => parseInt(e, 36));
-      let bytes = new Int8Array(numArray);
-      this.model.import(bytes);
-      this.draw();
-    }
-    tool && this.setTool(tool);
-    toolSize && this.setToolSize(toolSize);
-    colorMode != null && this.setColorMode(colorMode);
-    if (paintColors) {
-      paintColors.split(',').forEach((e, i) => {
-        this.setColor(i, parseInt(e));
-      })
+  storeModel(key, bytes, obj={}) {
+    obj[key] = Array.from(bytes).map((e) => e.toString(36)).join('');
+    this.storeState(obj);
+  }
+
+  loadModel(key) {
+    let str = this.storage.getItem(key);
+    if (str) {
+      let array = str.split('').map((e) => parseInt(e, 36));
+      return new Int8Array(array);
     }
   }
 
  // Undo/redo stuff
 
   newHistoryState() {
-    this.undoStack.push(this.model.export());
+    let state = this.model.export();
+    state.steps = this.steps;
+    this.undoStack.push(state);
     if (this.undoStack.length > this.undoStackSize)
       this.undoStack.shift();
     this.redoStack = [];
     this.refreshHistoryButtons();
   }
 
-  undo() {
+  undo(discard=false) {
     if (this.recorder) return;
     let nextState = this.undoStack.pop();
     if (nextState) {
       let curState = this.model.export()
+      curState.steps = this.steps;
       this.model.import(nextState);
       this.storeModelState(nextState);
-      this.redoStack.push(curState);
+      this.setSteps(nextState.steps);
+      if (!discard)
+        this.redoStack.push(curState);
       this.draw();
       this.refreshHistoryButtons();
     }
   }
 
-  redo() {
+  redo(discard=false) {
     if (this.recorder) return;
     let nextState = this.redoStack.pop();
     if (nextState) {
       let curState = this.model.export()
+      curState.steps = this.steps;
       this.model.import(nextState);
       this.storeModelState(nextState);
-      this.undoStack.push(curState);
+      this.setSteps(nextState.steps);
+      if (!discard)
+        this.undoStack.push(curState);
       this.draw();
       this.refreshHistoryButtons();
     }
@@ -628,6 +677,24 @@ class Board {
   refreshHistoryButtons() {
     this.buttons.undo.disabled = +!this.undoStack.length || this.recorder;
     this.buttons.redo.disabled = +!this.redoStack.length;
+  }
+
+  setSteps(steps) {
+    steps = steps != null ? steps : this.steps;
+    this.steps = steps;
+    this.setInfoBox('steps', steps);
+    this.storeState({steps});
+  }
+
+  setInfoBox(boxName, value) {
+    value = value != null ? value.toString() : '';
+    let box = this.infoBoxes[boxName];
+    let lastValue = box.innerHTML;
+    box.innerHTML = value;
+    if (lastValue == '' && value != '')
+      box.classList.add('active');
+    else if (lastValue != '' && value == '')
+      box.classList.remove('active');
   }
 
   // Canvas transform stuff
@@ -736,21 +803,19 @@ class Board {
           else if (key == 'o') {
             this.load();
           }
-          // We'll use ctrl+c (as SIGINT analog) instead of ctrl+n to clear screen or "new grid" if you will
-          // b/c Webkit devs just want to see the world burn: https://bugs.chromium.org/p/chromium/issues/detail?id=33056
           else if (key == 'c') {
             this.clear();
+          }
+          else if (key == 'f') {
+            this.toggleModal('custom');
           }
           else if (key == 'i') {
             this.import();
           }
-          else if (key == 'r') {
-            this.resize();
-          } 
           else if (key == 'k') {
             this.toggleModal('config');
           }
-          else if (key == 'j') {
+          else if (key == 'r') {
             this.toggleModal('resize');
           }
           else {
@@ -791,8 +856,8 @@ class Board {
         }
       }
       // F1 to show documentation
-      else if (ev.key == 'F1') {
-        this.showDocumentation();
+      else if (ev.key == 'F1' || ev.key == '?') {
+        this.showDoc();
       }
       // Tool and lesser keys
       else if (ev.key == 'g') {
@@ -810,6 +875,9 @@ class Board {
       else if (ev.key == 'l') {
         this.setTool('line');
       }
+      else if (ev.key == '/') {
+        this.setTool('lockline');
+      }
       else if (ev.key == 'm') {
         this.setTool('move');
       }
@@ -822,8 +890,17 @@ class Board {
       else if (ev.key == '3') {
         this.setToolSize(3);
       }
+      else if (key == 'r') {
+        this.resize();
+      }
       else if (ev.key == 'c') {
         this.setColorMode();
+      }
+      else if (ev.key == 'q') {
+        this.saveSnapshot();
+      }
+      else if (ev.key == 'a') {
+        this.loadSnapshot();
       }
       else if (ev.shiftKey && this.colorMode && ev.key == 'ArrowUp') {
         this.setColor(1, Hexular.math.mod(this.paintColors[1] - 1, this.colorButtons.length));
@@ -847,7 +924,6 @@ class Board {
   handleMouse(ev) {
     if (ev.type == 'mousedown') {
       if (ev.target == this.fg && this.selected && !this.action) {
-        this.newHistoryState();
         if (ev.buttons & 1) {
           this.startAction(ev);
         }
@@ -881,7 +957,7 @@ class Board {
         this.selectCell();
       }
       if (ev.target != this.info) {
-        this.updateInfoCursorInfo();
+        this.setCursorInfoInfo();
       }
     }
     else if (ev.type == 'mouseout') {
@@ -926,20 +1002,20 @@ class Board {
     let Class = this.toolClasses[this.tool];
     this.action = new Class(this, {ctrl, shift}, ...args);
     this.action.start(ev);
-    this.updateInfoTool();
+    this.setToolInfo();
   }
 
   moveAction(ev) {
     if (this.action) {
       this.action.move(ev);
-      this.updateInfoTool();
+      this.setToolInfo();
     }
   }
 
   endAction(ev) {
     this.action && this.action.end(ev);
     this.action = null;
-    this.updateInfoTool();
+    this.setToolInfo();
   }
 
   // Cell selection and setting
@@ -961,13 +1037,29 @@ class Board {
   }
 
   cellAt([x, y]) {
+    [x, y] = this.windowToModel([x, y]);
+    return this.model.cellAt([x, y]);
+  }
+
+  // TODO: Use Hexular.math.matrixMult
+  windowToModel([x, y]) {
     x -= this.translateX;
     y -= this.translateY;
     x -= this.offsetX;
     x -= this.offsetY;
     x = x / this.scaleZoom;
     y = y / this.scaleZoom;
-    return this.model.cellAt([x, y]);
+    return [x, y];
+  }
+
+  modelToWindow([x, y]) {
+    x = x * this.scaleZoom;
+    y = y * this.scaleZoom;
+    x += this.offsetX;
+    y += this.offsetY;
+    x += this.translateX;
+    y += this.translateY;
+    return [x, y];
   }
 
   // Alert messages
@@ -981,7 +1073,7 @@ class Board {
     this.messageTimer = setTimeout(() => {
       if (this.msgIdx == idx)
         this.clearMessage();
-    }, 5000);
+    }, 4000);
   }
 
   clearMessage() {

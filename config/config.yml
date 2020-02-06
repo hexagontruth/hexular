@@ -3,14 +3,16 @@ default:
   files:
     client.js:
       - hexular/hexular.js
-      - client/preset.js
+      - client/actions.js
+      - client/file-loader.js
+      - client/modals.js
       - client/opt-parser.js
+      - client/preset.js
       - client/recorder.js
       - client/rule-menu.js
-      - client/actions.js
-      - client/modals.js
-      - client/examples/rules.js
-      - client/examples/presets.js
+      - client/library/presets.js
+      - client/library/rules.js
+      - client/library/themes.js
       - client/app.js
     client.css:
       - client/vendor/icons.css

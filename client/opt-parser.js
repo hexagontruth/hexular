@@ -10,6 +10,7 @@ class OptParser {
       defaults.undoStackSize = defaults.mobileUndoStackSize;
     }
 
+    let defaultTheme = defaults.theme;
     // Process theme first
     let args = this.splitFilter(location.href.split('?')[1] || '', '&').map((e) => e.split('='));
     let argThemeIdx = args.findIndex(([key, value]) => key == 'theme');
@@ -17,10 +18,12 @@ class OptParser {
       let [_, theme] = args.splice(argThemeIdx, 1)[0];
       defaults.theme = theme;
     }
-    Object.assign(defaults, defaults.themes[defaults.theme]);
+    Object.assign(defaults, defaults.themes[defaults.theme] || defaults.themes[defaultTheme]);
 
     // Process remaining args
     args.forEach(([key, value]) => {
+      if (!value)
+        return
       let result, match, idx;
 
       // Check for indicial assignment

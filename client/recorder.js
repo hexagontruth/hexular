@@ -4,10 +4,14 @@ class Recorder {
   }
   start() {
     this.stream = this.board.bg.captureStream();
-    this.stream.getTracks()[0].applyConstraints({aspectRatio: window.innerWidth / window.innerHeight});
+    let constraints = {
+      aspectRatio: window.innerWidth / window.innerHeight,
+      frameRate: Math.max(Math.floor(1000 / this.board.interval), 15),
+    };
     let opts = {
       mimeType: 'video/webm'
     };
+    this.stream.getTracks()[0].applyConstraints(constraints);
     this.recorder = new MediaRecorder(this.stream, opts);
     let blobs = [];
     this.recorder.ondataavailable = (ev) => {

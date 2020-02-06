@@ -14,9 +14,9 @@ html {
 }
 
 body {
-  background: #333;
+  background: #fff;
   color: #333;
-  transition: opacity 500ms;
+  transition: opacity 1000ms;
 }
 
 body * {
@@ -51,6 +51,7 @@ canvas[data-tool='move'] {
 canvas[data-tool='fill'],
 canvas[data-tool='brush'],
 canvas[data-tool='line'],
+canvas[data-tool='linelocked'],
 canvas[data-tool='hexfilled'],
 canvas[data-tool='hexoutline'] {
   cursor: crosshair;
@@ -106,9 +107,9 @@ button:disabled {
 
 .toolbar button {
   font-size: 1.2rem;
-/*  border-radius: 0.25rem;*/
   margin: 0.05rem;
   padding: 0.2rem 0.4rem;
+  border-radius: 0.5rem;
 }
 
 .toolbar.left button, .toolbar.right button {
@@ -158,10 +159,6 @@ button:disabled {
 .toolbar.left .group, .toolbar.right .group {
   flex-direction: column;
   margin: 0.5rem 0rem;
-}
-
-.toolbar .group button {
-  border-radius: 0.5rem;
 }
 
 .toolbar.colors .group {
@@ -229,19 +226,38 @@ button:disabled {
 .info {
   position: fixed;
   z-index: 20;
-  right: 0.5rem;
-
+  right: 0.1rem;
+  padding: 0.4rem 0.5rem;
   line-height: 1;
-  color: #3f9fcc;
   font-weight: bold;
+  border-radius: 0.5rem;
+  color: #4f9fcc;
+  background: #ffffff7f;
+  pointer-events: none;
+  opacity: 0;
+  transition: all 500ms;
 }
 
-.info-cursor {
-  bottom: 0.5rem;
+.info .timer {
+  color: #cc4f4f;
+}
+
+.info.active {
+  opacity: 1;
+}
+
+.info-steps {
+  top: 0.1rem;
 }
 
 .info-tool {
-  top: 0.5rem;
+  bottom: 0.1rem;
+}
+
+.info-cursor {
+  left: 0.1rem;
+  right: auto;
+  bottom: 0.1rem;
 }
 
 .tool-hidden .info-cursor, body.mobile .info {
@@ -252,12 +268,20 @@ button:disabled {
   transform: translateY(calc(-100% - 0.5rem));
 }
 
-.message {
+.message-wrapper {
   position: fixed;
   z-index: 20;
   top: 3rem;
   left: 1rem;
   right: 1rem;
+  height: 0;
+  display: flex;
+  flex-align: flex-start;
+  justify-content: center;
+}
+
+.message {
+  min-width: 50%;
   height: 0;
   line-height: 2;
   background: #9fcc3f;
@@ -273,6 +297,10 @@ button:disabled {
 .message.active {
   opacity: 1;
   height: 2rem;
+}
+
+.message.warning {
+  background: #ec0;
 }
 
 .message.error {
@@ -311,10 +339,9 @@ button:disabled {
   align-items: stretch;
   font-size: 1rem;
   flex: 0 1 30rem;
-  padding: 0.5em 1em 1em 1em;
+  padding: 0.75em;
   background: #eee;
   border-radius: 1em;
-  box-shadow: 10px 3px 3px 'red';
 }
 
 .modal .group {
@@ -322,24 +349,29 @@ button:disabled {
   flex-direction: row;
   justify-content: space-between;
   align-items: stretch;
+  margin: 0;
 }
 
 .modal .group > * {
-  margin: 0.2em;
+  margin:.25em;
 }
 
-textarea,  select, input {
+textarea, select, input {
   width: 100%;
   padding: 0.25em;
   border-radius: 0.5em;
   background: #fff;
 }
 
+.modal .group input[type=range] {
+  margin: 0.25em 0.25em 0;
+}
+
 .modal .group textarea {
   height: 10em;
-  margin: 0.5em 0;
   padding: 0.75em;
-  border-radius: 1em;
+  margin-bottom: 0.75em;
+  border-radius: 0.5em
 }
 
 .modal button {
@@ -353,7 +385,7 @@ textarea,  select, input {
   font-family: inherit;
   flex: 1 1 auto;
   padding: 0 1em;
-  border-radius: 3em;
+
 }
 
 .modal .group.buttons button.stretch {
@@ -364,10 +396,11 @@ textarea,  select, input {
   opacity: 0.5;
 }
 
-.modal .rule-config {
+.modal .group.rule-config {
+  display: block;
   column-count: 2;
   column-gap: 0;
-  margin: 0.2em 0;
+  margin: 0.25em 0 0;
 }
 
 .modal .rule-menu {
@@ -375,7 +408,7 @@ textarea,  select, input {
   flex-direction: row;
   justify-content: space-between;
   align-items: stretch;
-  margin: 0.4em 0.2em;
+  margin: 0.5em 0.25em;
 }
 
 .modal .indicator {
@@ -384,7 +417,7 @@ textarea,  select, input {
   justify-content: center;
   align-items: center;
   width: 2em;
-  margin-right: 0.4em;
+  margin-right: 0.5em;
   border: 0.2em solid transparent;
   cursor: pointer;
   border-radius: 0.5em;
@@ -403,15 +436,17 @@ textarea,  select, input {
 }
 
 @media screen and (max-width: 600px) {
-  .info { display: none; }
+  .info-cursor { display: none; }
   .tool-hider { display: block; }
 }
 @media screen and (max-width: 480px) {
   .modal { font-size: 0.8rem; }
+  .info-tool { display: none; }
 }
 
 @media screen and (max-width: 360px){
   html { font-size: 5.555vw; }
+  .info { display: none; }
 }
 
 @media screen and (max-height: 540px){
