@@ -1,5 +1,5 @@
 const PRESETS = {
-  default: [
+  default: new Preset([
     'ennead',
     'ennead',
     'ennead',
@@ -12,8 +12,8 @@ const PRESETS = {
     'ennead',
     'ennead',
     'ennead',
-  ],
-  classic: [
+  ]),
+  classic: new Preset([
     'binary2',
     'classicDuplex23',
     'classicDuplex23',
@@ -26,8 +26,8 @@ const PRESETS = {
     'classicDuplex23',
     'classicDuplex23',
     'classicDuplex23',
-  ],
-  noisy: [
+  ]),
+  noisy: new Preset([
     'binary2',
     'offset23',
     'offset23',
@@ -40,12 +40,12 @@ const PRESETS = {
     'offset23',
     'offset23',
     'offset23',
-  ],
-  hexlife: [
+  ]),
+  hexlife: new Preset([
     'binary2',
     'binary23',
-  ],
-  rainbowRoad: [
+  ]),
+  rainbowRoad: new Preset([
     'fractalLeft',
     'stepUp',
     'stepUp',
@@ -58,8 +58,8 @@ const PRESETS = {
     'stepUp',
     'stepUp',
     'stepUp',
-  ],
-  fancytownClassic: [
+  ]),
+  fancytownClassic: new Preset([
     'fancytown',
     'fancytown',
     'fancytown',
@@ -72,5 +72,5 @@ const PRESETS = {
     'fancytown',
     'fancytown',
     'fancytown',
-  ],
+  ], 19),
 };

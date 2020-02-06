@@ -57,18 +57,23 @@ class ConfigModal extends Modal {
     this.addRule = document.querySelector('#add-rule');
     this.checkAll = document.querySelector('#check-all');
     this.setAll = document.querySelector('#set-all');
-    this.selectNeighborhood = document.querySelector('#select-neighborhood');
+    this.selectNh = document.querySelector('#select-neighborhood');
     this.addRule.onmouseup = (ev) => this._handleAddRule();
     this.checkAll.onmouseup = (ev) => this._handleCheckAll();
     this.numStates.onchange = (ev) => this._setNumStates(ev.target.value);
     this.selectPreset.onchange = (ev) => this._selectPreset(ev.target.value);
     this.setAll.onchange = (ev) => this._handleSetAll(ev);
-    this.selectNeighborhood.onchange = (ev) => this._setNeighborhood(ev.target.value);
+    this.selectNh.onchange = (ev) => this._setNh(ev.target.value);
     this.customRule.value = '{newRule: (cell) => cell.state}';
   }
 
   update() {
     this._updateRules();
+  }
+
+  reset() {
+    if (this.board.preset)
+      this.selectPreset.value = this.board.preset;
   }
 
   _setNumStates(val) {
@@ -97,19 +102,24 @@ class ConfigModal extends Modal {
       ruleMenu.select.value = ruleName;
       this.board.model.rules[ruleMenu.index] = fn;
     });
+    if (presetList.nh)
+      this._setNh(presetList.nh);
     this.board.preset = presetName;
     this.selectPreset.value = presetName;
   }
 
   _checkPreset() {
-    const presetList = this.board.presets[this.preset];
+    const presetList = this.board.presets[this.board.preset];
     if (!presetList)
       return;
     let dirty = (() => {
       if (this.board.model.numStates != presetList.length)
         return true;
+      if (presetList.nh && this.board.model.neighborhood != presetList.nh) {
+        return true;
+      }
       return this.board.model.rules.slice(0, this.board.model.numStates).reduce((a, ruleFn, idx) => {
-        return a || this.board.availableRules[idx] != ruleFn;
+        return  a || this.board.availableRules[presetList[idx]] != ruleFn;
       }, false);
     })();
     if (dirty) {
@@ -201,7 +211,9 @@ class ConfigModal extends Modal {
 
   // Set default neighborhood for rules using top-level cell helper functions
 
-  _setNeighborhood(neighborhood) {
-    this.board.model.setNeighborhood(neighborhood);
+  _setNh(nh) {
+    this.selectNh.value = nh;
+    this.board.setNh(nh);
+    this._checkPreset();
   }
 }

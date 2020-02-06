@@ -1,96 +1,77 @@
 // --- INIT ---
 
-const DEFAULTS = (() => {
-  let defaults = {
-    radius: 60,
-    mobileRadius: 30,
-    numStates: null,
-    maxNumStates: 12,
-    timerLength: 100,
-    autopause: 1,
-    undoStackSize: 64,
-    mobileUndoStackSize: 16,
-    availableRules: Object.assign({}, Hexular.rules, RULES),
-    rule: null,
-    defaultRule: 'identityRule',
-    preset: 'default',
-    presets: PRESETS,
-    defaultImageFilename: 'hexular.png',
-    defaultFilename: 'hexular.bin',
-    defaultVideoFilename: 'hexular.webm',
-    clampBottomFilter: 0,
-    clampTopFilter: 0,
-    modFilter: 1,
-    edgeFilter: 0,
-    cellRadius: 10,
-    mobileCellRadius: 20,
-    groundState: 0,
-    borderWidth: 1,
-    showModelBackground: 1,
-    theme: 'light',
-    tool: 'brush',
-    shiftTool: 'move',
-    toolSize: 1,
-    colorMode: 0,
-    paintColors: [1, 0],
-    themes: {
-      dark: {
-        background: '#222222',
-        colors: Object.assign(Hexular.DEFAULTS.colors.slice(), [
-          '#000000',
-          '#888888',
-          '#aaaaaa',
-          '#cccccc',
-          '#eeeeee',
-        ]),
-      },
-      light: {
-        background: '#eeeeee',
-        colors: Hexular.DEFAULTS.colors.slice(),
-      },
-      white: {
-        background: '#ffffff',
-        colors: Hexular.DEFAULTS.colors.slice(),
-      },
-      darkRainbow: {
-        background: '#222222',
-        colors: Object.assign(Hexular.DEFAULTS.colors.slice(), [
-          '#000000',
-          '#ff0000',
-          '#ffaa00',
-          '#aaff00',
-          '#00ff00',
-          '#00ffff',
-          '#00aaff',
-          '#0066ff',
-          '#0000ff',
-          '#aa00ff',
-          '#ff00ff',
-          '#ff00aa',
-        ]),
-      },
+const DEFAULTS = new OptParser({
+  radius: 60,
+  mobileRadius: 30,
+  numStates: null,
+  maxNumStates: 12,
+  timerLength: 100,
+  autopause: 1,
+  undoStackSize: 64,
+  mobileUndoStackSize: 16,
+  availableRules: Object.assign({}, Hexular.rules, RULES),
+  rule: null,
+  defaultRule: 'identityRule',
+  preset: 'default',
+  presets: PRESETS,
+  defaultImageFilename: 'hexular.png',
+  defaultFilename: 'hexular.bin',
+  defaultVideoFilename: 'hexular.webm',
+  clampBottomFilter: 0,
+  clampTopFilter: 0,
+  modFilter: 1,
+  edgeFilter: 0,
+  nh: 6,
+  cellRadius: 10,
+  mobileCellRadius: 20,
+  scaleFactor: 1,
+  groundState: 0,
+  borderWidth: 1,
+  showModelBackground: 1,
+  theme: 'light',
+  tool: 'brush',
+  shiftTool: 'move',
+  toolSize: 1,
+  colorMode: 0,
+  paintColors: [1, 0],
+  themes: {
+    dark: {
+      background: '#111111',
+      colors: Object.assign(Hexular.DEFAULTS.colors.slice(), [
+        '#000000',
+        '#888888',
+        '#aaaaaa',
+        '#cccccc',
+        '#eeeeee',
+      ]),
     },
-  };
-
-  let opts = {};
-  location.search.substring(1).split('&').filter((e) => e.length > 0).forEach((e) => {
-    let pair = e.split('=');
-    let parsedInt = parseInt(pair[1]);
-    opts[pair[0]] = Number.isNaN(parsedInt) ? pair[1] : parsedInt;
-  });
-
-  defaults.scaleFactor = 1
-  // Let us infer if this is a mobile browser and make some tweaks
-  if (window.devicePixelRatio > 1 && screen.width < 640) {
-    defaults.scaleFactor = window.devicePixelRatio;
-    defaults.mobile = true;
-    defaults.radius = defaults.mobileRadius;
-    defaults.cellRadius = defaults.mobileCellRadius;
-    defaults.undoStackSize = defaults.mobileUndoStackSize;
-  }
-  let theme = opts.theme || defaults.theme;
-  return Object.assign(defaults, defaults.themes[theme], opts);
-})();
+    light: {
+      background: '#eeeeee',
+      colors: Hexular.DEFAULTS.colors.slice(),
+    },
+    white: {
+      background: '#ffffff',
+      colors: Hexular.DEFAULTS.colors.slice(),
+    },
+    darkRainbow: {
+      background: '#111111',
+      colors:[
+        '#000000',
+        '#ff0000',
+        '#ffaa00',
+        '#aaff00',
+        '#00ff00',
+        '#00ffff',
+        '#00aaff',
+        '#0066ff',
+        '#0000ff',
+        '#aa00ff',
+        '#ff00ff',
+        '#ff00aa',
+      ],
+    },
+  },
+});
 
 window.addEventListener('load', function(e) {
   if (DEFAULTS.mobile)
@@ -98,7 +79,7 @@ window.addEventListener('load', function(e) {
   Board.resize();
 });
 
-// --- STUFF ---
+// Event holes
 
 const EventHole = (...events) => {
   let handlerFn = () => {};
@@ -110,6 +91,8 @@ const EventHole = (...events) => {
 };
 const onMouseEvent = EventHole('mousedown', 'mouseup', 'mouseout', 'mousemove', 'click');
 const onTouchEvent = EventHole('touchstart', 'touchmove', 'touchend');
+
+// Main board class
 
 class Board {
   static resize(radius) {
@@ -309,6 +292,7 @@ class Board {
     this.setColorMode(this.colorMode);
     this.setColor(0, this.paintColors[0]);
     this.setColor(1, this.mobile ? -1 : this.paintColors[1]);
+    this.setNh(this.nh);
     this.resize();
     this.toggleModal();
   }
@@ -475,6 +459,11 @@ class Board {
   getPaintColor(idx) {
     let offset = idx ? -1 : 1;
     return this.colorMode ? this.paintColors[idx] : Hexular.math.mod(this.selected.state + offset, this.numStates);
+  }
+
+  setNh(nh) {
+    this.model.setNeighborhood(nh);
+    this.nh = nh;
   }
 
   updateInfoCursorInfo() {
