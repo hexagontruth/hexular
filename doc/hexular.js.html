@@ -76,17 +76,17 @@ var Hexular = (function () {
     highlightLineWidth: 2,
     colors: [
       '#ffffff',
-      '#cccccc',
-      '#999999',
-      '#666666',
-      '#333333',
+      '#ccccbb',
+      '#99998f',
+      '#666655',
+      '#33332f',
       '#cc4444',
       '#ee7722',
       '#eebb33',
       '#66bb33',
       '#66aaaa',
       '#4455bb',
-      '#aa55bb'
+      '#aa55bb',
     ],
   };
 
@@ -100,6 +100,7 @@ var Hexular = (function () {
    */
   let math = {
     apothem: APOTHEM,
+    hextant: Math.PI * 2 / 6,
     inverseApothem: 1 / APOTHEM,
     vertices: [
       [-1, 0],

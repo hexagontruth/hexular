@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no"/>
-  <script src="build/client.js"></script>
-  <link rel="stylesheet" type="text/css" href="build/client.css"/>
+  <script src="build/client.js?v=1.2"></script>
+  <link rel="stylesheet" type="text/css" href="build/client.css?v=1.2"/>
   <link rel="icon" type="image/png" href="icon.png"/>
   <title>Hexular Studio</title>
 </head>
@@ -21,10 +21,9 @@
     </div>
     <div class="group">
       <button id="show-config" title="Config (Ctrl+K)" class="icon-gear"></button>
-      <button id="resize" title="Resize board (Ctrl+J)" class="icon-compass"></button>
-      <button id="show-custom" title="Add custom code" class="icon-function"></button>
-      <button id="center" title="Center board (Ctrl+R)" class="icon-center"></button>
-      <button id="show-documentation" title="Show documentation (F1)" class="icon-question"></button>
+      <button id="show-resize" title="Resize board (Ctrl+R)" class="icon-compass"></button>
+      <button id="show-custom" title="Add custom code (Ctrl+F)" class="icon-function"></button>
+      <button id="show-doc" title="Show documentation (F1)" class="icon-question"></button>
     </div>
   </div>
   <div class="toolbar bottom">
@@ -33,22 +32,28 @@
       <button class="tool icon-color-fill" id="tool-fill" title="Fill (G)"></button>
       <button class="tool icon-brush" id="tool-brush" title="Brush (B)"></button>
       <button class="tool icon-vector-line" id="tool-line" title="Line (L)"></button>
-      <button class="tool icon-hexagon rotate" id="tool-hexfilled" title="Filled Hex (F)"></button>
-      <button class="tool icon-hexagon-outline rotate" id="tool-hexoutline" title="Outline Hex (H)"></button>
+      <button class="tool icon-vector-triangle" id="tool-lockline" title="Locked line (/)"></button>
+      <button class="tool icon-hexagon rotate" id="tool-hexfilled" title="Filled hex (F)"></button>
+      <button class="tool icon-hexagon-outline rotate" id="tool-hexoutline" title="Outline hex (H)"></button>
     </div>
     <div class="group tool-sizes">
       <button class="tool icon-hex-radius-1" id="ts-1" title="One (1)"></button>
       <button class="tool icon-hex-radius-2" id="ts-2" title="Two (2)"></button>
       <button class="tool icon-hex-radius-3" id="ts-3" title="Three (3)"></button>
+      <button id="center" title="Center board (R)" class="icon-center"></button>
       <button class="tool icon-palette" id="tool-color" title="Color mode (C)"></button>
     </div>
   </div>
   <div class="toolbar left">
     <div class="group">
-      <button id="load" title="Load state... (Ctrl+O)" class="icon-upload"></button>
-      <button id="save" title="Save state... (Ctrl+S)" class="icon-download"></button>
+      <button id="snapshot-save" title="Take snapshot (Q)" class="icon-backup-restore"></button>
+      <button id="snapshot-load" title="Load snapshot (A)" class="icon-restore"></button>
+    </div>
+    <div class="group">
       <button id="save-image" title="Save image... (Ctrl+Shift+S)" class="icon-image"></button>
-      <button id="import" title="Import custom JavaScript (Ctrl+I)" class="icon-cloud-code"></button>
+      <button id="save" title="Save model state... (Ctrl+S)" class="icon-save"></button>
+      <button id="load" title="Load model state... (Ctrl+O)" class="icon-upload"></button>
+      <button id="import" title="Import custom JavaScript... (Ctrl+I)" class="icon-cloud-code"></button>
     </div>
   </div>
   <div class="toolbar right colors hidden">
@@ -109,10 +114,12 @@
         </datalist>
       </div>
       <div class="group">
-        <button id="add-preset" class="icon-plus"></button>
+        <button id="add-preset" class="icon-plus" title="Add new preset..."></button>
         <select id="select-preset">
           <option value="">- Select preset -</option>
         </select>
+        <button id="save-preset" class="icon-briefcase-download" title="Save preset..."></button>
+        <button id="load-preset" class="icon-briefcase-upload" title="Load preset..."></button>
       </div>
       <div class="group">
         <button id="check-all" class="icon-check-all"></button>
@@ -121,7 +128,7 @@
           <option value="">- Set selected -</option>
         </select>
       </div>
-      <div class="rule-config"></div>
+      <div class="group rule-config"></div>
       <div class="group">
         <select id="select-neighborhood" title="Default neighborhood for cell helper functions">
           <option value="6" selected>N6: 6 immediate neighbors</option>
@@ -134,10 +141,11 @@
       </div>
     </div>
   </div>
-  <div class="message"></div>
+  <div class="message-wrapper"><div class="message"></div></div>
   <button class="tool-hider active icon-eye"></button>
-  <div class="info info-cursor"></div>
+  <div class="info info-steps"></div>
   <div class="info info-tool"></div>
+  <div class="info info-cursor"></div>
   <div class="assets" style="display: none;">
     <div class="rule-menu checkable">
       <div class="indicator"></div>
