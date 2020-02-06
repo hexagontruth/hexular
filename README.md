@@ -16,6 +16,7 @@ An extensible hexagonal CA platform.
     - [Rules](#rules)
     - [Customization](#customization)
   - [Hexular Studio](#hexular-studio)
+    - [Interface](#interface)
     - [Prepopulated rules](#prepopulated-rules)
     - [Demo configuration and customization](#demo-configuration-and-customization)
   - [More information](#more-information)
@@ -166,35 +167,44 @@ Some useful URL parameters and their default values:
   - `defaultRule=identityRule`
   - `shiftTool=move`
 
-The main control buttons are, from left to right:
+### Interface
 
-  - Start (Tab) &mdash; Step model at 100ms intervals (this may be slower for larger grids, depending on hardware)
+Control flow and configuration buttons run along the along the top of the window:
+
+  - Start/Pause (Tab) &mdash; Step model at 100ms intervals (this may be slower for larger grids, depending on hardware, and can be set via the `timerLength` URL parameter)
   - Step (Space) &mdash; Perform individual step
   - Clear (Ctrl+C)
   - Undo (Ctrl+Z)
   - Redo (Ctrl+Shift+Z)
-  - Record (Shift+Tab)
+  - Record/Stop (Shift+Tab) &mdash; Start timer and record canvas to webm video
   - Configure (Ctrl+K)
-  - Resize board (Ctrl+J)
-  - Re-scale and re-center (Ctrl+R)
+  - Resize board (Ctrl+R)
+  - Add custom code (Ctrl+F)
   - Show documentation (F1)
-  - Load (Ctrl+O)
-  - Save (Ctrl+S)
+
+Several buttons concerning file I/O run along the left side:
+
+  - Save snapshot (Q)
+  - Load snapshot (A)
   - Save image (Ctrl+Shift+S)
-    Import custom JavaScript (Ctrl+I)
+  - Save (Ctrl+S)
+  - Load (Ctrl+O)
+  - Import custom JavaScript (Ctrl+I)
 
-There are also tool buttons along the bottom:
+Tool buttons and various editorial options run along the bottom:
 
-  - Move (M)
-  - Fill (G)
-  - Brush (B)
-  - Line (L)
-  - Filled Hex (F)
-  - Outline Hex (H)
-  - Tool size 1 (1)
-  - Tool size 2 (2)
-  - Tool size 3 (3)
-  - Color mode toggle (C)
+  - Move tool (M)
+  - Fill tool (G)
+  - Brush tool (B)
+  - Line tool (L)
+  - Locked line tool (/)
+  - Filled hex tool (F)
+  - Outline hex tool (H)
+  - Set tool size to 1 (1)
+  - Set tool size to 2 (2)
+  - Set tool size to 3 (3)
+  - Re-scale and re-center model (R)
+  - Toggle color mode toggle (C) &mdash; Override the default color assignment on paint actions with specific color
 
 Holding shift will temporarily select the move tool by default, or whatever tool is given in the `shiftTool` parameter.
 
@@ -206,7 +216,7 @@ The basic flow of the program is to set one's preferred state using either the m
 
 ### Prepopulated rules
 
-Several predefined rules are given in `client/rules.js` though these are largely for convenience and not meant to be exhaustive. There are also several built-in "presets," or lists of 2-12 rules, in `client/presets.js`. (These are compiled to `public/build/client.js` as part of the build process.)
+Several predefined rules are given in `client/library/rules.js`. These are largely provided for convenience and aren't meant to be exhaustive. A number of built-in presets, or groups of rules, are defined `client/library/presets.js` and can be selected from the configuration modal in lieu of individual rules.
 
 ### Studio configuration and customization
 
@@ -214,22 +224,21 @@ The configuration modal consists of the following fields:
 
   - Slider input to set the number of available states, from 2-12
   - Preset dropdown menu
-  - Text area for entering custom rules
   - Bulk rule assignment dropdown with "select all" button
   - Individual dropdowns for each of the twelve possible states supported by the demo
   - A dropdown to set the default cell neighborhood
 
-In the configuration modal, rule assignment select menus are populated with the contents of the `rules` object loaded from `demo/rules.js`, merged with those already available in Hexular core. Custom rules may be added to this object via the console:
+In the configuration modal, rule assignment select menus are populated with the contents of the `rules` object loaded from `demo/rules.js`, merged with those already available in Hexular core. Custom rules may be added to this object via the console, e.g.:
 
-        Board.instance.addRule(name, function)
+        Board.instance.addRule(name, (cell) => cell.state == 3 ? 1 : 0)
 
-This can also be effected via the modal by adding rules directly in the given text area. The entered code should be a JavaScript object of one or more key-value pairs, where the value is a function that takes a `Cell` instance and returns a state value. This will overwrite existing rules under a given name, though if in use the new rules will have to be re-selected from the dropdowns.
+We can also add our own rule presets via the console, e.g.:
 
-We can also add our own rule presets via the console:
+        Board.instance.addPreset('fancyPreset', new Preset(['offset23', 'offset34', 'stepUp']))
 
-        Board.instance.addPreset(name, array)
+Such modifications can also be effected via the custom code modal (Ctrl+F) or JavaScript import button (Ctrl+I), using the same global objects, &c..
 
-Additional customization on the global `Board.instance.model` model can be performed as described above and in the documentation.
+Additional customization of the global `Board.instance.model` model can be performed as described above and in the documentation.
 
 ## More information
 

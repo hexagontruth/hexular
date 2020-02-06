@@ -59,7 +59,7 @@ class CustomModal extends Modal {
       try {
         let evalFn = new Function('Hexular', 'Board', this.customCode.value)
         evalFn(Hexular, Board);
-        this.board.setMessage('Done');
+        this.board.setMessage('Done!');
       }
       catch (err) {
         this.board.setMessage(`An error occurred: ${err}.`, 'error');
@@ -77,17 +77,25 @@ class ConfigModal extends Modal {
   constructor(...args) {
     super(...args);
     this.ruleMenus = [];
+    this.checkState = null;
     this.ruleConfig = document.querySelector('.rule-config');
     this.numStates = document.querySelector('#num-states');
     this.addPreset = document.querySelector('#add-preset');
+    this.savePreset = document.querySelector('#save-preset');
+    this.loadPreset = document.querySelector('#load-preset');
     this.selectPreset = document.querySelector('#select-preset');
     this.checkAll = document.querySelector('#check-all');
     this.setAll = document.querySelector('#set-all');
     this.selectNh = document.querySelector('#select-neighborhood');
-    this.checkAll.onclick = (ev) => this._handleCheckAll();
-    this.numStates.onchange = (ev) => this._setNumStates(ev.target.value);
+    this.modal.onmouseup = (ev) => this._handleCheckState(ev);
+    this.modal.onmousemove = (ev) => this._handleCheckState(ev);
+    this.modal.onmouseleave = (ev) => this._handleCheckState(ev);
+    this.numStates.onchange = (ev) => this._handleNumStates();
     this.addPreset.onclick = (ev) => this._handleAddPreset();
-    this.selectPreset.onchange = (ev) => this._selectPreset(ev.target.value);
+    this.savePreset.onclick = (ev) => this._handleSavePreset();
+    this.loadPreset.onclick = (ev) => this._handleLoadPreset();
+    this.selectPreset.onchange = (ev) => this._handlePreset();
+    this.checkAll.onclick = (ev) => this._handleCheckAll();
     this.setAll.onchange = (ev) => this._handleSetAll(ev);
     this.selectNh.onchange = (ev) => this._setNh(ev.target.value);
 
@@ -118,6 +126,15 @@ class ConfigModal extends Modal {
     this._storeConfigState();
   }
 
+  _handleNumStates() {
+    this._setNumStates(this.numStates.value);
+    this.board.setMessage(`Set model to ${this.board.numStates} states`)
+  }
+
+  _handlePreset() {
+    this._setPreset(this.selectPreset.value)
+  }
+
   _handleAddPreset() {
     // TODO: Remove native prompt
     let presetName = window.prompt('Please enter a preset name:');
@@ -125,13 +142,54 @@ class ConfigModal extends Modal {
       let rules = this.ruleMenus.slice(0, this.board.numStates).map((e) => e.select.value);
       let preset = new Preset(rules, {nh: this.board.nh});
       this.board.addPreset(presetName, preset);
-      this._selectPreset(presetName);
+      this._setPreset(presetName);
     }
   }
 
-  _selectPreset(presetName) {
+  _handleSavePreset() {
+    let obj = {};
+    let presetName = this.board.preset;
+    obj[presetName] = this._export();
+    let dataUri = `data:application/json,${encodeURIComponent(JSON.stringify(obj))}`;
+    this.board.promptDownload(`${presetName.replace(/ /g, '_')}.json`, dataUri);
+  }
+
+  _handleLoadPreset() {
+    let fileLoader = new FileLoader('.json');
+    fileLoader.onload =  (result) => {
+      try {
+        let obj = JSON.parse(result);
+        let presets = Object.entries(obj).map(([presetName, presetObj]) => {
+          this.board.addPreset(presetName, new Preset(presetObj));
+          return presetName;
+        });
+        if (presets.length > 1) {
+          this.board.setMessage('Presets imported!');
+        }
+        else if (presets.length == 1) {
+          this.board.setMessage('Preset imported!');
+          this._setPreset(presets[0]);
+        }
+      }
+      catch (e) {
+        this.board.setMessage(e.toString(), 'error');
+      }
+
+    };
+    fileLoader.filter = (files) => {
+      let result = files.map((file) => file.type.indexOf('json') >= 0);
+      result.some((e) => !e) && this.setMessage('Not all selected files are JSON files', 'error');
+      return result;
+    };
+    fileLoader.prompt();
+  }
+
+  _setPreset(presetName) {
     const preset = this.board.presets[presetName];
     if (!preset) {
+      this.selectPreset.selectedIndex = 0;
+      this.addPreset.disabled = false;
+      this.savePreset.disabled = true;
       this.board.preset = null;
       return;
     }
@@ -143,7 +201,13 @@ class ConfigModal extends Modal {
     this.board.preset = presetName;
     this.selectPreset.value = presetName;
     this.addPreset.disabled = true;
+    this.savePreset.disabled = false;
     this._storeConfigState();
+  }
+
+  _handleCheckState(ev) {
+    if (ev.buttons ^ 1)
+      this.checkState = null;
   }
 
   _handleCheckAll() {
@@ -194,7 +258,7 @@ class ConfigModal extends Modal {
     for (let presetName of Object.keys(this.board.presets)) {
       let option = document.createElement('option');
       option.text = presetName;
-      option.selected = presetName == this.preset;
+      option.selected = presetName == this.board.preset;
       this.selectPreset.appendChild(option);
     }
 
@@ -210,7 +274,7 @@ class ConfigModal extends Modal {
     this.ruleMenus = [];
 
     for (let i = 0; i < this.board.maxNumStates; i++) {
-      let ruleMenu = new RuleMenu(this.board, i, this.board.model.rules[i], i >= this.board.model.numStates);
+      let ruleMenu = new RuleMenu(this, i, this.board.model.rules[i], i >= this.board.model.numStates);
       ruleMenu.select.addEventListener('change', (ev) => this._handleSetRule(ev));
       this.ruleMenus.push(ruleMenu);
       this.ruleConfig.appendChild(ruleMenu.container);
@@ -233,20 +297,12 @@ class ConfigModal extends Modal {
       }, false);
     })();
     if (dirty) {
-      this.selectPreset.selectedIndex = 0;
-      this.addPreset.disabled = false;
-      this.board.preset = null;
+      this._setPreset();
     }
   }
 
   _storeConfigState() {
-    let obj = {
-      numStates: this.board.numStates,
-      preset: this.selectPreset.value,
-      rules: this.ruleMenus.map((e) => e.select.value),
-      nh: this.board.nh
-    };
-    this.board.storeState({config: JSON.stringify(obj)});
+    this.board.storeState({config: JSON.stringify(this._export())});
   }
 
   _restoreConfigState() {
@@ -258,16 +314,25 @@ class ConfigModal extends Modal {
     obj = obj || {};
 
     if (obj.preset) {
-       this._selectPreset(obj.preset);
+       this._setPreset(obj.preset);
     }
     else {
       let {numStates, nh} = this.board;
-      this._selectPreset(this.board.preset);
+      this._setPreset(this.board.preset);
       this._setNumStates(obj.numStates || numStates);
       this._setNh(obj.nh || nh);
       this.board.preset || obj.rules && this.ruleMenus.forEach((ruleMenu, idx) => {
         ruleMenu.set(obj.rules[idx] || this.board.defaultRule);
       });
     }
+  }
+
+  _export() {
+    return {
+      numStates: this.board.numStates,
+      preset: this.selectPreset.value,
+      rules: this.ruleMenus.map((e) => e.select.value),
+      nh: this.board.nh
+    };
   }
 }

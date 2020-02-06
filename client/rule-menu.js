@@ -1,8 +1,9 @@
 class RuleMenu {
-  constructor(board, idx, selected, disabled) {
-    this.board = board;
+  constructor(modal, idx, selected, disabled) {
+    this.modal = modal;
+    this.board = modal.board;
     this.index = idx;
-    let rules = board.availableRules;
+    let rules = this.board.availableRules;
     let prototype = document.querySelector('.assets .rule-menu');
     let container = this.container = prototype.cloneNode(true);
     let select = this.select = container.querySelector('select');
@@ -10,15 +11,21 @@ class RuleMenu {
     select.ruleMenu = this;
     container.title = `State ${idx}`;
     container.setAttribute('data-disabled', disabled);
-    indicator.style.backgroundColor = board.bgAdapter.colors[idx];
+    indicator.style.backgroundColor = this.board.bgAdapter.colors[idx];
     for (let [ruleName, fn] of Object.entries(rules)) {
       let option = document.createElement('option');
       option.text = ruleName;
       option.selected = selected == fn;
       select.appendChild(option);
     }
-    indicator.addEventListener('mouseup', (ev) => {
+    indicator.addEventListener('mousedown', (ev) => {
       this.checked = !this.checked;
+      this.modal.checkState = this.checked;
+      ev.preventDefault();
+    });
+    indicator.addEventListener('mousemove', (ev) => {
+      if (this.modal.checkState != null)
+        this.checked = this.modal.checkState;
     });
   }
 

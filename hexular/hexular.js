@@ -60,7 +60,7 @@ var Hexular = (function () {
       '#66bb33',
       '#66aaaa',
       '#4455bb',
-      '#aa55bb'
+      '#aa55bb',
     ],
   };
 
@@ -74,6 +74,7 @@ var Hexular = (function () {
    */
   let math = {
     apothem: APOTHEM,
+    hextant: Math.PI * 2 / 6,
     inverseApothem: 1 / APOTHEM,
     vertices: [
       [-1, 0],
