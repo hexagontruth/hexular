@@ -158,7 +158,7 @@ Some useful URL parameters and their default values:
   - `mobileRadius=30`
   - `cellRadius=10`
   - `mobileCellRadius=20`
-  - `timerLength=100`
+  - `interval=100`
   - `undoStackSize=64`
   - `modFilter=1`
   - `edgeFilter=0`
@@ -171,7 +171,7 @@ Some useful URL parameters and their default values:
 
 Control flow and configuration buttons run along the along the top of the window:
 
-  - Start/Pause (Tab) &mdash; Step model at 100ms intervals (this may be slower for larger grids, depending on hardware, and can be set via the `timerLength` URL parameter)
+  - Start/Pause (Tab) &mdash; Step model at 100ms intervals (this may be slower for larger grids, depending on hardware, and can be set via the `interval` URL parameter)
   - Step (Space) &mdash; Perform individual step
   - Clear (Ctrl+C)
   - Undo (Ctrl+Z)

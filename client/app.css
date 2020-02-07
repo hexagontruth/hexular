@@ -238,6 +238,10 @@ button:disabled {
   transition: all 500ms;
 }
 
+.info .timer {
+  color: #cc4f4f;
+}
+
 .info.active {
   opacity: 1;
 }
@@ -264,12 +268,20 @@ button:disabled {
   transform: translateY(calc(-100% - 0.5rem));
 }
 
-.message {
+.message-wrapper {
   position: fixed;
   z-index: 20;
   top: 3rem;
   left: 1rem;
   right: 1rem;
+  height: 0;
+  display: flex;
+  flex-align: flex-start;
+  justify-content: center;
+}
+
+.message {
+  min-width: 50%;
   height: 0;
   line-height: 2;
   background: #9fcc3f;

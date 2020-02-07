@@ -12,5 +12,5 @@ const PRESETS = {
 
   fancytownClassic: new Preset(Array(12).fill('fancytown'), {nh: 19}),
 
-  grayGoo: new Preset(Object.assign(Array(12).fill('average'), ['total', 'total']), {nh: 19}),
+  grayGoo: new Preset(Object.assign(Array(10).fill('average'), ['total', 'total']), {nh: 19}),
 };

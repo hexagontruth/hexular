@@ -4,7 +4,7 @@ const DEFAULTS = new OptParser({
   radius: 60,
   mobileRadius: 30,
   maxNumStates: 12,
-  timerLength: 100,
+  interval: 100,
   autopause: 1,
   undoStackSize: 64,
   mobileUndoStackSize: 16,
@@ -289,18 +289,33 @@ class Board {
 
   toggleRecord() {
     if (!this.recorder) {
-      if (!this.running) {
-        this.togglePlay();
-      }
+      if (!this.running)
+        requestAnimationFrame(() => this.togglePlay());
       this.buttons.allNonrecording.forEach((e) => e.disabled = true);
       this.buttons.toggleRecord.className = 'icon-stop active';
       this.setButtonTitle(this.buttons.toggleRecord, 'Stop');
       this.recorder = new Recorder(this);
+      this.recordStart = Date.now();
+      let sexFmt = (i) => ('00' + i).slice(-2);
+      this.recordInterval = setInterval(() => {
+        let delta = Date.now() - this.recordStart;
+        let rawSecs = Math.floor(delta / 1000);
+        let thirds = Math.floor((delta % 1000) * 60 / 1000);
+        let secs = rawSecs % 60;
+        let mins = Math.floor(rawSecs / 60) % 60;
+        let hours = Math.floor(rawSecs / 3600) % 60;
+        let str = `<span class='timer'>${sexFmt(hours)}:${sexFmt(mins)}:${sexFmt(secs)}:${sexFmt(thirds)}</span>`;
+        this.setInfoBox('tool', str);
+      }, 50);
       this.draw().then(() => this.recorder.start());
     }
     else {
       this.recorder.stop();
       this.recorder = null;
+      clearInterval(this.recordInterval);
+      this.setInfoBox('tool');
+      this.recordInterval = null;
+      this.recordStart = null;
       this.togglePlay();
       this.draw();
       this.buttons.toggleRecord.className = 'icon-record';
@@ -312,7 +327,7 @@ class Board {
 
   togglePlay() {
     if (!this.running) {
-      this.timer = setInterval(this.step.bind(this), this.timerLength);
+      this.timer = setInterval(this.step.bind(this), this.interval);
       this.buttons.step.disabled = true;
       this.buttons.togglePlay.className = 'icon-pause';
       this.setButtonTitle(this.buttons.togglePlay, 'Pause');

@@ -1,17 +1,22 @@
 const THEMES = {
   light: {
     background: '#f8f8f8',
-    colors: Object.assign([], Hexular.DEFAULTS.colors, [
-      '#fff',
-      '#ccccbb',
-      '#99998f',
-      '#666655',
-      '#33332f',
-    ]),
+    colors: Hexular.DEFAULTS.colors.slice(),
+  },
+  smooth: {
+    background: '#f8f8f8',
+    borderWidth: -0.75,
+    colors: Hexular.DEFAULTS.colors.slice(),
   },
   classic: {
     background: '#eeeeee',
-    colors: Hexular.DEFAULTS.colors.slice(),
+    colors: Object.assign([], Hexular.DEFAULTS.colors, [
+      '#ffffff',
+      '#cccccc',
+      '#999999',
+      '#666666',
+      '#333333',
+    ]),
   },
   white: {
     background: '#ffffff',
