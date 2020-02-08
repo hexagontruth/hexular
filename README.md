@@ -143,29 +143,21 @@ We can also override or extend the default cell-drawing behavior of `CanvasAdapt
 
 ## Hexular Studio
 
-The built-in demo site, Hexular Studio, can be run locally using NPM and Node:
+The built-in demo site, Hexular Studio, can be run as-is with any static HTTP server, or built and run using NPM and Node:
 
   - Run `npm install` from the project directory
   - Then run `npm start`
 
-The build process is fairly minimal, and one can also run the demo page directly from the filesystem by adding a few script tags directly in `public/index.html`.
+The principal Studio interface consists of a `CubicModel` instance, centered on the page, with buttons and keyboard shortcuts implementing various functions. A number of settings can be set via URL parameters. Some debatably-important ones that presently aren't also configurable through the interface include:
 
-The principal Studio interface consists of a `CubicModel` instance, centered on the page, with buttons and keyboard shortcuts implementing various functions. A number of settings &mdash; including the resolution of the cells drawn on screen, and the radius of the grid, can be set via URL parameters.
-
-Some useful URL parameters and their default values:
-
-  - `radius=60`
-  - `mobileRadius=30`
-  - `cellRadius=10`
-  - `mobileCellRadius=20`
+  - `theme=light`
+  - `borderWidth=1`
+  - `showModelBackground=true`
   - `interval=100`
+  - `groundState=0`
   - `undoStackSize=64`
-  - `modFilter=1`
-  - `edgeFilter=0`
-  - `clampBottomFilter=0`
-  - `clampTopFilter=0`
-  - `defaultRule=identityRule`
-  - `shiftTool=move`
+
+URL parameters are overriden by themes and presets according to a somewhat complicated formula, and it's probably advisable to use the in-page configuration tools when possible. Generally things like tool settings and particular rule settings will persist for a current page session, while things like imported presets will persist across multiple sessions. Both can be cleared by clicking the "Clear locally-stored settings" button.
 
 ### Interface
 
@@ -180,6 +172,7 @@ Control flow and configuration buttons run along the along the top of the window
   - Configure (Ctrl+K)
   - Resize board (Ctrl+R)
   - Add custom code (Ctrl+F)
+  - Clear locally-stored settings
   - Show documentation (F1)
 
 Several buttons concerning file I/O run along the left side:
@@ -220,25 +213,31 @@ Several predefined rules are given in `client/library/rules.js`. These are large
 
 ### Studio configuration and customization
 
-The configuration modal consists of the following fields:
+The main configuration modal consists of the following fields:
 
   - Slider input to set the number of available states, from 2-12
   - Preset dropdown menu
   - Bulk rule assignment dropdown with "select all" button
   - Individual dropdowns for each of the twelve possible states supported by the demo
-  - A dropdown to set the default cell neighborhood
+  - Default rule dropdown menu &mdash; This should only really matter when running rules without `modFilter` (which may cause other undesirable effects such as corrupted model exports, &c., and should generally be thought of as voiding the warranty)
+  - Cell neighborhood dropdown &mdash; Not all rules use the default neighborhood, but most built-in rules involving totals, counts, &c. will do so
+  - A series of buttons to activate and deactivate particular built-in filters
 
 In the configuration modal, rule assignment select menus are populated with the contents of the `rules` object loaded from `demo/rules.js`, merged with those already available in Hexular core. Custom rules may be added to this object via the console, e.g.:
 
-        Board.instance.addRule(name, (cell) => cell.state == 3 ? 1 : 0)
+        Board.config.addRule(name, (cell) => cell.state == 3 ? 1 : 0)
 
 We can also add our own rule presets via the console, e.g.:
 
-        Board.instance.addPreset('fancyPreset', new Preset(['offset23', 'offset34', 'stepUp']))
+        Board.config.addPreset('fancyPreset', new Preset(['offset23', 'offset34', 'stepUp']))
 
-Such modifications can also be effected via the custom code modal (Ctrl+F) or JavaScript import button (Ctrl+I), using the same global objects, &c..
+Such modifications can also be effected via the custom code modal (Ctrl+F) or JavaScript import button (Ctrl+I), using the same global objects, &c. Specifically, every board instance attaches the following to the global `Board` object:
 
-Additional customization of the global `Board.instance.model` model can be performed as described above and in the documentation.
+- `Board.instance` - The board itself
+- `Board.config` - Alias for `Board.instance.config`
+- `Board.model` - Alias for `Board.instance.model`
+
+Customization of the global `Board.model` model can be performed as described above and in the documentation.
 
 ## More information
 

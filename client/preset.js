@@ -5,12 +5,26 @@ class Preset {
   }
 
   constructor(...args) {
-    this.nh = 6;
+    let defaults = {
+      defaultRule: 'identityRule',
+      nh: 6,
+      filters: {
+        clipBottomFilter: false,
+        clipTopFilter: false,
+        binaryFilter: false,
+        modFilter: true,
+        edgeFilter: false
+      },
+      rules: [],
+    };
+    Config.merge(this, defaults);
     for (let arg of args)
-      if (arg.length)
+      if (!arg)
+        continue;
+      else if (arg.length)
         this.rules = arg.slice();
       else
-        Object.assign(this, arg);
+        Config.merge(this, arg);
     this.numStates = this.numStates || this.rules.length;
   }
 

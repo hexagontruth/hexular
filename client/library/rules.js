@@ -1,66 +1,7 @@
 const Rules = (() => {
-  const Rules = {
-
-    binary1: (cell) => cell.count == 1 ? 1 : 0,
-
-    binary2: (cell) => cell.count == 2 ? 1 : 0,
-
-    binary3: (cell) => cell.count == 3 ? 1 : 0,
-
-    binary12: (cell) => {
-      let count = cell.count;
-      return count == 1 || count == 2 ? 1 : 0;
-    },
-
-    binary23: (cell) => {
-      const count = cell.count;
-      return count == 2 || count == 3 ? 1 : 0;
-    },
-
-    binary24: (cell) => {
-      const count = cell.count;
-      return count == 2 || count == 4 ? 1 : 0;
-    },
-
-    binary34: (cell) => {
-      const count = cell.count;
-      return count == 3 || count == 4 ? cell.state + 1 : 0;
-    },
-
-    offset1: (cell) => cell.count == 1 ? cell.state + 1 : 0,
-
-    offset2: (cell) => cell.count == 2 ? cell.state + 1 : 0,
-
-    offset3: (cell) => cell.count == 3 ? cell.state + 1 : 0,
-
-    offset12: (cell) => {
-      const count = cell.count;
-      return count == 1 || count == 2 ? cell.state + 1 : 0;
-    },
-
-    offset23: (cell) => {
-      const count = cell.count;
-      return count == 2 || count == 3 ? cell.state + 1 : 0;
-    },
-
-    offset24: (cell) => {
-      const count = cell.count;
-      return count == 2 || count == 4 ? cell.state + 1 : 0;
-    },
-
-    offset34: (cell) => {
-      const count = cell.count;
-      return count == 3 || count == 4 ? cell.state + 1 : 0;
-    },
-
-    // Increment or decrement each state -- useful for holding activation for fixed period
-
-    stepDown: (cell) => cell.state - 1,
-
-    stepUp: (cell) => cell.state + 1,
-
-    // Simple multistate rule - was the original higher-state ruel in the "classic" Hexular demo
-
+  const coreRules = Hexular.rules;
+  const simpleRules = SimpleRules;
+  const customRules = {
     classicDuplex23: (cell) => {
       const count = cell.count;
       if (count == 2 || count == 3)
@@ -88,47 +29,9 @@ const Rules = (() => {
 
     // Some xor-inspired rules
 
-    xorCount: (cell) => cell.count % 2,
-
-    xorTotal: (cell) => cell.total % 2,
-
     xorIncrement: (cell) => cell.state + (cell.count % 2 ? 1 : -1),
 
     xorOffset: (cell) => cell.state + (cell.total - cell.state) % 2 ? 1 : -1,
-
-    // Basic passthrough functions
-
-    average: (cell) => cell.average,
-
-    count: (cell) => cell.count,
-
-    total: (cell) => cell.total,
-
-    // Here are some examples of the built-in ruleBuilder functionality
-
-    ennead: Hexular.util.ruleBuilder([
-      0b001001,
-      0b010010,
-      0b100100,
-      0b000011,
-      0b000110,
-      0b001100,
-      0b011000,
-      0b110000,
-      0b100001,
-    ]),
-
-    fractalLeft: Hexular.util.ruleBuilder([
-      0b010000,
-      0b000100,
-      0b000001,
-    ]),
-
-    fractalRight: Hexular.util.ruleBuilder([
-      0b100000,
-      0b001000,
-      0b000010,
-    ]),
 
     lineFilter: Hexular.util.ruleBuilder([
       0b001001,
@@ -165,5 +68,11 @@ const Rules = (() => {
       0b1100000,
     ], {range: [0, 7], inc: false}),
   };
-  return Rules;
+  let rules = {};
+  let entries = Object.entries(Object.assign({}, coreRules, simpleRules, customRules));
+  entries.sort((a, b) => a[0].localeCompare(b[0]));
+  entries.forEach(([rule, fn]) => {
+    rules[rule] = fn;
+  });
+  return rules;
 })();

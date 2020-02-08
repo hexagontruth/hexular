@@ -1,6 +1,9 @@
 class Action {
   constructor(board, ...args) {
-    Object.assign(this, {board}, ...args);
+    let config = board.config;
+    let model = board.model;
+    Object.assign(this, {board, config, model}, ...args);
+    this.model = board.model;
     this.coords = [];
     this.board.fgAdapter.clear();
   }
@@ -21,7 +24,7 @@ class Action {
   _selectWithSize(arg) {
     if (Array.isArray(arg))
       return [].concat(...arg.map((e) => this._selectWithSize(e)));
-    return arg ? Hexular.util.hexWrap(arg, this.board.toolSize) : [];
+    return arg ? Hexular.util.hexWrap(arg, this.config.toolSize) : [];
   }
 
   _applyBuffer() {
@@ -61,7 +64,7 @@ class Action {
   }
 
   _hypotToModel(h) {
-    return h / this.board.model.cellApothem / this.board.scaleZoom;
+    return h / this.model.cellApothem / this.board.scaleZoom;
   }
 }
 
@@ -100,9 +103,9 @@ class PaintAction extends Action {
   constructor(...args) {
     super(...args);
     if (this.setState == null)
-      this.setState = this.board.getPaintColor(0);
+      this.setState = this.config.getPaintColor(0);
     if (this.ctrl)
-      this.setState = this.board.model.groundState;
+      this.setState = this.model.groundState;
   }
 
   end() {
@@ -144,7 +147,7 @@ class BrushAction extends PaintAction {
 class LineAction extends PaintAction {
   start(ev) {
     this.originCell = this.board.selected;
-    this.a = this.board.modelToWindow(this.board.model.getCoord(this.originCell));
+    this.a = this.board.modelToWindow(this.model.getCoord(this.originCell));
     this.move(ev);
   }
 
@@ -156,7 +159,7 @@ class LineAction extends PaintAction {
   }
 
   _calculateCells() {
-    let samples =  this._hypotToModel(this.length);
+    let samples = this._hypotToModel(this.length);
     let [x, y] = this.a.slice();
     let xSample = (this.b[0] - this.a[0]) / samples;
     let ySample = (this.b[1] - this.a[1]) / samples;
