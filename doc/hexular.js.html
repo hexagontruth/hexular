@@ -65,6 +65,8 @@ var Hexular = (function () {
     cols: 60,
     // Default rule is used whenever a cell state does not have an entry in model.rules
     defaultRule: identityRule,
+    // Array type to use for import/export
+    arrayType: Int8Array,
     // This is only needed if one is using modFilter or certain cell/neighborhood helper functions
     numStates: 2,
     // Some functions depend on the ground state evaluating to false so changing this may be weird
@@ -87,6 +89,7 @@ var Hexular = (function () {
       '#66aaaa',
       '#4455bb',
       '#aa55bb',
+      '#ccccff', // The last color is used as a fallback
     ],
   };
 
@@ -187,6 +190,13 @@ var Hexular = (function () {
          * @default {@link Hexular.rules.identityRule}
          */
         defaultRule: DEFAULTS.defaultRule,
+        /**
+         * Default numeric type for binary import and export.
+         *
+         * @name Model#arrayType
+         * @default Int8Array
+         */
+        arrayType: DEFAULTS.arrayType,
         /**
          * Total number of states.
          *
@@ -324,12 +334,30 @@ var Hexular = (function () {
     }
 
     /**
+     * Clear all filters.
+     *
+     */
+    clearFilters() {
+      while (this.filters.length)
+        this.filters.pop();
+    }
+
+    /**
      * Advance state of each cell according to rule defined in {@link Model.rules|this.rules} for current state key.
      */
     step() {
       this.changed = false;
       this.eachCell((cell) => {
-        let nextState = (this.rules[cell.state] || this.defaultRule)(cell);
+        let nextState
+        try {
+          nextState = (this.rules[cell.state] || this.defaultRule)(cell);
+        }
+        catch (e) {
+          if (e instanceof TypeError)
+            throw new HexError(`Invalid rule function for state "${cell.state}"`);
+          else
+            throw e;
+        }
         cell.nextState = this.filters.call(nextState, cell);
         if (!this.changed &amp;&amp; cell.nextState != cell.state)
           this.changed = true;
@@ -448,31 +476,29 @@ var Hexular = (function () {
     /**
      * Export cell states to a typed byte array.
      *
-     * Though Hexular is not currently geared towards negative state values, we use a signed type array to preserve
-     * the option of doing so. This method does not export other aspects of a model or its cells, such as
-     * {@link Model#rules} or {@link Cell#neighborhood}, and will not prove effective for non-numeric states or states
-     * outside the range -128...128 (inclusive and exclusive respectively).
+     * Neither this method nor its counterpart {@link Model#import} deals with other aspects of models or cells,
+     * such as {@link Model#rules|rules} or {@link Cell#neighborhood|neighborhoods}, and will not prove effective,
+     * under the default settings, for non-numeric states or states outside the range -128...128.
      *
-     * @return {Int8Array} Byte array of cell states
+     * @return {TypedArray} Typed array of cell states
+     * @see {@link Model#arrayType})
      * @see {@link Model#import}
      */
     export() {
-      let bytes = Int8Array.from(this.cells.map((e) => e.state));
-      return bytes;
+      let array = this.arrayType.from(this.cells.map((e) => e.state));
+      return array;
     }
 
     /**
-     * Import cell states from typed byte array.
+     * Import cell states from typed or untyped array.
      *
-     * Like {@link Model#export}, this only works with integer states no less than -128 and no greater than 127, and
-     * does not change other model or cell attributes such as e.g. {@link Model#rules} or {@link Cell#neighborhood}.
-     *
-     * @param  {Int8Array} bytes Byte array of cell states
+     * @param  {TypedArray|Array} array Any array of cell states
+     * @see {@link Model#arrayType})
      * @see {@link Model#export}
      */
-    import(bytes) {
+    import(array) {
       this.cells.forEach((cell, idx) => {
-        cell.state = bytes[idx] || this.groundState;
+        cell.state = array[idx] || this.groundState;
       });
     }
 
@@ -1231,7 +1257,7 @@ var Hexular = (function () {
      * @param  {Cell} cell The cell being drawn
      */
     defaultDrawCell(cell) {
-      this.context.fillStyle = this.colors[cell.state];
+      this.context.fillStyle = this.colors[cell.state] || this.colors.slice(-1)[0];
       this._drawHexPath(cell);
       this.context.fill();
     }
@@ -1245,7 +1271,7 @@ var Hexular = (function () {
    * @param  {Cell} cell The cell being drawn
    */
     defaultDrawBuffer(cell) {
-      let color = this.colors[this.stateBuffer.get(cell)];
+      let color = this.colors[this.stateBuffer.get(cell)] || this.colors.slice(-1)[0];
       if (color) {
         this.context.fillStyle = color;
         this._drawHexPath(cell);
@@ -1341,6 +1367,37 @@ var Hexular = (function () {
   // --- OPTIONAL FILTERS ---
 
   /**
+   * Prevent state from going below 0.
+   *
+   * Must be run before {@link Hexular.filters.modFilter|modFilter}!.
+   *
+   * @memberof Hexular.filters
+   */
+  function clipBottomFilter(value) {
+    return Math.max(0, value);
+  }
+
+  /**
+   * Prevent state from going above the value defined in {@link Model#numStates}.
+   *
+   * @memberof Hexular.filters
+   */
+  function clipTopFilter(value) {
+    return Math.min(this.numStates - 1, value);
+  }
+
+  /**
+   * Constraint state to 0 or 1.
+   *
+   * Must be run before {@link Hexular.filters.modFilter|modFilter}!.
+   *
+   * @memberof Hexular.filters
+   */
+  function binaryFilter(value) {
+    return value ? 1 : 0;
+  }
+
+  /**
    * Set new cell values to modulus with respect to {@link Model#numStates}.
    *
    * This filter has the effect of making states cyclical. Historically this was the default behavior. There is, in
@@ -1351,26 +1408,6 @@ var Hexular = (function () {
    */
   function modFilter(value) {
     return mod(value, this.numStates);
-  }
-
-  /**
-   * Prevent state from going below 0.
-   *
-   * Must be run before {@link Hexular.filters.modFilter}!.
-   *
-   * @memberof Hexular.filters
-   */
-  function clampBottomFilter(value) {
-    return Math.max(0, value);
-  }
-
-  /**
-   * Prevent state from going above the value defined in {@link Model#numStates}.
-   *
-   * @memberof Hexular.filters
-   */
-  function clampTopFilter(value) {
-    return Math.min(this.numStates - 1, value);
   }
 
   /**
@@ -1608,8 +1645,9 @@ var Hexular = (function () {
       nullRule,
     },
     filters: {
-      clampBottomFilter,
-      clampTopFilter,
+      clipBottomFilter,
+      clipTopFilter,
+      binaryFilter,
       modFilter,
       edgeFilter,
     },
