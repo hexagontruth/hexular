@@ -4,15 +4,20 @@ default:
     client.js:
       - hexular/hexular.js
       - client/actions.js
+      - client/config.js
       - client/file-loader.js
-      - client/modals.js
+      - client/modal.js
       - client/opt-parser.js
       - client/preset.js
       - client/recorder.js
-      - client/rule-menu.js
-      - client/library/presets.js
+      - client/library/simple-rules.js
       - client/library/rules.js
+      - client/library/presets.js
       - client/library/themes.js
+      - client/modals/config-modal.js
+      - client/modals/confirm-modal.js
+      - client/modals/custom-modal.js
+      - client/modals/resize-modal.js
       - client/app.js
     client.css:
       - client/vendor/icons.css

@@ -24,7 +24,7 @@ const Themes = {
   },
   beigeRainbow: {
     background: '#ffffff',
-    colors:[
+    colors: Object.assign([
       '#fafafa',
       '#ccccbb',
       '#ffaa11',
@@ -32,12 +32,12 @@ const Themes = {
       '#aadd11',
       '#11cccc',
       '#1188ff',
-      '#cc44ff',//
-      '#ff44bb',//
+      '#cc44ff',
+      '#ff44bb',
       '#cc3333',
       '#aaaa33',
       '#332211',
-    ],
+    ]),
   },
   dark: {
     background: '#111111',
@@ -51,7 +51,7 @@ const Themes = {
   },
   darkRainbow: {
     background: '#111111',
-    colors:[
+    colors: Object.assign([
       '#000000',
       '#ff0000',
       '#ffaa00',
@@ -64,6 +64,6 @@ const Themes = {
       '#aa00ff',
       '#ff00ff',
       '#ff00aa',
-    ],
+    ]),
   },
 };

@@ -284,6 +284,7 @@ button:disabled {
   min-width: 50%;
   height: 0;
   line-height: 2;
+  padding: 0 0.5rem;
   background: #9fcc3f;
   color: #fff;
   font-weight: bold;
@@ -320,7 +321,7 @@ button:disabled {
   left: 0;
   opacity: 1;
   padding: 2rem;
-  background: rgba(0,0,0,0.5);
+  background: #0000003f;
 }
 
 .overlay.hidden {
@@ -349,11 +350,14 @@ button:disabled {
   flex-direction: row;
   justify-content: space-between;
   align-items: stretch;
-  margin: 0;
 }
 
 .modal .group > * {
   margin:.25em;
+}
+
+select, input {
+  height: 2em;
 }
 
 textarea, select, input {
@@ -374,6 +378,12 @@ textarea, select, input {
   border-radius: 0.5em
 }
 
+.modal .text {
+  line-height: 1.5;
+  margin-top: 0;
+  margin-bottom: 0.5em;
+}
+
 .modal button {
   flex: 0 0 2em;
   min-height: 2em;
@@ -392,15 +402,18 @@ textarea, select, input {
   width: 100%;
 }
 
-.rule-config [data-disabled='true'] {
+.rule-group [data-disabled='true'] {
   opacity: 0.5;
 }
 
-.modal .group.rule-config {
+.modal .group.rule-group {
   display: block;
   column-count: 2;
   column-gap: 0;
-  margin: 0.25em 0 0;
+}
+
+.modal .group.rule-group.default {
+  column-count: 1;
 }
 
 .modal .rule-menu {
@@ -408,10 +421,11 @@ textarea, select, input {
   flex-direction: row;
   justify-content: space-between;
   align-items: stretch;
-  margin: 0.5em 0.25em;
+  margin: 0;
+  padding: 0.25em 0.25em;
 }
 
-.modal .indicator {
+.modal button.checkable {
   display: flex;
   flex: 0 0 2em;
   justify-content: center;
@@ -423,16 +437,12 @@ textarea, select, input {
   border-radius: 0.5em;
 }
 
-.modal .rule-menu.checked .indicator {
+body .modal button.checkable:hover {
+  background-color: #3f9fcc;
+}
+
+.modal .checked button.checkable {
   border-color: #fb3;
-}
-
-.modal .rule-menu:first-child {
-  margin-top: 0;
-}
-
-.modal .rule-menu:last-child {
-  margin-bottom: 0;
 }
 
 @media screen and (max-width: 600px) {

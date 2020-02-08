@@ -178,28 +178,21 @@ end user to implement her own extensions via the Hexular API:</p>
     });
 </code></pre>
 <h2 id="hexular-studio">Hexular Studio</h2>
-<p>The built-in demo site, Hexular Studio, can be run locally using NPM and Node:</p>
+<p>The built-in demo site, Hexular Studio, can be run as-is with any static HTTP server, or built and run using NPM and Node:</p>
 <ul>
 <li>Run <code>npm install</code> from the project directory</li>
 <li>Then run <code>npm start</code></li>
 </ul>
-<p>The build process is fairly minimal, and one can also run the demo page directly from the filesystem by adding a few script tags directly in <code>public/index.html</code>.</p>
-<p>The principal Studio interface consists of a <code>CubicModel</code> instance, centered on the page, with buttons and keyboard shortcuts implementing various functions. A number of settings — including the resolution of the cells drawn on screen, and the radius of the grid, can be set via URL parameters.</p>
-<p>Some useful URL parameters and their default values:</p>
+<p>The principal Studio interface consists of a <code>CubicModel</code> instance, centered on the page, with buttons and keyboard shortcuts implementing various functions. A number of settings can be set via URL parameters. Some debatably-important ones that presently aren't also configurable through the interface include:</p>
 <ul>
-<li><code>radius=60</code></li>
-<li><code>mobileRadius=30</code></li>
-<li><code>cellRadius=10</code></li>
-<li><code>mobileCellRadius=20</code></li>
+<li><code>theme=light</code></li>
+<li><code>borderWidth=1</code></li>
+<li><code>showModelBackground=true</code></li>
 <li><code>interval=100</code></li>
+<li><code>groundState=0</code></li>
 <li><code>undoStackSize=64</code></li>
-<li><code>modFilter=1</code></li>
-<li><code>edgeFilter=0</code></li>
-<li><code>clampBottomFilter=0</code></li>
-<li><code>clampTopFilter=0</code></li>
-<li><code>defaultRule=identityRule</code></li>
-<li><code>shiftTool=move</code></li>
 </ul>
+<p>URL parameters are overriden by themes and presets according to a somewhat complicated formula, and it's probably advisable to use the in-page configuration tools when possible. Generally things like tool settings and particular rule settings will persist for a current page session, while things like imported presets will persist across multiple sessions. Both can be cleared by clicking the &quot;Clear locally-stored settings&quot; button.</p>
 <h3 id="interface">Interface</h3>
 <p>Control flow and configuration buttons run along the along the top of the window:</p>
 <ul>
@@ -212,6 +205,7 @@ end user to implement her own extensions via the Hexular API:</p>
 <li>Configure (Ctrl+K)</li>
 <li>Resize board (Ctrl+R)</li>
 <li>Add custom code (Ctrl+F)</li>
+<li>Clear locally-stored settings</li>
 <li>Show documentation (F1)</li>
 </ul>
 <p>Several buttons concerning file I/O run along the left side:</p>
@@ -245,22 +239,29 @@ end user to implement her own extensions via the Hexular API:</p>
 <h3 id="prepopulated-rules">Prepopulated rules</h3>
 <p>Several predefined rules are given in <code>client/library/rules.js</code>. These are largely provided for convenience and aren't meant to be exhaustive. A number of built-in presets, or groups of rules, are defined <code>client/library/presets.js</code> and can be selected from the configuration modal in lieu of individual rules.</p>
 <h3 id="studio-configuration-and-customization">Studio configuration and customization</h3>
-<p>The configuration modal consists of the following fields:</p>
+<p>The main configuration modal consists of the following fields:</p>
 <ul>
 <li>Slider input to set the number of available states, from 2-12</li>
 <li>Preset dropdown menu</li>
 <li>Bulk rule assignment dropdown with &quot;select all&quot; button</li>
 <li>Individual dropdowns for each of the twelve possible states supported by the demo</li>
-<li>A dropdown to set the default cell neighborhood</li>
+<li>Default rule dropdown menu — This should only really matter when running rules without <code>modFilter</code> (which may cause other undesirable effects such as corrupted model exports, &amp;c., and should generally be thought of as voiding the warranty)</li>
+<li>Cell neighborhood dropdown — Not all rules use the default neighborhood, but most built-in rules involving totals, counts, &amp;c. will do so</li>
+<li>A series of buttons to activate and deactivate particular built-in filters</li>
 </ul>
 <p>In the configuration modal, rule assignment select menus are populated with the contents of the <code>rules</code> object loaded from <code>demo/rules.js</code>, merged with those already available in Hexular core. Custom rules may be added to this object via the console, e.g.:</p>
-<pre><code>    Board.instance.addRule(name, (cell) =&gt; cell.state == 3 ? 1 : 0)
+<pre><code>    Board.config.addRule(name, (cell) =&gt; cell.state == 3 ? 1 : 0)
 </code></pre>
 <p>We can also add our own rule presets via the console, e.g.:</p>
-<pre><code>    Board.instance.addPreset('fancyPreset', new Preset(['offset23', 'offset34', 'stepUp']))
+<pre><code>    Board.config.addPreset('fancyPreset', new Preset(['offset23', 'offset34', 'stepUp']))
 </code></pre>
-<p>Such modifications can also be effected via the custom code modal (Ctrl+F) or JavaScript import button (Ctrl+I), using the same global objects, &amp;c..</p>
-<p>Additional customization of the global <code>Board.instance.model</code> model can be performed as described above and in the documentation.</p>
+<p>Such modifications can also be effected via the custom code modal (Ctrl+F) or JavaScript import button (Ctrl+I), using the same global objects, &amp;c. Specifically, every board instance attaches the following to the global <code>Board</code> object:</p>
+<ul>
+<li><code>Board.instance</code> - The board itself</li>
+<li><code>Board.config</code> - Alias for <code>Board.instance.config</code></li>
+<li><code>Board.model</code> - Alias for <code>Board.instance.model</code></li>
+</ul>
+<p>Customization of the global <code>Board.model</code> model can be performed as described above and in the documentation.</p>
 <h2 id="more-information">More information</h2>
 <ul>
 <li>

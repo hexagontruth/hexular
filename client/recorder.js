@@ -1,16 +1,21 @@
 class Recorder {
   constructor(board) {
     this.board = board;
+    this.config = board.config;
   }
   start() {
     this.stream = this.board.bg.captureStream();
     let constraints = {
       aspectRatio: window.innerWidth / window.innerHeight,
-      frameRate: Math.max(Math.floor(1000 / this.board.interval), 15),
+      frameRate: Math.max(Math.floor(1000 / this.config.interval), 15),
     };
-    let opts = {
-      mimeType: 'video/webm'
-    };
+    let opts = {};
+    if (MediaRecorder.isTypeSupported('video/webm;codecs=h264'))
+      opts.mimeType = 'video/webm;codecs=h264';
+    else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9'))
+      opts.mimeType = 'video/webm;codecs=vp9';
+    else
+      opts.mimeType = 'video/webm';
     this.stream.getTracks()[0].applyConstraints(constraints);
     this.recorder = new MediaRecorder(this.stream, opts);
     let blobs = [];
@@ -20,9 +25,9 @@ class Recorder {
       }
     };
     this.recorder.onstop = (ev) => {
-      let buffer = new Blob(blobs, {type: 'video/webm', });
+      let buffer = new Blob(blobs, {type: 'video/webm'});
       let dataUri = window.URL.createObjectURL(buffer);
-      this.board.promptDownload(this.board.defaultVideoFilename, dataUri);
+      this.board.promptDownload(this.config.defaultVideoFilename, dataUri);
     };
     this.recorder.start(1000);
   }
