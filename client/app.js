@@ -8,11 +8,11 @@ const DEFAULTS = new OptParser({
   autopause: 1,
   undoStackSize: 64,
   mobileUndoStackSize: 16,
-  availableRules: Object.assign({}, Hexular.rules, RULES),
+  availableRules: Object.assign({}, Hexular.rules, Rules),
   rule: null,
   defaultRule: 'identityRule',
   preset: 'default',
-  presets: PRESETS,
+  presets: Presets,
   defaultImageFilename: 'hexular.png',
   defaultFilename: 'hexular.bin',
   defaultVideoFilename: 'hexular.webm',
@@ -37,7 +37,7 @@ const DEFAULTS = new OptParser({
   nh: null,
   lastSteps: null,
   steps: 0,
-  themes: THEMES,
+  themes: Themes,
 });
 
 window.addEventListener('load', function(e) {
@@ -120,17 +120,19 @@ class Board {
         undo: document.querySelector('#undo'),
         redo: document.querySelector('#redo'),
         showConfig: document.querySelector('#show-config'),
-        resize: document.querySelector('#resize'),
+        showResize: document.querySelector('#show-resize'),
         showCustom: document.querySelector('#show-custom'),
         center: document.querySelector('#center'),
-        showDocumentation: document.querySelector('#show-documentation'),
+        showDoc: document.querySelector('#show-doc'),
         saveSnapshot: document.querySelector('#snapshot-save'),
         loadSnapshot: document.querySelector('#snapshot-load'),
         load: document.querySelector('#load'),
         save: document.querySelector('#save'),
         saveImage: document.querySelector('#save-image'),
         import: document.querySelector('#import'),
-        allNonrecording: document.querySelectorAll('.toolbar .group button:not(#toggle-record):not(#toggle-play)'),
+        allNonrecording: document.querySelectorAll(
+          '.toolbar .group button:not(#toggle-record):not(#toggle-play):not(#show-config):not(#show-doc)'
+        ),
       },
       tools: {
         fill: document.querySelector('#tool-fill'),
@@ -205,10 +207,10 @@ class Board {
     this.buttons.redo.onmouseup = (ev) => this.redo();
     this.buttons.toggleRecord.onmouseup = (ev) => this.toggleRecord();
     this.buttons.showConfig.onmouseup = (ev) => this.toggleModal('config');
-    this.buttons.resize.onmouseup = (ev) => this.toggleModal('resize');
+    this.buttons.showResize.onmouseup = (ev) => this.toggleModal('resize');
     this.buttons.showCustom.onmouseup = (ev) => this.toggleModal('custom');
     this.buttons.center.onmouseup = (ev) => this.resize();
-    this.buttons.showDocumentation.onmouseup = (ev) => this.showDocumentation();
+    this.buttons.showDoc.onmouseup = (ev) => this.showDoc();
     this.buttons.saveSnapshot.onmouseup = (ev) => this.saveSnapshot();
     this.buttons.loadSnapshot.onmouseup = (ev) => this.loadSnapshot();
     this.buttons.load.onmouseup = (ev) => this.load();
@@ -385,7 +387,7 @@ class Board {
     this.modals[modal].open();
   }
 
-  showDocumentation() {
+  showDoc() {
     window.open('doc/', '_blank');
   }
 
@@ -855,7 +857,7 @@ class Board {
       }
       // F1 to show documentation
       else if (ev.key == 'F1' || ev.key == '?') {
-        this.showDocumentation();
+        this.showDoc();
       }
       // Tool and lesser keys
       else if (ev.key == 'g') {

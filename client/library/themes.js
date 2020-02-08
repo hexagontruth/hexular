@@ -1,4 +1,4 @@
-const THEMES = {
+const Themes = {
   light: {
     background: '#f8f8f8',
     colors: Hexular.DEFAULTS.colors.slice(),

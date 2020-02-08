@@ -339,10 +339,9 @@ button:disabled {
   align-items: stretch;
   font-size: 1rem;
   flex: 0 1 30rem;
-  padding: 0.5em 1em 1em 1em;
+  padding: 0.75em;
   background: #eee;
   border-radius: 1em;
-  box-shadow: 10px 3px 3px 'red';
 }
 
 .modal .group {
@@ -350,24 +349,29 @@ button:disabled {
   flex-direction: row;
   justify-content: space-between;
   align-items: stretch;
+  margin: 0;
 }
 
 .modal .group > * {
-  margin: 0.2em;
+  margin:.25em;
 }
 
-textarea,  select, input {
+textarea, select, input {
   width: 100%;
   padding: 0.25em;
   border-radius: 0.5em;
   background: #fff;
 }
 
+.modal .group input[type=range] {
+  margin: 0.25em 0.25em 0;
+}
+
 .modal .group textarea {
   height: 10em;
-  margin: 0.5em 0;
   padding: 0.75em;
-  border-radius: 1em;
+  margin-bottom: 0.75em;
+  border-radius: 0.5em
 }
 
 .modal button {
@@ -381,7 +385,7 @@ textarea,  select, input {
   font-family: inherit;
   flex: 1 1 auto;
   padding: 0 1em;
-  border-radius: 3em;
+
 }
 
 .modal .group.buttons button.stretch {
@@ -392,10 +396,11 @@ textarea,  select, input {
   opacity: 0.5;
 }
 
-.modal .rule-config {
+.modal .group.rule-config {
+  display: block;
   column-count: 2;
   column-gap: 0;
-  margin: 0.2em 0;
+  margin: 0.25em 0 0;
 }
 
 .modal .rule-menu {
@@ -403,7 +408,7 @@ textarea,  select, input {
   flex-direction: row;
   justify-content: space-between;
   align-items: stretch;
-  margin: 0.4em 0.2em;
+  margin: 0.5em 0.25em;
 }
 
 .modal .indicator {
@@ -412,7 +417,7 @@ textarea,  select, input {
   justify-content: center;
   align-items: center;
   width: 2em;
-  margin-right: 0.4em;
+  margin-right: 0.5em;
   border: 0.2em solid transparent;
   cursor: pointer;
   border-radius: 0.5em;

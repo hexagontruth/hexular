@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no"/>
-  <script src="build/client.js?v=1.1"></script>
-  <link rel="stylesheet" type="text/css" href="build/client.css?v=1.1"/>
+  <script src="build/client.js?v=1.2"></script>
+  <link rel="stylesheet" type="text/css" href="build/client.css?v=1.2"/>
   <link rel="icon" type="image/png" href="icon.png"/>
   <title>Hexular Studio</title>
 </head>
@@ -21,9 +21,9 @@
     </div>
     <div class="group">
       <button id="show-config" title="Config (Ctrl+K)" class="icon-gear"></button>
-      <button id="resize" title="Resize board (Ctrl+R)" class="icon-compass"></button>
+      <button id="show-resize" title="Resize board (Ctrl+R)" class="icon-compass"></button>
       <button id="show-custom" title="Add custom code (Ctrl+F)" class="icon-function"></button>
-      <button id="show-documentation" title="Show documentation (F1)" class="icon-question"></button>
+      <button id="show-doc" title="Show documentation (F1)" class="icon-question"></button>
     </div>
   </div>
   <div class="toolbar bottom">
@@ -128,7 +128,7 @@
           <option value="">- Set selected -</option>
         </select>
       </div>
-      <div class="rule-config"></div>
+      <div class="group rule-config"></div>
       <div class="group">
         <select id="select-neighborhood" title="Default neighborhood for cell helper functions">
           <option value="6" selected>N6: 6 immediate neighbors</option>

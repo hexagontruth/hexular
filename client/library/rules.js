@@ -1,5 +1,5 @@
-const RULES = (() => {
-  const RULES = {
+const Rules = (() => {
+  const Rules = {
 
     binary1: (cell) => cell.count == 1 ? 1 : 0,
 
@@ -94,9 +94,9 @@ const RULES = (() => {
 
     xorIncrement: (cell) => cell.state + (cell.count % 2 ? 1 : -1),
 
-    xorIncrementNull: (cell) => cell.state && cell.state + (cell.count % 2 ? 1 : -1),
+    xorOffset: (cell) => cell.state + (cell.total - cell.state) % 2 ? 1 : -1,
 
-    // Basic passhtrough functions
+    // Basic passthrough functions
 
     average: (cell) => cell.average,
 
@@ -137,7 +137,6 @@ const RULES = (() => {
     ], {invert: true}),
 
     patternedOffset: Hexular.util.ruleBuilder([
-
       0b010101,
       0b101010,
       0b000101,
@@ -166,5 +165,5 @@ const RULES = (() => {
       0b1100000,
     ], {range: [0, 7], inc: false}),
   };
-  return RULES;
+  return Rules;
 })();

@@ -1,4 +1,4 @@
-const PRESETS = {
+const Presets = {
   default: new Preset(Array(12).fill('ennead')),
 
   classic: new Preset(Object.assign(Array(12).fill('classicDuplex23'), ['binary2'])),
