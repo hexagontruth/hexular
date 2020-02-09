@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no"/>
-  <script src="build/client.js?v=0.1"></script>
-  <link rel="stylesheet" type="text/css" href="build/client.css?v=0.1"/>
+  <script src="build/client.js?v=0.2"></script>
+  <link rel="stylesheet" type="text/css" href="build/client.css?v=0.2"/>
   <link rel="icon" type="image/png" href="icon.png"/>
   <title>Hexular Studio</title>
 </head>
@@ -126,7 +126,7 @@
       <div class="group">
         <button id="add-preset" class="icon-plus" title="Add new preset..."></button>
         <select id="select-preset">
-          <option value="">- Select preset -</option>
+          <option value="">[ Select preset ]</option>
         </select>
         <button id="save-preset" class="icon-download" title="Save preset..."></button>
         <button id="load-preset" class="icon-upload" title="Load preset..."></button>
@@ -135,7 +135,7 @@
         <button id="check-all" class="icon-check-all"></button>
 
         <select id="set-all">
-          <option value="">- Set selected -</option>
+          <option value="">[ Set selected ]</option>
         </select>
       </div>
       <div class="group rule-group" id="rule-group"></div>
@@ -154,8 +154,9 @@
         <button id="filter-clip-bottom" class="icon-arrow-collapse-down" title="Clip bottom"></button>
         <button id="filter-clip-top" class="icon-arrow-collapse-up" title="Clip top"></button>
         <button id="filter-binary" class="icon-power" title="Binary filter"></button>
+        <button id="filter-delta" class="icon-delta" title="Delta filter"></button>
         <button id="filter-mod" class="icon-percent" title="Modulo filter"></button>
-        <button id="filter-edge" class="icon-hexagon-slice-6 rotate" title="Edge filter"></button>
+        <button id="filter-edge" class="icon-hexagon-outline rotate" title="Edge filter"></button>
       </div>
     </div>
   </div>
