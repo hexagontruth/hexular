@@ -12,6 +12,7 @@ class Preset {
         clipBottomFilter: false,
         clipTopFilter: false,
         binaryFilter: false,
+        deltaFilter: false,
         modFilter: true,
         edgeFilter: false
       },

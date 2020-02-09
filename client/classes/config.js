@@ -4,7 +4,7 @@ class Config {
     let next;
     while (next = objs.shift()) {
       for (let [key, value] of Object.entries(next)) {
-        if (value === undefined) continue;
+        if (value == null) continue;
         if (typeof base[key] =='object' && typeof value == 'object' && !Array.isArray(base[key])) {
           base[key] = Config.merge({}, base[key], value);
         }
@@ -20,7 +20,14 @@ class Config {
     let defaults = {
       availableRules: {},
       colors: [],
-      filters: {},
+      filters: {
+        clipBottomFilter: false,
+        clipTopFilter: false,
+        binaryFilter: false,
+        deltaFilter: false,
+        modFilter: false,
+        edgeFilter: false,
+      },
       paintColors: [],
       board,
     };
@@ -29,14 +36,13 @@ class Config {
       if (Array.isArray(value)) {
         this[key] = value.slice();
       }
-      let indexOfFilter = key.indexOf('Filter');
-      if (indexOfFilter > 0 && indexOfFilter == key.length - 6) {
+      if (defaults.filters[key]) {
         this.filters[key] = value;
         delete this[key];
       }
     });
     this.colors = this.colors.slice();
-    this.rules = this.rules || Array(this.maxNumStates).fill(this.availableRules[this.defaultRule]);
+    this.rules = this.rules || Array(this.maxNumStates).fill(this.defaultRule);
 
     this.localStorageObj = window.localStorage;
     this.sessionStorageObj = window.sessionStorage;
@@ -57,10 +63,10 @@ class Config {
     height *= scaleRatio;
     this.logicalWidth = width;
     this.logicalHeight = height;
+    this.restoreState();
   }
 
   initialize() {
-    this.restoreState();
     this.model = this.board.model;
     this.configModal = this.board.modals.config;
     this.configModal.update();
@@ -190,6 +196,7 @@ class Config {
 
   setPreset(presetName) {
     const preset = this.presets[presetName];
+
     if (!preset) {
       this.configModal.selectPreset.selectedIndex = 0;
       this.configModal.addPreset.disabled = false;
@@ -200,8 +207,10 @@ class Config {
     }
     this.setNumStates(preset.numStates);
     this.setNh(preset.nh);
-    this.rules = Config.merge(this.rules, preset.rules);
-    this.filters = Config.merge({}, preset.filters);
+
+    this.rules = Object.assign(this.rules, preset.rules);
+
+    this.filters = Object.assign({}, preset.filters);
     this.defaultRule = preset.defaultRule;
     this.setRules();
     this.setFilters();
@@ -332,7 +341,6 @@ class Config {
     return this.getKeyValues([
       'cellRadius',
       'colorMode',
-      'colors',
       'defaultRule',
       'filters',
       'interval',
@@ -361,14 +369,18 @@ class Config {
     ]);
   }
 
-  restoreState() {
+  restoreModel() {
     let modelState = this.loadModel('modelState');
     if (modelState) {
       this.board.newHistoryState();
-      let bytes = this.loadModel('modelState');
-      this.board.model.import(bytes);
+      this.board.model.import(modelState);
       this.board.draw();
     }
+  }
+
+  restoreState() {
+    if (this.model)
+      this.restoreModel();
     let sessionConfig = JSON.parse(this.sessionStorageObj.getItem('sessionConfig') || '{}');
     let localConfig = JSON.parse(this.localStorageObj.getItem('localConfig') || '{}');
     let presets = localConfig.presets;
@@ -378,7 +390,9 @@ class Config {
         localConfig.presets[presetName] = new Preset(preset);
       });
     }
-    Object.assign(this, localConfig, sessionConfig);
+    Config.merge(this, localConfig, sessionConfig);
+    if (sessionConfig.preset !== undefined)
+      this.preset = sessionConfig.preset;
   }
 
   storeSessionState(opts={}) {

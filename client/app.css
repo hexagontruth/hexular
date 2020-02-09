@@ -282,7 +282,7 @@ button:disabled {
 
 .message {
   min-width: 50%;
-  height: 0;
+  height: 2rem;
   line-height: 2;
   padding: 0 0.5rem;
   background: #9fcc3f;
@@ -293,11 +293,12 @@ button:disabled {
   opacity: 0;
   border-radius: 2rem;
   transition: all 500ms;
+  pointer-events: none;
 }
 
 .message.active {
   opacity: 1;
-  height: 2rem;
+  pointer-events: auto;
 }
 
 .message.warning {
@@ -365,6 +366,13 @@ textarea, select, input {
   padding: 0.25em;
   border-radius: 0.5em;
   background: #fff;
+}
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
 }
 
 .modal .group input[type=range] {
@@ -442,7 +450,7 @@ body .modal button.checkable:hover {
 }
 
 .modal .checked button.checkable {
-  border-color: #fb3;
+  border-color: #6fcfff;
 }
 
 @media screen and (max-width: 600px) {
@@ -454,13 +462,13 @@ body .modal button.checkable:hover {
   .info-tool { display: none; }
 }
 
+@media screen and (max-height: 720px){
+  .modal { font-size: 2.777vh; }
+}
+
 @media screen and (max-width: 360px){
   html { font-size: 5.555vw; }
   .info { display: none; }
-}
-
-@media screen and (max-height: 540px){
-  .modal { font-size: 3.333vh; }
 }
 
 @media screen and (min-width: 2000px){

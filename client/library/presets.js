@@ -1,9 +1,9 @@
 const Presets = {
-  default: new Preset(Array(12).fill('ennead')),
+  default: new Preset({filters: {deltaFilter: true}}, Array(12).fill('ennead')),
 
   classic: new Preset(Object.assign(Array(12).fill('classicDuplex23'), ['binary2'])),
 
-  gliderWorld: new Preset({filters: {binaryFilter: true, edgeFilter: true}}, [
+  gliderWorld: new Preset({filters: {edgeFilter: true}}, [
     'ennead',
     'ennead',
   ]),

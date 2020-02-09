@@ -79,13 +79,12 @@ const SimpleRules = (() => {
       0b001000,
       0b000010,
     ]),
-  };
 
-  Object.entries(SimpleRules).map(([rule, fn]) => {
-    if (rule.indexOf('binary') != 0)
-      return;
-    let newRule = rule.replace('binary', 'offset');
-    SimpleRules[newRule] = (cell) => fn(cell) ? cell.state + 1 : 0;
-  });
+    lineFilter: Hexular.util.ruleBuilder([
+      0b001001,
+      0b010010,
+      0b100100,
+    ], {invert: true}),
+  };
   return SimpleRules;
 })();

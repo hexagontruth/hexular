@@ -24,20 +24,15 @@ const Rules = (() => {
 
     // A simple cumulative offset rule - can also be effected by total rule + N7 neighborhood
     // Pretty sure I meant for "isomod" to stand for "isotropic modulo" but I'm not sure what that means here
+    // This rule can also be effected with `total()` and `deltaFilter`.
 
     isomod: (cell) => cell.state + cell.total,
 
     // Some xor-inspired rules
 
-    xorIncrement: (cell) => cell.state + (cell.count % 2 ? 1 : -1),
+    xorCountOffset: (cell) => SimpleRules.xorCount(cell) || -1,
 
-    xorOffset: (cell) => cell.state + (cell.total - cell.state) % 2 ? 1 : -1,
-
-    lineFilter: Hexular.util.ruleBuilder([
-      0b001001,
-      0b010010,
-      0b100100,
-    ], {invert: true}),
+    xorTotalOffset: (cell) => SimpleRules.xorTotal(cell) || -1,
 
     patternedOffset: Hexular.util.ruleBuilder([
       0b010101,
