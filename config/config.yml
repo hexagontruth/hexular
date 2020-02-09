@@ -3,24 +3,27 @@ default:
   files:
     client.js:
       - hexular/hexular.js
-      - client/actions.js
-      - client/config.js
-      - client/file-loader.js
-      - client/modal.js
-      - client/opt-parser.js
-      - client/preset.js
-      - client/recorder.js
+      - client/classes/actions.js
+      - client/classes/board.js
+      - client/classes/config.js
+      - client/classes/event-hole.js
+      - client/classes/file-loader.js
+      - client/classes/modal.js
+      - client/classes/opt-parser.js
+      - client/classes/preset.js
+      - client/classes/recorder.js
+      - client/classes/select.js
+      - client/classes/modals/config-modal.js
+      - client/classes/modals/confirm-modal.js
+      - client/classes/modals/custom-modal.js
+      - client/classes/modals/resize-modal.js
       - client/library/simple-rules.js
       - client/library/rules.js
       - client/library/presets.js
       - client/library/themes.js
-      - client/modals/config-modal.js
-      - client/modals/confirm-modal.js
-      - client/modals/custom-modal.js
-      - client/modals/resize-modal.js
       - client/app.js
     client.css:
-      - client/vendor/icons.css
+      - client/icons.css
       - client/app.css
 dev:
   files: {}

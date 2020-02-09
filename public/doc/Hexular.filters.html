@@ -120,7 +120,7 @@ modified form of that value.</p>
 
 
 <div class="description">
-    <p>Constraint state to 0 or 1.</p>
+    <p>Constraint state to zero or one, with values less than zero being counted as the former.</p>
 <p>Must be run before <a href="Hexular.filters.html#.modFilter"><code>modFilter</code></a>!.</p>
 </div>
 
@@ -378,6 +378,97 @@ modified form of that value.</p>
     
 
     
+    <h4 class="name" id=".deltaFilter"><span class="type-signature">(static) </span>deltaFilter<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Add new state to current cell state if nonzero, otherwise set to zero.</p>
+<p>This is the some sense the opposite of, and generally mutually exclusive with,
+<a href="Hexular.filters.html#.binaryFilter"><code>binaryFilter</code></a>. Nonetheless the two can potentially be
+combined in constructive ways, to e.g. &quot;flatten&quot; an incrementor.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1383">line 1383</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
     <h4 class="name" id=".edgeFilter"><span class="type-signature">(static) </span>edgeFilter<span class="signature">()</span><span class="type-signature"></span></h4>
     
 
@@ -432,7 +523,7 @@ across the two-cell boundary width. This may have unexpected and undesirable eff
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1395">line 1395</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1408">line 1408</a>
     </li></ul></dd>
     
 
@@ -523,7 +614,7 @@ boilerplate functionality, this filter is implemented with the assumption that s
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1383">line 1383</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1396">line 1396</a>
     </li></ul></dd>
     
 

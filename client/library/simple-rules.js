@@ -80,12 +80,5 @@ const SimpleRules = (() => {
       0b000010,
     ]),
   };
-
-  Object.entries(SimpleRules).map(([rule, fn]) => {
-    if (rule.indexOf('binary') != 0)
-      return;
-    let newRule = rule.replace('binary', 'offset');
-    SimpleRules[newRule] = (cell) => fn(cell) ? cell.state + 1 : 0;
-  });
   return SimpleRules;
 })();

@@ -1387,14 +1387,27 @@ var Hexular = (function () {
   }
 
   /**
-   * Constraint state to 0 or 1.
+   * Constraint state to zero or one, with values less than zero being counted as the former.
    *
    * Must be run before {@link Hexular.filters.modFilter|modFilter}!.
    *
    * @memberof Hexular.filters
    */
   function binaryFilter(value) {
-    return value ? 1 : 0;
+    return value > 0 ? 1 : 0;
+  }
+
+  /**
+   * Add new state to current cell state if nonzero, otherwise set to zero.
+   *
+   * This is the some sense the opposite of, and generally mutually exclusive with,
+   * {@link Hexular.filters.binaryFilter|binaryFilter}. Nonetheless the two can potentially be
+   * combined in constructive ways, to e.g. "flatten" an incrementor.
+   *
+   * @memberof Hexular.filters
+   */
+  function deltaFilter(value, cell) {
+    return value ? cell.state + value : 0;
   }
 
   /**
@@ -1469,7 +1482,7 @@ var Hexular = (function () {
   *                                       numbers giving individual states where next cell state is 1
   * @param {object} opts                  Optional arguments
   * @param {number[]} [opts.range=[1, 7]] Neighborhood range &amp;mdash; default is N6 (immediate neighbors)
-  * @param {boolean} [opts.inc=true]     `true` increments state on positive rule match, while `false` sets it to 0
+  * @param {boolean} [opts.inc=false     `true` increments state on positive rule match, while `false` sets it to 1
   * @param {boolean} [opts.dec=false]    `true` decrements state on negative rule match, while `false` sets it to 0
   * @param {boolean} [opts.invert=false]  Invert rule number (pass in negative state masks instead of positive ones)
   * @return {function}                    A rule function taking a {@link Cell} instance and returning an integer
@@ -1479,9 +1492,6 @@ var Hexular = (function () {
   function ruleBuilder(ruleDef, opts={}) {
     let defaults = {
       range: [1, 7],
-      inc: true,
-      dec: false,
-      invert: false
     };
     let {range, inc, dec, invert} = Object.assign(defaults, opts);
     invert = +invert;
@@ -1648,6 +1658,7 @@ var Hexular = (function () {
       clipBottomFilter,
       clipTopFilter,
       binaryFilter,
+      deltaFilter,
       modFilter,
       edgeFilter,
     },

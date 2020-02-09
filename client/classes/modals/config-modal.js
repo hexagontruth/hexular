@@ -7,6 +7,7 @@ class ConfigModal extends Modal {
       clipBottomFilter: document.querySelector('#filter-clip-bottom'),
       clipTopFilter: document.querySelector('#filter-clip-top'),
       binaryFilter: document.querySelector('#filter-binary'),
+      deltaFilter: document.querySelector('#filter-delta'),
       modFilter: document.querySelector('#filter-mod'),
       edgeFilter: document.querySelector('#filter-edge'),
     };
@@ -47,7 +48,8 @@ class ConfigModal extends Modal {
   }
 
   _handlePreset() {
-    this.config.setPreset(this.selectPreset.value)
+    this.config.setPreset(this.selectPreset.value);
+    this.board.setMessage(`Selected preset "${this.config.preset}"`);
   }
 
   _handleAddPreset() {
@@ -197,7 +199,7 @@ class RuleMenu {
     }
     else {
       container.title = 'Default rule';
-      button.innerHTML = "...";
+      button.classList.add('icon-infinity');
     }
     container.setAttribute('data-disabled', disabled);
 
