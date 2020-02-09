@@ -334,7 +334,7 @@ class Board {
       this.model.step();
       this.draw();
       this.storeModelState();
-      if (this.autopause && !this.model.changed) {
+      if (this.config.autopause && !this.model.changed) {
         this.togglePlay();
         this.undo(true);
       }
@@ -598,7 +598,7 @@ class Board {
   // Page/canvas listeners
 
   handleClearStorage() {
-    this.modals.confirm.ask('Are you sure you want to clear local data, includes custom rules and presets?')
+    this.modals.confirm.ask('Are you sure you want to clear local data, including custom rules and presets?')
     .then((e) => {
       if (e) {
         this.config.clearStorage();
