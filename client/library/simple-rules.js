@@ -79,6 +79,12 @@ const SimpleRules = (() => {
       0b001000,
       0b000010,
     ]),
+
+    lineFilter: Hexular.util.ruleBuilder([
+      0b001001,
+      0b010010,
+      0b100100,
+    ], {invert: true}),
   };
   return SimpleRules;
 })();

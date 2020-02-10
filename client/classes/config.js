@@ -341,7 +341,6 @@ class Config {
     return this.getKeyValues([
       'cellRadius',
       'colorMode',
-      'colors',
       'defaultRule',
       'filters',
       'interval',

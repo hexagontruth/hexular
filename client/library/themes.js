@@ -5,7 +5,7 @@ const Themes = {
   },
   smooth: {
     background: '#f8f8f8',
-    borderWidth: -0.75,
+    borderWidth: -0.5,
     colors: Hexular.DEFAULTS.colors.slice(),
   },
   classic: {
@@ -41,6 +41,7 @@ const Themes = {
   },
   dark: {
     background: '#111111',
+    borderWidth: -0.1,
     colors: Object.assign([], Hexular.DEFAULTS.colors, [
       '#000000',
       '#888888',
@@ -51,6 +52,7 @@ const Themes = {
   },
   darkRainbow: {
     background: '#111111',
+    borderWidth: -0.1,
     colors: Object.assign([
       '#000000',
       '#ff0000',
