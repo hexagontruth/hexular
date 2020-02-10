@@ -433,16 +433,17 @@ select {
   padding: 0.25em 0.25em;
 }
 
-.modal button.checkable {
+.modal .rule-menu button {
+  margin-right: 0.5em;
   display: flex;
   flex: 0 0 2em;
   justify-content: center;
   align-items: center;
   width: 2em;
-  margin-right: 0.5em;
+}
+
+.modal button.checkable {
   border: 0.2em solid transparent;
-  cursor: pointer;
-  border-radius: 0.5em;
 }
 
 body .modal button.checkable:hover {

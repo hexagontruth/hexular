@@ -9,10 +9,10 @@ class Preset {
       defaultRule: 'identityRule',
       nh: 6,
       filters: {
-        clipBottomFilter: false,
-        clipTopFilter: false,
         binaryFilter: false,
         deltaFilter: false,
+        clipBottomFilter: false,
+        clipTopFilter: false,
         modFilter: true,
         edgeFilter: false
       },

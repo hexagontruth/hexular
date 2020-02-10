@@ -21,10 +21,10 @@ class Config {
       availableRules: {},
       colors: [],
       filters: {
-        clipBottomFilter: false,
-        clipTopFilter: false,
         binaryFilter: false,
         deltaFilter: false,
+        clipBottomFilter: false,
+        clipTopFilter: false,
         modFilter: false,
         edgeFilter: false,
       },
@@ -187,7 +187,7 @@ class Config {
     const numStates = parseInt(this.configModal.numStates.value);
     this.numStates = this.model.numStates = numStates;
     this.configModal.ruleMenus.forEach((ruleMenu) => {
-      let disabled = ruleMenu.index >= numStates;
+      let disabled = ruleMenu.idx >= numStates;
       ruleMenu.container.setAttribute('data-disabled', disabled);
     });
     this.checkPreset();
@@ -196,7 +196,6 @@ class Config {
 
   setPreset(presetName) {
     const preset = this.presets[presetName];
-
     if (!preset) {
       this.configModal.selectPreset.selectedIndex = 0;
       this.configModal.addPreset.disabled = false;
@@ -324,7 +323,6 @@ class Config {
     })();
     if (dirty) {
       this.setPreset();
-
     }
   }
 

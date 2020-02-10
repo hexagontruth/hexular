@@ -3,6 +3,7 @@ class ConfigModal extends Modal {
   constructor(...args) {
     super(...args);
     this.ruleMenus = [];
+    this.defaultRuleMenu = null;
     this.filters = {
       clipBottomFilter: document.querySelector('#filter-clip-bottom'),
       clipTopFilter: document.querySelector('#filter-clip-top'),
@@ -13,15 +14,14 @@ class ConfigModal extends Modal {
     };
     this.checkState = null;
     this.ruleGroup = document.querySelector('#rule-group');
-    this.defaultRuleGroup = document.querySelector('#default-rule-group');
     this.numStates = document.querySelector('#num-states');
     this.addPreset = document.querySelector('#add-preset');
     this.savePreset = document.querySelector('#save-preset');
     this.loadPreset = document.querySelector('#load-preset');
-    this.selectPreset = document.querySelector('#select-preset');
+    this.selectPreset = document.querySelector('#select-preset').select;
     this.checkAll = document.querySelector('#check-all');
-    this.setAll = document.querySelector('#set-all');
-    this.selectNh = document.querySelector('#select-neighborhood');
+    this.setAll = document.querySelector('#set-all').select;
+    this.selectNh = document.querySelector('#select-neighborhood').select;
     this.modal.onmouseup = (ev) => this._handleCheckState(ev);
     this.modal.onmousemove = (ev) => this._handleCheckState(ev);
     this.modal.onmouseleave = (ev) => this._handleCheckState(ev);
@@ -120,17 +120,10 @@ class ConfigModal extends Modal {
 
   _handleSetAll(ev) {
     let rule = this.setAll.value;
-    this.allRuleMenus.forEach((ruleMenu) => {
-      ruleMenu.checked && this.config.setRule(ruleMenu.index, rule);
+    this.ruleMenus.concat(this.defaultRuleMenu).forEach((ruleMenu) => {
+      ruleMenu.checked && this.config.setRule(ruleMenu.idx, rule);
     });
     this.setAll.selectedIndex = 0;
-  }
-
-  _handleSetRule(ev) {
-    const ctl = ev.target;
-    const idx = ctl.ruleMenu.index;
-    const rule = ctl.value;
-    this.config.setRule(idx, rule);
   }
 
   handleNh(ev) {
@@ -144,71 +137,57 @@ class ConfigModal extends Modal {
   }
 
   _updateMenus() {
-    // Refresh presets
-    this.selectPreset.options.length = 1;
-    for (let presetName of Object.keys(this.config.presets)) {
-      let option = document.createElement('option');
-      option.text = presetName;
-      option.selected = presetName == this.config.preset;
-      this.selectPreset.appendChild(option);
-    }
+    this.availableRuleNames = Object.keys(this.config.availableRules);
+    this.presetNames = Object.keys(this.config.presets);
 
-    // Refresh rules
-    this.setAll.options.length = 1;
-    for (let ruleName of Object.keys(this.config.availableRules)) {
-      let option = document.createElement('option');
-      option.text = ruleName;
-      this.setAll.appendChild(option);
-    }
+    this.selectPreset.replace(this.presetNames, this.config.preset);
+    this.setAll.replace(this.availableRuleNames);
 
+    this.defaultRuleMenu = new RuleMenu(this, document.querySelector('#default-rule-menu'));
     while (this.ruleGroup.firstChild)
       this.ruleGroup.firstChild.remove();
     this.ruleMenus = [];
     for (let i = 0; i < this.config.maxNumStates; i++) {
-      let ruleMenu = new RuleMenu(this, i, this.config.rules[i], i >= this.config.numStates);
+      let ruleMenu = new RuleMenu(this, i);
       this.ruleMenus.push(ruleMenu);
       this.ruleGroup.appendChild(ruleMenu.container);
     }
-
-    while(this.defaultRuleGroup.firstChild)
-      this.defaultRuleGroup.firstChild.remove();
-    this.allRuleMenus = this.ruleMenus.slice();
-    this.defaultRuleMenu = new RuleMenu(this, null, this.config.defaultRule, false);
-    this.allRuleMenus.push(this.defaultRuleMenu);
-    this.defaultRuleGroup.appendChild(this.defaultRuleMenu.container);
   }
 
 }
 
 class RuleMenu {
-  constructor(modal, idx, selected, disabled) {
+  constructor(modal, arg) {
     this.modal = modal;
     this.board = modal.board;
     this.config = modal.config;
-    this.index = idx;
-    let rules = this.config.availableRules;
-    let prototype = document.querySelector('.assets .rule-menu');
-    let container = this.container = prototype.cloneNode(true);
-    let select = this.select = container.querySelector('select');
+    if (typeof arg == 'number') {
+      let prototype = document.querySelector('.assets .rule-menu');
+      this.container = this.container = prototype.cloneNode(true);
+      this.idx = arg;
+    }
+    else {
+      this.container = arg;
+      this.idx = null;
+    }
+    let container = this.container;
+    let idx = this.idx;
+    let select = this.select = new Select(container.querySelector('select'));
     let button = this.button = container.querySelector('button.checkable');
     select.ruleMenu = this;
-    select.addEventListener('change', (ev) => this.modal._handleSetRule(ev));
+    select.onchange = (ev) => this.config.setRule(idx, select.value);
     if (idx != null) {
       container.title = `State ${idx}`;
       button.style.backgroundColor = this.board.bgAdapter.colors[idx];
+      select.replace(this.modal.availableRuleNames, this.config.rules[idx]);
     }
     else {
       container.title = 'Default rule';
       button.classList.add('icon-infinity');
+      select.replace(this.modal.availableRuleNames, this.config.defaultRule);
     }
-    container.setAttribute('data-disabled', disabled);
+    container.setAttribute('data-disabled',  idx >= this.config.numStates);
 
-    for (let [ruleName, fn] of Object.entries(rules)) {
-      let option = document.createElement('option');
-      option.text = ruleName;
-      option.selected = selected == fn;
-      select.appendChild(option);
-    }
     button.addEventListener('mousedown', (ev) => {
       this.checked = !this.checked;
       this.modal.checkState = this.checked;

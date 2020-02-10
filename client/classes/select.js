@@ -24,11 +24,27 @@ class Select {
   }
 
   set value(value) {
-    this.select.value = value;
+    this.el.value = value;
   }
 
   get value() {
-    return this.select.value;
+    return this.el.value;
+  }
+
+  set selectedIndex(idx) {
+    this.el.selectedIndex = idx;
+  }
+
+  get selectedIndex() {
+    return this.el.selectedIndex;
+  }
+
+  set disabled(value) {
+    this.el.disabled = value;
+  }
+
+  get disabled() {
+    return this.el.disabled;
   }
 
   replace(opts, selected) {
