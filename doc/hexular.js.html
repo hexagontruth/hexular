@@ -1364,30 +1364,10 @@ var Hexular = (function () {
     return 0;
   }
 
-  // --- OPTIONAL FILTERS ---
+  // --- FILTERS ---
 
   /**
-   * Prevent state from going below 0.
-   *
-   * Must be run before {@link Hexular.filters.modFilter|modFilter}!.
-   *
-   * @memberof Hexular.filters
-   */
-  function clipBottomFilter(value) {
-    return Math.max(0, value);
-  }
-
-  /**
-   * Prevent state from going above the value defined in {@link Model#numStates}.
-   *
-   * @memberof Hexular.filters
-   */
-  function clipTopFilter(value) {
-    return Math.min(this.numStates - 1, value);
-  }
-
-  /**
-   * Constraint state to zero or one, with values less than zero being counted as the former.
+   * Constrain state to zero or one, with values less than zero being counted as the former.
    *
    * Must be run before {@link Hexular.filters.modFilter|modFilter}!.
    *
@@ -1408,6 +1388,26 @@ var Hexular = (function () {
    */
   function deltaFilter(value, cell) {
     return value ? cell.state + value : 0;
+  }
+
+  /**
+   * Prevent state from going below 0.
+   *
+   * Must be run before {@link Hexular.filters.modFilter|modFilter}!.
+   *
+   * @memberof Hexular.filters
+   */
+  function clipBottomFilter(value) {
+    return Math.max(0, value);
+  }
+
+  /**
+   * Prevent state from going above the value defined in {@link Model#numStates}.
+   *
+   * @memberof Hexular.filters
+   */
+  function clipTopFilter(value) {
+    return Math.min(this.numStates - 1, value);
   }
 
   /**
@@ -1655,10 +1655,10 @@ var Hexular = (function () {
       nullRule,
     },
     filters: {
-      clipBottomFilter,
-      clipTopFilter,
       binaryFilter,
       deltaFilter,
+      clipBottomFilter,
+      clipTopFilter,
       modFilter,
       edgeFilter,
     },

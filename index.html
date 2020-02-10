@@ -112,6 +112,14 @@
     </div>
     <div class="modal config hidden">
       <div class="group">
+        <button id="add-preset" class="icon-plus" title="Add new preset..."></button>
+        <select id="select-preset">
+          <option value="">[ Select preset ]</option>
+        </select>
+        <button id="save-preset" class="icon-download" title="Save preset..."></button>
+        <button id="load-preset" class="icon-upload" title="Load preset..."></button>
+      </div>
+      <div class="group">
         <input type="range" id="num-states" min="2" max="12" step="1"
           value="2" list="num-states-ticks" title="Number of States (2-12)"/>
         <datalist id="num-states-ticks">
@@ -123,23 +131,19 @@
           <option>12</option>
         </datalist>
       </div>
-      <div class="group">
-        <button id="add-preset" class="icon-plus" title="Add new preset..."></button>
-        <select id="select-preset">
-          <option value="">[ Select preset ]</option>
-        </select>
-        <button id="save-preset" class="icon-download" title="Save preset..."></button>
-        <button id="load-preset" class="icon-upload" title="Load preset..."></button>
-      </div>
-      <div class="group">
-        <button id="check-all" class="icon-check-all"></button>
-
-        <select id="set-all">
-          <option value="">[ Set selected ]</option>
-        </select>
+      <div class="group rule-group">
+        <div class="rule-menu">
+          <button id="check-all" class="icon-check-all" title="Check all"></button>
+          <select id="set-all" title="Set selected">
+            <option value="">[ Set selected ]</option>
+          </select>
+        </div>
+        <div class="rule-menu" id="default-rule-menu" title="Default rule">
+          <button class="checkable" icon="icon-infinity" title=""></button>
+          <select></select>
+        </div>
       </div>
       <div class="group rule-group" id="rule-group"></div>
-      <div class="group rule-group default" id="default-rule-group"></div>
       <div class="group">
         <select id="select-neighborhood" title="Default neighborhood for cell helper functions">
           <option value="6" selected>N6: 6 immediate neighbors</option>
@@ -151,10 +155,10 @@
         </select>
       </div>
       <div class="group buttons">
-        <button id="filter-clip-bottom" class="icon-arrow-collapse-down" title="Clip bottom"></button>
-        <button id="filter-clip-top" class="icon-arrow-collapse-up" title="Clip top"></button>
         <button id="filter-binary" class="icon-power" title="Binary filter"></button>
         <button id="filter-delta" class="icon-delta" title="Delta filter"></button>
+        <button id="filter-clip-bottom" class="icon-arrow-collapse-down" title="Clip bottom"></button>
+        <button id="filter-clip-top" class="icon-arrow-collapse-up" title="Clip top"></button>
         <button id="filter-mod" class="icon-percent" title="Modulo filter"></button>
         <button id="filter-edge" class="icon-hexagon-outline rotate" title="Edge filter"></button>
       </div>
@@ -168,7 +172,7 @@
   <div class="assets" style="display: none;">
     <div class="rule-menu">
       <button class="checkable"></button>
-      <select class="rule-select"></select>
+      <select></select>
     </div>
   </div>
 </body>
