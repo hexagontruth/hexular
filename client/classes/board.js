@@ -30,6 +30,9 @@ class Board {
       redoStack: [],
       msgIdx: 0,
       shift: false,
+      hooks: {
+        timer: [],
+      },
       toolClasses: {
         move: MoveAction,
         fill: FillAction,
@@ -51,7 +54,6 @@ class Board {
       container: document.querySelector('.container'),
       overlay: document.querySelector('.overlay'),
       message: document.querySelector('.message'),
-      toolInfo: document.querySelector('.tool-info'),
       colorToolbar: document.querySelector('.toolbar.colors'),
       infoBoxes: {
         steps: document.querySelector('.info-steps'),
@@ -59,7 +61,7 @@ class Board {
         cursor: document.querySelector('.info-cursor'),
       },
       buttons: {
-        toolHider: document.querySelector('.tool-hider'),
+        toolHider: document.querySelector('.tool-hider button'),
         toggleRecord: document.querySelector('#toggle-record'),
         togglePlay: document.querySelector('#toggle-play'),
         step: document.querySelector('#step'),
@@ -67,9 +69,6 @@ class Board {
         undo: document.querySelector('#undo'),
         redo: document.querySelector('#redo'),
         showConfig: document.querySelector('#show-config'),
-        showResize: document.querySelector('#show-resize'),
-        showCustom: document.querySelector('#show-custom'),
-        clearStorage: document.querySelector('#clear-storage'),
         showDoc: document.querySelector('#show-doc'),
         saveSnapshot: document.querySelector('#snapshot-save'),
         loadSnapshot: document.querySelector('#snapshot-load'),
@@ -134,9 +133,6 @@ class Board {
     this.buttons.redo.onmouseup = (ev) => this.redo();
     this.buttons.toggleRecord.onmouseup = (ev) => this.toggleRecord();
     this.buttons.showConfig.onmouseup = (ev) => this.toggleModal('config');
-    this.buttons.showResize.onmouseup = (ev) => this.toggleModal('resize');
-    this.buttons.showCustom.onmouseup = (ev) => this.toggleModal('custom');
-    this.buttons.clearStorage.onmouseup = (ev) => this.handleClearStorage();
     this.buttons.showDoc.onmouseup = (ev) => this.showDoc();
     this.buttons.saveSnapshot.onmouseup = (ev) => this.saveSnapshot();
     this.buttons.loadSnapshot.onmouseup = (ev) => this.loadSnapshot();
@@ -153,7 +149,7 @@ class Board {
     this.tools.hexfilled.onmouseup = (ev) => this.config.setTool('hexfilled');
     this.tools.hexoutline.onmouseup = (ev) => this.config.setTool('hexoutline');
     this.toolMisc.center.onmouseup = (ev) => this.resize();
-    this.toolMisc.color.onmouseup = (ev) => this.config.setColorMode();
+    this.toolMisc.color.onmouseup = (ev) => this.config.setPaintColorMode();
     this.toolSizes.forEach((e, i) => e.onmouseup = (ev) => this.config.setToolSize(i + 1));
     this.colorButtons.forEach((button, i) => {
       button.onmousedown = (ev) => this.handleSetColor(ev, i);
@@ -164,8 +160,8 @@ class Board {
     this.model = Hexular({radius, numStates, groundState, cellRadius});
     this.bgAdapter = this.model.CanvasAdapter({context: this.bgCtx, borderWidth, colors});
     this.fgAdapter = this.model.CanvasAdapter({context: this.fgCtx, borderWidth, colors});
-
     this.resize();
+
     this.modals = {
       confirm: new ConfirmModal(this, 'confirm'),
       config: new ConfigModal(this, 'config'),
@@ -206,38 +202,24 @@ class Board {
   toggleRecord() {
     if (!this.recorder) {
       if (!this.running)
-        requestAnimationFrame(() => this.togglePlay());
+        requestAnimationFrame(() => this.start());
+      this.playStart = Date.now();
       this.buttons.allNonrecording.forEach((e) => e.disabled = true);
       this.buttons.toggleRecord.className = 'icon-stop active';
       this.setButtonTitle(this.buttons.toggleRecord, 'Stop');
       this.recorder = new Recorder(this);
-      this.recordStart = Date.now();
-      let sexFmt = (i) => ('00' + i).slice(-2);
-      this.recordInterval = setInterval(() => {
-        let delta = Date.now() - this.recordStart;
-        let rawSecs = Math.floor(delta / 1000);
-        let thirds = Math.floor((delta % 1000) * 60 / 1000);
-        let secs = rawSecs % 60;
-        let mins = Math.floor(rawSecs / 60) % 60;
-        let hours = Math.floor(rawSecs / 3600) % 60;
-        let str = `<span class='timer'>${sexFmt(hours)}:${sexFmt(mins)}:${sexFmt(secs)}:${sexFmt(thirds)}</span>`;
-        this.setInfoBox('tool', str);
-      }, 50);
       this.draw().then(() => this.recorder.start());
     }
     else {
+      requestAnimationFrame(() => {
+        this.stop();
+        this.draw();
+      });
       this.recorder.stop();
       this.recorder = null;
-      clearInterval(this.recordInterval);
-      this.setInfoBox('tool');
-      this.recordInterval = null;
-      this.recordStart = null;
-      this.togglePlay();
-      this.draw();
       this.buttons.toggleRecord.className = 'icon-record';
       this.setButtonTitle(this.buttons.toggleRecord, 'Record');
       this.buttons.allNonrecording.forEach((e) => e.disabled = false);
-
     }
   }
 
@@ -251,21 +233,55 @@ class Board {
   }
 
   start() {
-    this.timer = setInterval(this.step.bind(this), this.config.interval);
-    this.buttons.step.disabled = true;
-    this.buttons.togglePlay.className = 'icon-pause';
-    this.setButtonTitle(this.buttons.togglePlay, 'Pause');
+    if (!this.running) {
+      this.playStart = this.playStart || Date.now();
+      this.timer = setInterval(this.step.bind(this), this.config.interval);
+      this.startMeta();
+      this.buttons.step.disabled = true;
+      this.buttons.togglePlay.className = 'icon-pause';
+      this.setButtonTitle(this.buttons.togglePlay, 'Pause');
+    }
   }
 
   stop() {
-    if (this.recorder) {
-      this.toggleRecord();
+    if (this.running) {
+      if (this.recorder)
+        this.toggleRecord();
+      clearInterval(this.timer);
+      this.timer = null;
+      this.playStart = null;
+      this.stopMeta();
+      this.buttons.step.disabled = false;
+      this.buttons.togglePlay.className = 'icon-play';
+      this.setButtonTitle(this.buttons.togglePlay, 'Play');
     }
-    clearInterval(this.timer);
-    this.timer = null;
-    this.buttons.step.disabled = false;
-    this.buttons.togglePlay.className = 'icon-play';
-    this.setButtonTitle(this.buttons.togglePlay, 'Play');
+  }
+
+  startMeta() {
+    let hooks = this.hooks.timer.slice();
+    let sexFmt = (i) => ('00' + i).slice(-2);
+    this.recorder && this.infoBoxes.tool.classList.add('recording');
+    this.metaInterval = setInterval(() => {
+      let deltaMs = Date.now() - this.playStart;
+      let delta = Math.floor(deltaMs / 1000);
+      let thirds = Math.floor((deltaMs % 1000) * 60 / 1000);
+      let secs = delta % 60;
+      let mins = Math.floor(delta / 60) % 60;
+      let hours = Math.floor(delta / 3600) % 60;
+      let str = `${sexFmt(hours)}:${sexFmt(mins)}:${sexFmt(secs)}:${sexFmt(thirds)}`;
+      this.setInfoBox('tool', str);
+      while (hooks[0] && hooks[0].trigger <= delta) {
+        let hook = hooks.shift();
+        hook.run();
+      }
+    }, 50);
+  }
+
+  stopMeta() {
+    clearInterval(this.metaInterval);
+    this.metaInterval = null;
+    this.setInfoBox('tool');
+    this.infoBoxes.tool.classList.remove('recording');
   }
 
   step() {
@@ -274,8 +290,8 @@ class Board {
       this.model.step();
       this.draw();
       this.storeModelState();
-      if (this.config.autopause && !this.model.changed) {
-        this.togglePlay();
+      if (!this.model.changed && this.config.autopause) {
+        this.stop();
         this.undo(true);
       }
       else {
@@ -285,16 +301,31 @@ class Board {
     catch (e) {
       console.log(e);
       this.setMessage(e, 'error');
+      if (this.running)
+        this.stop();
     }
   }
 
   clear() {
     this.newHistoryState();
-    if (this.running) this.togglePlay();
+    if (this.running)
+      this.stop();
     this.model.clear();
     this.draw();
     this.storeModelState();
     this.config.setSteps(0);
+  }
+
+  addHook(key, trigger, run) {
+    if (this.hooks[key]) {
+      this.hooks[key].push({trigger, run});
+      this.hooks[key].sort((a, b) => a.trigger - b.trigger);
+    }
+  }
+
+  clearHooks(key) {
+    if (this.hooks[key])
+      this.hooks[key] = [];
   }
 
   toggleModal(modal) {
@@ -550,9 +581,9 @@ class Board {
 
   handleSetColor(ev, color) {
     if (ev.buttons & 1)
-      this.config.setColor(0, color);
+      this.config.setPaintColor(0, color);
     if (ev.buttons & 2)
-      this.config.setColor(1, color);
+      this.config.setPaintColor(1, color);
   }
 
   handleBlur(ev) {
@@ -693,7 +724,7 @@ class Board {
         this.resize();
       }
       else if (ev.key == 'c') {
-        this.config.setColorMode();
+        this.config.setPaintColorMode();
       }
       else if (ev.key == 'q') {
         this.saveSnapshot();
@@ -702,16 +733,20 @@ class Board {
         this.loadSnapshot();
       }
       else if (ev.shiftKey && this.config.colorMode && ev.key == 'ArrowUp') {
-        this.config.setColor(1, Hexular.math.mod(this.config.paintColors[1] - 1, this.colorButtons.length));
+        let newColor = Hexular.math.mod(this.config.paintColors[1] - 1, this.colorButtons.length);
+        this.config.setPaintColor(1, newColor);
       }
       else if (ev.shiftKey && this.config.colorMode && ev.key == 'ArrowDown') {
-        this.config.setColor(1, Hexular.math.mod(this.config.paintColors[1] + 1, this.colorButtons.length));
+        let newColor = Hexular.math.mod(this.config.paintColors[1] + 1, this.colorButtons.length);
+        this.config.setPaintColor(1, newColor);
       }
       else if (this.config.colorMode && ev.key == 'ArrowUp') {
-        this.config.setColor(0, Hexular.math.mod(this.config.paintColors[0] - 1, this.colorButtons.length));
+        let newColor = Hexular.math.mod(this.config.paintColors[0] - 1, this.colorButtons.length);
+        this.config.setPaintColor(0, newColor);
       }
       else if (this.config.colorMode && ev.key == 'ArrowDown') {
-        this.config.setColor(0, Hexular.math.mod(this.config.paintColors[0] + 1, this.colorButtons.length));
+        let newColor = Hexular.math.mod(this.config.paintColors[0] + 1, this.colorButtons.length);
+        this.config.setPaintColor(0, newColor);
       }
       else {
         return;
@@ -780,7 +815,7 @@ class Board {
       }
       else if (ev.touches.length == 2) {
         if (ev.type == 'touchstart') {
-          this.config.setTool('pinch', this.tool);
+          this.config.setTool('pinch', this.config.tool);
           this.startAction(ev);
           this.config.setTool();
         }
@@ -829,7 +864,7 @@ class Board {
     if (!this.action) {
       this.fgAdapter.clear();
       if (cell) {
-        let selectSize = this.sizableTools.includes(this.tool) ? this.toolSize : 1;
+        let selectSize = this.sizableTools.includes(this.config.tool) ? this.config.toolSize : 1;
         Hexular.util.hexWrap(cell, selectSize).forEach((e) => this.fgAdapter.defaultDrawSelector(e));
       }
     }

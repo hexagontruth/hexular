@@ -28,6 +28,14 @@
   transform: rotate(30deg);
 }
 
+[class^="icon-"].flip-x::before, [class*=" icon-"].flip-x::before {
+  transform: scaleX(-1);
+}
+
+[class^="icon-"].flip-y::before, [class*=" icon-"].flip-y::before {
+  transform: scaleY(-1);
+}
+
 .icon-asterisk:before { content: '\e800'; }
 .icon-beehive-outline:before { content: '\e801'; }
 .icon-block:before { content: '\e802'; }

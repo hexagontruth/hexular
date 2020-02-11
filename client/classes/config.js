@@ -47,6 +47,8 @@ class Config {
     this.localStorageObj = window.localStorage;
     this.sessionStorageObj = window.sessionStorage;
 
+    // Restore state from local/session storage
+    this.restoreState();
     // Set logical size and scale small boards
     let width = this.radius * this.cellRadius * Hexular.math.apothem * 4;
     let height = this.radius * this.cellRadius * 3;
@@ -63,7 +65,6 @@ class Config {
     height *= scaleRatio;
     this.logicalWidth = width;
     this.logicalHeight = height;
-    this.restoreState();
   }
 
   initialize() {
@@ -72,9 +73,9 @@ class Config {
     this.configModal.update();
 
     // Board
-    this.setColor(0, this.paintColors[0]);
-    this.setColor(1, this.mobile ? -1 : this.paintColors[1]);
-    this.setColorMode(this.colorMode);
+    this.setPaintColor(0, this.paintColors[0]);
+    this.setPaintColor(1, this.mobile ? -1 : this.paintColors[1]);
+    this.setPaintColorMode(this.colorMode);
     this.setBackground();
     this.setTool(this.tool);
     this.setToolSize(this.toolSize);
@@ -122,24 +123,9 @@ class Config {
   }
 
   setColor(idx, color) {
-    this.paintColors[idx] = color;
-    let className = `active-${idx}`;
-    this.board.colorButtons.forEach((e) => e.classList.remove(className));
-    this.board.colorButtons[color] && this.board.colorButtons[color].classList.add(className);
-    this.storeSessionConfig();
-  }
-
-  setColorMode(mode) {
-    this.colorMode = mode != null ? mode : +!this.colorMode;
-    if (this.colorMode) {
-      this.board.toolMisc.color.classList.add('active');
-      this.board.colorToolbar.classList.remove('hidden');
-    }
-    else {
-      this.board.colorToolbar.classList.add('hidden');
-      this.board.toolMisc.color.classList.remove('active');
-    }
-    this.storeSessionConfig();
+    this.colors[idx] = color;
+    this.board.bgAdapter.colors[idx] = color;
+    this.board.fgAdapter.colors[idx] = color;
   }
 
   setFilter(filter, value) {
@@ -191,6 +177,27 @@ class Config {
       ruleMenu.container.setAttribute('data-disabled', disabled);
     });
     this.checkPreset();
+    this.storeSessionConfig();
+  }
+
+  setPaintColor(idx, color) {
+    this.paintColors[idx] = color;
+    let className = `active-${idx}`;
+    this.board.colorButtons.forEach((e) => e.classList.remove(className));
+    this.board.colorButtons[color] && this.board.colorButtons[color].classList.add(className);
+    this.storeSessionConfig();
+  }
+
+  setPaintColorMode(mode) {
+    this.colorMode = mode != null ? mode : +!this.colorMode;
+    if (this.colorMode) {
+      this.board.toolMisc.color.classList.add('active');
+      this.board.colorToolbar.classList.remove('hidden');
+    }
+    else {
+      this.board.colorToolbar.classList.add('hidden');
+      this.board.toolMisc.color.classList.remove('active');
+    }
     this.storeSessionConfig();
   }
 
@@ -337,7 +344,6 @@ class Config {
 
   getSessionConfig() {
     return this.getKeyValues([
-      'cellRadius',
       'colorMode',
       'defaultRule',
       'filters',

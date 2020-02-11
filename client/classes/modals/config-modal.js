@@ -13,6 +13,9 @@ class ConfigModal extends Modal {
       edgeFilter: document.querySelector('#filter-edge'),
     };
     this.checkState = null;
+    this.showResize = document.querySelector('#show-resize'),
+    this.showCustom = document.querySelector('#show-custom'),
+    this.showClear =document.querySelector('#show-clear'),
     this.ruleGroup = document.querySelector('#rule-group');
     this.numStates = document.querySelector('#num-states');
     this.addPreset = document.querySelector('#add-preset');
@@ -22,6 +25,11 @@ class ConfigModal extends Modal {
     this.checkAll = document.querySelector('#check-all');
     this.setAll = document.querySelector('#set-all').select;
     this.selectNh = document.querySelector('#select-neighborhood').select;
+
+    this.showResize.onmouseup = (ev) => this.board.toggleModal('resize');
+    this.showCustom.onmouseup = (ev) => this.board.toggleModal('custom');
+    this.showClear.onmouseup = (ev) => this.board.handleClearStorage();
+
     this.modal.onmouseup = (ev) => this._handleCheckState(ev);
     this.modal.onmousemove = (ev) => this._handleCheckState(ev);
     this.modal.onmouseleave = (ev) => this._handleCheckState(ev);

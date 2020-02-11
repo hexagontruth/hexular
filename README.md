@@ -239,6 +239,14 @@ Such modifications can also be effected via the custom code modal (Ctrl+F) or Ja
 
 Customization of the global `Board.model` model can be performed as described above and in the documentation.
 
+#### Timer hooks
+
+We can add functions to be called at a given time index during play or recording via the `board.addHook()` method. For example, to turn cells with state 4 cyan after five seconds, we could run the following from the console or the custom code modal:
+
+        Board.instance.addHook('timer', 5, () => Board.config.setColor(3, '#33cccc'));
+
+Timer hooks will be rerun at their appropriate time index after every stop/start event, but changes they make to e.g. the configuration object will persist until explicitly reset. At the moment they are the only hook type implemented.
+
 ## More information
 
   - This program was originally inspired as a generalization of David Siaw's similarly browser-based [Hexlife](https://github.com/davidsiaw/hexlife) program.

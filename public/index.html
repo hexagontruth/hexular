@@ -10,20 +10,24 @@
 </head>
 <body style="opacity: 0;">
   <div class="container"></div>
+  <div class="toolbar top left tool-hider">
+    <div class="group">
+      <button class="active icon-eye"></button>
+    </div>
+  </div>
   <div class="toolbar top">
     <div class="group">
+      <button id="toggle-record" title="Record (Shift+Tab)" class="icon-record"></button>
       <button id="toggle-play" title="Play (Tab)" class="icon-play"></button>
       <button id="step" title="Step (Space)" class="icon-step-forward"></button>
       <button id="clear" title="Clear (Ctrl+C)" class="icon-clear"></button>
-      <button id="undo" title="Undo (Ctrl+Z)" disabled class="icon-undo"></button>
-      <button id="redo" title="Redo (Ctrl+Shift+Z)" disabled class="icon-redo"></button>
-      <button id="toggle-record" title="Record (Shift+Tab)" class="icon-record"></button>
+      <button id="show-config" title="Config (Ctrl+K)" class="icon-gear"></button>
     </div>
     <div class="group">
-      <button id="show-config" title="Config (Ctrl+K)" class="icon-gear"></button>
-      <button id="show-resize" title="Resize board (Ctrl+R)" class="icon-compass"></button>
-      <button id="show-custom" title="Add custom code (Ctrl+F)" class="icon-function"></button>
-      <button id="clear-storage" title="Clear locally-stored settings" class="icon-refresh"></button>
+      <button id="undo" title="Undo (Ctrl+Z)" disabled class="icon-undo"></button>
+      <button id="redo" title="Redo (Ctrl+Shift+Z)" disabled class="icon-redo"></button>
+      <button id="snapshot-save" title="Take snapshot (Q)" class="icon-backup-restore"></button>
+      <button id="snapshot-load" title="Load snapshot (A)" class="icon-restore flip-x"></button>
       <button id="show-doc" title="Show documentation (F1)" class="icon-question"></button>
     </div>
   </div>
@@ -38,18 +42,14 @@
       <button class="tool icon-hexagon-outline rotate" id="tool-hexoutline" title="Outline hex (H)"></button>
     </div>
     <div class="group tool-sizes">
-      <button class="tool icon-hex-radius-1" id="ts-1" title="One (1)"></button>
-      <button class="tool icon-hex-radius-2" id="ts-2" title="Two (2)"></button>
-      <button class="tool icon-hex-radius-3" id="ts-3" title="Three (3)"></button>
+      <button class="tool icon-hex-radius-1" id="ts-1" title="Brush size one (1)"></button>
+      <button class="tool icon-hex-radius-2" id="ts-2" title="Brush size two (2)"></button>
+      <button class="tool icon-hex-radius-3" id="ts-3" title="Brush size three (3)"></button>
       <button id="center" title="Center board (R)" class="icon-center"></button>
       <button class="tool icon-palette" id="tool-color" title="Color mode (C)"></button>
     </div>
   </div>
   <div class="toolbar left">
-    <div class="group">
-      <button id="snapshot-save" title="Take snapshot (Q)" class="icon-backup-restore"></button>
-      <button id="snapshot-load" title="Load snapshot (A)" class="icon-restore"></button>
-    </div>
     <div class="group">
       <button id="save-image" title="Save image... (Ctrl+Shift+S)" class="icon-image"></button>
       <button id="save" title="Save model state... (Ctrl+S)" class="icon-download"></button>
@@ -75,97 +75,112 @@
   </div>
   <div class="overlay hidden">
     <div class="modal resize hidden">
-      <div class="group">
-        <input type="range" id="resize-slider" min="0" max="144" step="1"
-          value="60" list="resize-ticks"-ticks" title="Board radius"/>
-        <datalist id="resize-ticks">
-          <option>18</option>
-          <option>36</option>
-          <option>54</option>
-          <option>72</option>
-          <option>90</option>
-          <option>108</option>
-          <option>126</option>
-          <option>144</option>
-        </datalist>
-      </div>
-      <div class="group buttons">
-        <button id="resize-set"></button>
+      <div class="modal-title"><i class="icon-compass"></i> Resize model</div>
+      <div class="modal-content">
+        <div class="group">
+          <input type="range" id="resize-slider" min="0" max="144" step="1"
+            value="60" list="resize-ticks"-ticks" title="Board radius"/>
+          <datalist id="resize-ticks">
+            <option>0</option>
+            <option>18</option>
+            <option>36</option>
+            <option>54</option>
+            <option>72</option>
+            <option>90</option>
+            <option>108</option>
+            <option>126</option>
+            <option>144</option>
+          </datalist>
+        </div>
+        <div class="group buttons">
+          <button id="resize-set"></button>
+        </div>
       </div>
     </div>
     <div class="modal confirm hidden">
-      <div class="group">
-        <div id="confirmation-text" class="text"></div>
-      </div>
-     <div class="group buttons">
-        <button id="confirmation-no">No</button>
-        <button id="confirmation-yes">Yes</button>
+      <div class="modal-content">
+        <div class="group">
+          <div id="confirmation-text" class="text"></div>
+        </div>
+       <div class="group buttons">
+          <button id="confirmation-no">No</button>
+          <button id="confirmation-yes">Yes</button>
+        </div>
       </div>
     </div>
     <div class="modal custom hidden">
-      <div class="group">
-        <textarea id="custom-code" placeholder="Board.config.addRule('newRule', (cell) => cell.state)"></textarea>
-      </div>
-      <div class="group buttons">
-        <button id="add-custom-code">Add custom code</button>
+      <div class="modal-title"><i class="icon-code"></i> Custom code</div>
+      <div class="modal-content">
+        <div class="group">
+          <textarea id="custom-code" placeholder="Board.config.addRule('newRule', (cell) => cell.state)"></textarea>
+        </div>
+        <div class="group buttons">
+          <button id="add-custom-code">Add custom code</button>
+        </div>
       </div>
     </div>
     <div class="modal config hidden">
-      <div class="group">
-        <button id="add-preset" class="icon-plus" title="Add new preset..."></button>
-        <select id="select-preset">
-          <option value="">[ Select preset ]</option>
-        </select>
-        <button id="save-preset" class="icon-download" title="Save preset..."></button>
-        <button id="load-preset" class="icon-upload" title="Load preset..."></button>
-      </div>
-      <div class="group">
-        <input type="range" id="num-states" min="2" max="12" step="1"
-          value="2" list="num-states-ticks" title="Number of States (2-12)"/>
-        <datalist id="num-states-ticks">
-          <option>2</option>
-          <option>4</option>
-          <option>6</option>
-          <option>8</option>
-          <option>10</option>
-          <option>12</option>
-        </datalist>
-      </div>
-      <div class="group rule-group">
-        <div class="rule-menu">
-          <button id="check-all" class="icon-check-all" title="Check all"></button>
-          <select id="set-all" title="Set selected">
-            <option value="">[ Set selected ]</option>
+      <div class="modal-content">
+        <div class="group buttons sub-buttons">
+          <button id="show-resize" title="Resize model (Ctrl+R)"><i class="icon-compass"></i> Resize</button>
+          <button id="show-custom" title="Enter custom code (Ctrl+F)"><i class="icon-code"></i> Custom</button>
+          <button id="show-clear" title="Clear local data"><i class="icon-refresh"></i> Clear</button>
+        </div>
+        <div class="group">
+          <button id="add-preset" class="icon-plus" title="Add new preset..."></button>
+          <select id="select-preset">
+            <option value="">[ Select preset ]</option>
+          </select>
+          <button id="save-preset" class="icon-download" title="Save preset..."></button>
+          <button id="load-preset" class="icon-upload" title="Load preset..."></button>
+        </div>
+        <div class="group">
+          <input type="range" id="num-states" min="2" max="12" step="1"
+            value="2" list="num-states-ticks" title="Number of States (2-12)"/>
+          <datalist id="num-states-ticks">
+            <option>2</option>
+            <option>4</option>
+            <option>6</option>
+            <option>8</option>
+            <option>10</option>
+            <option>12</option>
+          </datalist>
+        </div>
+        <div class="group rule-group">
+          <div class="rule-menu">
+            <button id="check-all" class="icon-check-all" title="Check all"></button>
+            <select id="set-all" title="Set selected">
+              <option value="">[ Set selected ]</option>
+            </select>
+          </div>
+          <div class="rule-menu" id="default-rule-menu" title="Default rule">
+            <button class="checkable" icon="icon-infinity" title=""></button>
+            <select></select>
+          </div>
+        </div>
+        <div class="group rule-group" id="rule-group"></div>
+        <div class="group">
+          <select id="select-neighborhood" title="Default neighborhood for cell helper functions">
+            <option value="6" selected>N6: 6 immediate neighbors</option>
+            <option value="12">N12: 12 closest neighbors</option>
+            <option value="18">N18: 18 closest neighbors</option>
+            <option value="7">N7: 6 neighbors + self</option>
+            <option value="13">N13: 12 neighbors + self</option>
+            <option value="19">N19: 19 neighbors + self</option>
           </select>
         </div>
-        <div class="rule-menu" id="default-rule-menu" title="Default rule">
-          <button class="checkable" icon="icon-infinity" title=""></button>
-          <select></select>
+        <div class="group buttons">
+          <button id="filter-binary" class="icon-power" title="Binary filter"></button>
+          <button id="filter-delta" class="icon-delta" title="Delta filter"></button>
+          <button id="filter-clip-bottom" class="icon-arrow-collapse-down" title="Clip bottom"></button>
+          <button id="filter-clip-top" class="icon-arrow-collapse-up" title="Clip top"></button>
+          <button id="filter-mod" class="icon-percent" title="Modulo filter"></button>
+          <button id="filter-edge" class="icon-hexagon-outline rotate" title="Edge filter"></button>
         </div>
-      </div>
-      <div class="group rule-group" id="rule-group"></div>
-      <div class="group">
-        <select id="select-neighborhood" title="Default neighborhood for cell helper functions">
-          <option value="6" selected>N6: 6 immediate neighbors</option>
-          <option value="12">N12: 12 closest neighbors</option>
-          <option value="18">N18: 18 closest neighbors</option>
-          <option value="7">N7: 6 neighbors + self</option>
-          <option value="13">N13: 12 neighbors + self</option>
-          <option value="19">N19: 19 neighbors + self</option>
-        </select>
-      </div>
-      <div class="group buttons">
-        <button id="filter-binary" class="icon-power" title="Binary filter"></button>
-        <button id="filter-delta" class="icon-delta" title="Delta filter"></button>
-        <button id="filter-clip-bottom" class="icon-arrow-collapse-down" title="Clip bottom"></button>
-        <button id="filter-clip-top" class="icon-arrow-collapse-up" title="Clip top"></button>
-        <button id="filter-mod" class="icon-percent" title="Modulo filter"></button>
-        <button id="filter-edge" class="icon-hexagon-outline rotate" title="Edge filter"></button>
       </div>
     </div>
   </div>
   <div class="message-wrapper"><div class="message"></div></div>
-  <button class="tool-hider active icon-eye"></button>
   <div class="info info-steps"></div>
   <div class="info info-tool"></div>
   <div class="info info-cursor"></div>

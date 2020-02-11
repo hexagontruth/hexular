@@ -56,6 +56,10 @@ const SimpleRules = (() => {
 
     total: (cell) => cell.total,
 
+    min: (cell) => cell.min,
+
+    max: (cell) => cell.max,
+
     ennead: Hexular.util.ruleBuilder([
       0b001001,
       0b010010,

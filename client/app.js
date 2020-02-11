@@ -18,7 +18,7 @@ const DEFAULTS = new OptParser({
   autopause: true,
   undoStackSize: 64,
   mobileRadius: 30,
-  mobileCellRadius: 20,
+  mobileCellRadius: 15,
   mobileUndoStackSize: 16,
   preset: 'default',
   theme: 'light',
