@@ -134,8 +134,8 @@ button:disabled {
   bottom: 0.05rem;
   flex-wrap: wrap-reverse;
   align-items: flex-end;
-  left: 3rem;
-  right: 3rem;
+  left: 2.5rem;
+  right: 2.5rem;
 }
 
 .toolbar.left {
@@ -235,11 +235,14 @@ button:disabled {
 .info {
   position: fixed;
   z-index: 20;
-  right: 0.1rem;
-  padding: 0.4rem 0.5rem;
+  top: auto;
+  bottom: auto;
+  left: auto;
+  right: auto;
+  padding: 0.4em 0.5em;
   line-height: 1;
   font-weight: bold;
-  border-radius: 0.5rem;
+  border-radius: 0.5em;
   color: #4f9fcc;
   background: #ffffff7f;
   pointer-events: none;
@@ -255,32 +258,37 @@ button:disabled {
   opacity: 1;
 }
 
-.info-steps {
-  left: 0.1rem;
-  right: auto;
-  bottom: 0.1rem;
+.info.hidden {
+  opacity: 0;
 }
 
-.info-tool {
-  bottom: 0.1rem;
+.info.left {
+  left: 0.1em;
 }
 
-.info-cursor {
-  top: 0.1rem;
+.info.right {
+  right: 0.1em;
 }
 
-.tool-hidden .info-cursor, body.mobile .info {
-  transform: translateY(calc(-100% - 0.5rem));
+.info.top {
+  top: 0.1em;
 }
 
-.tool-hidden .info-steps, body.mobile .info,
-.tool-hidden .info-tool, body.mobile .info {
-  transform: translateY(calc(100% + 0.5rem));
+.info.bottom {
+  bottom: 0.1em;
+}
+
+.tool-hidden .info.top, body.mobile .info {
+  transform: translateY(calc(-100% - 0.5em));
+}
+
+.tool-hidden .info.bottom, body.mobile .info {
+  transform: translateY(calc(100% + 0.5em));
 }
 
 .message-wrapper {
   position: fixed;
-  z-index: 20;
+  z-index: 10;
   top: 3rem;
   left: 1rem;
   right: 1rem;
@@ -331,7 +339,7 @@ button:disabled {
   top: 0;
   left: 0;
   opacity: 1;
-  padding: 1rem;
+  padding: 30px;
   background: #0000003f;
 }
 
@@ -354,6 +362,7 @@ button:disabled {
   max-width: 100%;
   max-height: 100%;
   overflow: auto;
+  border-radius: 1em;
 }
 
 .modal div:first-child {
@@ -389,6 +398,8 @@ button:disabled {
   flex-direction: row;
   justify-content: space-between;
   align-items: stretch;
+  flex: 0 1 100%;
+  overflow: hidden;
 }
 
 .modal .group.sub-buttons {
@@ -447,6 +458,8 @@ select {
   font-family: inherit;
   flex: 1 1 auto;
   padding: 0 1em;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .modal .group.buttons.sub-buttons button {
@@ -525,21 +538,26 @@ body .modal button.checkable:hover {
   border-color: #6fcfff;
 }
 
-@media screen and (max-width: 600px) {
-  .info-cursor { display: none; }
+@media screen and (max-width: 640px) {
   .tool-hider button { display: block; }
 }
+
+@media screen and (max-width: 560px) {
+  .info-cursor { opacity: 0 !important; }
+  .info { font-size: 3.333vw; }
+}
+
 @media screen and (max-width: 480px) {
-  .modal { font-size: 0.8rem; }
-  .info-tool { display: none; }
+  .info-timer { opacity: 0 !important; }
 }
 
 @media screen and (max-width: 420px) {
-  .info { display: none; }
+  .info { opacity: 0 !important;}
 }
 
-@media screen and (max-width: 480px) {
-  html { font-size: 4.1666vw; }
+@media screen and (max-width: 360px) {
+  html { font-size: 5.555vw; }
+  .info { opacity: 0 !important;}
 }
 
 @media screen and (max-height: 800px) {

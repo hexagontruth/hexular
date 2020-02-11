@@ -154,7 +154,7 @@ class LineAction extends PaintAction {
   move(ev) {
     this.b = this._getPointerCoord(ev);
     this.length = this._getHypot(this.a, this.b);
-    this.info = (this._hypotToModel(this.length) / 2).toFixed(2);
+    this.info = Math.round(this._hypotToModel(this.length) / 2);
     this._calculateCells();
   }
 

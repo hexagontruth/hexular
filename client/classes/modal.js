@@ -12,6 +12,8 @@ class Modal {
     this.reset();
     this.modal.classList.remove('hidden');
     this.board.overlay.classList.remove('hidden');
+    let focus = this.modal.querySelector('.focus');
+    focus && focus.focus();
   }
 
   close() {

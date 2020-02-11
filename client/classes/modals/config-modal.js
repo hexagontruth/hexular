@@ -26,9 +26,9 @@ class ConfigModal extends Modal {
     this.setAll = document.querySelector('#set-all').select;
     this.selectNh = document.querySelector('#select-neighborhood').select;
 
-    this.showResize.onmouseup = (ev) => this.board.toggleModal('resize');
-    this.showCustom.onmouseup = (ev) => this.board.toggleModal('custom');
-    this.showClear.onmouseup = (ev) => this.board.handleClearStorage();
+    this.showResize.onclick = (ev) => this.board.toggleModal('resize');
+    this.showCustom.onclick = (ev) => this.board.toggleModal('custom');
+    this.showClear.onclick = (ev) => this.board.handleClearStorage();
 
     this.modal.onmouseup = (ev) => this._handleCheckState(ev);
     this.modal.onmousemove = (ev) => this._handleCheckState(ev);

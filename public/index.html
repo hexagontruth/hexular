@@ -79,7 +79,7 @@
       <div class="modal-content">
         <div class="group">
           <input type="range" id="resize-slider" min="0" max="144" step="1"
-            value="60" list="resize-ticks"-ticks" title="Board radius"/>
+            value="60" list="resize-ticks"-ticks" title="Board radius" class="focus"/>
           <datalist id="resize-ticks">
             <option>0</option>
             <option>18</option>
@@ -103,7 +103,7 @@
           <div id="confirmation-text" class="text"></div>
         </div>
        <div class="group buttons">
-          <button id="confirmation-no">No</button>
+          <button id="confirmation-no" class="focus">No</button>
           <button id="confirmation-yes">Yes</button>
         </div>
       </div>
@@ -112,7 +112,8 @@
       <div class="modal-title"><i class="icon-code"></i> Custom code</div>
       <div class="modal-content">
         <div class="group">
-          <textarea id="custom-code" placeholder="Board.config.addRule('newRule', (cell) => cell.state)"></textarea>
+          <textarea id="custom-code" class="focus" placeholder="Board.config.addRule('newRule', (cell) => cell.state)">
+          </textarea>
         </div>
         <div class="group buttons">
           <button id="add-custom-code">Add custom code</button>
@@ -128,7 +129,7 @@
         </div>
         <div class="group">
           <button id="add-preset" class="icon-plus" title="Add new preset..."></button>
-          <select id="select-preset">
+          <select id="select-preset" class="focus">
             <option value="">[ Select preset ]</option>
           </select>
           <button id="save-preset" class="icon-download" title="Save preset..."></button>
@@ -181,9 +182,10 @@
     </div>
   </div>
   <div class="message-wrapper"><div class="message"></div></div>
-  <div class="info info-steps"></div>
-  <div class="info info-tool"></div>
-  <div class="info info-cursor"></div>
+  <div class="info bottom left info-steps"></div>
+  <div class="info bottom right info-tool"></div>
+  <div class="info top right info-cursor"></div>
+  <div class="info top right info-timer"></div>
   <div class="assets" style="display: none;">
     <div class="rule-menu">
       <button class="checkable"></button>

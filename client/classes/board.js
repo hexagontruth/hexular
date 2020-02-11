@@ -56,9 +56,10 @@ class Board {
       message: document.querySelector('.message'),
       colorToolbar: document.querySelector('.toolbar.colors'),
       infoBoxes: {
+        cursor: document.querySelector('.info-cursor'),
+        timer: document.querySelector('.info-timer'),
         steps: document.querySelector('.info-steps'),
         tool: document.querySelector('.info-tool'),
-        cursor: document.querySelector('.info-cursor'),
       },
       buttons: {
         toolHider: document.querySelector('.tool-hider button'),
@@ -260,16 +261,16 @@ class Board {
   startMeta() {
     let hooks = this.hooks.timer.slice();
     let sexFmt = (i) => ('00' + i).slice(-2);
-    this.recorder && this.infoBoxes.tool.classList.add('recording');
+    this.infoBoxes.cursor.classList.add('hidden');
+    this.recorder && this.infoBoxes.timer.classList.add('recording');
     this.metaInterval = setInterval(() => {
       let deltaMs = Date.now() - this.playStart;
       let delta = Math.floor(deltaMs / 1000);
       let thirds = Math.floor((deltaMs % 1000) * 60 / 1000);
       let secs = delta % 60;
       let mins = Math.floor(delta / 60) % 60;
-      let hours = Math.floor(delta / 3600) % 60;
-      let str = `${sexFmt(hours)}:${sexFmt(mins)}:${sexFmt(secs)}:${sexFmt(thirds)}`;
-      this.setInfoBox('tool', str);
+      let str = `${sexFmt(mins)}:${sexFmt(secs)}:${sexFmt(thirds)}`;
+      this.setInfoBox('timer', str);
       while (hooks[0] && hooks[0].trigger <= delta) {
         let hook = hooks.shift();
         hook.run();
@@ -280,7 +281,8 @@ class Board {
   stopMeta() {
     clearInterval(this.metaInterval);
     this.metaInterval = null;
-    this.setInfoBox('tool');
+    this.setInfoBox('timer');
+    this.infoBoxes.cursor.classList.remove('hidden');
     this.infoBoxes.tool.classList.remove('recording');
   }
 
@@ -334,6 +336,8 @@ class Board {
     Object.values(this.modals).forEach((e) => e.close());
     if (selected && current != selected)
       this.modals[modal].open();
+    else if (!selected)
+      this.fg.focus();
   }
 
   showDoc() {
@@ -603,8 +607,8 @@ class Board {
   }
 
   handleKey(ev) {
-    let tagNames = ['TEXTAREA', 'INPUT', 'SELECT'];
-    if (tagNames.includes(ev.target.tagName)) {
+    let tagNames = ['TEXTAREA', 'INPUT', 'SELECT', 'BUTTON'];
+    if (ev.key != 'Escape' && tagNames.includes(ev.target.tagName) && this.modal) {
       return;
     }
     let key = ev.key.toLowerCase();
