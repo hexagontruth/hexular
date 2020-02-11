@@ -262,6 +262,11 @@ end user to implement her own extensions via the Hexular API:</p>
 <li><code>Board.model</code> - Alias for <code>Board.instance.model</code></li>
 </ul>
 <p>Customization of the global <code>Board.model</code> model can be performed as described above and in the documentation.</p>
+<h4 id="timer-hooks">Timer hooks</h4>
+<p>We can add functions to be called at a given time index during play or recording via the <code>board.addHook()</code> method. For example, to turn cells with state 4 cyan after five seconds, we could run the following from the console or the custom code modal:</p>
+<pre><code>    Board.instance.addHook('timer', 5, () =&gt; Board.config.setColor(3, '#33cccc'));
+</code></pre>
+<p>Timer hooks will be rerun at their appropriate time index after every stop/start event, but changes they make to e.g. the configuration object will persist until explicitly reset. At the moment they are the only hook type implemented.</p>
 <h2 id="more-information">More information</h2>
 <ul>
 <li>
