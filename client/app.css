@@ -60,7 +60,7 @@ canvas[data-tool='hexoutline'] {
 button {
   display: block;
   color: #fff;
-  background: #3f9fcc;
+  background: #44aacc;
   font-weight: normal;
   font-style: normal;
   cursor: pointer;
@@ -72,7 +72,7 @@ body:not(.mobile) button:hover:not(:disabled) {
 }
 
 body.mobile button:active, button.active {
-  background: #6fcfff;
+  background: #66ddff;
   color: #fff;
 }
 
@@ -81,21 +81,29 @@ button:disabled {
   color: rgba(255, 255, 255, 0.5);
 }
 
-.tool-hider button {
-  display: none;
+.toolbar.tool-hider .group button {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .toolbar {
-  pointer-events: none;
   position: fixed;
   z-index: 10;
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
   font-size: 1rem;
+  pointer-events: none;
 }
 
-.toolbar * {
+.toolbar .group {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  margin: 0.5em;
+}
+
+.toolbar .group button {
   pointer-events: auto;
 }
 
@@ -103,7 +111,30 @@ button:disabled {
   font-size: 1.2em;
   margin: 0.05rem;
   padding: 0.4em;
-  border-radius: 0.5em;
+}
+
+.toolbar.top button:first-child,
+.toolbar.bottom button:first-child {
+  border-top-left-radius: 3em;
+  border-bottom-left-radius: 3em;
+}
+
+.toolbar.top button:last-child,
+.toolbar.bottom button:last-child {
+  border-top-right-radius: 3em;
+  border-bottom-right-radius: 3em;
+}
+
+.toolbar.left button:first-child,
+.toolbar.right button:first-child {
+  border-top-left-radius: 3em;
+  border-top-right-radius: 3em;
+}
+
+.toolbar.left button:last-child,
+.toolbar.right button:last-child {
+  border-bottom-left-radius: 3em;
+  border-bottom-right-radius: 3em;
 }
 
 .toolbar.top button, .toolbar.bottom button {
@@ -148,13 +179,6 @@ button:disabled {
   right: 0.05rem;
 }
 
-.toolbar .group {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  margin: 0.5em;
-}
-
 .toolbar.top .group, .toolbar.bottom .group {
   margin-top: 0;
   margin-bottom: 0;
@@ -167,7 +191,7 @@ button:disabled {
 }
 
 .toolbar.colors .group {
-  background: #3f9fcc;
+  background: #44aacc;
   border-radius: 3em;
   margin: 0.2rem;
 }
@@ -177,7 +201,7 @@ button:disabled {
   width: 1em;
   height: 1em;
   margin: -0.1em;
-  border: 0.2em solid #3f9fcc;
+  border: 0.2em solid #44aacc;
   border-radius: 0;
 }
 
@@ -199,17 +223,17 @@ button:disabled {
 }
 
 .toolbar.colors .group button.active-0 {
-  border-color: #6fcfff;
-  border-right-color: #3f9fcc !important;
+  border-color: #66ddff;
+  border-right-color: #44aacc !important;
 }
 
 .toolbar.colors .group button.active-1 {
-  border-color: #6fcfff;
-  border-left-color: #3f9fcc !important;
+  border-color: #66ddff;
+  border-left-color: #44aacc !important;
 }
 
 .toolbar.colors .group button.active-0.active-1 {
-  border-color: #6fcfff !important;
+  border-color: #66ddff !important;
 }
 
 .tool-hidden .toolbar.top {
@@ -243,7 +267,7 @@ button:disabled {
   line-height: 1;
   font-weight: bold;
   border-radius: 0.5em;
-  color: #4f9fcc;
+  color: #44aacc;
   background: #ffffff7f;
   pointer-events: none;
   opacity: 0;
@@ -531,15 +555,18 @@ select {
 }
 
 body .modal button.checkable:hover {
-  background-color: #3f9fcc;
+  background-color: #44aacc;
 }
 
 .modal .checked button.checkable {
-  border-color: #6fcfff;
+  border-color: #66ddff;
 }
 
 @media screen and (max-width: 640px) {
-  .tool-hider button { display: block; }
+  .toolbar.tool-hider .group button {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 @media screen and (max-width: 560px) {

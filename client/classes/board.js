@@ -126,32 +126,34 @@ class Board {
     OnMouseEvent(this, this.handleMouse);
     OnTouchEvent(this, this.handleTouch);
 
-    this.buttons.toolHider.onmouseup = (ev) => this.toggleToolHidden();
-    this.buttons.togglePlay.onmouseup = (ev) => this.togglePlay();
-    this.buttons.step.onmouseup = (ev) => this.step();
-    this.buttons.clear.onmouseup = (ev) => this.clear();
-    this.buttons.undo.onmouseup = (ev) => this.undo();
-    this.buttons.redo.onmouseup = (ev) => this.redo();
-    this.buttons.toggleRecord.onmouseup = (ev) => this.toggleRecord();
-    this.buttons.showConfig.onmouseup = (ev) => this.toggleModal('config');
-    this.buttons.showDoc.onmouseup = (ev) => this.showDoc();
-    this.buttons.saveSnapshot.onmouseup = (ev) => this.saveSnapshot();
-    this.buttons.loadSnapshot.onmouseup = (ev) => this.loadSnapshot();
-    this.buttons.load.onmouseup = (ev) => this.load();
-    this.buttons.save.onmouseup = (ev) => this.save();
-    this.buttons.saveImage.onmouseup = (ev) => this.saveImage();
-    this.buttons.import.onmouseup = (ev) => this.import();
+    this.buttons.toolHider.onclick = this.click(this.toggleToolHidden);
+    this.buttons.togglePlay.onclick = this.click(this.togglePlay);
+    this.buttons.step.onclick = this.click(this.step);
+    this.buttons.clear.onclick = this.click(this.clear);
+    this.buttons.undo.onclick = this.click(this.undo);
+    this.buttons.redo.onclick = this.click(this.redo);
+    this.buttons.toggleRecord.onclick = this.click(this.toggleRecord);
+    this.buttons.showConfig.onclick = this.click(() => this.toggleModal('config'));
+    this.buttons.showDoc.onclick = this.click(this.showDoc);
+    this.buttons.saveSnapshot.onclick = this.click(this.saveSnapshot);
+    this.buttons.loadSnapshot.onclick = this.click(this.loadSnapshot);
+    this.buttons.load.onclick = this.click(this.load);
+    this.buttons.save.onclick = this.click(this.save);
+    this.buttons.saveImage.onclick = this.click(this.saveImage);
+    this.buttons.import.onclick = this.click(this.import);
 
-    this.tools.move.onmouseup = (ev) => this.config.setTool('move');
-    this.tools.fill.onmouseup = (ev) => this.config.setTool('fill');
-    this.tools.brush.onmouseup = (ev) => this.config.setTool('brush');
-    this.tools.line.onmouseup = (ev) => this.config.setTool('line');
-    this.tools.lockline.onmouseup = (ev) => this.config.setTool('lockline');
-    this.tools.hexfilled.onmouseup = (ev) => this.config.setTool('hexfilled');
-    this.tools.hexoutline.onmouseup = (ev) => this.config.setTool('hexoutline');
-    this.toolMisc.center.onmouseup = (ev) => this.resize();
-    this.toolMisc.color.onmouseup = (ev) => this.config.setPaintColorMode();
-    this.toolSizes.forEach((e, i) => e.onmouseup = (ev) => this.config.setToolSize(i + 1));
+    this.tools.move.onclick = this.click((ev) => this.config.setTool('move'), this.config);
+    this.tools.brush.onclick = this.click((ev) => this.config.setTool('brush'), this.config);
+    this.tools.brush.onclick = this.click((ev) => this.config.setTool('brush'), this.config);
+    this.tools.line.onclick = this.click((ev) => this.config.setTool('line'), this.config);
+    this.tools.lockline.onclick = this.click((ev) => this.config.setTool('lockline'), this.config);
+    this.tools.hexfilled.onclick = this.click((ev) => this.config.setTool('hexfilled'), this.config);
+    this.tools.hexoutline.onclick = this.click((ev) => this.config.setTool('hexoutline'), this.config);
+    this.toolMisc.center.onclick = this.click(this.resize);
+    this.toolMisc.color.onclick = this.click(this.config.setPaintColorMode, this.config);
+    this.toolSizes.forEach((button, i) => {
+      button.onclick = this.click(() => this.config.setToolSize(i + 1), this.config);
+    });
     this.colorButtons.forEach((button, i) => {
       button.onmousedown = (ev) => this.handleSetColor(ev, i);
       button.style.backgroundColor = this.config.colors[i];
@@ -175,6 +177,11 @@ class Board {
   }
 
   get running() { return !!this.timer; }
+
+  // Bypass Firefox's idiotic space-click
+  click(fn, bind=this) {
+    return (ev) => ev.pageX && ev.pageY && fn.bind(bind)();
+  }
 
   eachContext(fn) {
     [this.bgCtx, this.fgCtx].forEach(fn);
@@ -283,7 +290,7 @@ class Board {
     this.metaInterval = null;
     this.setInfoBox('timer');
     this.infoBoxes.cursor.classList.remove('hidden');
-    this.infoBoxes.tool.classList.remove('recording');
+    this.infoBoxes.timer.classList.remove('recording');
   }
 
   step() {
@@ -615,7 +622,7 @@ class Board {
     if (ev.key == 'Shift') {
       this.config.shift = ev.type == 'keydown';
       this.config.setTool();
-      return;c
+      return;
     }
     else if (ev.type == 'keyup') {
       return;
