@@ -3,13 +3,18 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no"/>
+  <link rel="icon" type="image/png" href="icon.png"/>
   <script src="build/client.js?v=0.2"></script>
   <link rel="stylesheet" type="text/css" href="build/client.css?v=0.2"/>
-  <link rel="icon" type="image/png" href="icon.png"/>
   <title>Hexular Studio</title>
 </head>
-<body style="opacity: 0;">
+<body class="splash">
   <div class="container"></div>
+  <div class="message-wrapper"><div class="message"></div></div>
+  <div class="info bottom left info-steps"></div>
+  <div class="info bottom right info-tool"></div>
+  <div class="info top right info-cursor"></div>
+  <div class="info top right info-timer"></div>
   <div class="toolbar top left tool-hider">
     <div class="group">
       <button class="active icon-eye"></button>
@@ -78,18 +83,22 @@
       <div class="modal-title"><i class="icon-compass"></i> Resize model</div>
       <div class="modal-content">
         <div class="group">
-          <input type="range" id="resize-slider" min="0" max="144" step="1"
+          <input type="range" id="resize-slider" min="0" max="360" step="1"
             value="60" list="resize-ticks"-ticks" title="Board radius" class="focus"/>
           <datalist id="resize-ticks">
             <option>0</option>
-            <option>18</option>
-            <option>36</option>
-            <option>54</option>
-            <option>72</option>
+            <option>30</option>
+            <option>60</option>
             <option>90</option>
-            <option>108</option>
-            <option>126</option>
-            <option>144</option>
+            <option>120</option>
+            <option>150</option>
+            <option>180</option>
+            <option>210</option>
+            <option>240</option>
+            <option>270</option>
+            <option>300</option>
+            <option>330</option>
+            <option>360</option>
           </datalist>
         </div>
         <div class="group buttons">
@@ -112,8 +121,7 @@
       <div class="modal-title"><i class="icon-code"></i> Custom code</div>
       <div class="modal-content">
         <div class="group">
-          <textarea id="custom-code" class="focus" placeholder="Board.config.addRule('newRule', (cell) => cell.state)">
-          </textarea>
+          <textarea id="custom-code" class="focus" placeholder="Board.config.addRule('newRule', (cell) => cell.state)"></textarea>
         </div>
         <div class="group buttons">
           <button id="add-custom-code">Add custom code</button>
@@ -181,16 +189,24 @@
       </div>
     </div>
   </div>
-  <div class="message-wrapper"><div class="message"></div></div>
-  <div class="info bottom left info-steps"></div>
-  <div class="info bottom right info-tool"></div>
-  <div class="info top right info-cursor"></div>
-  <div class="info top right info-timer"></div>
   <div class="assets" style="display: none;">
     <div class="rule-menu">
       <button class="checkable"></button>
       <select></select>
     </div>
+  </div>
+  <div class="overlay-splash">
+    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="300px" height="300px" viewBox="0 0 300 300">
+      <g>
+        <polygon points="150,202.714 104.348,176.356 104.348,123.643 150,97.286 195.653,123.643 195.653,176.356"/>
+        <polygon points="45.652,202.714 0,176.356 0,123.643 45.652,97.286 91.305,123.643 91.305,176.356"/>
+        <polygon points="202.175,112.346 156.521,85.99 156.521,33.275 202.175,6.919 247.825,33.275 247.825,85.99"/>
+        <polygon points="97.827,112.346 52.173,85.99 52.173,33.275 97.827,6.919 143.478,33.275 143.478,85.99"/>
+        <polygon points="202.175,293.081 156.521,266.722 156.521,214.009 202.175,187.652 247.825,214.009 247.825,266.722"/>
+        <polygon points="97.827,293.081 52.173,266.722 52.173,214.009 97.827,187.652 143.478,214.009 143.478,266.722"/>
+        <polygon points="254.347,202.714 208.696,176.356 208.696,123.643 254.347,97.286 300,123.643 300,176.356"/>
+      </g>
+    </svg>
   </div>
 </body>
 </html>

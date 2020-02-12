@@ -196,7 +196,7 @@ class LocklineAction extends LineAction {
     let xRound = Math.cos(aRound * Hexular.math.hextant) * h;
     let yRound = Math.sin(aRound * Hexular.math.hextant) * h;
     this.b = [this.a[0] + xRound, this.a[1] + yRound];
-    this.info = (this._hypotToModel(this.length) / 2).toFixed(2);
+    this.info = Math.round(this._hypotToModel(this.length) / 2);
     this._calculateCells();
   }
 }

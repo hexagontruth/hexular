@@ -16,7 +16,34 @@ html {
 body {
   background: #fff;
   color: #333;
+}
+
+.overlay-splash {
+  z-index: 100;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  opacity: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  background-color: #fff;
+  pointer-events: none;
   transition: opacity 1000ms;
+}
+
+.overlay-splash svg {
+  width: 100px;
+  height: 100px;
+  fill: #44aacc;
+}
+
+body.splash .overlay-splash {
+  opacity: 1;
+  transition: none;
 }
 
 body * {

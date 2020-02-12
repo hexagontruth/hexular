@@ -1,21 +1,23 @@
 class Board {
   static resize(radius) {
-    let opts = Object.assign({}, DEFAULTS);
-    if (radius)
-      opts.radius = radius;
-    let oldBoard = Board.instance;
-    oldBoard && oldBoard.stop();
-    let board = new Board(opts);
-    Board.instance = board;
-    if (oldBoard) {
-      board.undoStack = oldBoard.undoStack;
-      board.redoStack = oldBoard.redoStack;
-      board.refreshHistoryButtons();
-    }
-    Board.config = board.config;
-    Board.model = board.model;
-    board.draw().then(() => {
-      document.body.style.opacity = 1;
+    return new Promise((resolve, reject) => {
+      document.body.classList.add('splash');
+      let oldBoard = Board.instance;
+      oldBoard && oldBoard.stop();
+     setTimeout(async () => {
+        let board = new Board({radius});
+        Board.instance = board;
+        if (oldBoard) {
+          board.undoStack = oldBoard.undoStack;
+          board.redoStack = oldBoard.redoStack;
+          board.refreshHistoryButtons();
+        }
+        Board.config = board.config;
+        Board.model = board.model;
+        await board.draw();
+        document.body.classList.remove('splash');
+        resolve();
+      }, 50);
     });
   }
 

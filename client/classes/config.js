@@ -1,25 +1,15 @@
 class Config {
-  static merge(...objs) {
-    let base = objs.shift();
-    let next;
-    while (next = objs.shift()) {
-      for (let [key, value] of Object.entries(next)) {
-        if (value == null) continue;
-        if (typeof base[key] =='object' && typeof value == 'object' && !Array.isArray(base[key])) {
-          base[key] = Config.merge({}, base[key], value);
-        }
-        else {
-          base[key] = value;
-        }
-      }
-    }
-    return base;
-  }
-
-  constructor(board, ...args) {
-    let defaults = {
-      availableRules: {},
-      colors: [],
+  static get defaults() {
+    return {
+      preset: 'default',
+      theme: 'light',
+      radius: 60,
+      cellRadius: 10,
+      numStates: 12,
+      maxNumStates: 12,
+      groundState: 0,
+      defaultRule: 'identityRule',
+      nh: 6,
       filters: {
         binaryFilter: false,
         deltaFilter: false,
@@ -28,27 +18,82 @@ class Config {
         modFilter: false,
         edgeFilter: false,
       },
-      paintColors: [],
-      board,
+      undoStackSize: 64,
+      mobileRadius: 30,
+      mobileCellRadius: 15,
+      mobileUndoStackSize: 16,
+      interval: 100,
+      autopause: true,
+      background: '#f8f8f8',
+      showModelBackground: true,
+      borderWidth: 1,
+      colors: Hexular.DEFAULTS.colors,
+      availableRules: Config.merge({}, Rules),
+      rules: Array(this.maxNumStates).fill(this.defaultRule),
+      themes: Config.merge(Themes),
+      presets: Config.merge({}, Presets),
+      arrayType: 'Int8Array',
+      defaultImageFilename: 'hexular.png',
+      defaultFilename: 'hexular.bin',
+      defaultVideoFilename: 'hexular.webm',
+      codec: 'vp9',
+      scaleFactor: 1,
+      tool: 'brush',
+      shiftTool: 'move',
+      toolSize: 1,
+      colorMode: 0,
+      paintColors: [1, 0],
+      steps: 0,
+      localStorageObj: window.localStorage,
+      sessionStorageObj: window.sessionStorage,
     };
-    Object.assign(this, defaults, ...args);
+  }
+  static merge(...objs) {
+    let base = objs.shift();
+    let next;
+    let mergeWhitelist = [Object, Array];
+    while (next = objs.shift()) {
+      for (let [key, val] of Object.entries(next)) {
+        if (val == null) continue;
+        let defaultBaseVal = Array.isArray(val) ? [] : typeof val == 'object' ? {} : null;
+        let baseVal = base[key] || defaultBaseVal;
+        if (typeof val == 'object' && !mergeWhitelist.includes(val.constructor)) {
+          base[key] = val;
+        }
+        else if (Array.isArray(val) && Array.isArray(baseVal)) {
+          base[key] = Config.merge([], baseVal, val);
+        }
+        else if (typeof baseVal =='object' && typeof val == 'object') {
+          base[key] = Config.merge({}, baseVal, val);
+        }
+        else {
+          base[key] = val;
+        }
+      }
+    }
+    return base;
+  }
+
+  constructor(board, ...args) {
+    Config.merge(this, Config.defaults);
     Object.entries(this).forEach(([key, value]) => {
       if (Array.isArray(value)) {
         this[key] = value.slice();
       }
-      if (defaults.filters[key]) {
+      if (this.filters[key]) {
         this.filters[key] = value;
         delete this[key];
       }
     });
-    this.colors = this.colors.slice();
-    this.rules = this.rules || Array(this.maxNumStates).fill(this.defaultRule);
-
-    this.localStorageObj = window.localStorage;
-    this.sessionStorageObj = window.sessionStorage;
 
     // Restore state from local/session storage
     this.restoreState();
+
+    // Finally, merge in URL parameter and constructor args
+    Config.merge(this, new OptParser(this), ...args);
+
+    this.board = board;
+
     // Set logical size and scale small boards
     let width = this.radius * this.cellRadius * Hexular.math.apothem * 4;
     let height = this.radius * this.cellRadius * 3;
@@ -65,6 +110,8 @@ class Config {
     height *= scaleRatio;
     this.logicalWidth = width;
     this.logicalHeight = height;
+
+    this.mobile && document.body.classList.add('mobile');
   }
 
   initialize() {
@@ -347,7 +394,6 @@ class Config {
       'colorMode',
       'defaultRule',
       'filters',
-      'interval',
       'fallbackTool',
       'groundState',
       'maxNumStates',

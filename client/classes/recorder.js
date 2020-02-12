@@ -10,8 +10,9 @@ class Recorder {
       frameRate: Math.max(Math.floor(1000 / this.config.interval), 15),
     };
     let opts = {};
-    if (MediaRecorder.isTypeSupported('video/webm;codecs=h264'))
-      opts.mimeType = 'video/webm;codecs=h264';
+    let customCodec = `video/webm;codecs=${this.config.codec || 'vp9'}`;
+    if (MediaRecorder.isTypeSupported(customCodec))
+      opts.mimeType = customCodec;
     else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9'))
       opts.mimeType = 'video/webm;codecs=vp9';
     else

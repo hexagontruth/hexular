@@ -17,17 +17,17 @@ const Themes = (() => {
 
   const Themes = {
     light: {
-      background: '#f8f8f8',
-      colors: Hexular.DEFAULTS.colors.slice(),
     },
     smooth: {
-      background: '#f8f8f8',
       borderWidth: -0.5,
-      colors: Hexular.DEFAULTS.colors.slice(),
     },
     mango: {
-      background: '#f8f8f8',
-      colors: Hexular.DEFAULTS.colors.slice(0, 5).concat([
+      colors: [
+        null,
+        null,
+        null,
+        null,
+        null,
         '#cc5555',
         '#ef9f00',
         '#eedd00',
@@ -35,24 +35,10 @@ const Themes = (() => {
         '#33cccc',
         '#3366ee',
         '#cc33ee',
-      ]),
+      ],
     },
     classic: {
-      background: '#f8f8f8',
-      colors: Object.assign([], Hexular.DEFAULTS.colors, [
-        '#ffffff',
-        '#ccccbb',
-        '#99998f',
-        '#666655',
-        '#33332f',
-        '#cc4444',
-        '#ee7722',
-        '#eebb33',
-        '#66bb33',
-        '#66aaaa',
-        '#4455bb',
-        '#aa55bb',
-      ]),
+      colors: classicColors,
     },
     white: {
       background: '#ffffff',
@@ -60,7 +46,7 @@ const Themes = (() => {
     },
     beigeRainbow: {
       background: '#ffffff',
-      colors: Object.assign([
+      colors: [
         '#fafafa',
         '#ccccbb',
         '#ffaa11',
@@ -73,12 +59,12 @@ const Themes = (() => {
         '#cc3333',
         '#aaaa33',
         '#332211',
-      ]),
+      ],
     },
     dark: {
       background: '#111111',
       borderWidth: -0.25,
-      colors: Object.assign([], classicColors, [
+      colors: Config.merge([], classicColors, [
         '#000000',
         '#888888',
         '#aaaaaa',
@@ -89,7 +75,7 @@ const Themes = (() => {
     darkRainbow: {
       background: '#111111',
       borderWidth: -0.25,
-      colors: Object.assign([
+      colors: [
         '#000000',
         '#ff0000',
         '#ffaa00',
@@ -102,7 +88,7 @@ const Themes = (() => {
         '#aa00ff',
         '#ff00ff',
         '#ff00aa',
-      ]),
+      ],
     },
   };
   return Themes;

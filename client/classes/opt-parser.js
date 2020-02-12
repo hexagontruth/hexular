@@ -18,7 +18,7 @@ class OptParser {
       let [_, theme] = args.splice(argThemeIdx, 1)[0];
       defaults.theme = theme;
     }
-    Object.assign(defaults, defaults.themes[defaults.theme] || defaults.themes[defaultTheme]);
+    Config.merge(defaults, defaults.themes[defaults.theme] || defaults.themes[defaultTheme]);
 
     // Process remaining args
     args.forEach(([key, value]) => {
@@ -44,7 +44,7 @@ class OptParser {
         defaults[key] = result;
     });
 
-    Object.assign(this, defaults);
+    Config.merge(this, defaults);
   }
 
   splitFilter(str, split) {

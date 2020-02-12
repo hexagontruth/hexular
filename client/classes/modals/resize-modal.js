@@ -1,7 +1,7 @@
 class ResizeModal extends Modal {
   constructor(...args) {
     super(...args);
-    this.radius = this.defaultRadius = DEFAULTS.radius;
+    this.radius = this.defaultRadius = Config.defaults.radius;
     this.slider = document.querySelector('#resize-slider');
     this.default = document.querySelector('#resize-default');
     this.set = document.querySelector('#resize-set');

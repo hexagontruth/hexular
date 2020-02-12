@@ -161,24 +161,21 @@ URL parameters are overriden by themes and presets according to a somewhat compl
 
 ### Interface
 
-Control flow and configuration buttons run along the along the top of the window:
+Control flow, state, and configuration buttons run along the along the top of the window:
 
+  - Record/Stop (Shift+Tab) &mdash; Start timer and record canvas to webm video
   - Start/Pause (Tab) &mdash; Step model at 100ms intervals (this may be slower for larger grids, depending on hardware, and can be set via the `interval` URL parameter)
   - Step (Space) &mdash; Perform individual step
   - Clear (Ctrl+C)
+  - Configure (Ctrl+K)
   - Undo (Ctrl+Z)
   - Redo (Ctrl+Shift+Z)
-  - Record/Stop (Shift+Tab) &mdash; Start timer and record canvas to webm video
-  - Configure (Ctrl+K)
-  - Resize board (Ctrl+R)
-  - Add custom code (Ctrl+F)
-  - Clear locally-stored settings
+  - Save snapshot (Q)
+  - Load snapshot (A)
   - Show documentation (F1)
 
 Several buttons concerning file I/O run along the left side:
 
-  - Save snapshot (Q)
-  - Load snapshot (A)
   - Save image (Ctrl+Shift+S)
   - Save (Ctrl+S)
   - Load (Ctrl+O)
@@ -201,7 +198,10 @@ Tool buttons and various editorial options run along the bottom:
 
 Holding shift will temporarily select the move tool by default, or whatever tool is given in the `shiftTool` parameter.
 
-Additionally, `<Escape>` toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open. Scrolling a central mouse wheel or equivalent will zoom the canvas.
+Additionally, `<Escape>` toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open. Scrolling a central mouse wheel or equivalent will zoom the canvas. Two other options reachable through the configuration modal are also available via keystrokes:
+
+  - Resize board (Ctrl+R)
+  - Add custom code (Ctrl+F)
 
 Cell states are changed by clicking and dragging with a paint tool selected. By default, the painting state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo `Board.instance.model.numStates`. Right clicking, conversely, decrements the cell state by one, and ctrl+clicking clears to the ground state. Setting a specific state color can be effected by toggling the color mode button on the bottom right. Toggling color mode off brings back the default behavior.
 
