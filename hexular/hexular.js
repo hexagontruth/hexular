@@ -1482,7 +1482,7 @@ var Hexular = (function () {
       }
     }
     else {
-      n = BigInt(n);
+      n = BigInt(ruleDef);
     }
 
     let rule = (cell) => {
