@@ -105,8 +105,8 @@
 .icon-resize:before { content: '\e842'; }
 .icon-resize-horizontal:before { content: '\e843'; }
 .icon-ruler:before { content: '\e844'; }
-.icon-ruler-square-compass:before { content: '\e845'; }
-.icon-selection-ellipse:before { content: '\e846'; }
+.icon-selection-ellipse:before { content: '\e845'; }
+.icon-ruler-square-compass:before { content: '\e846'; }
 .icon-ship-wheel:before { content: '\e847'; }
 .icon-sigma:before { content: '\e848'; }
 .icon-six-lines:before { content: '\e849'; }
@@ -150,3 +150,4 @@
 .icon-upload:before { content: '\e86f'; }
 .icon-vector-triangle:before { content: '\e870'; }
 .icon-delta:before { content: '\e871'; }
+.icon-lambda:before { content: '\e872'; }

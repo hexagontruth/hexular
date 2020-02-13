@@ -386,11 +386,12 @@ class Config {
     let obj = {};
     for (let key of keys)
       obj[key] = this[key];
-    return obj;
+    return Config.merge({}, obj);
   }
 
   getSessionConfig() {
-    return this.getKeyValues([
+    let sessionConfig = this.getKeyValues([
+      'availableRules',
       'colorMode',
       'defaultRule',
       'filters',
@@ -410,6 +411,10 @@ class Config {
       'tool',
       'toolSize'
     ]);
+    Object.entries(sessionConfig.availableRules).forEach(([rule, fn]) => {
+      sessionConfig.availableRules[rule] = fn.toString();
+    });
+    return sessionConfig;
   };
 
   getLocalConfig() {
@@ -433,6 +438,14 @@ class Config {
       this.restoreModel();
     let sessionConfig = JSON.parse(this.sessionStorageObj.getItem('sessionConfig') || '{}');
     let localConfig = JSON.parse(this.localStorageObj.getItem('localConfig') || '{}');
+    sessionConfig.availableRules = sessionConfig.availableRules || {};
+    Object.entries(sessionConfig.availableRules).forEach(([rule, val]) => {
+      let fn = Array.isArray(val) ? Hexular.ruleBuilder(...val) : eval(val);
+      if (typeof fn == 'function')
+        sessionConfig.availableRules[rule] = fn;
+      else
+        delete sessionConfig.availableRules[rule];
+    });
     let presets = localConfig.presets;
     if (presets) {
       localConfig.presets = {};
