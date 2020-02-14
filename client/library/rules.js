@@ -52,16 +52,7 @@ const Rules = (() => {
       0b011000,
       0b110000,
       0b100001,
-    ], {dec: true}),
-
-    socialMinimalist: Hexular.util.ruleBuilder([
-      0b1000001,
-      0b1000010,
-      0b1000100,
-      0b1001000,
-      0b1010000,
-      0b1100000,
-    ], {range: [0, 7], inc: false}),
+    ], {miss: -1}),
   };
   let rules = {};
   let entries = Object.entries(Object.assign({}, coreRules, simpleRules, customRules));

@@ -11,8 +11,8 @@
 <body class="splash">
   <div class="container"></div>
   <div class="message-wrapper"><div class="message"></div></div>
-  <div class="info bottom left info-steps"></div>
-  <div class="info bottom right info-tool"></div>
+  <div class="info bottom left info-tool"></div>
+  <div class="info bottom right info-steps"></div>
   <div class="info top right info-cursor"></div>
   <div class="info top right info-timer"></div>
   <div class="toolbar top left tool-hider">
@@ -118,10 +118,10 @@
       </div>
     </div>
     <div class="modal rb hidden">
-      <div class="modal-title"><i class="icon-function"></i> Rule builder</div>
+      <div class="modal-title"><i class="icon-function"></i> Rulebuilder</div>
       <div class="modal-content">
         <div class="group">
-          <input type="text" id="rule-name" placeholder="Please enter a rule name" value="newRuleName"/>
+          <input type="text" id="rule-name" placeholder="Please enter a rule name"/>
         </div>
         <div class="group">
           <button id="rule-select-all" class="icon-check-all"></button>
@@ -144,7 +144,7 @@
             <option value="-1:1">State -1</option>
           </select>
         </div>
-        <div id="rule-grid">
+        <div id="mask-grid">
         </div>
         <div class="group buttons">
           <button id="add-rule">Add rule</button>
@@ -165,10 +165,10 @@
     <div class="modal config hidden">
       <div class="modal-content">
         <div class="group buttons sub-buttons">
-          <button id="show-resize" title="Resize model (Ctrl+R)"><i class="icon-compass"></i> Resize</button>
-          <button id="show-rb" title="Build N6 elementary rule (Ctrl+B)"><i class="icon-function"></i> Rule builder</button>
-          <button id="show-custom" title="Enter custom code (Ctrl+F)"><i class="icon-code"></i> Custom</button>
-          <button id="show-clear" title="Clear local data"><i class="icon-refresh"></i> Clear</button>
+          <button id="show-resize" title="Resize model (Ctrl+R)"><i class="icon-compass"></i></button>
+          <button id="show-rb" title="N6 Rulebuilder (Ctrl+B)"><i class="icon-function"></i></button>
+          <button id="show-custom" title="Enter custom code (Ctrl+F)"><i class="icon-code"></i></button>
+          <button id="show-clear" title="Clear local data"><i class="icon-refresh"></i></button>
         </div>
         <div class="group">
           <button id="add-preset" class="icon-plus" title="Add new preset..."></button>

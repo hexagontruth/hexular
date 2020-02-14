@@ -158,7 +158,6 @@ class Board {
     });
     this.colorButtons.forEach((button, i) => {
       button.onmousedown = (ev) => this.handleSetColor(ev, i);
-      button.style.backgroundColor = this.config.colors[i];
     });
 
     let {radius, numStates, groundState, cellRadius, borderWidth, colors} = this.config;

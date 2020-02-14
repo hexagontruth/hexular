@@ -24,7 +24,8 @@ default:
       - client/library/themes.js
       - client/app.js
     client.css:
-      - client/icons.css
+      - client/icon-main.css
+      - client/icon-defs.css
       - client/app.css
 dev:
   files: {}

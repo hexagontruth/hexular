@@ -90,9 +90,15 @@ All cell neighborhoods can be set via [`model.setNeighborhood(n)`](Model.html#se
 
 #### Rule builder
 
-The [`ruleBuilder`](Hexular.util.html#.ruleBuilder) function allows for "convenient" generation of elementary binary CA rules, analogous to Wolfram's [Elementary Cellular Automaton](http://mathworld.wolfram.com/ElementaryCellularAutomaton.html) rules. The function takes as an input either a single natural number (preferrably in the form of a [BigInt](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt)), or an array of numbers each representing a single neighborhood state mask to add.
+The [`ruleBuilder`](Hexular.util.html#.ruleBuilder) function allows for "convenient" generation of elementary binary CA rules, analogous to Wolfram's [Elementary Cellular Automaton](http://mathworld.wolfram.com/ElementaryCellularAutomaton.html) rules. The function takes as an input either a single natural number (preferrably in the form of a [BigInt](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt)), or an array of numbers each representing a single neighborhood state mask to add. It also accepts an optional `options` argument, which recognizes the following attributes, with defaults:
 
-An optional second argument determines the range of neighbors to consider when applying the rule, with the default being `[1, 7]` (corresponding to the immediate neighborhood N6). This can be changed to e.g. `[0, 7]` to include the home cell itself. The individual state masks in the first argument array are thus 6 bits in the default case (0-63), or 7 bits in the latter case (0-127). The "rule number" produced will be up to 64 bits, or 18,446,744,073,709,551,616 possible combinations, for the 6-neighbor default, or up to 128 bits, or 340,282,366,920,938,463,463,374,607,431,768,211,456 possible combinations, for the 7-neighbor variant. If one were to consider the full `[0, 19]` neighborhood, one would have a 157,827-decimal-digit-long number of possible rules, which I will not repeat here.
+  - `range = [1, 7]`
+  - `miss = 0`
+  - `match = 1`
+  - `missDelta = false`
+  - `matchDelta = false`
+
+The `range` attribute determines which neighbors to consider when applying the rule, with the default being `[1, 7]` (corresponding to the immediate neighborhood N6). This can be changed to e.g. `[0, 7]` to include the home cell itself, or `[1, 19]` to consider the 18 nearest neighbors excluding the home cell. The individual state masks in the first argument array are thus 6 bits in the default case (0-63), or 7 bits in the latter case (0-127). The "rule number" produced will be up to 64 bits, or 18,446,744,073,709,551,616 possible combinations, for the 6-neighbor default, or up to 128 bits, or 340,282,366,920,938,463,463,374,607,431,768,211,456 possible combinations, for the 7-neighbor variant. If one were to consider the full `[0, 19]` neighborhood, one would have a 157,827-decimal-digit-long number of possible rules, which I will not repeat here.
 
 This representation is obviously a bit less well-suited to the brute indexing approach than Wolfram's 256 one-dimensional rules, but it is hoped that at least the array version will be helpful in constructing simple rules, which may then be composed into more complex rules, &c.
 
@@ -104,7 +110,17 @@ This representation is obviously a bit less well-suited to the brute indexing ap
           0b100100
         ]);
 
-Please see the function documentation for additional details.
+If we wanted to have the same rule subtract 1 from the current cell state on rule match, and keep the current state otherwise, we would modify it like this:
+
+        let fancyElementaryRule = Hexular.util.ruleBuilder([
+          0b001001,
+          0b010010,
+          0b100100
+        ], {miss: 0, missDelta: true, match: -1});
+
+Note this would be a somewhat useless rule under most circumstances.
+
+Please the relevant [documentation](Hexular.util.html#.ruleBuilder) for additional details on the ruleBuilder function.
 
 ### Customization
 
@@ -229,7 +245,7 @@ In the configuration modal, rule assignment select menus are populated with the 
 
 We can also add our own rule presets via the console, e.g.:
 
-        Board.config.addPreset('fancyPreset', new Preset(['offset23', 'offset34', 'stepUp']))
+        Board.config.addPreset('fancyPreset', new Preset(['binary23', 'binary34', 'stepUp']))
 
 Such modifications can also be effected via the custom code modal (Ctrl+F) or JavaScript import button (Ctrl+I), using the same global objects, &c. Specifically, every board instance attaches the following to the global `Board` object:
 

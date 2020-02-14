@@ -1,30 +1,32 @@
 class RbModal extends Modal {
   constructor(...args) {
     super(...args);
-    let template = document.querySelector('.rulemask');
+    let masks = this.config.ruleBuilderMasks;
     this.ruleName = document.querySelector('#rule-name');
     this.selectAll = document.querySelector('#rule-select-all');
     this.ruleMiss = document.querySelector('#rule-miss').select;
     this.ruleMatch = document.querySelector('#rule-match').select;
-    this.ruleGrid = document.querySelector('#rule-grid');
+    this.maskGrid = document.querySelector('#mask-grid');
     this.add = document.querySelector('#add-rule');
-    this.masks = Array(64).fill(false);
     this.maskElements = [];
     this.setState = null;
 
-    this.masks.forEach((_, i) => {
+    while (this.maskGrid.firstChild)
+      this.maskGrid.firstChild.remove();
+    let template = document.querySelector('.rulemask');
+    masks.forEach((state, i) => {
       let item = template.cloneNode(true);
       this.maskElements.push(item);
       let nbrs = item.querySelectorAll('polygon');
 
       Array.from(nbrs).slice(1).forEach((nbr, j) => {
-        let bit = (i >>> j) % 2;
+        let bit = (i >>> (5 - j)) % 2;
         if (!bit)
           nbr.classList.add('off');
       });
-      this.ruleGrid.appendChild(item);
+      this.maskGrid.appendChild(item);
       item.onmousedown = () => {
-        this.setState = !this.masks[i];
+        this.setState = !masks[i];
         this._setItem(i);
       };
       item.onmousemove = () => {
@@ -33,6 +35,7 @@ class RbModal extends Modal {
     });
     this.modal.onmouseup = this.modal.onmouseleave = () => {
       this.setState = null;
+      this.config.storeSessionConfigAsync();
     }
     this.selectAll.onclick = () => {
       this.setState = this.selectAll.classList.toggle('active');
@@ -40,22 +43,44 @@ class RbModal extends Modal {
         this._setItem(i);
       this.setState = null;
     };
+    this.ruleName.onchange = () => {
+      let ruleName = this.ruleName.value;
+      ruleName = ruleName.length != 0 ? ruleName : null;
+      this.config.ruleBuilderName = ruleName;
+      this.config.storeSessionConfigAsync();
+    }
+    this.ruleName.oninput = () => {
+      if (this.ruleName.value.length > 0)
+        this.add.disabled = false;
+      else
+        this.add.disabled = true;
+    }
+    this.ruleMiss.onchange = () => {
+      this.config.ruleBuilderMiss = this.ruleMiss.value;
+      this.config.storeSessionConfigAsync();
+    }
+    this.ruleMatch.onchange = () => {
+      this.config.ruleBuilderMatch = this.ruleMatch.value;
+      this.config.storeSessionConfigAsync();
+    }
     this.add.onclick = () => {
-      let rule = this.masks.map((e, i) => e && i).filter((e) => e);
-      let [miss, missDelta] = this.ruleMiss.value.split(':').map((e) => parseInt(e));
-      let [match, matchDelta] = this.ruleMatch.value.split(':').map((e) => parseInt(e));
+      let rule = masks.map((e, i) => e && i).filter((e) => e != false);
+      let [miss, missDelta] = this.config.ruleBuilderMiss.split(':').map((e) => parseInt(e));
+      let [match, matchDelta] =this.config.ruleBuilderMatch.split(':').map((e) => parseInt(e));
       let opts = {miss, missDelta, match, matchDelta};
-      this.config.addRule(this.ruleName.value, Hexular.util.ruleBuilder(rule, opts));
-      this.board.setMessage('Rule added!)');
+      let fn = Hexular.util.ruleBuilder(rule, opts);
+      this.config.addRule(this.ruleName.value, fn);
+      this.board.setMessage(`Rule #${fn.n} added!`);
     };
   }
 
   _setItem(idx) {
-    this.masks[idx] = this.setState;
+    let masks = this.config.ruleBuilderMasks;
+    masks[idx] = this.setState;
     let item = this.maskElements[idx];
     if (this.setState) {
       item.classList.add('active');
-      if (!this.masks.some((e) => !e)) {
+      if (!masks.some((e) => !e)) {
         this.selectAll.classList.add('active');
       }
     }

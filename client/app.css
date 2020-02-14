@@ -293,8 +293,8 @@ button:disabled {
   padding: 0.4em 0.5em;
   line-height: 1;
   font-weight: bold;
-  border-radius: 0.5em;
-  color: #44aacc;
+  border-radius: 3em;
+  color: #4f4f5f;
   background: #ffffff7f;
   pointer-events: none;
   opacity: 0;
@@ -523,7 +523,7 @@ select {
   min-height: 2.5em;
   background-color: #ddd;
   color: inherit;
-  font-size: 0.8em;
+  font-size: 0.75em;
   padding-right: 0.25em;
   padding-left: 0.25em;
   border-radius: 0;
@@ -544,7 +544,7 @@ select {
 }
 
 .modal .group.buttons.sub-buttons button i {
-  font-size: 1.25em;
+  font-size: 1.333em;
 }
 
 .modal .group.buttons button.stretch {
@@ -602,7 +602,7 @@ body .modal button.checkable:hover {
   }
 }
 
-.modal #rule-grid {
+.modal #mask-grid {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
