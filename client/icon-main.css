@@ -1,0 +1,37 @@
+/*
+* Created with Fontello: http://fontello.com/
+*/
+@font-face {
+  font-family: 'hexular-icons';
+  src: url('../vendor/icons.woff2?v=0.2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+[class^="icon-"]::before, [class*=" icon-"]::before {
+  font-family: "hexular-icons";
+  font-style: normal;
+  font-weight: normal;
+  speak: none;
+  display: inline-block;
+  text-decoration: inherit;
+  width: 1em;
+  text-align: center;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+[class^="icon-"].rotate::before, [class*=" icon-"].rotate::before {
+  transform: rotate(30deg);
+}
+
+[class^="icon-"].flip-x::before, [class*=" icon-"].flip-x::before {
+  transform: scaleX(-1);
+}
+
+[class^="icon-"].flip-y::before, [class*=" icon-"].flip-y::before {
+  transform: scaleY(-1);
+}

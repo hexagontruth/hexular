@@ -18,7 +18,7 @@ An extensible hexagonal CA platform.
   - [Hexular Studio](#hexular-studio)
     - [Interface](#interface)
     - [Prepopulated rules](#prepopulated-rules)
-    - [Demo configuration and customization](#demo-configuration-and-customization)
+    - [Configuration and customization](#studio-configuration-and-customization)
   - [More information](#more-information)
 
 ## Overview
@@ -90,9 +90,15 @@ All cell neighborhoods can be set via [`model.setNeighborhood(n)`](Model.html#se
 
 #### Rule builder
 
-The [`ruleBuilder`](Hexular.util.html#.ruleBuilder) function allows for "convenient" generation of elementary binary CA rules, analogous to Wolfram's [Elementary Cellular Automaton](http://mathworld.wolfram.com/ElementaryCellularAutomaton.html) rules. The function takes as an input either a single natural number (preferrably in the form of a [BigInt](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt)), or an array of numbers each representing a single neighborhood state mask to add.
+The [`ruleBuilder`](Hexular.util.html#.ruleBuilder) function allows for "convenient" generation of elementary binary CA rules, analogous to Wolfram's [Elementary Cellular Automaton](http://mathworld.wolfram.com/ElementaryCellularAutomaton.html) rules. The function takes as an input either a single natural number (preferrably in the form of a [BigInt](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt)), or an array of numbers each representing a single neighborhood state mask to add. It also accepts an optional `options` argument, which recognizes the following attributes, with defaults:
 
-An optional second argument determines the range of neighbors to consider when applying the rule, with the default being `[1, 7]` (corresponding to the immediate neighborhood N6). This can be changed to e.g. `[0, 7]` to include the home cell itself. The individual state masks in the first argument array are thus 6 bits in the default case (0-63), or 7 bits in the latter case (0-127). The "rule number" produced will be up to 64 bits, or 18,446,744,073,709,551,616 possible combinations, for the 6-neighbor default, or up to 128 bits, or 340,282,366,920,938,463,463,374,607,431,768,211,456 possible combinations, for the 7-neighbor variant. If one were to consider the full `[0, 19]` neighborhood, one would have a 157,827-decimal-digit-long number of possible rules, which I will not repeat here.
+  - `range = [1, 7]`
+  - `miss = 0`
+  - `match = 1`
+  - `missDelta = false`
+  - `matchDelta = false`
+
+The `range` attribute determines which neighbors to consider when applying the rule, with the default being `[1, 7]` (corresponding to the immediate neighborhood N6). This can be changed to e.g. `[0, 7]` to include the home cell itself, or `[1, 19]` to consider the 18 nearest neighbors excluding the home cell. The individual state masks in the first argument array are thus 6 bits in the default case (0-63), or 7 bits in the latter case (0-127). The "rule number" produced will be up to 64 bits, or 18,446,744,073,709,551,616 possible combinations, for the 6-neighbor default, or up to 128 bits, or 340,282,366,920,938,463,463,374,607,431,768,211,456 possible combinations, for the 7-neighbor variant. If one were to consider the full `[0, 19]` neighborhood, one would have a 157,827-decimal-digit-long number of possible rules, which I will not repeat here.
 
 This representation is obviously a bit less well-suited to the brute indexing approach than Wolfram's 256 one-dimensional rules, but it is hoped that at least the array version will be helpful in constructing simple rules, which may then be composed into more complex rules, &c.
 
@@ -104,7 +110,17 @@ This representation is obviously a bit less well-suited to the brute indexing ap
           0b100100
         ]);
 
-Please see the function documentation for additional details.
+If we wanted to have the same rule subtract 1 from the current cell state on rule match, and keep the current state otherwise, we would modify it like this:
+
+        let fancyElementaryRule = Hexular.util.ruleBuilder([
+          0b001001,
+          0b010010,
+          0b100100
+        ], {miss: 0, missDelta: true, match: -1});
+
+Note this would be a somewhat useless rule under most circumstances.
+
+Please the relevant [documentation](Hexular.util.html#.ruleBuilder) for additional details on the ruleBuilder function.
 
 ### Customization
 
@@ -167,7 +183,12 @@ Control flow, state, and configuration buttons run along the along the top of th
   - Start/Pause (Tab) &mdash; Step model at 100ms intervals (this may be slower for larger grids, depending on hardware, and can be set via the `interval` URL parameter)
   - Step (Space) &mdash; Perform individual step
   - Clear (Ctrl+C)
-  - Configure (Ctrl+K)
+  - Configuration menu toggle (Alt)
+    - Open model configuration modal (Ctrl+M)
+    - Open rulebuilder modal (Ctrl+B)
+    - Open custom code modal (Ctrl+F)
+    - Open model resize modal (Ctrl+R)
+    - Clear local settings (Ctrl+Shift+C)
   - Undo (Ctrl+Z)
   - Redo (Ctrl+Shift+Z)
   - Save snapshot (Q)
@@ -196,12 +217,9 @@ Tool buttons and various editorial options run along the bottom:
   - Re-scale and re-center model (R)
   - Toggle color mode toggle (C) &mdash; Override the default color assignment on paint actions with specific color
 
-Holding shift will temporarily select the move tool by default, or whatever tool is given in the `shiftTool` parameter.
+Holding `<Shift>` will temporarily select the move tool by default, or whatever tool is given in the `shiftTool` parameter. Holding `<Alt>` temporarily expands the configuration menu.
 
-Additionally, `<Escape>` toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open. Scrolling a central mouse wheel or equivalent will zoom the canvas. Two other options reachable through the configuration modal are also available via keystrokes:
-
-  - Resize board (Ctrl+R)
-  - Add custom code (Ctrl+F)
+Additionally, `<Escape>` toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open. Scrolling a central mouse wheel or equivalent will zoom the canvas.
 
 Cell states are changed by clicking and dragging with a paint tool selected. By default, the painting state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo `Board.instance.model.numStates`. Right clicking, conversely, decrements the cell state by one, and ctrl+clicking clears to the ground state. Setting a specific state color can be effected by toggling the color mode button on the bottom right. Toggling color mode off brings back the default behavior.
 
@@ -213,7 +231,7 @@ Several predefined rules are given in `client/library/rules.js`. These are large
 
 ### Studio configuration and customization
 
-The main configuration modal consists of the following fields:
+The model configuration modal consists of the following fields:
 
   - Slider input to set the number of available states, from 2-12
   - Preset dropdown menu
@@ -229,7 +247,7 @@ In the configuration modal, rule assignment select menus are populated with the 
 
 We can also add our own rule presets via the console, e.g.:
 
-        Board.config.addPreset('fancyPreset', new Preset(['offset23', 'offset34', 'stepUp']))
+        Board.config.addPreset('fancyPreset', new Preset(['binary23', 'binary34', 'stepUp']))
 
 Such modifications can also be effected via the custom code modal (Ctrl+F) or JavaScript import button (Ctrl+I), using the same global objects, &c. Specifically, every board instance attaches the following to the global `Board` object:
 
@@ -238,6 +256,14 @@ Such modifications can also be effected via the custom code modal (Ctrl+F) or Ja
 - `Board.model` - Alias for `Board.instance.model`
 
 Customization of the global `Board.model` model can be performed as described above and in the documentation.
+
+#### Rulebuilder
+
+The rulebuilder modal (Ctrl+B) exposes a somewhat-simplified interface for calling the [`ruleBuilder`](Hexular.util.html#.ruleBuilder) function discussed above, limited to the `N6` neighborhood, and six possible miss and match states, with the default being to set cell state to 0 on misses, and 1 on matches.
+
+Note that the miss and match rules can interact with [`deltaFilter`](Hexular.filters.html#.deltaFilter) in strange ways. For instance, a rule built using the default settings in this modal, coupled with `deltaFilter`, will have the same effect as one without the filter, but with the match rule set to "State + 1." Likewise, if we then add the filter back in, we will add the state twice on matches &mdash; which may or may not be desirable, but is sort of weird.
+
+Elementary rules constructed through the rulebuilder interface are only a small subset of possible rules using the core cell API, and they do not, at this point, differentiate between nonzero cell states. Thus they are not suited for "noisy" rulesets where all or most cells are in a nonzero state (e.g., what one sees with the built-in preset "grayGoo").
 
 #### Timer hooks
 

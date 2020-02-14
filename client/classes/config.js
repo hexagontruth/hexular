@@ -44,6 +44,10 @@ class Config {
       colorMode: 0,
       paintColors: [1, 0],
       steps: 0,
+      ruleBuilderName: 'newElementaryRule',
+      ruleBuilderMiss: '0:0',
+      ruleBuilderMatch: '1:0',
+      ruleBuilderMasks: Array(64).fill(false),
       localStorageObj: window.localStorage,
       sessionStorageObj: window.sessionStorage,
     };
@@ -75,6 +79,7 @@ class Config {
   }
 
   constructor(board, ...args) {
+    this.board = board;
     Config.merge(this, Config.defaults);
     Object.entries(this).forEach(([key, value]) => {
       if (Array.isArray(value)) {
@@ -91,8 +96,6 @@ class Config {
 
     // Finally, merge in URL parameter and constructor args
     Config.merge(this, new OptParser(this), ...args);
-
-    this.board = board;
 
     // Set logical size and scale small boards
     let width = this.radius * this.cellRadius * Hexular.math.apothem * 4;
@@ -118,17 +121,19 @@ class Config {
     this.model = this.board.model;
     this.configModal = this.board.modals.config;
     this.configModal.update();
+    this.rbModal = this.board.modals.rb;
 
     // Board
+    this.setBackground();
+    this.setColors();
     this.setPaintColor(0, this.paintColors[0]);
     this.setPaintColor(1, this.mobile ? -1 : this.paintColors[1]);
     this.setPaintColorMode(this.colorMode);
-    this.setBackground();
     this.setTool(this.tool);
     this.setToolSize(this.toolSize);
     this.setSteps(this.steps);
 
-    // Modal
+    // Config modal
     this.setPreset(this.preset);
     if (!this.preset) {
       this.setNh(this.nh);
@@ -136,6 +141,14 @@ class Config {
       this.setRules();
       this.setFilters();
     }
+
+    // Rule builder modal
+    this.rbModal.ruleName.value = this.ruleBuilderName || Config.defaults.ruleBuilderName;
+    this.rbModal.ruleMiss.value = this.ruleBuilderMiss;
+    this.rbModal.ruleMatch.value = this.ruleBuilderMatch;
+    this.rbModal.maskElements.forEach((e, i) => {
+      this.ruleBuilderMasks[i] && e.classList.add('active');
+    });
   }
 
   // --- ADDERS, IMPORT/EXPORT ---
@@ -143,6 +156,7 @@ class Config {
   addRule(ruleName, fn) {
     this.availableRules[ruleName] = fn;
     this.configModal.update();
+    this.setRules();
     this.storeLocalConfig();
   }
 
@@ -173,6 +187,18 @@ class Config {
     this.colors[idx] = color;
     this.board.bgAdapter.colors[idx] = color;
     this.board.fgAdapter.colors[idx] = color;
+    this.board.colorButtons[idx].style.backgroundColor = color;
+    this.storeSessionConfigAsync();
+  }
+
+  setColors(colors=[]) {
+    this.colors = Config.merge(this.colors, colors);
+    this.board.bgAdapter.colors = this.colors;
+    this.board.fgAdapter.colors = this.colors;
+    for (let i = 0; i < 12; i++) {
+      this.board.colorButtons[i].style.backgroundColor = this.colors[i];
+    }
+    this.storeSessionConfigAsync();
   }
 
   setFilter(filter, value) {
@@ -239,10 +265,10 @@ class Config {
     this.colorMode = mode != null ? mode : +!this.colorMode;
     if (this.colorMode) {
       this.board.toolMisc.color.classList.add('active');
-      this.board.colorToolbar.classList.remove('hidden');
+      this.board.menus.color.classList.remove('hidden');
     }
     else {
-      this.board.colorToolbar.classList.add('hidden');
+      this.board.menus.color.classList.add('hidden');
       this.board.toolMisc.color.classList.remove('active');
     }
     this.storeSessionConfig();
@@ -404,6 +430,10 @@ class Config {
       'paintColors',
       'preset',
       'radius',
+      'ruleBuilderMasks',
+      'ruleBuilderMatch',
+      'ruleBuilderMiss',
+      'ruleBuilderName',
       'rules',
       'shiftTool',
       'steps',
@@ -440,12 +470,22 @@ class Config {
     let localConfig = JSON.parse(this.localStorageObj.getItem('localConfig') || '{}');
     sessionConfig.availableRules = sessionConfig.availableRules || {};
     Object.entries(sessionConfig.availableRules).forEach(([rule, val]) => {
-      let fn = Array.isArray(val) ? Hexular.ruleBuilder(...val) : eval(val);
+      let fn;
+      try {
+        val = eval(val);
+        fn = Array.isArray(val) ? Hexular.util.ruleBuilder(...val) : val;
+      }
+      catch (e) {
+        this.board.setMessage(`Error while loading rule "${rule}"`);
+        console.log(e);
+        console.trace();
+      }
       if (typeof fn == 'function')
         sessionConfig.availableRules[rule] = fn;
       else
         delete sessionConfig.availableRules[rule];
     });
+
     let presets = localConfig.presets;
     if (presets) {
       localConfig.presets = {};
@@ -453,6 +493,7 @@ class Config {
         localConfig.presets[presetName] = new Preset(preset);
       });
     }
+
     Config.merge(this, localConfig, sessionConfig);
     if (sessionConfig.preset !== undefined)
       this.preset = sessionConfig.preset;
@@ -472,7 +513,18 @@ class Config {
 
   storeSessionConfig() {
     let config = this.getSessionConfig();
+    config.preset = config.preset || 'none';
     this.sessionStorageObj.setItem('sessionConfig', JSON.stringify(config));
+  }
+
+  storeSessionConfigAsync() {
+    if (!this.pendingStoreSessionAsync) {
+      this.pendingStoreSessionAsync = true;
+      window.setTimeout(() => {
+        this.storeSessionConfig();
+        this.pendingStoreSessionAsync = null;
+      }, 50);
+    }
   }
 
   storeLocalConfig() {

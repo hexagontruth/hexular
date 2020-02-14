@@ -1451,28 +1451,32 @@ var Hexular = (function () {
   * Modeled roughly after Wolfram's
   * [Elementary Cellular Automaton]{@link http://mathworld.wolfram.com/ElementaryCellularAutomaton.html} rules.
   *
-  * @param {BigInt|number[]} ruleDef      With default `opts.range`', 64-bit number indicating next position per
-  *                                       possible state, or an array of 6-bit numbers indicating activation states
-  *                                       numbers giving individual states where next cell state is 1
-  * @param {object} opts                  Optional arguments
-  * @param {number[]} [opts.range=[1, 7]] Neighborhood range &mdash; default is N6 (immediate neighbors)
-  * @param {boolean} [opts.inc=false     `true` increments state on positive rule match, while `false` sets it to 1
-  * @param {boolean} [opts.dec=false]    `true` decrements state on negative rule match, while `false` sets it to 0
-  * @param {boolean} [opts.invert=false]  Invert rule number (pass in negative state masks instead of positive ones)
-  * @return {function}                    A rule function taking a {@link Cell} instance and returning an integer
+  * @param {BigInt|number[]} ruleDef          With default `opts.range`, 64-bit number indicating next position per
+  *                                           possible state, or an array of 6-bit numbers indicating activation states
+  *                                           numbers giving individual states where next cell state is 1
+  * @param {object} opts                      Optional arguments
+  * @param {number[]} [opts.range=[1, 7]]     Neighborhood range &mdash; default is N6 (immediate neighbors)
+  * @param {number} [opts.miss=0]             Value to set on rule miss
+  * @param {number} [opts.match=1]            Value to set on rule match
+  * @param {boolean} [opts.missDelta=false]   Whether to increment miss value from current state
+  * @param {boolean} [opts.matchDelta=false]  Whether to increment match value from current state
+  * @return {function}                        A rule function taking a {@link Cell} instance and returning an integer
   * @memberof Hexular.util
   * @see {@link Cell#nbrs}
   **/
   function ruleBuilder(ruleDef, opts={}) {
     let defaults = {
       range: [1, 7],
+      miss: 0,
+      match: 1,
+      missDelta: 0,
+      matchDelta: 0,
     };
-    let {range, inc, dec, invert} = Object.assign(defaults, opts);
-    invert = +invert;
+    let {range, miss, match, missDelta, matchDelta} = Object.assign(defaults, opts);
     let [start, stop] = range;
     let rangeLength = stop - start;
-    let incMask = inc ? -1 : 0;
-    let decMask = dec ? -1 : 0;
+    missDelta = +missDelta;
+    matchDelta = +matchDelta;
 
     let n;
     if (ruleDef && ruleDef.length) {
@@ -1490,9 +1494,9 @@ var Hexular = (function () {
       for (let i = 0; i < rangeLength; i++) {
         mask = mask | ((cell.nbrs[start + i].state ? 1 : 0) << (rangeLength - i - 1));
       }
-      return (Number((n >> BigInt(mask)) % 2n) ^ invert) ?
-        (cell.state & incMask) + 1 :
-        (cell.state - 1) & decMask;
+      return (n >> BigInt(mask)) % 2n ?
+        (cell.state * matchDelta) + match :
+        (cell.state * missDelta) + miss;
     };
     rule.n = n;
     rule.range = range;
