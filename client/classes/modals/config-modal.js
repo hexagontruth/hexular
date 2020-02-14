@@ -14,6 +14,7 @@ class ConfigModal extends Modal {
     };
     this.checkState = null;
     this.showResize = document.querySelector('#show-resize'),
+    this.showRb = document.querySelector('#show-rb'),
     this.showCustom = document.querySelector('#show-custom'),
     this.showClear =document.querySelector('#show-clear'),
     this.ruleGroup = document.querySelector('#rule-group');
@@ -27,6 +28,7 @@ class ConfigModal extends Modal {
     this.selectNh = document.querySelector('#select-neighborhood').select;
 
     this.showResize.onclick = (ev) => this.board.toggleModal('resize');
+    this.showRb.onclick = (ev) => this.board.toggleModal('rb');
     this.showCustom.onclick = (ev) => this.board.toggleModal('custom');
     this.showClear.onclick = (ev) => this.board.handleClearStorage();
 

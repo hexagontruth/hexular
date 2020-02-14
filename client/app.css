@@ -339,7 +339,7 @@ button:disabled {
 
 .message-wrapper {
   position: fixed;
-  z-index: 10;
+  z-index: 30;
   top: 3rem;
   left: 1rem;
   right: 1rem;
@@ -470,6 +470,7 @@ textarea, select, input {
   padding: 0.25em;
   border-radius: 0.5em;
   background: #fff;
+  font-family: inherit;
 }
 
 select {
@@ -496,6 +497,11 @@ select {
   margin-bottom: 0.5em;
   width: 100%;
   text-align: center;
+}
+
+.modal label {
+  line-height: 2;
+  padding: 0 0 0 0.25em;
 }
 
 .modal button {
@@ -596,6 +602,46 @@ body .modal button.checkable:hover {
   }
 }
 
+.modal #rule-grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: space-between;
+  width: 100%;
+  margin: 0.25em 0;
+}
+
+.rulemask {
+  height: 2em;
+  flex: 0 0 calc(100% / 8);
+  padding: 0.25em;
+  cursor: pointer;
+}
+
+.rulemask svg {
+  display: block;
+  width: auto;
+  height: 100%;
+  margin: 0 auto;
+}
+
+.rulemask svg polygon.home-cell {
+  fill: none;
+}
+
+.rulemask svg polygon.off {
+  fill: #ccc;
+}
+
+.rulemask.active svg polygon.home-cell {
+  fill: #66ddff;
+}
+
+.rulemask:hover svg polygon:not(.home-cell) {
+  fill: #ffbb33;
+}
+
 @media screen and (max-width: 560px) {
   .info-cursor { opacity: 0 !important; }
   .info { font-size: 3.333vw; }
@@ -606,7 +652,7 @@ body .modal button.checkable:hover {
 }
 
 @media screen and (max-width: 420px) {
-  .info { opacity: 0 !important;}
+  .info { opacity: 0 !important; }
 }
 
 @media screen and (max-width: 360px) {

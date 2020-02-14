@@ -171,6 +171,7 @@ class Board {
       confirm: new ConfirmModal(this, 'confirm'),
       config: new ConfigModal(this, 'config'),
       custom: new CustomModal(this, 'custom'),
+      rb: new RbModal(this, 'rb'),
       resize: new ResizeModal(this, 'resize'),
     }
     this.toggleModal();
@@ -645,6 +646,9 @@ class Board {
           }
           else if (key == 'o') {
             this.load();
+          }
+          else if (key == 'b') {
+            this.toggleModal('rb');
           }
           else if (key == 'c') {
             this.clear();

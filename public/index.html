@@ -117,6 +117,40 @@
         </div>
       </div>
     </div>
+    <div class="modal rb hidden">
+      <div class="modal-title"><i class="icon-function"></i> Rule builder</div>
+      <div class="modal-content">
+        <div class="group">
+          <input type="text" id="rule-name" placeholder="Please enter a rule name" value="newRuleName"/>
+        </div>
+        <div class="group">
+          <button id="rule-select-all" class="icon-check-all"></button>
+          <label>Miss:</label>
+          <select id="rule-miss" title="Rule miss behavior">
+            <option selected value="0:0">0</option>
+            <option value="1:0">1</option>
+            <option value="-1:0">-1</option>
+            <option value="0:1">Identity</option>
+            <option value="1:1">State + 1</option>
+            <option value="-1:1">State - 1</option>
+          </select>
+          <label>Match:</label>
+          <select id="rule-match" title="Rule match behavior">
+            <option value="0:0">0</option>
+            <option selected value="1:0">1</option>
+            <option value="-1:0">-1</option>
+            <option value="0:1">Identity</option>
+            <option value="1:1">State + 1</option>
+            <option value="-1:1">State -1</option>
+          </select>
+        </div>
+        <div id="rule-grid">
+        </div>
+        <div class="group buttons">
+          <button id="add-rule">Add rule</button>
+        </div>
+      </div>
+    </div>
     <div class="modal custom hidden">
       <div class="modal-title"><i class="icon-code"></i> Custom code</div>
       <div class="modal-content">
@@ -132,6 +166,7 @@
       <div class="modal-content">
         <div class="group buttons sub-buttons">
           <button id="show-resize" title="Resize model (Ctrl+R)"><i class="icon-compass"></i> Resize</button>
+          <button id="show-rb" title="Build N6 elementary rule (Ctrl+B)"><i class="icon-function"></i> Rule builder</button>
           <button id="show-custom" title="Enter custom code (Ctrl+F)"><i class="icon-code"></i> Custom</button>
           <button id="show-clear" title="Clear local data"><i class="icon-refresh"></i> Clear</button>
         </div>
@@ -189,12 +224,6 @@
       </div>
     </div>
   </div>
-  <div class="assets" style="display: none;">
-    <div class="rule-menu">
-      <button class="checkable"></button>
-      <select></select>
-    </div>
-  </div>
   <div class="overlay-splash">
     <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="300px" height="300px" viewBox="0 0 300 300">
       <g>
@@ -207,6 +236,24 @@
         <polygon points="254.347,202.714 208.696,176.356 208.696,123.643 254.347,97.286 300,123.643 300,176.356"/>
       </g>
     </svg>
+  </div>
+  <div class="assets" style="display: none;">
+    <div class="rule-menu">
+      <button class="checkable"></button>
+      <select></select>
+    </div>
+    <div class="rulemask">
+      <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+       width="100px" height="100px" viewBox="0 0 100 100" xml:space="preserve" fill="#333333" preserveAspectRatio="xMidYMid meet">
+        <polygon class="home-cell" points="50,67.571 34.783,58.785 34.783,41.214 50,32.429 65.217,41.214 65.217,58.785"/>
+        <polygon points="67.393,97.693 52.174,88.907 52.174,71.336 67.393,62.551 82.607,71.336 82.607,88.907"/>
+        <polygon points="84.783,67.571 69.564,58.785 69.564,41.214 84.783,32.429 100,41.214 100,58.785"/>
+        <polygon points="67.393,37.448 52.174,28.663 52.174,11.092 67.393,2.307 82.607,11.092 82.607,28.663"/>
+        <polygon points="32.609,37.448 17.391,28.663 17.391,11.092 32.609,2.307 47.826,11.092 47.826,28.663"/>
+        <polygon points="15.217,67.571 0,58.785 0,41.214 15.217,32.429 30.435,41.214 30.435,58.785"/>
+        <polygon points="32.609,97.693 17.391,88.907 17.391,71.336 32.609,62.551 47.826,71.336 47.826,88.907"/>
+      </svg>
+    </div>
   </div>
 </body>
 </html>

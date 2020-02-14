@@ -16,6 +16,7 @@ default:
       - client/classes/modals/config-modal.js
       - client/classes/modals/confirm-modal.js
       - client/classes/modals/custom-modal.js
+      - client/classes/modals/rb-modal.js
       - client/classes/modals/resize-modal.js
       - client/library/simple-rules.js
       - client/library/rules.js
