@@ -18,7 +18,7 @@ An extensible hexagonal CA platform.
   - [Hexular Studio](#hexular-studio)
     - [Interface](#interface)
     - [Prepopulated rules](#prepopulated-rules)
-    - [Demo configuration and customization](#demo-configuration-and-customization)
+    - [Configuration and customization](#studio-configuration-and-customization)
   - [More information](#more-information)
 
 ## Overview
@@ -183,7 +183,12 @@ Control flow, state, and configuration buttons run along the along the top of th
   - Start/Pause (Tab) &mdash; Step model at 100ms intervals (this may be slower for larger grids, depending on hardware, and can be set via the `interval` URL parameter)
   - Step (Space) &mdash; Perform individual step
   - Clear (Ctrl+C)
-  - Configure (Ctrl+K)
+  - Configuration menu toggle (Alt)
+    - Open model configuration modal (Ctrl+M)
+    - Open rulebuilder modal (Ctrl+B)
+    - Open custom code modal (Ctrl+F)
+    - Open model resize modal (Ctrl+R)
+    - Clear local settings (Ctrl+Shift+C)
   - Undo (Ctrl+Z)
   - Redo (Ctrl+Shift+Z)
   - Save snapshot (Q)
@@ -212,12 +217,9 @@ Tool buttons and various editorial options run along the bottom:
   - Re-scale and re-center model (R)
   - Toggle color mode toggle (C) &mdash; Override the default color assignment on paint actions with specific color
 
-Holding shift will temporarily select the move tool by default, or whatever tool is given in the `shiftTool` parameter.
+Holding `<Shift>` will temporarily select the move tool by default, or whatever tool is given in the `shiftTool` parameter. Holding `<Alt>` temporarily expands the configuration menu.
 
-Additionally, `<Escape>` toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open. Scrolling a central mouse wheel or equivalent will zoom the canvas. Two other options reachable through the configuration modal are also available via keystrokes:
-
-  - Resize board (Ctrl+R)
-  - Add custom code (Ctrl+F)
+Additionally, `<Escape>` toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open. Scrolling a central mouse wheel or equivalent will zoom the canvas.
 
 Cell states are changed by clicking and dragging with a paint tool selected. By default, the painting state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo `Board.instance.model.numStates`. Right clicking, conversely, decrements the cell state by one, and ctrl+clicking clears to the ground state. Setting a specific state color can be effected by toggling the color mode button on the bottom right. Toggling color mode off brings back the default behavior.
 
@@ -229,7 +231,7 @@ Several predefined rules are given in `client/library/rules.js`. These are large
 
 ### Studio configuration and customization
 
-The main configuration modal consists of the following fields:
+The model configuration modal consists of the following fields:
 
   - Slider input to set the number of available states, from 2-12
   - Preset dropdown menu
@@ -254,6 +256,14 @@ Such modifications can also be effected via the custom code modal (Ctrl+F) or Ja
 - `Board.model` - Alias for `Board.instance.model`
 
 Customization of the global `Board.model` model can be performed as described above and in the documentation.
+
+#### Rulebuilder
+
+The rulebuilder modal (Ctrl+B) exposes a somewhat-simplified interface for calling the [`ruleBuilder`](Hexular.util.html#.ruleBuilder) function discussed above, limited to the `N6` neighborhood, and six possible miss and match states, with the default being to set cell state to 0 on misses, and 1 on matches.
+
+Note that the miss and match rules can interact with [`deltaFilter`](Hexular.filters.html#.deltaFilter) in strange ways. For instance, a rule built using the default settings in this modal, coupled with `deltaFilter`, will have the same effect as one without the filter, but with the match rule set to "State + 1." Likewise, if we then add the filter back in, we will add the state twice on matches &mdash; which may or may not be desirable, but is sort of weird.
+
+Elementary rules constructed through the rulebuilder interface are only a small subset of possible rules using the core cell API, and they do not, at this point, differentiate between nonzero cell states. Thus they are not suited for "noisy" rulesets where all or most cells are in a nonzero state (e.g., what one sees with the built-in preset "grayGoo").
 
 #### Timer hooks
 

@@ -130,46 +130,75 @@ button:disabled {
   margin: 0.5em;
 }
 
-.toolbar .group button {
-  pointer-events: auto;
+.toolbar.menu .group {
+  margin: 0.05em 0;
 }
 
 .toolbar button {
   font-size: 1.2em;
+  line-height: 1;
   margin: 0.05rem;
-  padding: 0.4em;
+  padding: 0.25em 0.5em;
+}
+
+.toolbar:not(.hidden) .group button {
+  pointer-events: auto;
+}
+
+.toolbar.menu .group button {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.toolbar.left button:first-child,
+.toolbar.right button:first-child,
+.toolbar.menu button:first-child {
+  padding-top: 0.5em;
+}
+
+.toolbar.left button:last-child,
+.toolbar.right button:last-child,
+.toolbar.menu button:last-child {
+  padding-bottom: 0.5em;
+}
+
+.toolbar.left button,
+.toolbqar.right button {
+  padding-left: 0.4em;
+  padding-right: 0.4em;
+}
+
+.toolbar.top.left button {
+  padding: 0.25em;
 }
 
 .toolbar.top button:first-child,
 .toolbar.bottom button:first-child {
-  border-top-left-radius: 3em;
-  border-bottom-left-radius: 3em;
+  border-top-left-radius: 1em;
+  border-bottom-left-radius: 1em;
 }
 
 .toolbar.top button:last-child,
 .toolbar.bottom button:last-child {
-  border-top-right-radius: 3em;
-  border-bottom-right-radius: 3em;
+  border-top-right-radius: 1em;
+  border-bottom-right-radius: 1em;
 }
 
 .toolbar.left button:first-child,
-.toolbar.right button:first-child {
-  border-top-left-radius: 3em;
-  border-top-right-radius: 3em;
+.toolbar.right button:first-child,
+.toolbar.menu button:first-child {
+  border-top-left-radius: 1em;
+  border-top-right-radius: 1em;
 }
 
 .toolbar.left button:last-child,
-.toolbar.right button:last-child {
-  border-bottom-left-radius: 3em;
-  border-bottom-right-radius: 3em;
+.toolbar.right button:last-child,
+.toolbar.menu button:last-child {
+  border-bottom-left-radius: 1em;
+  border-bottom-right-radius: 1em;
 }
 
-.toolbar.top button, .toolbar.bottom button {
-  padding-top: 0.2em;
-  padding-bottom: 0.2em;
-}
-
-.toolbar.top, .toolbar.bottom {
+.toolbar.top, .toolbar.bottom, .toolbar.menu {
   flex-direction: row;
 }
 
@@ -206,61 +235,45 @@ button:disabled {
   right: 0.05rem;
 }
 
+.toolbar.menu {
+  pointer-events: auto;
+}
+
+.toolbar.menu.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .toolbar.top .group, .toolbar.bottom .group {
   margin-top: 0;
   margin-bottom: 0;
 }
 
-.toolbar.left .group, .toolbar.right .group {
+.toolbar.left .group, .toolbar.right .group, .toolbar.menu .group {
   flex-direction: column;
   margin-left: 0;
   margin-right: 0;
 }
 
 .toolbar.colors .group {
-  background: #44aacc;
-  border-radius: 3em;
-  margin: 0.2rem;
+
 }
 
 .toolbar.colors .group button {
   position: relative;
-  width: 1em;
-  height: 1em;
-  margin: -0.1em;
-  border: 0.2em solid #44aacc;
-  border-radius: 0;
+  width: 1.8em;
+  height: 0.5em;
+  margin: 0.05em;
+  border: 0.1em solid #0000000f;
+  border-radius: 2em;
 }
 
-.toolbar.colors .group button:first-child {
-  margin-top: 0;
-  border-top-left-radius: 3em;
-  border-top-right-radius: 3em;
-}
-
-.toolbar.colors .group button:last-child {
-  margin-bottom: 0;
-  border-bottom-left-radius: 3em;
-  border-bottom-right-radius: 3em;
-}
-
-.toolbar.colors .group button.active-0,
 .toolbar.colors .group button.active-1 {
-  z-index: 20;
+  border-color: #dd66cc;
 }
 
 .toolbar.colors .group button.active-0 {
   border-color: #66ddff;
-  border-right-color: #44aacc !important;
-}
-
-.toolbar.colors .group button.active-1 {
-  border-color: #66ddff;
-  border-left-color: #44aacc !important;
-}
-
-.toolbar.colors .group button.active-0.active-1 {
-  border-color: #66ddff !important;
 }
 
 .tool-hidden .toolbar.top {
@@ -612,11 +625,18 @@ body .modal button.checkable:hover {
   margin: 0.25em 0;
 }
 
-.rulemask {
+button.rulemask {
+
+  width: auto;
   height: 2em;
   flex: 0 0 calc(100% / 8);
+  margin: 0;
   padding: 0.25em;
-  cursor: pointer;
+  background-color: transparent;
+}
+
+button.rulemask.active, button.rulemask:hover {
+  background-color: transparent !important;
 }
 
 .rulemask svg {
@@ -642,7 +662,11 @@ body .modal button.checkable:hover {
   fill: #ffbb33;
 }
 
-@media screen and (max-width: 560px) {
+.rulemask:hover svg polygon.off:not(.home-cell) {
+  fill: #ffbb3399;
+}
+
+@media screen and (max-width: 600px) {
   .info-cursor { opacity: 0 !important; }
   .info { font-size: 3.333vw; }
 }

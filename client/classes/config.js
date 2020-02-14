@@ -265,10 +265,10 @@ class Config {
     this.colorMode = mode != null ? mode : +!this.colorMode;
     if (this.colorMode) {
       this.board.toolMisc.color.classList.add('active');
-      this.board.colorToolbar.classList.remove('hidden');
+      this.board.menus.color.classList.remove('hidden');
     }
     else {
-      this.board.colorToolbar.classList.add('hidden');
+      this.board.menus.color.classList.add('hidden');
       this.board.toolMisc.color.classList.remove('active');
     }
     this.storeSessionConfig();

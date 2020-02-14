@@ -26,7 +26,7 @@
       <button id="toggle-play" title="Play (Tab)" class="icon-play"></button>
       <button id="step" title="Step (Space)" class="icon-step-forward"></button>
       <button id="clear" title="Clear (Ctrl+C)" class="icon-clear"></button>
-      <button id="show-config" title="Config (Ctrl+K)" class="icon-gear"></button>
+      <button id="toggle-menu" title="Toggle Menu (Alt)" class="menu-toggle"><i class="icon-dots-horizontal "></i>  </button>
     </div>
     <div class="group">
       <button id="undo" title="Undo (Ctrl+Z)" disabled class="icon-undo"></button>
@@ -34,6 +34,15 @@
       <button id="snapshot-save" title="Take snapshot (Q)" class="icon-backup-restore"></button>
       <button id="snapshot-load" title="Load snapshot (A)" class="icon-restore flip-x"></button>
       <button id="show-doc" title="Show documentation (F1)" class="icon-question"></button>
+    </div>
+  </div>
+  <div id="config-menu" class="toolbar menu hidden">
+    <div class="group tools">
+      <button id="show-config" title="Model configuration (Ctrl+M)" class="icon-gear"></button>
+      <button id="show-rb" title="N6 Rulebuilder (Ctrl+B)" class="icon-function"></button>
+      <button id="show-custom" title="Enter custom code (Ctrl+F)" class="icon-code"></button>
+      <button id="show-resize" title="Resize model (Ctrl+R)" class="icon-arrow-top-right-bottom-left"></button>
+      <button id="show-clear" title="Clear local data (Ctrl+Shift+C)" class="icon-refresh"></button>
     </div>
   </div>
   <div class="toolbar bottom">
@@ -62,7 +71,7 @@
       <button id="import" title="Import custom JavaScript... (Ctrl+I)" class="icon-cloud-code"></button>
     </div>
   </div>
-  <div class="toolbar right colors hidden">
+  <div id="color-menu" class="toolbar right colors hidden">
     <div class="group">
       <button></button>
       <button></button>
@@ -80,7 +89,7 @@
   </div>
   <div class="overlay hidden">
     <div class="modal resize hidden">
-      <div class="modal-title"><i class="icon-compass"></i> Resize model</div>
+      <div class="modal-title"><i class="icon-arrow-top-right-bottom-left"></i> Resize model</div>
       <div class="modal-content">
         <div class="group">
           <input type="range" id="resize-slider" min="0" max="360" step="1"
@@ -121,7 +130,7 @@
       <div class="modal-title"><i class="icon-function"></i> Rulebuilder</div>
       <div class="modal-content">
         <div class="group">
-          <input type="text" id="rule-name" placeholder="Please enter a rule name"/>
+          <input class="focus" type="text" id="rule-name" placeholder="Please enter a rule name"/>
         </div>
         <div class="group">
           <button id="rule-select-all" class="icon-check-all"></button>
@@ -163,13 +172,8 @@
       </div>
     </div>
     <div class="modal config hidden">
+      <div class="modal-title"><i class="icon-gear"></i> Configure model</div>
       <div class="modal-content">
-        <div class="group buttons sub-buttons">
-          <button id="show-resize" title="Resize model (Ctrl+R)"><i class="icon-compass"></i></button>
-          <button id="show-rb" title="N6 Rulebuilder (Ctrl+B)"><i class="icon-function"></i></button>
-          <button id="show-custom" title="Enter custom code (Ctrl+F)"><i class="icon-code"></i></button>
-          <button id="show-clear" title="Clear local data"><i class="icon-refresh"></i></button>
-        </div>
         <div class="group">
           <button id="add-preset" class="icon-plus" title="Add new preset..."></button>
           <select id="select-preset" class="focus">
@@ -242,7 +246,7 @@
       <button class="checkable"></button>
       <select></select>
     </div>
-    <div class="rulemask">
+    <button class="rulemask">
       <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
        width="100px" height="100px" viewBox="0 0 100 100" xml:space="preserve" fill="#333333" preserveAspectRatio="xMidYMid meet">
         <polygon class="home-cell" points="50,67.571 34.783,58.785 34.783,41.214 50,32.429 65.217,41.214 65.217,58.785"/>
@@ -253,7 +257,7 @@
         <polygon points="15.217,67.571 0,58.785 0,41.214 15.217,32.429 30.435,41.214 30.435,58.785"/>
         <polygon points="32.609,97.693 17.391,88.907 17.391,71.336 32.609,62.551 47.826,71.336 47.826,88.907"/>
       </svg>
-    </div>
+    </button>
   </div>
 </body>
 </html>

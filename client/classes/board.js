@@ -32,6 +32,7 @@ class Board {
       redoStack: [],
       msgIdx: 0,
       shift: false,
+      configMenu: false,
       hooks: {
         timer: [],
       },
@@ -56,7 +57,10 @@ class Board {
       container: document.querySelector('.container'),
       overlay: document.querySelector('.overlay'),
       message: document.querySelector('.message'),
-      colorToolbar: document.querySelector('.toolbar.colors'),
+      menus: {
+        color: document.querySelector('#color-menu'),
+        config: document.querySelector('#config-menu'),
+      },
       infoBoxes: {
         cursor: document.querySelector('.info-cursor'),
         timer: document.querySelector('.info-timer'),
@@ -71,7 +75,12 @@ class Board {
         clear: document.querySelector('#clear'),
         undo: document.querySelector('#undo'),
         redo: document.querySelector('#redo'),
+        toggleMenu: document.querySelector('#toggle-menu'),
         showConfig: document.querySelector('#show-config'),
+        showResize: document.querySelector('#show-resize'),
+        showRb: document.querySelector('#show-rb'),
+        showCustom: document.querySelector('#show-custom'),
+        showClear: document.querySelector('#show-clear'),
         showDoc: document.querySelector('#show-doc'),
         saveSnapshot: document.querySelector('#snapshot-save'),
         loadSnapshot: document.querySelector('#snapshot-load'),
@@ -135,7 +144,13 @@ class Board {
     this.buttons.undo.onclick = this.click(this.undo);
     this.buttons.redo.onclick = this.click(this.redo);
     this.buttons.toggleRecord.onclick = this.click(this.toggleRecord);
-    this.buttons.showConfig.onclick = this.click(() => this.toggleModal('config'));
+    this.buttons.toggleMenu.onclick = this.click(this.toggleMenu);
+    this.buttons.showConfig.onmousedown = () => this.toggleModal('config');
+    this.buttons.showResize.onmousedown = () => this.toggleModal('resize');
+    this.buttons.showRb.onmousedown = () => this.toggleModal('rb');
+    this.buttons.showCustom.onmousedown = () => this.toggleModal('custom');
+    this.buttons.showClear.onmousedown = () => this.handleClearStorage();
+
     this.buttons.showDoc.onclick = this.click(this.showDoc);
     this.buttons.saveSnapshot.onclick = this.click(this.saveSnapshot);
     this.buttons.loadSnapshot.onclick = this.click(this.loadSnapshot);
@@ -339,6 +354,18 @@ class Board {
       this.hooks[key] = [];
   }
 
+  toggleMenu(state=!this.configMenu) {
+    this.configMenu = state;
+    if (state) {
+      this.buttons.toggleMenu.classList.add('active');
+      this.menus.config.classList.remove('hidden')
+    }
+    else {
+      this.buttons.toggleMenu.classList.remove('active');
+      this.menus.config.classList.add('hidden')
+    }
+  }
+
   toggleModal(modal) {
     let selected = this.modals[modal];
     let current = this.modal;
@@ -512,9 +539,13 @@ class Board {
     }
   }
 
-  // Canvas transform stuff
-
   resize() {
+    // Menu stuff
+    let {x, y, height} = this.buttons.toggleMenu.getBoundingClientRect();
+    this.menus.config.style.top = `${y + height}px`;
+    this.menus.config.style.left = `${x}px`;
+
+    // Canvas stuff
     this.canvasWidth = this.config.logicalWidth / this.config.scaleFactor;
     this.canvasHeight = this.config.logicalHeight / this.config.scaleFactor;
     this.translateX = 0;
@@ -617,10 +648,21 @@ class Board {
 
   handleKey(ev) {
     let tagNames = ['TEXTAREA', 'INPUT', 'SELECT', 'BUTTON'];
-    if (ev.key != 'Escape' && tagNames.includes(ev.target.tagName) && this.modal) {
+    // Skip if modal
+    if (ev.key != 'Escape' && !ev.ctrlKey && tagNames.includes(ev.target.tagName) && this.modal) {
       return;
     }
+
+    // Do things with keys
     let key = ev.key.toLowerCase();
+    if (ev.key == 'Alt' || ev.key == 'Meta') {
+      if (ev.type == 'keydown') {
+        this.toggleMenu(true);
+      }
+      else if (ev.type == 'keyup') {
+        this.toggleMenu(false);
+      }
+    }
     if (ev.key == 'Shift') {
       this.config.shift = ev.type == 'keydown';
       this.config.setTool();
@@ -658,11 +700,19 @@ class Board {
           else if (key == 'i') {
             this.import();
           }
-          else if (key == 'k') {
+          else if (key == 'm') {
             this.toggleModal('config');
           }
           else if (key == 'r') {
             this.toggleModal('resize');
+          }
+          else {
+            return;
+          }
+        }
+        else if (ev.shiftKey) {
+          if (key == 'c') {
+            this.handleClearStorage();
           }
           else {
             return;
@@ -679,6 +729,7 @@ class Board {
         }
         else {
           this.toggleToolHidden();
+          this.toggleMenu(false);
         }
       }
 
@@ -773,6 +824,14 @@ class Board {
 
   handleMouse(ev) {
     if (ev.type == 'mousedown') {
+      // Close config menu if applicable;
+      if (this.configMenu) {
+        let target =  ev.target;
+        while (target !=  this.buttons.toggleMenu && target.parentNode && (target = target.parentNode));
+        if (target != this.buttons.toggleMenu) {
+          this.toggleMenu(false);
+        }
+      }
       if (ev.target == this.fg && this.selected && !this.action) {
         if (ev.buttons & 1) {
           this.startAction(ev);
@@ -816,6 +875,11 @@ class Board {
   }
 
   handleTouch(ev) {
+    // Close config menu if applicable;
+    if (this.configMenu && ev.target != this.buttons.toggleMenu) {
+      setTimeout(() => this.toggleMenu(false), 500);
+    }
+
     if (ev.target == this.fg) {
       if (ev.touches.length == 1) {
         let [x, y] = [ev.touches[0].pageX, ev.touches[0].pageY];

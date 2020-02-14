@@ -29,6 +29,14 @@ class RbModal extends Modal {
         this.setState = !masks[i];
         this._setItem(i);
       };
+      item.onkeydown = (ev) => {
+        if (ev.key == ' ' || ev.key == 'Enter') {
+          this.setState = !masks[i];
+          this._setItem(i);
+          this.setState = null;
+          this.config.storeSessionConfigAsync();
+        }
+      }
       item.onmousemove = () => {
         this.setState != null && this._setItem(i);
       }
