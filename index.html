@@ -42,7 +42,7 @@
       <button id="show-rb" title="Rulebuilder (Ctrl+B)" class="icon-function"></button>
       <button id="show-custom" title="Enter custom code (Ctrl+F)" class="icon-code"></button>
       <button id="show-resize" title="Appearance &amp; size (Ctrl+A)" class="icon-rainbow"></button>
-      <button id="show-clear" title="Clear local data (Ctrl+Shift+C)" class="icon-refresh"></button>
+      <button id="show-clear" title="Clear local data (Ctrl+X)" class="icon-refresh"></button>
     </div>
   </div>
   <div class="toolbar bottom">
@@ -139,12 +139,16 @@
       <div class="modal-title"><i class="icon-function"></i> Rulebuilder</div>
       <div class="modal-content">
         <div class="group">
-          <input class="focus" type="text" id="rule-name" placeholder="Please enter a rule name"/>
+          <input class="focus" type="text" id="rule-name" placeholder="Rule name" title="Rule name"/>
+          <select id="select-available" title="Existing elementary rules">
+            <option value="" selected>[ Elementary rules ]</option>
+          </select>
         </div>
         <div class="group">
           <button id="rule-select-all" class="icon-check-all"></button>
           <label>Miss:</label>
           <select id="rule-miss" title="Rule miss behavior">
+            <option value="" disabled>Other</option>
             <option selected value="0:0">0</option>
             <option value="1:0">1</option>
             <option value="-1:0">-1</option>
@@ -154,6 +158,7 @@
           </select>
           <label>Match:</label>
           <select id="rule-match" title="Rule match behavior">
+            <option value="" disabled>Other</option>
             <option value="0:0">0</option>
             <option selected value="1:0">1</option>
             <option value="-1:0">-1</option>
@@ -168,7 +173,7 @@
           <input type="text" id="rule-string" title="Hexular.util.ruleBuilder(...arguments)"/>
         </div>
         <div class="group buttons">
-          <button id="add-rule">Add rule</button>
+          <button id="add-rule">Save rule</button>
         </div>
       </div>
     </div>
@@ -187,12 +192,12 @@
       <div class="modal-title"><i class="icon-gear"></i> Configure model</div>
       <div class="modal-content">
         <div class="group">
-          <button id="add-preset" class="icon-plus" title="Add new preset..."></button>
+          <button id="add-preset" class="icon-plus" title="Save preset..."></button>
           <select id="select-preset" class="focus">
             <option value="">[ Select preset ]</option>
           </select>
-          <button id="save-preset" class="icon-download" title="Save preset..."></button>
-          <button id="load-preset" class="icon-upload" title="Load preset..."></button>
+          <button id="save-preset" class="icon-download" title="Download preset..."></button>
+          <button id="load-preset" class="icon-upload" title="Upload preset..."></button>
         </div>
         <div class="group">
           <input type="range" id="num-states" min="2" max="12" step="1"
