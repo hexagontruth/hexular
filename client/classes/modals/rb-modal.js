@@ -3,6 +3,7 @@ class RbModal extends Modal {
     super(...args);
     let masks = this.config.rbMasks;
     this.ruleName = document.querySelector('#rule-name');
+    this.selectAvailable = document.querySelector('#select-available').select;
     this.selectAll = document.querySelector('#rule-select-all');
     this.ruleMiss = document.querySelector('#rule-miss').select;
     this.ruleMatch = document.querySelector('#rule-match').select;
@@ -47,7 +48,17 @@ class RbModal extends Modal {
       this.setState = null;
       this.updateRuleString();
       this.config.storeSessionConfigAsync();
-    }
+    };
+
+    this.selectAvailable.onchange = () => {
+      let rule = this.selectAvailable.value;
+      this.config.setRuleName(rule + 'Copy');
+      let fn = this.config.availableRules[rule];
+      if (fn)
+        this.ruleString.value = fn.toString();
+      this.parseRuleString();
+    };
+
     this.selectAll.onclick = () => {
       this.setState = this.selectAll.classList.toggle('active');
       for (let i = 0; i < 64; i++)
@@ -56,31 +67,22 @@ class RbModal extends Modal {
       this.updateRuleString();
       this.config.storeSessionConfigAsync();
     };
-    this.ruleName.onchange = () => {
-      let ruleName = this.ruleName.value;
-      ruleName = ruleName.length != 0 ? ruleName : null;
-      this.config.rbName = ruleName;
-      this.config.storeSessionConfigAsync();
-    }
+
+    this.ruleName.onchange = () => this.config.setRuleName();
+
     this.ruleName.oninput = () => {
       if (this.ruleName.value.length > 0)
         this.add.disabled = false;
       else
         this.add.disabled = true;
-    }
+    };
+
     this.ruleMiss.onchange = () => this.config.setRuleMiss();
     this.ruleMatch.onchange = () => this.config.setRuleMatch();
 
-    this.ruleString.onchange = () => {
-      let [rules, opts] = this.getRuleString();
-      if (rules) {
-        this.setMasks(rules, true);
-        let {miss, missDelta, match, matchDelta} = opts;
-        this.config.setRuleMiss([miss, missDelta]);
-        this.config.setRuleMatch([match, matchDelta]);
-        this.config.storeSessionConfigAsync();
-      }
-    }
+    this.ruleString.onchange = () => this.parseRuleString();
+    this.ruleString.onfocus = () => this.ruleString.select();
+
     this.add.onclick = () => {
       let [rule, opts] = this.getRuleString();
       if (!rule) {
@@ -92,6 +94,11 @@ class RbModal extends Modal {
       this.board.setMessage(`Rule #${fn.n} added!`);
       console.log('Rule added:', [rule, opts]);
     };
+  }
+
+  update() {
+    let rbRules = Object.entries(this.config.availableRules).filter(([rule, fn]) => fn.n).map(([rule, fn]) => rule);
+    this.selectAvailable.replace(rbRules, this.ruleName.value, 1);
   }
 
   setMask(idx, value=this.setState) {
@@ -123,7 +130,7 @@ class RbModal extends Modal {
       else
         this.maskElements[idx].classList.remove('active');
     });
-    if (array[0] >= 0 && array[0] <= 63)
+    if (masks.filter((e) => e).length == 64)
       this.selectAll.classList.add('active');
     else
       this.selectAll.classList.remove('active');
@@ -148,7 +155,22 @@ class RbModal extends Modal {
     let [match, matchDelta] = [this.config.rbMatch, this.config.rbMatchDelta];
     let rule = configRule ? configRule : strRule;
     let opts = Config.merge({}, strOpts, {miss, missDelta, match, matchDelta});
-    this.ruleString.value = JSON.stringify([rule, opts]);
+    let ruleString  = JSON.stringify([rule, opts]);
+    if (this.ruleString.value != ruleString) {
+      this.ruleString.value = ruleString;
+      this.selectAvailable.value = null;
+    }
+  }
+
+  parseRuleString() {
+    let [rules, opts] = this.getRuleString();
+    if (rules) {
+      this.setMasks(rules, true);
+      let {miss, missDelta, match, matchDelta} = opts;
+      this.config.setRuleMiss([miss, missDelta]);
+      this.config.setRuleMatch([match, matchDelta]);
+      this.config.storeSessionConfigAsync();
+    }
   }
 
   _getMasks() {

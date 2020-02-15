@@ -6,8 +6,9 @@ class Recorder {
   start() {
     this.stream = this.board.bg.captureStream();
     let constraints = {
-      aspectRatio: window.innerWidth / window.innerHeight,
-      frameRate: Math.max(Math.floor(1000 / this.config.interval), 15),
+      // TODO: Fix
+      // aspectRatio: window.innerWidth / window.innerHeight,
+      frameRate: 60,
     };
     let opts = {};
     let customCodec = `video/webm;codecs=${this.config.codec || 'vp9'}`;
@@ -30,7 +31,7 @@ class Recorder {
       let dataUri = window.URL.createObjectURL(buffer);
       this.board.promptDownload(this.config.defaultVideoFilename, dataUri);
     };
-    this.recorder.start(1000);
+    this.recorder.start();
   }
 
   stop() {

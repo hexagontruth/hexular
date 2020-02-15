@@ -55,6 +55,7 @@ class Config {
       sessionStorageObj: window.sessionStorage,
     };
   }
+
   static merge(...objs) {
     let base = objs.shift();
     let next;
@@ -79,6 +80,13 @@ class Config {
       }
     }
     return base;
+  }
+
+  static toObject(kvArray) {
+    let obj = {};
+    for (let [key, value] of kvArray)
+      obj[key] = value;
+    return obj;
   }
 
   constructor(board, ...args) {
@@ -154,6 +162,7 @@ class Config {
       this.rbMasks[i] && e.classList.add('active');
     });
     this.rbModal.updateRuleString();
+    this.rbModal.update();
 
     // Appearance aka resize modal
     this.resizeModal.update();
@@ -164,6 +173,7 @@ class Config {
   addRule(ruleName, fn) {
     this.availableRules[ruleName] = fn;
     this.configModal.update();
+    this.rbModal.update();
     this.setRules();
     this.storeLocalConfig();
   }
@@ -368,6 +378,15 @@ class Config {
     this.configModal.defaultRuleMenu.select.value = this.defaultRule;
     this.model.defaultRule = this.availableRules[this.defaultRule];
     this.storeSessionConfig();
+  }
+
+  setRuleName(ruleName) {
+    ruleName = ruleName || this.rbModal.ruleName.value || this.rbName;
+    ruleName = ruleName.length != 0 ? ruleName : null;
+    this.rbName = ruleName;
+    if (ruleName)
+      this.rbModal.ruleName.value = this.rbName;
+    this.storeSessionConfigAsync();
   }
 
   setRuleMiss(tuple) {

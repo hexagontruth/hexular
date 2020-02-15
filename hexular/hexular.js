@@ -1480,6 +1480,9 @@ var Hexular = (function () {
 
     let n;
     if (ruleDef && ruleDef.length) {
+      // For serialization consistency
+      if (Array.isArray(ruleDef))
+        ruleDef = ruleDef.slice().sort((a, b) => a - b);
       n = 0n;
       for (let state of ruleDef) {
         n = n | 1n << BigInt(state);
@@ -1501,7 +1504,7 @@ var Hexular = (function () {
     rule.n = n;
     rule.range = range;
     rule.toString = () => {
-      return JSON.stringify([ruleDef, opts]);
+      return JSON.stringify([ruleDef, {miss, missDelta, match, matchDelta}]);
     };
     return rule;
   }

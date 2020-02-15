@@ -20,11 +20,17 @@ class Select {
   }
 
   set onchange(fn) {
-    this.el.addEventListener('change', fn);
+    this.el.onchange = fn;
+  }
+
+  set oninput(fn) {
+    this.el.oninput = fn;
   }
 
   set value(value) {
     this.el.value = value;
+    if (this.el.selectedIndex == -1)
+      this.el.selectedIndex = 0;
   }
 
   get value() {

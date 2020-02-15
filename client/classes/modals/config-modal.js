@@ -32,7 +32,7 @@ class ConfigModal extends Modal {
     this.loadPreset.onclick = (ev) => this._handleLoadPreset();
     this.selectPreset.onchange = (ev) => this._handlePreset();
     this.checkAll.onclick = (ev) => this._handleCheckAll();
-    this.setAll.onchange = (ev) => this._handleSetAll(ev);
+    this.setAll.oninput = (ev) => this._handleSetAll(ev);
     this.selectNh.onchange = (ev) => this.handleNh(ev);
     Object.entries(this.filters).forEach(([filter, button]) => {
       button.onclick = (ev) => this._handleFilter(filter);
@@ -108,23 +108,27 @@ class ConfigModal extends Modal {
   }
 
   _handleCheckAll() {
-    // Not sure if should include default rule
-    let check = !this.ruleMenus.every((ruleMenu) => ruleMenu.checked);
+    let ruleMenus = this.ruleMenus.concat(this.defaultRuleMenu);
+    let check = !ruleMenus.every((ruleMenu) => ruleMenu.checked);
     if (check)
       this.checkAll.classList.add('checked');
     else
       this.checkAll.classList.remove('checked');
-    this.ruleMenus.forEach((ruleMenu) => {
+    ruleMenus.forEach((ruleMenu) => {
       ruleMenu.checked = check;
     });
   }
 
   _handleSetAll(ev) {
     let rule = this.setAll.value;
-    this.ruleMenus.concat(this.defaultRuleMenu).forEach((ruleMenu) => {
-      ruleMenu.checked && this.config.setRule(ruleMenu.idx, rule);
-    });
-    this.setAll.selectedIndex = 0;
+    if (this.config.availableRules[rule]) {
+      this.ruleMenus.concat(this.defaultRuleMenu)
+      .filter((e) =>  e.checked)
+      .forEach((ruleMenu) => {
+        this.config.setRule(ruleMenu.idx, rule);
+      });
+    }
+    this.setAll.value = null;
   }
 
   handleNh(ev) {
@@ -189,20 +193,22 @@ class RuleMenu {
     }
     container.setAttribute('data-disabled',  idx >= this.config.numStates);
 
-    button.addEventListener('mousedown', (ev) => {
+    button.onmousedown = (ev) => {
       this.checked = !this.checked;
       this.modal.checkState = this.checked;
       ev.preventDefault();
-    });
-    button.addEventListener('mousemove', (ev) => {
+    };
+    button.onmousemove = (ev) => {
       if (this.modal.checkState != null)
         this.checked = this.modal.checkState;
-    });
+    };
   }
 
   set checked(val) {
-    if (val) this.container.classList.add('checked');
-    else this.container.classList.remove('checked');
+    if (val)
+      this.container.classList.add('checked');
+    else
+      this.container.classList.remove('checked');
   }
 
   get checked() {

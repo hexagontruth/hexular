@@ -81,11 +81,12 @@ const Rules = (() => {
         return cell.state;
     },
   };
-  let rules = {};
-  let entries = Object.entries(Object.assign({}, coreRules, customRules));
-  entries.sort((a, b) => a[0].localeCompare(b[0]));
-  entries.forEach(([rule, fn]) => {
-    rules[rule] = fn;
+  let entries = Object.entries(customRules);
+  entries.sort((a, b) => {
+    let strOrder = a[0].localeCompare(b[0]);
+    let [an, bn] = [a[1], b[1]].map((e) => e.n != null ? 1 : -1);
+    return an ^ bn == -2 ? an - bn : strOrder;
   });
+  let rules = Object.assign({}, coreRules, Config.toObject(entries));
   return rules;
 })();

@@ -68,7 +68,7 @@ const Themes = (() => {
     },
     dark: {
       background: '#111111',
-      borderWidth: -0.25,
+      borderWidth: -0.5,
       colors: Config.merge([], classicColors, [
         '#000000',
         '#888888',
@@ -79,7 +79,7 @@ const Themes = (() => {
     },
     darkRainbow: {
       background: '#111111',
-      borderWidth: -0.25,
+      borderWidth: -0.5,
       colors: [
         '#000000',
         '#ff0000',

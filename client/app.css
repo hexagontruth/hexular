@@ -99,7 +99,7 @@ body:not(.mobile) button:hover:not(:disabled) {
 }
 
 body.mobile button:active, button.active {
-  background: #66ddff;
+  background: #66ddee;
   color: #fff;
 }
 
@@ -278,7 +278,7 @@ button:disabled {
 }
 
 .toolbar.colors .group button.active-0 {
-  border-color: #66ddff;
+  border-color: #66ddee;
 }
 
 .tool-hidden .toolbar.top {
@@ -577,7 +577,7 @@ select {
   width: 100%;
 }
 
-.rule-group [data-disabled='true'] {
+.rule-group [data-disabled='true'] select {
   opacity: 0.5;
 }
 
@@ -618,7 +618,7 @@ body .modal button.checkable:hover {
 }
 
 .modal .checked button.checkable {
-  border-color: #66ddff;
+  border-color: #66ddee;
 }
 
 @media screen and (max-width: 640px) {
@@ -668,7 +668,7 @@ button.rulemask.active, button.rulemask:hover {
 }
 
 .rulemask.active svg polygon.home-cell {
-  fill: #66ddff;
+  fill: #66ddee;
 }
 
 .rulemask:hover svg polygon:not(.home-cell) {

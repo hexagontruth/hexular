@@ -188,7 +188,7 @@ Control flow, state, and configuration buttons run along the along the top of th
     - Open rulebuilder modal (Ctrl+B)
     - Open custom code modal (Ctrl+F)
     - Appearance & size modal (Ctrl+A)
-    - Clear local settings (Ctrl+Shift+C)
+    - Clear local settings (Ctrl+X)
   - Undo (Ctrl+Z)
   - Redo (Ctrl+Shift+Z)
   - Save snapshot (Q)

@@ -7,7 +7,7 @@ class Modal {
     this.modal = document.querySelector(`.modal.${name}`);
     let title = this.modal.querySelector('.modal-title');
     if (title)
-      title.onclick = () => console.log('curd') || this.board.toggleModal();
+      title.onclick = () => this.board.toggleModal();
   }
 
   open() {

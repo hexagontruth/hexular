@@ -432,6 +432,7 @@ class Board {
       if (diff) {
         this.model.import(bytes);
         this.draw();
+        this.storeModelState();
         this.setMessage('Snapshot loaded!');
       }
       else {
@@ -484,6 +485,9 @@ class Board {
         let config = JSON.parse(result);
         this.config.restoreState(config);
         this.config.initialize();
+        this.config.storeLocalConfigAsync();
+        this.config.storeSessionConfigAsync();
+        this.config.setTheme();
         this.setMessage('Settings restored!');
       }
       catch {
@@ -677,14 +681,15 @@ class Board {
   }
 
   handleKey(ev) {
+    let key = ev.key.toLowerCase();
     let tagNames = ['TEXTAREA', 'INPUT', 'SELECT', 'BUTTON'];
+    let ctrlSkip = !ev.ctrlKey || ['c', 'x', 'v', 'z'].includes(key);
     // Skip if modal
-    if (ev.key != 'Escape' && !ev.ctrlKey && tagNames.includes(ev.target.tagName) && this.modal) {
+    if (ev.key != 'Escape' && ctrlSkip && tagNames.includes(ev.target.tagName) && this.modal) {
       return;
     }
 
     // Do things with keys
-    let key = ev.key.toLowerCase();
     if (ev.key == 'Alt' || ev.key == 'Meta') {
       if (ev.type == 'keydown') {
         this.toggleMenu(true);
@@ -736,14 +741,14 @@ class Board {
           else if (key == 'g') {
             this.toggleModal('config');
           }
+          else if (key == 'x') {
+            this.handleClearStorage();
+          }
           else {
             return;
           }
         }
         else if (ev.shiftKey) {
-          if (key == 'c') {
-            this.handleClearStorage();
-          }
           if (key == 's') {
             this.saveImage();
           }
