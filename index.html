@@ -41,7 +41,7 @@
       <button id="show-config" title="Model configuration (Ctrl+M)" class="icon-gear"></button>
       <button id="show-rb" title="Rulebuilder (Ctrl+B)" class="icon-function"></button>
       <button id="show-custom" title="Enter custom code (Ctrl+F)" class="icon-code"></button>
-      <button id="show-resize" title="Resize model (Ctrl+R)" class="icon-arrow-top-right-bottom-left"></button>
+      <button id="show-resize" title="Appearance &amp; size (Ctrl+A)" class="icon-rainbow"></button>
       <button id="show-clear" title="Clear local data (Ctrl+Shift+C)" class="icon-refresh"></button>
     </div>
   </div>
@@ -65,9 +65,13 @@
   </div>
   <div class="toolbar left">
     <div class="group">
+      <button id="load" title="Load model state... (Ctrl+O)" class="icon-hexagon-left rotate"></button>
+      <button id="save" title="Save model state... (Ctrl+S)" class="icon-hexagon-right rotate"></button>
       <button id="save-image" title="Save image... (Ctrl+Shift+S)" class="icon-image"></button>
-      <button id="save" title="Save model state... (Ctrl+S)" class="icon-download"></button>
-      <button id="load" title="Load model state... (Ctrl+O)" class="icon-upload"></button>
+    </div>
+    <div class="group">
+      <button id="load-data" title="Load settings... (Ctrl+Alt+O)" class="icon-upload"></button>
+      <button id="save-data" title="Save settings... (Ctrl+Alt+S)" class="icon-download"></button>
       <button id="import" title="Import custom JavaScript... (Ctrl+I)" class="icon-cloud-code"></button>
     </div>
   </div>
@@ -89,11 +93,16 @@
   </div>
   <div class="overlay hidden">
     <div class="modal resize hidden">
-      <div class="modal-title"><i class="icon-arrow-top-right-bottom-left"></i> Resize model</div>
+      <div class="modal-title"><i class="icon-rainbow"></i> Appearance &amp; size</div>
       <div class="modal-content">
         <div class="group">
+          <label class="left">Theme:</label>
+          <select id="select-theme" class="focus"></select>
+        </div>
+        <div class="group">
+          <label class="left">Radius:</label>
           <input type="range" id="resize-slider" min="0" max="360" step="1"
-            value="60" list="resize-ticks"-ticks" title="Board radius" class="focus"/>
+            value="60" list="resize-ticks"-ticks" title="Board radius"/>
           <datalist id="resize-ticks">
             <option>0</option>
             <option>30</option>
