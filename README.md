@@ -187,7 +187,7 @@ Control flow, state, and configuration buttons run along the along the top of th
     - Open model configuration modal (Ctrl+G)
     - Open rulebuilder modal (Ctrl+B)
     - Open custom code modal (Ctrl+F)
-    - Open model resize modal (Ctrl+R)
+    - Appearance & size modal (Ctrl+A)
     - Clear local settings (Ctrl+Shift+C)
   - Undo (Ctrl+Z)
   - Redo (Ctrl+Shift+Z)
@@ -197,9 +197,11 @@ Control flow, state, and configuration buttons run along the along the top of th
 
 Several buttons concerning file I/O run along the left side:
 
+  - Load model (Ctrl+O)
+  - Save model (Ctrl+S)
   - Save image (Ctrl+Shift+S)
-  - Save (Ctrl+S)
-  - Load (Ctrl+O)
+  - Load local settings (Ctrl+Alt+O)
+  - Save local settings (Ctrl+Alt+S)
   - Import custom JavaScript (Ctrl+I)
 
 Tool buttons and various editorial options run along the bottom:

@@ -1164,7 +1164,7 @@ var Hexular = (function () {
       // Build cell map if not already built
       this.model.buildCellMap();
       // Compute math stuff
-      this.setMathPresets();
+      this.updateMathPresets();
 
       /**
        * @name CanvasAdapter#onDrawCell
@@ -1178,7 +1178,7 @@ var Hexular = (function () {
     /**
      * Precompute math parameters using principally {@link Model#cellRadius}.
      */
-    setMathPresets() {
+    updateMathPresets() {
       this.cellRadius = this.model.cellRadius;
       this.innerRadius = this.cellRadius - this.borderWidth / (2 * math.apothem);
       this.vertices = scalarOp(math.vertices, this.innerRadius);

@@ -141,8 +141,8 @@ class ConfigModal extends Modal {
     this.availableRuleNames = Object.keys(this.config.availableRules);
     this.presetNames = Object.keys(this.config.presets);
 
-    this.selectPreset.replace(this.presetNames, this.config.preset);
-    this.setAll.replace(this.availableRuleNames);
+    this.selectPreset.replace(this.presetNames, this.config.preset, 1);
+    this.setAll.replace(this.availableRuleNames, null, 1);
 
     this.defaultRuleMenu = new RuleMenu(this, document.querySelector('#default-rule-menu'));
     while (this.ruleGroup.firstChild)

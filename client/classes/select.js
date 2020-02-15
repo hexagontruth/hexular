@@ -47,13 +47,13 @@ class Select {
     return this.el.disabled;
   }
 
-  replace(opts, selected) {
+  replace(opts, selected, keep=0) {
     let data = opts;
     if (opts.length) {
       data = {};
       opts.forEach((e) => data[e] = e);
     }
-    this.el.options.length = 1;
+    this.el.options.length = keep;
     Object.entries(data).forEach(([key, value]) => {
       let option = document.createElement('option');
       option.value = key;

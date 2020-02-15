@@ -1,11 +1,11 @@
 class Board {
-  static resize(radius) {
+  static resize(opts={}) {
     return new Promise((resolve, reject) => {
       document.body.classList.add('splash');
       let oldBoard = Board.instance;
       oldBoard && oldBoard.stop();
      setTimeout(async () => {
-        let board = new Board({radius});
+        let board = new Board(opts);
         Board.instance = board;
         if (oldBoard) {
           board.undoStack = oldBoard.undoStack;
@@ -87,6 +87,8 @@ class Board {
         load: document.querySelector('#load'),
         save: document.querySelector('#save'),
         saveImage: document.querySelector('#save-image'),
+        saveData: document.querySelector('#save-data'),
+        loadData: document.querySelector('#load-data'),
         import: document.querySelector('#import'),
         allNonrecording: document.querySelectorAll(
           '.toolbar .group button:not(#toggle-record):not(#toggle-play):not(#show-config):not(#show-doc)'
@@ -157,6 +159,8 @@ class Board {
     this.buttons.load.onclick = this.click(this.load);
     this.buttons.save.onclick = this.click(this.save);
     this.buttons.saveImage.onclick = this.click(this.saveImage);
+    this.buttons.loadData.onclick = this.click(this.loadData);
+    this.buttons.saveData.onclick = this.click(this.saveData);
     this.buttons.import.onclick = this.click(this.import);
 
     this.tools.move.onclick = this.click((ev) => this.config.setTool('move'), this.config);
@@ -370,10 +374,13 @@ class Board {
     let selected = this.modals[modal];
     let current = this.modal;
     Object.values(this.modals).forEach((e) => e.close());
-    if (selected && current != selected)
+    if (selected && current != selected) {
+      this.toggleMenu(false);
       this.modals[modal].open();
-    else if (!selected)
+    }
+    else if (!selected) {
       this.fg.focus();
+    }
   }
 
   showDoc() {
@@ -458,6 +465,30 @@ class Board {
       this.draw();
       this.storeModelState();
       this.setMessage('Model loaded!');
+    };
+    fileLoader.prompt();
+  }
+
+  saveData() {
+    this.config.storeLocalConfig();
+    this.config.storeSessionConfig();
+    let obj = this.config.retrieveConfig();
+    let dataUri = `data:application/json,${encodeURIComponent(JSON.stringify(obj))}`;
+    this.promptDownload(this.config.defaultSettingsFilename, dataUri);
+  }
+
+  loadData() {
+    let fileLoader = new FileLoader('.json');
+    fileLoader.onload = (result) => {
+      try {
+        let config = JSON.parse(result);
+        this.config.restoreState(config);
+        this.config.initialize();
+        this.setMessage('Settings restored!');
+      }
+      catch {
+        this.setMessage('Unable to parse settings file!', 'error');
+      }
     };
     fileLoader.prompt();
   }
@@ -578,7 +609,6 @@ class Board {
     this.buttons.redo.disabled = +!this.redoStack.length;
   }
 
-
   scale(scale) {
     this.scaleZoom *= scale;
     this.eachContext((ctx) => {
@@ -681,12 +711,15 @@ class Board {
             this.undo();
           }
         }
-        else if (!ev.shiftKey) {
+        else if (!ev.shiftKey && !ev.altKey) {
           if (key == 's') {
             this.save();
           }
           else if (key == 'o') {
             this.load();
+          }
+          else if (key == 'a') {
+            this.toggleModal('resize');
           }
           else if (key == 'b') {
             this.toggleModal('rb');
@@ -703,9 +736,6 @@ class Board {
           else if (key == 'g') {
             this.toggleModal('config');
           }
-          else if (key == 'r') {
-            this.toggleModal('resize');
-          }
           else {
             return;
           }
@@ -713,6 +743,20 @@ class Board {
         else if (ev.shiftKey) {
           if (key == 'c') {
             this.handleClearStorage();
+          }
+          if (key == 's') {
+            this.saveImage();
+          }
+          else {
+            return;
+          }
+        }
+        else if (ev.altKey) {
+          if (key == 's') {
+            this.saveData();
+          }
+          else if (key == 'o') {
+            this.loadData();
           }
           else {
             return;

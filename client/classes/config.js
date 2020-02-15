@@ -36,6 +36,7 @@ class Config {
       defaultImageFilename: 'hexular.png',
       defaultFilename: 'hexular.bin',
       defaultVideoFilename: 'hexular.webm',
+      defaultSettingsFilename: 'hexular.json',
       codec: 'vp9',
       scaleFactor: 1,
       tool: 'brush',
@@ -124,6 +125,7 @@ class Config {
     this.configModal = this.board.modals.config;
     this.configModal.update();
     this.rbModal = this.board.modals.rb;
+    this.resizeModal = this.board.modals.resize;
 
     // Board
     this.setBackground();
@@ -153,6 +155,8 @@ class Config {
     });
     this.rbModal.updateRuleString();
 
+    // Appearance aka resize modal
+    this.resizeModal.update();
   }
 
   // --- ADDERS, IMPORT/EXPORT ---
@@ -170,6 +174,11 @@ class Config {
     this.storeLocalConfig();
   }
 
+  addTheme(themeName, theme) {
+    this.themes[themeName] = theme;
+    this.resizeModal.update();
+  }
+
   exportPreset() {
     return {
       preset: this.preset,
@@ -180,11 +189,25 @@ class Config {
     };
   }
 
+  resize(radius=this.radius) {
+    this.radius = radius;
+    this.storeSessionConfig();
+    Board.resize(radius);
+  }
+
   // --- SETTERS ---
   
   setBackground(color) {
     this.background = color || this.background;
     document.body.style.backgroundColor = this.background;
+  }
+
+  setBorderWidth(width) {
+    this.borderWidth = width != null ? width : this.borderWidth;
+    this.board.bgAdapter.borderWidth = this.borderWidth;
+    this.board.fgAdapter.borderWidth = this.borderWidth;
+    this.board.bgAdapter.updateMathPresets();
+    this.board.fgAdapter.updateMathPresets();
   }
 
   setColor(idx, color) {
@@ -312,12 +335,6 @@ class Config {
     this.storeSessionConfig();
   }
 
-  setRadius(radius) {
-    this.radius = radius;
-    this.storeSessionConfig();
-    Board.resize(radius);
-  }
-
   setRule(idx, rule) {
     let fn = this.availableRules[rule];
     if (!fn) {
@@ -376,6 +393,21 @@ class Config {
     this.steps = steps;
     this.board.setInfoBox('steps', steps);
     this.storeSessionConfig();
+  }
+
+  setTheme(themeName) {
+    if (this.themes[themeName]) {
+      this.theme = themeName;
+    }
+    let {borderWidth, showModelBackground, background, colors} = Config.defaults;
+    let defaults = {borderWidth, showModelBackground, background, colors};
+    let theme = Config.merge(defaults, this.themes[this.theme]);
+    Config.merge(this, theme);
+    this.setBackground()
+    this.setColors();
+    this.setBorderWidth();
+    this.board.draw();
+    this.storeSessionConfigAsync();
   }
 
   setTool(tool, fallbackTool) {
@@ -439,7 +471,7 @@ class Config {
 
   getSessionConfig() {
     let sessionConfig = this.getKeyValues([
-      'availableRules',
+      'borderWidth',
       'colorMode',
       'defaultRule',
       'filters',
@@ -465,17 +497,26 @@ class Config {
       'tool',
       'toolSize'
     ]);
-    Object.entries(sessionConfig.availableRules).forEach(([rule, fn]) => {
-      sessionConfig.availableRules[rule] = fn.toString();
-    });
     return sessionConfig;
   };
 
   getLocalConfig() {
-    return this.getKeyValues([
+    let localConfig = this.getKeyValues([
+      'availableRules',
       'presets',
       'themes',
     ]);
+    Object.entries(localConfig.availableRules).forEach(([rule, fn]) => {
+      localConfig.availableRules[rule] = fn.toString();
+    });
+    return localConfig;
+  }
+
+  retrieveConfig() {
+    let sessionConfig = JSON.parse(this.sessionStorageObj.getItem('sessionConfig') || '{}');
+    let localConfig = JSON.parse(this.localStorageObj.getItem('localConfig') || '{}');
+    localConfig.availableRules = localConfig.availableRules || {};
+    return {localConfig, sessionConfig}
   }
 
   restoreModel() {
@@ -487,13 +528,13 @@ class Config {
     }
   }
 
-  restoreState() {
+  restoreState(config) {
     if (this.model)
       this.restoreModel();
-    let sessionConfig = JSON.parse(this.sessionStorageObj.getItem('sessionConfig') || '{}');
-    let localConfig = JSON.parse(this.localStorageObj.getItem('localConfig') || '{}');
-    sessionConfig.availableRules = sessionConfig.availableRules || {};
-    Object.entries(sessionConfig.availableRules).forEach(([rule, val]) => {
+    config = config || this.retrieveConfig();
+    let {localConfig, sessionConfig} = config;
+
+    Object.entries(localConfig.availableRules).forEach(([rule, val]) => {
       let fn;
       try {
         val = eval(val);
@@ -505,9 +546,9 @@ class Config {
         console.trace();
       }
       if (typeof fn == 'function')
-        sessionConfig.availableRules[rule] = fn;
+        localConfig.availableRules[rule] = fn;
       else
-        delete sessionConfig.availableRules[rule];
+        delete localConfig.availableRules[rule];
     });
 
     let presets = localConfig.presets;
@@ -554,6 +595,16 @@ class Config {
   storeLocalConfig() {
     let config = this.getLocalConfig();
     this.localStorageObj.setItem('localConfig', JSON.stringify(config));
+  }
+
+  storeLocalConfigAsync() {
+    if (!this.pendingStoreLocalAsync) {
+      this.pendingStoreLocalAsync = true;
+      window.setTimeout(() => {
+        this.storeLocalConfig();
+        this.pendingStoreLocalAsync = null;
+      }, 50);
+    }
   }
 
   storeModel(key, bytes, obj={}) {

@@ -15,7 +15,7 @@ const Themes = (() => {
     '#aa55bb',
   ]);
 
-  const Themes = {
+  let themes = {
     light: {
     },
     smooth: {
@@ -96,5 +96,5 @@ const Themes = (() => {
       ],
     },
   };
-  return Themes;
+  return themes;
 })();
