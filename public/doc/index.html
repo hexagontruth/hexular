@@ -217,7 +217,7 @@ end user to implement her own extensions via the Hexular API:</p>
 <li>Clear (Ctrl+C)</li>
 <li>Configuration menu toggle (Alt)
 <ul>
-<li>Open model configuration modal (Ctrl+M)</li>
+<li>Open model configuration modal (Ctrl+G)</li>
 <li>Open rulebuilder modal (Ctrl+B)</li>
 <li>Open custom code modal (Ctrl+F)</li>
 <li>Open model resize modal (Ctrl+R)</li>
@@ -286,6 +286,8 @@ end user to implement her own extensions via the Hexular API:</p>
 <p>The rulebuilder modal (Ctrl+B) exposes a somewhat-simplified interface for calling the <a href="Hexular.util.html#.ruleBuilder"><code>ruleBuilder</code></a> function discussed above, limited to the <code>N6</code> neighborhood, and six possible miss and match states, with the default being to set cell state to 0 on misses, and 1 on matches.</p>
 <p>Note that the miss and match rules can interact with <a href="Hexular.filters.html#.deltaFilter"><code>deltaFilter</code></a> in strange ways. For instance, a rule built using the default settings in this modal, coupled with <code>deltaFilter</code>, will have the same effect as one without the filter, but with the match rule set to &quot;State + 1.&quot; Likewise, if we then add the filter back in, we will add the state twice on matches — which may or may not be desirable, but is sort of weird.</p>
 <p>Elementary rules constructed through the rulebuilder interface are only a small subset of possible rules using the core cell API, and they do not, at this point, differentiate between nonzero cell states. Thus they are not suited for &quot;noisy&quot; rulesets where all or most cells are in a nonzero state (e.g., what one sees with the built-in preset &quot;grayGoo&quot;).</p>
+<p>The rule is copied to a text field at the bottom of the modal, where it can be further edited before instantiation by e.g. adding custom <code>miss</code> and <code>match</code> values, or saved as part of a larger JavaScript customization. The array as populated can be fed into the <code>ruleBuilder</code> function using ES6 spread syntax (<code>...</code>), or by simply decoupling the two constituent elements from the array.</p>
+<p>Please note that, as with most persistent attributes in the demo frontend, previous values will simply be overwritten — this allows one to e.g. iterate quickly when developing an experimental rule.</p>
 <h4 id="timer-hooks">Timer hooks</h4>
 <p>We can add functions to be called at a given time index during play or recording via the <code>board.addHook()</code> method. For example, to turn cells with state 4 cyan after five seconds, we could run the following from the console or the custom code modal:</p>
 <pre><code>    Board.instance.addHook('timer', 5, () =&gt; Board.config.setColor(3, '#33cccc'));

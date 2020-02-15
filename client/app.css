@@ -130,6 +130,10 @@ button:disabled {
   margin: 0.5em;
 }
 
+.toolbar.menu {
+  z-index: 40;
+}
+
 .toolbar.menu .group {
   margin: 0.05em 0;
 }

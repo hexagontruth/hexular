@@ -37,6 +37,11 @@ const Themes = (() => {
         '#cc33ee',
       ],
     },
+    beige: {
+      colors: [
+        '#efefe7',
+      ],
+    },
     classic: {
       colors: classicColors,
     },

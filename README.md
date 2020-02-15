@@ -184,7 +184,7 @@ Control flow, state, and configuration buttons run along the along the top of th
   - Step (Space) &mdash; Perform individual step
   - Clear (Ctrl+C)
   - Configuration menu toggle (Alt)
-    - Open model configuration modal (Ctrl+M)
+    - Open model configuration modal (Ctrl+G)
     - Open rulebuilder modal (Ctrl+B)
     - Open custom code modal (Ctrl+F)
     - Open model resize modal (Ctrl+R)
@@ -264,6 +264,10 @@ The rulebuilder modal (Ctrl+B) exposes a somewhat-simplified interface for calli
 Note that the miss and match rules can interact with [`deltaFilter`](Hexular.filters.html#.deltaFilter) in strange ways. For instance, a rule built using the default settings in this modal, coupled with `deltaFilter`, will have the same effect as one without the filter, but with the match rule set to "State + 1." Likewise, if we then add the filter back in, we will add the state twice on matches &mdash; which may or may not be desirable, but is sort of weird.
 
 Elementary rules constructed through the rulebuilder interface are only a small subset of possible rules using the core cell API, and they do not, at this point, differentiate between nonzero cell states. Thus they are not suited for "noisy" rulesets where all or most cells are in a nonzero state (e.g., what one sees with the built-in preset "grayGoo").
+
+The rule is copied to a text field at the bottom of the modal, where it can be further edited before instantiation by e.g. adding custom `miss` and `match` values, or saved as part of a larger JavaScript customization. The array as populated can be fed into the `ruleBuilder` function using ES6 spread syntax (`...`), or by simply decoupling the two constituent elements from the array.
+
+Please note that, as with most persistent attributes in the demo frontend, previous values will simply be overwritten &mdash; this allows one to e.g. iterate quickly when developing an experimental rule.
 
 #### Timer hooks
 

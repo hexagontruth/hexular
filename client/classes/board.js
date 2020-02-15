@@ -700,7 +700,7 @@ class Board {
           else if (key == 'i') {
             this.import();
           }
-          else if (key == 'm') {
+          else if (key == 'g') {
             this.toggleModal('config');
           }
           else if (key == 'r') {

@@ -44,10 +44,12 @@ class Config {
       colorMode: 0,
       paintColors: [1, 0],
       steps: 0,
-      ruleBuilderName: 'newElementaryRule',
-      ruleBuilderMiss: '0:0',
-      ruleBuilderMatch: '1:0',
-      ruleBuilderMasks: Array(64).fill(false),
+      rbName: 'newElementaryRule',
+      rbMiss: 0,
+      rbMissDelta: 0,
+      rbMatch: 1,
+      rbMatchDelta: 0,
+      rbMasks: Array(64).fill(false),
       localStorageObj: window.localStorage,
       sessionStorageObj: window.sessionStorage,
     };
@@ -143,12 +145,14 @@ class Config {
     }
 
     // Rule builder modal
-    this.rbModal.ruleName.value = this.ruleBuilderName || Config.defaults.ruleBuilderName;
-    this.rbModal.ruleMiss.value = this.ruleBuilderMiss;
-    this.rbModal.ruleMatch.value = this.ruleBuilderMatch;
+    this.rbModal.ruleName.value = this.rbName || Config.defaults.rbName;
+    this.setRuleMiss([this.rbMiss, this.rbMissDelta]);
+    this.setRuleMatch([this.rbMatch, this.rbMatchDelta]);
     this.rbModal.maskElements.forEach((e, i) => {
-      this.ruleBuilderMasks[i] && e.classList.add('active');
+      this.rbMasks[i] && e.classList.add('active');
     });
+    this.rbModal.updateRuleString();
+
   }
 
   // --- ADDERS, IMPORT/EXPORT ---
@@ -261,6 +265,14 @@ class Config {
     this.storeSessionConfig();
   }
 
+  getPaintColor(idx) {
+    let offset = idx ? -1 : 1;
+    if (this.colorMode)
+      return this.paintColors[idx];
+    else
+      return Hexular.math.mod(this.board.selected.state + offset, this.numStates);
+  }
+
   setPaintColorMode(mode) {
     this.colorMode = mode != null ? mode : +!this.colorMode;
     if (this.colorMode) {
@@ -341,6 +353,24 @@ class Config {
     this.storeSessionConfig();
   }
 
+  setRuleMiss(tuple) {
+    let [miss, missDelta] = tuple || this._strToTuple(this.rbModal.ruleMiss.value);
+    this.rbMiss = miss;
+    this.rbMissDelta = missDelta;
+    this.rbModal.ruleMiss.value = this._tupleToStr([miss, missDelta]);
+    this.rbModal.updateRuleString();
+    this.storeSessionConfigAsync();
+  }
+
+  setRuleMatch(tuple) {
+    let [match, matchDelta] = tuple || this._strToTuple(this.rbModal.ruleMatch.value);
+    this.rbMatch = match;
+    this.rbMatchDelta = matchDelta;
+    this.rbModal.ruleMatch.value = this._tupleToStr([match, matchDelta]);
+    this.rbModal.updateRuleString();
+    this.storeSessionConfigAsync();
+  }
+
   setSteps(steps) {
     steps = steps != null ? steps : this.steps;
     this.steps = steps;
@@ -374,14 +404,6 @@ class Config {
     selected && selected.classList.add('active');
     this.board.drawSelectedCell();
     this.storeSessionConfig();
-  }
-
-  getPaintColor(idx) {
-    let offset = idx ? -1 : 1;
-    if (this.colorMode)
-      return this.paintColors[idx];
-    else
-      return Hexular.math.mod(this.board.selected.state + offset, this.numStates);
   }
 
   // --- VALIDATION ---
@@ -430,10 +452,12 @@ class Config {
       'paintColors',
       'preset',
       'radius',
-      'ruleBuilderMasks',
-      'ruleBuilderMatch',
-      'ruleBuilderMiss',
-      'ruleBuilderName',
+      'rbMasks',
+      'rbMatch',
+      'rbMatchDelta',
+      'rbMiss',
+      'rbMissDelta',
+      'rbName',
       'rules',
       'shiftTool',
       'steps',
@@ -550,5 +574,13 @@ class Config {
     this.sessionStorageObj.clear();
     this.localStorageObj.clear();
     this.storeModel('modelState', modelState);
+  }
+
+  _strToTuple(str) {
+    return str.split(':').map((e) => parseInt(e)).map((e) => isNaN(e) ? null : e);
+  }
+
+  _tupleToStr(tuple) {
+    return tuple.join(':');
   }
 }
