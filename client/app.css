@@ -530,6 +530,10 @@ select {
   min-width: 25%;
 }
 
+.modal label.indicator {
+  width: 4.5em;
+}
+
 .modal button {
   flex: 0 0 2em;
   min-height: 2em;

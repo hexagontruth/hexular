@@ -34,7 +34,7 @@ const Themes = (() => {
     light: {
     },
     smooth: {
-      borderWidth: -0.5,
+      cellGap: -0.5,
     },
     mango: {
       colors: [
@@ -65,11 +65,11 @@ const Themes = (() => {
       colors: Hexular.DEFAULTS.colors.slice(),
     },
     lightRainbow: {
-      borderWidth: -0.5,
+      cellGap: -0.5,
       colors: rainbow,
     },
     vaporRainbow : {
-      borderWidth: -0.5,
+      cellGap: -0.5,
       colors: Config.merge(classicColors, [
         '#fffff7',
         '#f7f7ef',
@@ -104,7 +104,7 @@ const Themes = (() => {
     },
     dark: {
       background: '#111111',
-      borderWidth: -0.5,
+      cellGap: -0.5,
       colors: Config.merge([], classicColors, [
         '#000000',
         '#888888',
@@ -115,7 +115,7 @@ const Themes = (() => {
     },
     darkRainbow: {
       background: '#111111',
-      borderWidth: -0.5,
+      cellGap: -0.5,
       colors: Config.merge(rainbow, ['#000000']),
     },
   };

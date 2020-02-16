@@ -167,8 +167,7 @@ The built-in demo site, Hexular Studio, can be run as-is with any static HTTP se
 
 The principal Studio interface consists of a `CubicModel` instance, centered on the page, with buttons and keyboard shortcuts implementing various functions. A number of settings can be set via URL parameters. Some debatably-important ones that presently aren't also configurable through the interface include:
 
-  - `theme=light`
-  - `borderWidth=1`
+  - `cellGap=1`
   - `showModelBackground=true`
   - `interval=100`
   - `groundState=0`

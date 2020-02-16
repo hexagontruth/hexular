@@ -1,19 +1,27 @@
 class ResizeModal extends Modal {
   constructor(...args) {
     super(...args);
+    this.defaultInterval = Config.defaults.interval;
     this.radius = this.defaultRadius = Config.defaults.radius;
-    this.resize = document.querySelector('#resize-slider');
     this.theme = document.querySelector('#select-theme').select;
+    this.interval = document.querySelector('#interval-slider');
+    this.intervalIndicator = document.querySelector('#interval-indicator');
+    this.resize = document.querySelector('#resize-slider');
+    this.resizeIndicator = document.querySelector('#resize-indicator');
+
     this.set = document.querySelector('#resize-set');
     this.theme.onchange = (ev) => this._selectTheme();
-    this.resize.onchange = (ev) => this._updateInfo();
+    this.interval.onchange = (ev) => this._updateInterval(this.interval.value);
+    this.resize.onchange = (ev) => this._updateResize(this.resize.value);
     this.set.onclick = (ev) => this._resize();
   }
 
   reset() {
-    this.resize.value = this.config.radius;
     this.theme.value = this.config.theme;
-    this._updateInfo();
+    this.resize.value = this.config.radius;
+    this.interval.value = this.config.interval;
+    this._updateInterval();
+    this._updateResize();
   }
 
   update() {
@@ -24,9 +32,18 @@ class ResizeModal extends Modal {
     this.config.setTheme(this.theme.value);
   }
 
-  _updateInfo() {
-    let radius = this.radius = parseInt(this.resize.value) || this.defaultRadius;
-    this.set.innerHTML = `<i class="icon-arrow-top-right-bottom-left"></i> ${radius} (${radius * (radius - 1) * 3 + 1} cells)`;
+  _updateInterval(value) {
+    if (value != null)
+      this.config.interval = parseInt(value) || this.defaultInterval;
+    this.intervalIndicator.innerHTML = this.config.interval;
+  }
+
+  _updateResize(value) {
+    if (value != null)
+      this.radius = parseInt(value) || this.defaultRadius;
+    this.resizeIndicator.innerHTML = this.radius;
+    this.set.innerHTML =
+      `<i class="icon-arrow-top-right-bottom-left"></i> Resize (${this.radius * (this.radius - 1) * 3 + 1} cells)`;
   }
 
   _resize() {

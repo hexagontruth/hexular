@@ -26,7 +26,8 @@ class Config {
       autopause: true,
       background: '#f8f8f8',
       showModelBackground: true,
-      borderWidth: 1,
+      cellGap: 1,
+      cellBorderWidth: 1,
       colors: Hexular.DEFAULTS.colors,
       availableRules: Config.merge({}, Rules),
       rules: Array(this.maxNumStates).fill(this.defaultRule),
@@ -136,6 +137,9 @@ class Config {
     this.rbModal = this.board.modals.rb;
     this.resizeModal = this.board.modals.resize;
 
+    // Adapter
+    this.setShowModelBackground();
+
     // Board
     this.setBackground();
     this.setColors();
@@ -213,12 +217,18 @@ class Config {
     document.body.style.backgroundColor = this.background;
   }
 
-  setBorderWidth(width) {
-    this.borderWidth = width != null ? width : this.borderWidth;
-    this.board.bgAdapter.borderWidth = this.borderWidth;
-    this.board.fgAdapter.borderWidth = this.borderWidth;
+  setCellGap(width) {
+    this.cellGap = width != null ? width : this.cellGap;
+    this.board.bgAdapter.cellGap = this.cellGap;
+    this.board.fgAdapter.cellGap = this.cellGap;
     this.board.bgAdapter.updateMathPresets();
     this.board.fgAdapter.updateMathPresets();
+  }
+
+  setCellBorderWidth(width) {
+    this.cellBorderWidth = width != null ? width : this.cellBorderWidth;
+    this.board.model.cellBorderWidth = this.cellBorderWidth;
+    this.board.model.cellBorderWidth = this.cellBorderWidth;
   }
 
   setColor(idx, color) {
@@ -408,6 +418,32 @@ class Config {
     this.storeSessionConfigAsync();
   }
 
+  setShowModelBackground(value) {
+    value = this.showModelBackground = value != null ? value : this.showModelBackground;
+    let hookList = this.board.bgAdapter.onDraw;
+    let fn = Hexular.classes.adapters.CanvasAdapter.drawCubicBackground;
+    // We don't, at this point, care about order
+    if (value)
+      hookList.includes(fn) || hookList.push(fn);
+    else
+      hookList.includes(fn) && hookList.splice(hookList.indexOf(fn), 1);
+    this.storeSessionConfigAsync();
+  }
+
+  setRecordingMode(value) {
+      let hookList = this.board.bgAdapter.onDraw;
+      let drawCubicBackground = Hexular.classes.adapters.CanvasAdapter.drawCubicBackground;
+      let drawBackground = Hexular.classes.adapters.CanvasAdapter.drawBackground;
+    if (value) {
+      hookList.includes(drawCubicBackground) && hookList.splice(hookList.indexOf(drawCubicBackground), 1);
+      hookList.includes(drawBackground) || hookList.push(drawBackground);
+    }
+    else {
+      hookList.includes(drawBackground) && hookList.splice(hookList.indexOf(drawBackground), 1);
+      this.setShowModelBackground(this.showModelBackground);
+    }
+  }
+
   setSteps(steps) {
     steps = steps != null ? steps : this.steps;
     this.steps = steps;
@@ -419,13 +455,15 @@ class Config {
     if (this.themes[themeName]) {
       this.theme = themeName;
     }
-    let {borderWidth, showModelBackground, background, colors} = Config.defaults;
-    let defaults = {borderWidth, showModelBackground, background, colors};
+    let {cellGap, cellBorderWidth, showModelBackground, background, colors} = Config.defaults;
+    let defaults = {cellGap, showModelBackground, background, colors};
     let theme = Config.merge(defaults, this.themes[this.theme]);
     Config.merge(this, theme);
     this.setBackground()
     this.setColors();
-    this.setBorderWidth();
+    this.setCellGap();
+    this.setCellBorderWidth();
+    this.setShowModelBackground();
     this.board.draw();
     this.storeSessionConfigAsync();
   }
@@ -491,13 +529,15 @@ class Config {
 
   getSessionConfig() {
     let sessionConfig = this.getKeyValues([
-      'borderWidth',
+      'cellBorderWidth',
+      'cellGap',
       'codec',
       'colorMode',
       'defaultRule',
       'filters',
       'fallbackTool',
       'groundState',
+      'interval',
       'maxNumStates',
       'nh',
       'numStates',
@@ -514,6 +554,7 @@ class Config {
       'rbStates',
       'rules',
       'shiftTool',
+      'showModelBackground',
       'steps',
       'theme',
       'tool',

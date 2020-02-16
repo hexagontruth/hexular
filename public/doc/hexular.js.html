@@ -73,7 +73,8 @@ var Hexular = (function () {
     groundState: 0,
     // Used by CanvasAdapter
     cellRadius: 10,
-    borderWidth: 1,
+    cellGap: 1,
+    cellBorderWidth: 0,
     highlightColor: '#ffbb33',
     highlightLineWidth: 2,
     colors: [
@@ -1017,9 +1018,10 @@ var Hexular = (function () {
     /**
      * Creates `HookList` instance.
      *
-     * @param  {*} owner Object or value for populating {@link HookList#owner|this.owner}
+     * @param  {*} owner              Object or value for populating {@link HookList#owner|this.owner}
+     * @param  {function[]} functions Optional list of functions to add
      */
-    constructor(owner) {
+    constructor(owner, functions=[]) {
       super();
       /**
        * Object or value to be bound to functions in hook list.
@@ -1029,6 +1031,19 @@ var Hexular = (function () {
        * @name HookList#owner
        */
       this.owner = owner;
+
+      this.replace(functions)
+    }
+
+    /**
+     * Convenience method for removing all existing callbacks and optionally adding new ones.
+     *
+     * @param  {function[]} functions List of new functions to add
+     */
+    replace(functions=[]) {
+      this.length = 0;
+      for (let fn of functions)
+        this.push(fn);
     }
 
     /**
@@ -1125,9 +1140,114 @@ var Hexular = (function () {
    * platform-specific artifacts. At any rate, one can easily override the default selector-drawing behavior and use a
    * single canvas if desired.
    *
+   * Note that all static methods are intended to be bound to a particular instance via {@link CanvasAdapter#onDraw}
+   * and {@link CanvasAdapter#onDrawCell}, and thus should be treated as instance methods wrt `this` binding, &amp;c. See
+   * {@link HookList} for more details.
+   *
    * @augments Adapter
    */
   class CanvasAdapter extends Adapter {
+
+    /**
+     * Default cell drawing method.
+     *
+     * @param  {Cell} cell The cell being drawn
+     */
+    static drawCellFilled(cell) {
+      this.context.fillStyle = this.colors[cell.state] || this.colors.slice(-1)[0];
+      this._drawHexPath(cell);
+      this.context.fill();
+    }
+
+    /**
+     * Draw cell outline.
+     *
+     * An alternative drawing method that uses {@link CanvasAdapter#cellBorderWidth|this.cellBorderWidth} to draw an
+     * outline instead of a filled hex. Must be manually added via {@link CanvasAdapter#onDrawCell}.
+     *
+     * @param  {Cell} cell The cell being drawn
+     */
+
+    static drawCellOutline(cell) {
+      this.context.strokeStyle = this.colors[cell.state] || this.colors.slice(-1)[0];
+      this.context.lineWidth = this.model.cellBorderWidth;
+      this._drawHexPath(cell);
+      this.context.stroke();
+    }
+
+    /**
+     * Draw cell as filled cicle.
+     *
+     * An alternative drawing method that draws a filled circle instead of a hex. Must be manually added via
+     * {@link CanvasAdapter#onDrawCell}.
+     *
+     * @param  {Cell} cell The cell being drawn
+     */
+
+    static drawCircleFilled(cell) {
+      this.context.fillStyle = this.colors[cell.state] || this.colors.slice(-1)[0];
+      this._drawCirclePath(cell);
+      this.context.fill();
+    }
+
+    /**
+     * Draw cell as outline cicle.
+     *
+     * An alternative drawing method that uses {@link CanvasAdapter#cellBorderWidth|this.cellBorderWidth} to draw an
+     * outlined circle instead of a filled hex. Must be manually added via {@link CanvasAdapter#onDrawCell}.
+     *
+     * @param  {Cell} cell The cell being drawn
+     */
+
+    static drawCircleOutline(cell) {
+      this.context.strokeStyle = this.colors[cell.state] || this.colors.slice(-1)[0];
+      this.context.lineWidth = this.model.cellBorderWidth;
+      this._drawCirclePath(cell);
+      this.context.stroke();
+    }
+
+    /**
+     * Optional {@link CanvasAdapter#onDraw} callback that sorts model cells from lowest to highest state.
+     *
+     * This allows e.g. overlapping drawing functions to be executed in some sensible order, rather than the top-left
+     * to-bottom-right order they would normally be drawn in. This has the potential to slow down larger models quite
+     * a bit.
+     */
+    static sortCells() {
+      this.cells = this.cells || this.model.cells.slice();
+      this.cells.sort((a, b) => a.state - b.state);
+    }
+
+    /**
+     * Optional {@link CanvasAdapter#onDraw} callback that draws a solid background in the style given by
+     * {@link Model#groundState|this.colors[this.model.groundState]}.
+     */
+    static drawBackground() {
+      this.context.save();
+      this.context.setTransform(1, 0, 0, 1, 0, 0);
+      this.context.fillStyle = this.colors[this.model.groundState];
+      this.context.fillRect(0, 0, this.context.canvas.width, this.context.canvas.height);
+      this.context.restore();
+    }
+
+    /**
+     * Optional {@link CanvasAdapter#onDraw} callback that draws a hexagonal background appropriate to the size if the
+     * model in the style given by {@link Model#groundState|this.colors[this.model.groundState]}.
+     */
+    static drawCubicBackground() {
+      if (!this.model.radius) return;
+      let radius = this.model.radius * this.cellRadius * APOTHEM * 2;
+      this.context.beginPath();
+      this.context.moveTo(radius, 0);
+      for (let i = 0; i &lt; 6; i++) {
+        let a = Math.PI / 3 * i;
+        this.context.lineTo(Math.cos(a) * radius, Math.sin(a) * radius);
+      }
+      this.context.closePath();
+      this.context.fillStyle = this.colors[this.model.groundState];
+      this.context.fill();
+    }
+
     /**
      * Creates `CanvasAdapter` instance.
      *
@@ -1167,11 +1287,17 @@ var Hexular = (function () {
          */
         cellRadius: DEFAULTS.cellRadius,
         /**
-         * @name CanvasAdapter#borderWidth
+         * @name CanvasAdapter#cellGap
          * @type number
          * @default 1
          */
-        borderWidth: DEFAULTS.borderWidth,
+        cellGap: DEFAULTS.cellGap,
+        /**
+         * @name CanvasAdapter#cellBorderWidth
+         * @type number
+         * @default 0
+         */
+        cellBorderWidth: DEFAULTS.cellBorderWidth,
         /**
         * @name CanvasAdapter#context
         * @type 2DCanvasRenderingContext2D
@@ -1193,12 +1319,18 @@ var Hexular = (function () {
       this.updateMathPresets();
 
       /**
+       * @name CanvasAdapter#onDraw
+       * @type HookList
+       * @default []
+       */
+      this.onDraw = new HookList(this);
+      /**
        * @name CanvasAdapter#onDrawCell
        * @type HookList
-       * @default {@link CanvasAdapter#defaultDrawCell|[this.defaultDawCell]}
+       * @default {@link CanvasAdapter#drawCellFilled|[this.defaultDawCell]}
        */
       this.onDrawCell = new HookList(this);
-      this.onDrawCell.push(this.defaultDrawCell);
+      this.onDrawCell.push(CanvasAdapter.drawCellFilled);
     }
 
     /**
@@ -1206,19 +1338,20 @@ var Hexular = (function () {
      */
     updateMathPresets() {
       this.cellRadius = this.model.cellRadius;
-      this.innerRadius = this.cellRadius - this.borderWidth / (2 * math.apothem);
+      this.innerRadius = this.cellRadius - this.cellGap / (2 * math.apothem);
       this.vertices = scalarOp(math.vertices, this.innerRadius);
     }
 
     /**
      * Draw all cells on {@link CanvasAdapter#context} context.
      *
-     * @param  {function} fn Optional function to be called after context is cleared, but before cells are drawn.
+     * Calls all functions in {@link CanvasAdapter#onDraw|this.onDraw} after clearing canvas but before drawing cells.
      */
-    draw(fn) {
+    draw() {
+      this.cells = null;
       this.clear();
-      fn &amp;&amp; fn.bind(this)();
-      this.onDrawCell.callParallel(this.model.cells);
+      this.onDraw.call();
+      this.onDrawCell.callParallel(this.cells || this.model.cells);
     }
 
     /**
@@ -1246,20 +1379,6 @@ var Hexular = (function () {
      */
     drawCell(cell) {
       this.onDrawCell.call(cell);
-    }
-
-    /**
-     * Default cell drawing method.
-     *
-     * As this is bound separately to the instance via {@link CanvasAdapter#onDrawCell}, it doesn't strictly speaking
-     * need to be an instance method, but is included here for concern relevance.
-     *
-     * @param  {Cell} cell The cell being drawn
-     */
-    defaultDrawCell(cell) {
-      this.context.fillStyle = this.colors[cell.state] || this.colors.slice(-1)[0];
-      this._drawHexPath(cell);
-      this.context.fill();
     }
 
   /**
@@ -1294,38 +1413,9 @@ var Hexular = (function () {
     }
 
     /**
-     * Draw a background in the style given by {@link Model#groundState|this.colors[this.model.groundState]}.
-     */
-    drawBackground() {
-      this.context.save();
-      this.context.setTransform(1, 0, 0, 1, 0, 0);
-      this.context.fillStyle = this.colors[this.model.groundState];
-      this.context.fillRect(0, 0, this.context.canvas.width, this.context.canvas.height);
-      this.context.restore();
-    }
-
-    /**
-     * Draw a hexagonal background appropriate to  in the style given by {@link Model#groundState|this.colors[this.model.groundState]}.
-     */
-    drawCubicBackground() {
-      if (!this.model.radius) return;
-      let radius = this.model.radius * this.cellRadius * APOTHEM * 2;
-      this.context.beginPath();
-      this.context.moveTo(radius, 0);
-      for (let i = 0; i &lt; 6; i++) {
-        let a = Math.PI / 3 * i;
-        this.context.lineTo(Math.cos(a) * radius, Math.sin(a) * radius);
-      }
-      this.context.closePath();
-      this.context.fillStyle = this.colors[this.model.groundState];
-      this.context.fill();
-    }
-
-    /**
      * Internal method used to draw hexes for both selectors and cells.
      *
-     * @param  {CanvasRenderingContext2D} ctx  Drawing context
-     * @param  {Cell} cell                     The cell being drawn
+     * @param  {Cell} cell The cell being drawn
      */
     _drawHexPath(cell) {
       const [x, y] = this.model.cellMap.get(cell);
@@ -1338,6 +1428,21 @@ var Hexular = (function () {
       ctx.lineTo(x + vertices[3][1], y + vertices[3][0]);
       ctx.lineTo(x + vertices[4][1], y + vertices[4][0]);
       ctx.lineTo(x + vertices[5][1], y + vertices[5][0]);
+      ctx.closePath();
+    }
+
+    /**
+     * Internal method used to draw circle at cell's position using {#link Model#cellRadius}.
+     *
+     * Convenience method for use by optional or custom drawing callbacks.
+     *
+     * @param  {Cell} cell The cell being drawn
+     */
+    _drawCirclePath(cell) {
+      const [x, y] = this.model.cellMap.get(cell);
+      let ctx = this.context;
+      ctx.beginPath();
+      ctx.arc(x, y, this.innerRadius, 0, Math.PI * 2);
       ctx.closePath();
     }
   }

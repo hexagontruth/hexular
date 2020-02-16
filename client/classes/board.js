@@ -179,10 +179,10 @@ class Board {
       button.onmousedown = (ev) => this.handleSetColor(ev, i);
     });
 
-    let {radius, numStates, groundState, cellRadius, borderWidth, colors} = this.config;
+    let {radius, numStates, groundState, cellRadius, cellGap, colors} = this.config;
     this.model = Hexular({radius, numStates, groundState, cellRadius});
-    this.bgAdapter = this.model.CanvasAdapter({context: this.bgCtx, borderWidth, colors});
-    this.fgAdapter = this.model.CanvasAdapter({context: this.fgCtx, borderWidth, colors});
+    this.bgAdapter = this.model.CanvasAdapter({context: this.bgCtx, cellGap, colors});
+    this.fgAdapter = this.model.CanvasAdapter({context: this.fgCtx, cellGap, colors});
     this.resize();
 
     this.modals = {
@@ -212,12 +212,7 @@ class Board {
     if (this.bgAdapter && !this.drawPromise) {
       this.drawPromise = new Promise((resolve, reject) => {
         requestAnimationFrame(() => {
-          let callback;
-          if (!!this.recorder)
-            callback = this.bgAdapter.drawBackground;
-          else if (this.config.showModelBackground)
-            callback = this.bgAdapter.drawCubicBackground;
-          this.bgAdapter.draw(callback);
+          this.bgAdapter.draw();
           this.recorder && this.recorder.draw();
           this.drawPromise = null;
           resolve();
@@ -238,15 +233,17 @@ class Board {
       this.buttons.toggleRecord.className = 'icon-stop active';
       this.setButtonTitle(this.buttons.toggleRecord, 'Stop');
       this.recorder = new Recorder(this);
+      this.config.setRecordingMode(true);
       this.draw().then(() => this.recorder.start());
     }
     else {
+      this.recorder.stop();
+      this.recorder = null;
       requestAnimationFrame(() => {
         this.stop();
         this.draw();
       });
-      this.recorder.stop();
-      this.recorder = null;
+      this.config.setRecordingMode(false);
       this.buttons.toggleRecord.className = 'icon-record';
       this.setButtonTitle(this.buttons.toggleRecord, 'Record');
       this.buttons.allNonrecording.forEach((e) => e.disabled = false);

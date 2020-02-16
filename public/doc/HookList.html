@@ -26,7 +26,7 @@
 
 <header>
     
-        <h2><span class="attribs"><span class="type-signature"></span></span>HookList<span class="signature">(owner)</span><span class="type-signature"></span></h2>
+        <h2><span class="attribs"><span class="type-signature"></span></span>HookList<span class="signature">(owner, functions)</span><span class="type-signature"></span></h2>
         
             <div class="class-description"><p>Class representing a list of callback hooks</p>
 <p>This class extends <code>Array</code>, and we can use standard array methods — e.g. <code>push</code>, &amp;c. — to populate it.</p></div>
@@ -44,7 +44,7 @@
     
 
     
-    <h4 class="name" id="HookList"><span class="type-signature"></span>new HookList<span class="signature">(owner)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="HookList"><span class="type-signature"></span>new HookList<span class="signature">(owner, functions)</span><span class="type-signature"></span></h4>
     
 
     
@@ -108,6 +108,29 @@
         </tr>
 
     
+
+        <tr>
+            
+                <td class="name"><code>functions</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;function()></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Optional list of functions to add</p></td>
+        </tr>
+
+    
     </tbody>
 </table>
 
@@ -145,7 +168,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line996">line 996</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line998">line 998</a>
     </li></ul></dd>
     
 
@@ -251,7 +274,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line998">line 998</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1000">line 1000</a>
     </li></ul></dd>
     
 
@@ -432,7 +455,7 @@ arguments.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1027">line 1027</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1042">line 1042</a>
     </li></ul></dd>
     
 
@@ -637,7 +660,144 @@ more complex intercellular drawings.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1045">line 1045</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1060">line 1060</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="replace"><span class="type-signature"></span>replace<span class="signature">(functions)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Convenience method for removing all existing callbacks and optionally adding new ones.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>functions</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;function()></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>List of new functions to add</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1017">line 1017</a>
     </li></ul></dd>
     
 
