@@ -15,6 +15,21 @@ const Themes = (() => {
     '#aa55bb',
   ]);
 
+  let rainbow = Object.assign([], Hexular.DEFAULTS.colors, [
+    '#ffffff',
+    '#ff0000',
+    '#ffaa00',
+    '#aaff00',
+    '#00ff00',
+    '#00ffff',
+    '#00aaff',
+    '#0066ff',
+    '#0000ff',
+    '#aa00ff',
+    '#ff00ff',
+    '#ff00aa',
+  ]);
+
   let themes = {
     light: {
     },
@@ -49,6 +64,27 @@ const Themes = (() => {
       background: '#ffffff',
       colors: Hexular.DEFAULTS.colors.slice(),
     },
+    lightRainbow: {
+      borderWidth: -0.5,
+      colors: rainbow,
+    },
+    vaporRainbow : {
+      borderWidth: -0.5,
+      colors: Config.merge(classicColors, [
+        '#fffff7',
+        '#f7f7ef',
+        '#efefe7',
+        '#e7e7df',
+        '#ff0000',
+        '#ffaa00',
+        '#aaff00',
+        '#00ff00',
+        '#00ffff',
+        '#00aaff',
+        '#9900ff',
+        '#ff0099',
+      ]),
+    },
     beigeRainbow: {
       background: '#ffffff',
       colors: [
@@ -80,20 +116,7 @@ const Themes = (() => {
     darkRainbow: {
       background: '#111111',
       borderWidth: -0.5,
-      colors: [
-        '#000000',
-        '#ff0000',
-        '#ffaa00',
-        '#aaff00',
-        '#00ff00',
-        '#00ffff',
-        '#00aaff',
-        '#0066ff',
-        '#0000ff',
-        '#aa00ff',
-        '#ff00ff',
-        '#ff00aa',
-      ],
+      colors: Config.merge(rainbow, ['#000000']),
     },
   };
   return themes;

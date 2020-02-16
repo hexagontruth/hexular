@@ -95,8 +95,9 @@ The [`ruleBuilder`](Hexular.util.html#.ruleBuilder) function allows for "conveni
   - `range = [1, 7]`
   - `miss = 0`
   - `match = 1`
-  - `missDelta = false`
-  - `matchDelta = false`
+  - `missRel = false`
+  - `matchRel = false`
+  - `rel = false`
 
 The `range` attribute determines which neighbors to consider when applying the rule, with the default being `[1, 7]` (corresponding to the immediate neighborhood N6). This can be changed to e.g. `[0, 7]` to include the home cell itself, or `[1, 19]` to consider the 18 nearest neighbors excluding the home cell. The individual state masks in the first argument array are thus 6 bits in the default case (0-63), or 7 bits in the latter case (0-127). The "rule number" produced will be up to 64 bits, or 18,446,744,073,709,551,616 possible combinations, for the 6-neighbor default, or up to 128 bits, or 340,282,366,920,938,463,463,374,607,431,768,211,456 possible combinations, for the 7-neighbor variant. If one were to consider the full `[0, 19]` neighborhood, one would have a 157,827-decimal-digit-long number of possible rules, which I will not repeat here.
 
@@ -116,7 +117,7 @@ If we wanted to have the same rule subtract 1 from the current cell state on rul
           0b001001,
           0b010010,
           0b100100
-        ], {miss: 0, missDelta: true, match: -1});
+        ], {miss: 0, missRel: true, match: -1});
 
 Note this would be a somewhat useless rule under most circumstances.
 
@@ -265,11 +266,11 @@ The rulebuilder modal (Ctrl+B) exposes a somewhat-simplified interface for calli
 
 Note that the miss and match rules can interact with [`deltaFilter`](Hexular.filters.html#.deltaFilter) in strange ways. For instance, a rule built using the default settings in this modal, coupled with `deltaFilter`, will have the same effect as one without the filter, but with the match rule set to "State + 1." Likewise, if we then add the filter back in, we will add the state twice on matches &mdash; which may or may not be desirable, but is sort of weird.
 
-Elementary rules constructed through the rulebuilder interface are only a small subset of possible rules using the core cell API, and they do not, at this point, differentiate between nonzero cell states. Thus they are not suited for "noisy" rulesets where all or most cells are in a nonzero state (e.g., what one sees with the built-in preset "grayGoo").
+The rule is copied to a text field at the bottom of the modal, where it can be further edited before instantiation by e.g. adding custom `miss` and `match` values, or saved as part of a larger scripted customization. The array as populated can be fed into the `ruleBuilder` function using ES6 spread syntax (`...`), or by simply decoupling the two constituent elements from the array.
 
-The rule is copied to a text field at the bottom of the modal, where it can be further edited before instantiation by e.g. adding custom `miss` and `match` values, or saved as part of a larger JavaScript customization. The array as populated can be fed into the `ruleBuilder` function using ES6 spread syntax (`...`), or by simply decoupling the two constituent elements from the array.
+Elementary rules constructed through the rulebuilder interface are only a small subset of possible rules using the core cell API, and they do not, by default, differentiate between nonzero cell states. Thus they are not suited for "noisy" rulesets where all or most cells are in a nonzero state (e.g., what one sees with the built-in preset "grayGoo"). There is however an optional attribute `rel`, exposed bottom text field, which causes the rule to compare neighbor states relative to the current state, matching where a neighbor has an equal or greater nonzero value to the current state.
 
-Please note that, as with most persistent attributes in the demo frontend, previous values will simply be overwritten &mdash; this allows one to e.g. iterate quickly when developing an experimental rule.
+Note that, as with most persistent attributes in the demo frontend, previous values will simply be overwritten &mdash; this allows one to e.g. iterate quickly when developing an experimental rule.
 
 #### Timer hooks
 

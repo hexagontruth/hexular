@@ -37,7 +37,7 @@ class Config {
       defaultFilename: 'hexular.bin',
       defaultVideoFilename: 'hexular.webm',
       defaultSettingsFilename: 'hexular.json',
-      codec: 'vp9',
+      codec: 'h264',
       scaleFactor: 1,
       tool: 'brush',
       shiftTool: 'move',
@@ -47,10 +47,11 @@ class Config {
       steps: 0,
       rbName: 'newElementaryRule',
       rbMiss: 0,
-      rbMissDelta: 0,
       rbMatch: 1,
-      rbMatchDelta: 0,
-      rbMasks: Array(64).fill(false),
+      rbMissRel: 0,
+      rbMatchRel: 0,
+      rbRel: 0,
+      rbStates: Array(64).fill(false),
       localStorageObj: window.localStorage,
       sessionStorageObj: window.sessionStorage,
     };
@@ -156,10 +157,10 @@ class Config {
 
     // Rule builder modal
     this.rbModal.ruleName.value = this.rbName || Config.defaults.rbName;
-    this.setRuleMiss([this.rbMiss, this.rbMissDelta]);
-    this.setRuleMatch([this.rbMatch, this.rbMatchDelta]);
-    this.rbModal.maskElements.forEach((e, i) => {
-      this.rbMasks[i] && e.classList.add('active');
+    this.setRbMiss([this.rbMiss, this.rbMissRel]);
+    this.setRbMatch([this.rbMatch, this.rbMatchRel]);
+    this.rbModal.stateElements.forEach((e, i) => {
+      this.rbStates[i] && e.classList.add('active');
     });
     this.rbModal.updateRuleString();
     this.rbModal.update();
@@ -380,7 +381,7 @@ class Config {
     this.storeSessionConfig();
   }
 
-  setRuleName(ruleName) {
+  setRbName(ruleName) {
     ruleName = ruleName || this.rbModal.ruleName.value || this.rbName;
     ruleName = ruleName.length != 0 ? ruleName : null;
     this.rbName = ruleName;
@@ -389,20 +390,20 @@ class Config {
     this.storeSessionConfigAsync();
   }
 
-  setRuleMiss(tuple) {
-    let [miss, missDelta] = tuple || this._strToTuple(this.rbModal.ruleMiss.value);
+  setRbMiss(tuple) {
+    let [miss, missRel] = tuple || this._strToTuple(this.rbModal.ruleMiss.value);
     this.rbMiss = miss;
-    this.rbMissDelta = missDelta;
-    this.rbModal.ruleMiss.value = this._tupleToStr([miss, missDelta]);
+    this.rbMissRel = missRel;
+    this.rbModal.ruleMiss.value = this._tupleToStr([miss, missRel]);
     this.rbModal.updateRuleString();
     this.storeSessionConfigAsync();
   }
 
-  setRuleMatch(tuple) {
-    let [match, matchDelta] = tuple || this._strToTuple(this.rbModal.ruleMatch.value);
+  setRbMatch(tuple) {
+    let [match, matchRel] = tuple || this._strToTuple(this.rbModal.ruleMatch.value);
     this.rbMatch = match;
-    this.rbMatchDelta = matchDelta;
-    this.rbModal.ruleMatch.value = this._tupleToStr([match, matchDelta]);
+    this.rbMatchRel = matchRel;
+    this.rbModal.ruleMatch.value = this._tupleToStr([match, matchRel]);
     this.rbModal.updateRuleString();
     this.storeSessionConfigAsync();
   }
@@ -491,6 +492,7 @@ class Config {
   getSessionConfig() {
     let sessionConfig = this.getKeyValues([
       'borderWidth',
+      'codec',
       'colorMode',
       'defaultRule',
       'filters',
@@ -503,12 +505,13 @@ class Config {
       'paintColors',
       'preset',
       'radius',
-      'rbMasks',
-      'rbMatch',
-      'rbMatchDelta',
       'rbMiss',
-      'rbMissDelta',
+      'rbMatch',
+      'rbMissRel',
+      'rbMatchRel',
       'rbName',
+      'rbRel',
+      'rbStates',
       'rules',
       'shiftTool',
       'steps',

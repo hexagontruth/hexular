@@ -628,7 +628,7 @@ body .modal button.checkable:hover {
   }
 }
 
-.modal #mask-grid {
+.modal #state-grid {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -638,7 +638,7 @@ body .modal button.checkable:hover {
   margin: 0.25em 0;
 }
 
-button.rulemask {
+button.statemask {
 
   width: auto;
   height: 2em;
@@ -648,34 +648,34 @@ button.rulemask {
   background-color: transparent;
 }
 
-button.rulemask.active, button.rulemask:hover {
+button.statemask.active, button.statemask:hover {
   background-color: transparent !important;
 }
 
-.rulemask svg {
+.statemask svg {
   display: block;
   width: auto;
   height: 100%;
   margin: 0 auto;
 }
 
-.rulemask svg polygon.home-cell {
+.statemask svg polygon.home-cell {
   fill: none;
 }
 
-.rulemask svg polygon.off {
+.statemask svg polygon.off {
   fill: #ccc;
 }
 
-.rulemask.active svg polygon.home-cell {
+.statemask.active svg polygon.home-cell {
   fill: #66ddee;
 }
 
-.rulemask:hover svg polygon:not(.home-cell) {
+.statemask:hover svg polygon:not(.home-cell) {
   fill: #ffbb33;
 }
 
-.rulemask:hover svg polygon.off:not(.home-cell) {
+.statemask:hover svg polygon.off:not(.home-cell) {
   fill: #ffbb3399;
 }
 

@@ -218,6 +218,7 @@ class Board {
           else if (this.config.showModelBackground)
             callback = this.bgAdapter.drawCubicBackground;
           this.bgAdapter.draw(callback);
+          this.recorder && this.recorder.draw();
           this.drawPromise = null;
           resolve();
         });

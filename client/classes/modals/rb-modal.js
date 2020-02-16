@@ -1,24 +1,25 @@
 class RbModal extends Modal {
   constructor(...args) {
     super(...args);
-    let masks = this.config.rbMasks;
+    let states = this.config.rbStates;
     this.ruleName = document.querySelector('#rule-name');
     this.selectAvailable = document.querySelector('#select-available').select;
     this.selectAll = document.querySelector('#rule-select-all');
     this.ruleMiss = document.querySelector('#rule-miss').select;
     this.ruleMatch = document.querySelector('#rule-match').select;
-    this.maskGrid = document.querySelector('#mask-grid');
+    this.stateGrid = document.querySelector('#state-grid');
     this.ruleString = document.querySelector('#rule-string');
-    this.add = document.querySelector('#add-rule');
-    this.maskElements = [];
-    this.setState = null;
+    this.resetButton = document.querySelector('#reset-rule');
+    this.addButton = document.querySelector('#add-rule');
+    this.stateElements = [];
+    this.settingState = null;
 
-    while (this.maskGrid.firstChild)
-      this.maskGrid.firstChild.remove();
-    let template = document.querySelector('.rulemask');
-    masks.forEach((state, i) => {
+    while (this.stateGrid.firstChild)
+      this.stateGrid.firstChild.remove();
+    let template = document.querySelector('.statemask');
+    states.forEach((state, i) => {
       let item = template.cloneNode(true);
-      this.maskElements.push(item);
+      this.stateElements.push(item);
       item.setAttribute('title', i);
       let nbrs = item.querySelectorAll('polygon');
 
@@ -27,63 +28,69 @@ class RbModal extends Modal {
         if (!bit)
           nbr.classList.add('off');
       });
-      this.maskGrid.appendChild(item);
+      this.stateGrid.appendChild(item);
       item.onmousedown = () => {
-        this.setState = !masks[i];
-        this.setMask(i);
+        this.settingState = !states[i];
+        this.setState(i);
       };
       item.onkeydown = (ev) => {
         if (ev.key == ' ' || ev.key == 'Enter') {
-          this.setMask(i, !masks[i]);
+          this.setState(i, !states[i]);
           this.updateRuleString();
           this.config.storeSessionConfigAsync();
         }
       }
       item.onmousemove = () => {
-        this.setState != null && this.setMask(i);
+        this.settingState != null && this.setState(i);
       }
     });
 
     this.modal.onmouseup = this.modal.onmouseleave = () => {
-      this.setState = null;
+      this.settingState = null;
       this.updateRuleString();
       this.config.storeSessionConfigAsync();
     };
 
     this.selectAvailable.onchange = () => {
       let rule = this.selectAvailable.value;
-      this.config.setRuleName(rule + 'Copy');
+      this.config.setRbName(rule + 'Copy');
       let fn = this.config.availableRules[rule];
-      if (fn)
+      if (fn) {
+        let obj = JSON.parse(fn);
+        delete obj[1].range;
+        fn = JSON.stringify(obj);
         this.ruleString.value = fn.toString();
+      }
       this.parseRuleString();
     };
 
     this.selectAll.onclick = () => {
-      this.setState = this.selectAll.classList.toggle('active');
+      this.settingState = this.selectAll.classList.toggle('active');
       for (let i = 0; i < 64; i++)
-        this.setMask(i);
-      this.setState = null;
+        this.setState(i);
+      this.settingState = null;
       this.updateRuleString();
       this.config.storeSessionConfigAsync();
     };
 
-    this.ruleName.onchange = () => this.config.setRuleName();
+    this.ruleName.onchange = () => this.config.setRbName();
 
     this.ruleName.oninput = () => {
       if (this.ruleName.value.length > 0)
-        this.add.disabled = false;
+        this.addButton.disabled = false;
       else
-        this.add.disabled = true;
+        this.addButton.disabled = true;
     };
 
-    this.ruleMiss.onchange = () => this.config.setRuleMiss();
-    this.ruleMatch.onchange = () => this.config.setRuleMatch();
+    this.ruleMiss.onchange = () => this.config.setRbMiss();
+    this.ruleMatch.onchange = () => this.config.setRbMatch();
 
     this.ruleString.onchange = () => this.parseRuleString();
     this.ruleString.onfocus = () => this.ruleString.select();
 
-    this.add.onclick = () => {
+    this.resetButton.onclick = () => this.clear();
+
+    this.addButton.onclick = () => {
       let [rule, opts] = this.getRuleString();
       if (!rule) {
         rule = this._getMasks();
@@ -96,18 +103,27 @@ class RbModal extends Modal {
     };
   }
 
+  clear() {
+    this.config.setRbMiss([Config.defaults.rbMiss, Config.defaults.rbMissRel]);
+    this.config.setRbMatch([Config.defaults.rbMatch, Config.defaults.rbMatchRel]);
+    this.config.setRbName(Config.defaults.rbName);
+    this.config.rbRel = Config.defaults.rbRel;
+    this.setStates([], false);
+    this.updateRuleString();
+  }
+
   update() {
     let rbRules = Object.entries(this.config.availableRules).filter(([rule, fn]) => fn.n).map(([rule, fn]) => rule);
     this.selectAvailable.replace(rbRules, this.ruleName.value, 1);
   }
 
-  setMask(idx, value=this.setState) {
-    let masks = this.config.rbMasks;
-    masks[idx] = value
-    let item = this.maskElements[idx];
+  setState(idx, value=this.settingState) {
+    let states = this.config.rbStates;
+    states[idx] = value
+    let item = this.stateElements[idx];
     if (value) {
       item.classList.add('active');
-      if (!masks.some((e) => !e)) {
+      if (!states.some((e) => !e)) {
         this.selectAll.classList.add('active');
       }
     }
@@ -117,20 +133,20 @@ class RbModal extends Modal {
     }
   }
 
-  setMasks(array, value=this.setState) {
-    let masks = this.config.rbMasks;
-    masks.fill(false);
-    this.maskElements.forEach((e) => e.classList.remove('active'));
+  setStates(array, value=this.settingState) {
+    let states = this.config.rbStates;
+    states.fill(false);
+    this.stateElements.forEach((e) => e.classList.remove('active'));
     array.forEach((idx) => {
-      if (masks[idx] == null)
+      if (states[idx] == null)
         return;
-      masks[idx] = value;
+      states[idx] = value;
       if (value)
-        this.maskElements[idx].classList.add('active');
+        this.stateElements[idx].classList.add('active');
       else
-        this.maskElements[idx].classList.remove('active');
+        this.stateElements[idx].classList.remove('active');
     });
-    if (masks.filter((e) => e).length == 64)
+    if (states.filter((e) => e).length == 64)
       this.selectAll.classList.add('active');
     else
       this.selectAll.classList.remove('active');
@@ -151,10 +167,11 @@ class RbModal extends Modal {
   updateRuleString() {
     let [strRule, strOpts] = this.getRuleString();
     let configRule = this._getMasks();
-    let [miss, missDelta] = [this.config.rbMiss, this.config.rbMissDelta];
-    let [match, matchDelta] = [this.config.rbMatch, this.config.rbMatchDelta];
+    let [miss, missRel] = [this.config.rbMiss, this.config.rbMissRel];
+    let [match, matchRel] = [this.config.rbMatch, this.config.rbMatchRel];
+    let rel = this.config.rbRel;
     let rule = configRule ? configRule : strRule;
-    let opts = Config.merge({}, strOpts, {miss, missDelta, match, matchDelta});
+    let opts = Config.merge({}, strOpts, {miss, match, missRel, matchRel, rel});
     let ruleString  = JSON.stringify([rule, opts]);
     if (this.ruleString.value != ruleString) {
       this.ruleString.value = ruleString;
@@ -165,24 +182,25 @@ class RbModal extends Modal {
   parseRuleString() {
     let [rules, opts] = this.getRuleString();
     if (rules) {
-      this.setMasks(rules, true);
-      let {miss, missDelta, match, matchDelta} = opts;
-      this.config.setRuleMiss([miss, missDelta]);
-      this.config.setRuleMatch([match, matchDelta]);
+      this.setStates(rules, true);
+      let {miss, match, missRel, matchRel, rel} = opts;
+      this.config.rbRel = rel;
+      this.config.setRbMiss([miss, missRel]);
+      this.config.setRbMatch([match, matchRel]);
       this.config.storeSessionConfigAsync();
     }
   }
 
   _getMasks() {
-    return this.config.rbMasks.map((e, i) => e && i).filter((e) => e !== false);
+    return this.config.rbStates.map((e, i) => e && i).filter((e) => e !== false);
   }
 
   _getOpts() {
     return {
       miss: this.config.rbMiss,
-      missDelta: this.config.rbMissDelta,
+      missRel: this.config.rbMissRel,
       match: this.config.match,
-      matchDelta: this.config.matchDelta,
+      matchRel: this.config.matchRel,
     };
   }
 }

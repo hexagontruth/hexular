@@ -143,8 +143,9 @@ end user to implement her own extensions via the Hexular API:</p>
 <li><code>range = [1, 7]</code></li>
 <li><code>miss = 0</code></li>
 <li><code>match = 1</code></li>
-<li><code>missDelta = false</code></li>
-<li><code>matchDelta = false</code></li>
+<li><code>missRel = false</code></li>
+<li><code>matchRel = false</code></li>
+<li><code>rel = false</code></li>
 </ul>
 <p>The <code>range</code> attribute determines which neighbors to consider when applying the rule, with the default being <code>[1, 7]</code> (corresponding to the immediate neighborhood N6). This can be changed to e.g. <code>[0, 7]</code> to include the home cell itself, or <code>[1, 19]</code> to consider the 18 nearest neighbors excluding the home cell. The individual state masks in the first argument array are thus 6 bits in the default case (0-63), or 7 bits in the latter case (0-127). The &quot;rule number&quot; produced will be up to 64 bits, or 18,446,744,073,709,551,616 possible combinations, for the 6-neighbor default, or up to 128 bits, or 340,282,366,920,938,463,463,374,607,431,768,211,456 possible combinations, for the 7-neighbor variant. If one were to consider the full <code>[0, 19]</code> neighborhood, one would have a 157,827-decimal-digit-long number of possible rules, which I will not repeat here.</p>
 <p>This representation is obviously a bit less well-suited to the brute indexing approach than Wolfram's 256 one-dimensional rules, but it is hoped that at least the array version will be helpful in constructing simple rules, which may then be composed into more complex rules, &amp;c.</p>
@@ -160,7 +161,7 @@ end user to implement her own extensions via the Hexular API:</p>
       0b001001,
       0b010010,
       0b100100
-    ], {miss: 0, missDelta: true, match: -1});
+    ], {miss: 0, missRel: true, match: -1});
 </code></pre>
 <p>Note this would be a somewhat useless rule under most circumstances.</p>
 <p>Please the relevant <a href="Hexular.util.html#.ruleBuilder">documentation</a> for additional details on the ruleBuilder function.</p>
@@ -287,9 +288,9 @@ end user to implement her own extensions via the Hexular API:</p>
 <h4 id="rulebuilder">Rulebuilder</h4>
 <p>The rulebuilder modal (Ctrl+B) exposes a somewhat-simplified interface for calling the <a href="Hexular.util.html#.ruleBuilder"><code>ruleBuilder</code></a> function discussed above, limited to the <code>N6</code> neighborhood, and six possible miss and match states, with the default being to set cell state to 0 on misses, and 1 on matches.</p>
 <p>Note that the miss and match rules can interact with <a href="Hexular.filters.html#.deltaFilter"><code>deltaFilter</code></a> in strange ways. For instance, a rule built using the default settings in this modal, coupled with <code>deltaFilter</code>, will have the same effect as one without the filter, but with the match rule set to &quot;State + 1.&quot; Likewise, if we then add the filter back in, we will add the state twice on matches — which may or may not be desirable, but is sort of weird.</p>
-<p>Elementary rules constructed through the rulebuilder interface are only a small subset of possible rules using the core cell API, and they do not, at this point, differentiate between nonzero cell states. Thus they are not suited for &quot;noisy&quot; rulesets where all or most cells are in a nonzero state (e.g., what one sees with the built-in preset &quot;grayGoo&quot;).</p>
-<p>The rule is copied to a text field at the bottom of the modal, where it can be further edited before instantiation by e.g. adding custom <code>miss</code> and <code>match</code> values, or saved as part of a larger JavaScript customization. The array as populated can be fed into the <code>ruleBuilder</code> function using ES6 spread syntax (<code>...</code>), or by simply decoupling the two constituent elements from the array.</p>
-<p>Please note that, as with most persistent attributes in the demo frontend, previous values will simply be overwritten — this allows one to e.g. iterate quickly when developing an experimental rule.</p>
+<p>The rule is copied to a text field at the bottom of the modal, where it can be further edited before instantiation by e.g. adding custom <code>miss</code> and <code>match</code> values, or saved as part of a larger scripted customization. The array as populated can be fed into the <code>ruleBuilder</code> function using ES6 spread syntax (<code>...</code>), or by simply decoupling the two constituent elements from the array.</p>
+<p>Elementary rules constructed through the rulebuilder interface are only a small subset of possible rules using the core cell API, and they do not, by default, differentiate between nonzero cell states. Thus they are not suited for &quot;noisy&quot; rulesets where all or most cells are in a nonzero state (e.g., what one sees with the built-in preset &quot;grayGoo&quot;). There is however an optional attribute <code>rel</code>, exposed bottom text field, which causes the rule to compare neighbor states relative to the current state, matching where a neighbor has an equal or greater nonzero value to the current state.</p>
+<p>Note that, as with most persistent attributes in the demo frontend, previous values will simply be overwritten — this allows one to e.g. iterate quickly when developing an experimental rule.</p>
 <h4 id="timer-hooks">Timer hooks</h4>
 <p>We can add functions to be called at a given time index during play or recording via the <code>board.addHook()</code> method. For example, to turn cells with state 4 cyan after five seconds, we could run the following from the console or the custom code modal:</p>
 <pre><code>    Board.instance.addHook('timer', 5, () =&gt; Board.config.setColor(3, '#33cccc'));

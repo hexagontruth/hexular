@@ -1484,8 +1484,10 @@ var Hexular = (function () {
   * @param {number[]} [opts.range=[1, 7]]     Neighborhood range &amp;mdash; default is N6 (immediate neighbors)
   * @param {number} [opts.miss=0]             Value to set on rule miss
   * @param {number} [opts.match=1]            Value to set on rule match
-  * @param {boolean} [opts.missDelta=false]   Whether to increment miss value from current state
-  * @param {boolean} [opts.matchDelta=false]  Whether to increment match value from current state
+  * @param {boolean} [opts.missRel=false]     Whether to increment miss value from current state
+  * @param {boolean} [opts.matchRel=false]    Whether to increment match value from current state
+  * @param {boolean} [opts.rel=false]         If true, compare neighbors with current state, matching when former is
+  *                                           nonzero and difference is >= 0
   * @return {function}                        A rule function taking a {@link Cell} instance and returning an integer
   * @memberof Hexular.util
   * @see {@link Cell#nbrs}
@@ -1495,14 +1497,16 @@ var Hexular = (function () {
       range: [1, 7],
       miss: 0,
       match: 1,
-      missDelta: 0,
-      matchDelta: 0,
+      missRel: 0,
+      matchRel: 0,
+      rel: 0,
     };
-    let {range, miss, match, missDelta, matchDelta} = Object.assign(defaults, opts);
+    let {range, miss, match, missRel, matchRel, rel} = Object.assign(defaults, opts);
     let [start, stop] = range;
     let rangeLength = stop - start;
-    missDelta = +missDelta;
-    matchDelta = +matchDelta;
+    missRel = +missRel;
+    matchRel = +matchRel;
+    rel = +rel;
 
     let n;
     if (ruleDef &amp;&amp; ruleDef.length) {
@@ -1519,18 +1523,20 @@ var Hexular = (function () {
     }
 
     let rule = (cell) => {
-      let mask = 0;
+      let nbrStates = 0;
       for (let i = 0; i &lt; rangeLength; i++) {
-        mask = mask | ((cell.nbrs[start + i].state ? 1 : 0) &lt;&lt; (rangeLength - i - 1));
+        let nbrState = cell.nbrs[start + i].state
+        let nbrDiff = nbrState - cell.state * rel;
+        nbrStates = nbrStates | ((nbrState &amp;&amp; nbrDiff >= 0 ? 1 : 0) &lt;&lt; (rangeLength - i - 1));
       }
-      return (n >> BigInt(mask)) % 2n ?
-        (cell.state * matchDelta) + match :
-        (cell.state * missDelta) + miss;
+      return (n >> BigInt(nbrStates)) % 2n ?
+        (cell.state * matchRel) + match :
+        (cell.state * missRel) + miss;
     };
     rule.n = n;
     rule.range = range;
     rule.toString = () => {
-      return JSON.stringify([ruleDef, {miss, missDelta, match, matchDelta}]);
+      return JSON.stringify([ruleDef, {range, miss, match, missRel, matchRel, rel}]);
     };
     return rule;
   }
