@@ -97,7 +97,26 @@
       <div class="modal-content">
         <div class="group">
           <label class="left">Theme:</label>
-          <select id="select-theme" class="focus"></select>
+          <select id="select-theme" class="focus" title="Select theme"></select>
+        </div>
+        <div class="group">
+          <label class="left">Interval:</label>
+          <input type="range" id="interval-slider" min="0" max="1000" step="10"
+            value="60" list="interval-ticks" title="Timer interval (ms)"/>
+          <datalist id="interval-ticks">
+            <option>0</option>
+            <option>100</option>
+            <option>200</option>
+            <option>300</option>
+            <option>400</option>
+            <option>500</option>
+            <option>600</option>
+            <option>700</option>
+            <option>800</option>
+            <option>900</option>
+            <option>1000</option>
+          </datalist>
+          <label id="interval-indicator" class="indicator"></label>
         </div>
         <div class="group">
           <label class="left">Radius:</label>
@@ -118,6 +137,7 @@
             <option>330</option>
             <option>360</option>
           </datalist>
+          <label id="resize-indicator" class="indicator"></label>
         </div>
         <div class="group buttons">
           <button id="resize-set"></button>
