@@ -4,8 +4,8 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no"/>
   <link rel="icon" type="image/png" href="icon.png"/>
-  <script src="build/client.js?v=0.4"></script>
-  <link rel="stylesheet" type="text/css" href="build/client.css?v=0.4"/>
+  <script src="build/client.js?v=0.5"></script>
+  <link rel="stylesheet" type="text/css" href="build/client.css?v=0.5"/>
   <title>Hexular Studio</title>
 </head>
 <body class="splash">
@@ -167,12 +167,13 @@
             <option value="-1:1">State -1</option>
           </select>
         </div>
-        <div id="mask-grid">
+        <div id="state-grid">
         </div>
         <div class="group">
           <input type="text" id="rule-string" title="Hexular.util.ruleBuilder(...arguments)"/>
         </div>
         <div class="group buttons">
+          <button id="reset-rule">Reset</button>
           <button id="add-rule">Save rule</button>
         </div>
       </div>
@@ -263,7 +264,7 @@
       <button class="checkable"></button>
       <select></select>
     </div>
-    <button class="rulemask">
+    <button class="statemask">
       <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
        width="100px" height="100px" viewBox="0 0 100 100" xml:space="preserve" fill="#333333" preserveAspectRatio="xMidYMid meet">
         <polygon class="home-cell" points="50,67.571 34.783,58.785 34.783,41.214 50,32.429 65.217,41.214 65.217,58.785"/>
