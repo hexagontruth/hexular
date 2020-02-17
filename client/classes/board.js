@@ -16,6 +16,9 @@ class Board {
         }
         Board.config = board.config;
         Board.model = board.model;
+        Board.bgAdapter = board.bgAdapter;
+        Board.fgAdapter = board.fgAdapter;
+        Board.modals = board.modals;
         await board.draw();
         document.body.classList.remove('splash');
         resolve();
@@ -38,6 +41,8 @@ class Board {
       hooks: {
         timer: [],
       },
+      scaling: false,
+      scaleQueue: [],
       toolClasses: {
         move: MoveAction,
         fill: FillAction,
@@ -56,6 +61,7 @@ class Board {
         'hexoutline',
       ],
       modal: null,
+      modalTranslate: null,
       container: document.querySelector('.container'),
       overlay: document.querySelector('.overlay'),
       message: document.querySelector('.message'),
@@ -218,7 +224,7 @@ class Board {
   }
 
   draw() {
-    if (this.bgAdapter && !this.drawPromise) {
+    if (!this.drawPromise  && !this.running && this.bgAdapter) {
       this.drawPromise = new Promise((resolve, reject) => {
         requestAnimationFrame(() => {
           try {
@@ -330,7 +336,8 @@ class Board {
     this.newHistoryState();
     try {
       this.model.step();
-      await this.draw();
+      this.bgAdapter.draw();
+      this.recorder && this.recorder.draw();
       this.storeModelState();
       if (!this.model.changed && this.config.autopause) {
         this.stop();
@@ -341,7 +348,7 @@ class Board {
       }
     }
     catch (e) {
-      console.log(e);
+      console.error(e);
       this.setMessage(e, 'error');
       if (this.running)
         this.stop();
@@ -390,6 +397,22 @@ class Board {
     }
     else if (!selected) {
       this.fg.focus();
+    }
+  }
+
+  translateModal(coord) {
+    if (!this.modalTranslate) {
+      this.modalTranslate = coord;
+    }
+    else if (coord && this.modal) {
+      let left = parseInt(this.modal.modal.style.left || 0);
+      let top = parseInt(this.modal.modal.style.top || 0);
+      this.modal.modal.style.left = `${left + coord[0] - this.modalTranslate[0]}px`;
+      this.modal.modal.style.top = `${top + coord[1] - this.modalTranslate[1]}px`;
+      this.modalTranslate = coord;
+    }
+    else {
+      this.modalTranslate = null;
     }
   }
 
@@ -454,8 +477,14 @@ class Board {
     }
   }
 
-  saveImage() {
-    let dataUri = this.bg.toDataURL('image/png');
+  async saveImage() {
+    let recordingMode = this.config.recordingMode;
+    this.config.setRecordingMode(true);
+    await this.draw();
+    let transferCanvas = new TransferCanvas(this);
+    let dataUri = transferCanvas.canvas.toDataURL('image/png');
+    this.config.setRecordingMode(recordingMode);
+    await this.draw();
     this.promptDownload(this.config.defaultImageFilename, dataUri);
   }
 
@@ -484,7 +513,7 @@ class Board {
     this.config.storeLocalConfig();
     this.config.storeSessionConfig();
     let obj = this.config.retrieveConfig();
-    let dataUri = `data:application/json,${encodeURIComponent(JSON.stringify(obj))}`;
+    let dataUri = `data:application/json,${encodeURIComponent(JSON.stringify(obj, null, 2))}`;
     this.promptDownload(this.config.defaultSettingsFilename, dataUri);
   }
 
@@ -504,7 +533,7 @@ class Board {
       }
       catch (e) {
         this.setMessage('Unable to parse settings file!', 'error');
-        console.log(e);
+        console.error(e);
       }
     };
     fileLoader.prompt();
@@ -602,7 +631,7 @@ class Board {
     this.scaleY = 1;
     this.offsetX = 0;
     this.offsetY = 0;
-    this.scaleZoom = 1;
+    this.scale = 1;
     this.eachContext((ctx) => {
       ctx.canvas.width = this.canvasWidth;
       ctx.canvas.height = this.canvasHeight;
@@ -626,13 +655,41 @@ class Board {
     this.buttons.redo.disabled = +!this.redoStack.length;
   }
 
-  scale(scale) {
-    this.scaleZoom *= scale;
+  scaleRelative(scale) {
+    this.scale *= scale;
     this.eachContext((ctx) => {
       ctx.scale(scale, scale);
     });
     this.draw();
     this.drawSelectedCell();
+  }
+
+  scaleTo(target, interval=0, step=50, timingFn) {
+    if (this.scaling) {
+      this.scaleQueue.push([target, interval, step, timingFn]);
+      return;
+    }
+    this.scaling = true;
+    let diff = target - this.scale;
+    let numSteps = Math.ceil(interval / step);
+    timingFn = timingFn || this.defaultTimingFn;
+    let steps = Array(numSteps).fill(null).map((_, idx) => timingFn(idx, numSteps));
+    steps = steps.map((e, i) => (steps[i + 1] || 1) - e);
+    let fn = (increment) => {
+      if (steps.length) {
+        let stepTarget = this.scale + diff * increment;
+        this.scaleRelative(stepTarget / this.scale);
+        setTimeout(() => fn(steps.pop()), step);
+      }
+      else {
+        this.scaleRelative(target / this.scale);
+        this.scaling = false;
+        if (this.scaleQueue.length) {
+          this.scaleTo(...this.scaleQueue.shift());
+        }
+      }
+    };
+    setTimeout(() => fn(steps.pop()), step);
   }
 
   setInfoBox(boxName, value) {
@@ -649,8 +706,8 @@ class Board {
   translate([x, y]) {
     this.translateX += x;
     this.translateY += y;
-    x /= this.scaleZoom;
-    y /= this.scaleZoom;
+    x /= this.scale;
+    y /= this.scale;
     this.eachContext((ctx) => {
       ctx.translate(x, y);
     });
@@ -684,7 +741,7 @@ class Board {
 
   handleScale(ev) {
     let scale = 1 - Math.sign(ev.deltaY) * 0.1;
-    this.scale(scale);
+    this.scaleRelative(scale);
     this.draw();
   }
 
@@ -695,14 +752,35 @@ class Board {
 
   handleKey(ev) {
     let key = ev.key.toLowerCase();
-    let tagNames = ['TEXTAREA', 'INPUT', 'SELECT', 'BUTTON'];
-    let ctrlSkip = !ev.ctrlKey || ['c', 'x', 'v', 'z'].includes(key);
-    // Skip if modal
-    if (ev.key != 'Escape' && ctrlSkip && tagNames.includes(ev.target.tagName) && this.modal) {
-      return;
+
+    // Modal-specific stuff
+    if (this.modal && ev.type == 'keydown') {
+      let tagNames = ['TEXTAREA', 'INPUT', 'SELECT', 'BUTTON'];
+      if (ev.key == 'Escape') {
+        this.toggleModal();
+        ev.preventDefault();
+        return;
+      }
+      else if (!ev.repeat && ev.ctrlKey) {
+        if (key == 'a') {
+          if (this.modal == this.modals.config) {
+            this.modals.config._handleCheckAll();
+          }
+          else if (this.modal == this.modals.rb) {
+            this.modals.rb._handleCheckAll();
+          }
+          else if (this.modal == this.modals.custom && document.activeElement == this.modals.custom.input) {
+            this.modals.custom.input.select();
+          }
+        }
+      }
+      let ctrlSkip = ['c', 'x', 'v', 'z'].includes(key);
+      if (ctrlSkip || !ev.ctrlKey && tagNames.includes(ev.target.tagName)) {
+        return;
+      }
     }
 
-    // Do things with keys
+    // Board things
     if (ev.key == 'Alt' || ev.key == 'Meta') {
       if (ev.type == 'keydown') {
         this.toggleMenu(true);
@@ -736,9 +814,6 @@ class Board {
           else if (key == 'o') {
             this.load();
           }
-          else if (key == 'a') {
-            this.toggleModal('resize');
-          }
           else if (key == 'b') {
             this.toggleModal('rb');
           }
@@ -754,8 +829,14 @@ class Board {
           else if (key == 'g') {
             this.toggleModal('config');
           }
+          else if (key == 'r') {
+            this.toggleModal('resize');
+          }
           else if (key == 'x') {
             this.handleClearStorage();
+          }
+          else if (key == 'a') {
+            // preventDefault
           }
           else {
             return;
@@ -786,13 +867,8 @@ class Board {
       }
       // ESC to hide/show controls
       else if (ev.key == 'Escape') {
-        if (this.modal) {
-          this.toggleModal();
-        }
-        else {
-          this.toggleToolHidden();
-          this.toggleMenu(false);
-        }
+        this.toggleToolHidden();
+        this.toggleMenu(false);
       }
 
       // TAB to start/stop
@@ -908,6 +984,9 @@ class Board {
     else if (ev.type == 'mouseup') {
       if (this.action)
         this.endAction(ev);
+      else if (this.modalTranslate) {
+        this.translateModal();
+      }
       else if (this.clickTarget == ev.target) {
         if (ev.target == this.overlay) {
           this.toggleModal();
@@ -923,6 +1002,9 @@ class Board {
       if (ev.target == this.fg) {
         this.selectCell([ev.pageX, ev.pageY]);
         this.moveAction(ev);
+      }
+      else if (this.modalTranslate) {
+        this.translateModal([ev.pageX, ev.pageY]);
       }
       else {
         this.selectCell();
@@ -1006,8 +1088,18 @@ class Board {
     if (!this.action) {
       this.fgAdapter.clear();
       if (cell) {
-        let selectSize = this.sizableTools.includes(this.config.tool) ? this.config.toolSize : 1;
-        Hexular.util.hexWrap(cell, selectSize).forEach((e) => this.fgAdapter.defaultDrawSelector(e));
+        let color = this.config.selectColor;
+        let width = this.config.selectWidth;
+        width = (width + width / this.scale) / 2;
+        let size = this.sizableTools.includes(this.config.tool) ? this.config.toolSize : 1;
+        if (size == 1) {
+          this.fgAdapter.drawOutlinePointyHex(cell, color, width);
+        }
+        else {
+          let radius = (size * 2 - 1) * this.config.cellRadius * Hexular.math.apothem;
+          let opts = {stroke: true, lineWidth: width, strokeStyle: color};
+          this.fgAdapter.drawHexagon(cell, radius, opts);
+        }
       }
     }
   }
@@ -1023,19 +1115,25 @@ class Board {
     y -= this.translateY;
     x -= this.offsetX;
     x -= this.offsetY;
-    x = x / this.scaleZoom;
-    y = y / this.scaleZoom;
+    x = x / this.scale;
+    y = y / this.scale;
     return [x, y];
   }
 
   modelToWindow([x, y]) {
-    x = x * this.scaleZoom;
-    y = y * this.scaleZoom;
+    x = x * this.scale;
+    y = y * this.scale;
     x += this.offsetX;
     y += this.offsetY;
     x += this.translateX;
     y += this.translateY;
     return [x, y];
+  }
+
+  defaultTimingFn(i, n) {
+    let t = i / n;
+    let s = t * t;
+    return s / (2 * (s - t) + 1);
   }
 
   // Alert messages

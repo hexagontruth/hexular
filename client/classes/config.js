@@ -24,8 +24,11 @@ class Config {
       mobileUndoStackSize: 16,
       interval: 100,
       autopause: true,
-      background: '#f8f8f8',
+      pageBackground: '#f8f8f8',
+      modelBackground: '#ffffff',
       showModelBackground: true,
+      selectWidth: 2,
+      selectColor: '#ffbb33',
       cellGap: 1,
       cellBorderWidth: 2,
       colors: Hexular.DEFAULTS.colors,
@@ -38,6 +41,7 @@ class Config {
       defaultFilename: 'hexular.bin',
       defaultVideoFilename: 'hexular.webm',
       defaultSettingsFilename: 'hexular.json',
+      recordingMode: false,
       codec: 'vp9',
       scaleFactor: 1,
       tool: 'brush',
@@ -59,12 +63,14 @@ class Config {
       ],
       onDraw: null,
       onDrawCellAvailable: [
-        'drawFilledHex',
-        'drawOutlineHex',
+        'drawFilledPointyHex',
+        'drawOutlinePointyHex',
+        'drawFilledFlatHex',
+        'drawOutlineFlatHex',
         'drawFilledCircle',
         'drawOutlineCircle',
       ],
-      onDrawCell: 'drawFilledHex',
+      onDrawCell: 'drawFilledPointyHex',
       localStorageObj: window.localStorage,
       sessionStorageObj: window.sessionStorage,
     };
@@ -133,6 +139,7 @@ class Config {
     if (height < window.innerHeight * scaleThreshold) {
       scaleRatio = window.innerWidth * scaleThreshold / width;
     }
+    this.scaleRatio = scaleRatio;
     this.cellRadius *= scaleRatio;
     width *= scaleRatio;
     height *= scaleRatio;
@@ -143,47 +150,57 @@ class Config {
   }
 
   initialize() {
-    this.model = this.board.model;
-    this.configModal = this.board.modals.config;
-    this.configModal.update();
-    this.rbModal = this.board.modals.rb;
-    this.resizeModal = this.board.modals.resize;
+    try {
+      this.model = this.board.model;
+      this.configModal = this.board.modals.config;
+      this.configModal.update();
+      this.rbModal = this.board.modals.rb;
+      this.resizeModal = this.board.modals.resize;
 
-    // Adapter
-    this.setShowModelBackground();
+      // Adapter
+      this.setShowModelBackground();
 
-    // Board
-    this.setBackground();
-    this.setColors();
-    this.setPaintColor(0, this.paintColors[0]);
-    this.setPaintColor(1, this.mobile ? -1 : this.paintColors[1]);
-    this.setPaintColorMode(this.colorMode);
-    this.setTool(this.tool);
-    this.setToolSize(this.toolSize);
-    this.setSteps(this.steps);
+      // Board
+      this.setTheme(this.theme);
+      if (!this.theme)
+        this.setThemable();
+      this.setPaintColor(0, this.paintColors[0]);
+      this.setPaintColor(1, this.mobile ? -1 : this.paintColors[1]);
+      this.setPaintColorMode(this.colorMode);
+      this.setTool(this.tool);
+      this.setToolSize(this.toolSize);
+      this.setSteps(this.steps);
 
-    // Config modal
-    this.setPreset(this.preset);
-    if (!this.preset) {
-      this.setNh(this.nh);
-      this.setNumStates(this.numStates);
-      this.setRules();
-      this.setFilters();
+      // Config modal
+      this.setPreset(this.preset);
+      if (!this.preset) {
+        this.setNh(this.nh);
+        this.setNumStates(this.numStates);
+        this.setRules();
+        this.setFilters();
+      }
+
+      // Rule builder modal
+      this.rbModal.ruleName.value = this.rbName || Config.defaults.rbName;
+      this.setRbMiss([this.rbMiss, this.rbMissRel]);
+      this.setRbMatch([this.rbMatch, this.rbMatchRel]);
+      this.rbModal.stateElements.forEach((e, i) => {
+        this.rbStates[i] && e.classList.add('active');
+      });
+      this.rbModal.updateRuleString();
+      this.rbModal.update();
+
+      // Appearance aka resize modal
+      this.resizeModal.update();
+      this.resizeModal.reset();
     }
-
-    // Rule builder modal
-    this.rbModal.ruleName.value = this.rbName || Config.defaults.rbName;
-    this.setRbMiss([this.rbMiss, this.rbMissRel]);
-    this.setRbMatch([this.rbMatch, this.rbMatchRel]);
-    this.rbModal.stateElements.forEach((e, i) => {
-      this.rbStates[i] && e.classList.add('active');
-    });
-    this.rbModal.updateRuleString();
-    this.rbModal.update();
-
-    // Appearance aka resize modal
-    this.resizeModal.update();
-    this.resizeModal.reset();
+    catch (error) {
+      console.error(error);
+      if (!this.error) {
+        this.localStorageObj.clear();
+        Board.resize({error});
+      }
+    }
   }
 
   // --- ADDERS, IMPORT/EXPORT ---
@@ -202,9 +219,10 @@ class Config {
     this.storeLocalConfig();
   }
 
-  addTheme(themeName, theme) {
-    this.themes[themeName] = theme;
+  addTheme(themeName, themeObj) {
+    this.themes[themeName] = this.getThemeFromObject(themeObj || this);
     this.resizeModal.update();
+    this.storeLocalConfigAsync();
   }
 
   exportPreset() {
@@ -233,26 +251,44 @@ class Config {
       this.resizeModal.autopause.classList.remove('active');
     this.storeSessionConfigAsync();
   }
-  
-  setBackground(color) {
-    this.background = color || this.background;
-    document.body.style.backgroundColor = this.background;
+
+  setBackground(type, color) {
+    type = type ? [type] : ['pageBackground', 'modelBackground'];
+    type.forEach((key) => {
+      let thisColor = this[key] = color || this[key];
+      if (key == 'pageBackground')
+        document.body.style.backgroundColor = thisColor;
+      else
+        this.board.bgAdapter.backgroundColor = thisColor;
+      this.resizeModal[key].jscolor.fromString(thisColor || 'transparent');
+    });
+
+    this.checkTheme();
+    this.storeSessionConfigAsync();
   }
 
   setCellGap(width) {
     this.cellGap = width != null ? width : this.cellGap;
     this.resizeModal.cellGap.value = this.cellGap;
-    this.board.bgAdapter.cellGap = this.cellGap;
-    this.board.fgAdapter.cellGap = this.cellGap;
-    this.board.bgAdapter.updateMathPresets();
-    this.board.fgAdapter.updateMathPresets();
+    this.updateAdapter();
   }
 
   setCellBorderWidth(width) {
     this.cellBorderWidth = width != null ? width : this.cellBorderWidth;
     this.resizeModal.cellBorderWidth.value = this.cellBorderWidth;
-    this.board.model.cellBorderWidth = this.cellBorderWidth;
-    this.board.model.cellBorderWidth = this.cellBorderWidth;
+    this.updateAdapter();
+  }
+
+  updateAdapter() {
+    this.board.bgAdapter.cellGap = this.cellGap * this.scaleRatio;
+    this.board.fgAdapter.cellGap = this.cellGap * this.scaleRatio;
+    this.board.bgAdapter.cellBorderWidth = this.cellBorderWidth * this.scaleRatio;
+    this.board.fgAdapter.cellBorderWidth = this.cellBorderWidth * this.scaleRatio;
+    this.board.bgAdapter.updateMathPresets();
+    this.board.fgAdapter.updateMathPresets();
+    this.checkTheme();
+    this.board.draw();
+    this.storeSessionConfigAsync();
   }
 
   setColor(idx, color) {
@@ -260,6 +296,10 @@ class Config {
     this.board.bgAdapter.colors[idx] = color;
     this.board.fgAdapter.colors[idx] = color;
     this.board.colorButtons[idx].style.backgroundColor = color;
+    this.configModal.ruleMenus[idx].button.style.backgroundColor = color;
+    this.resizeModal.colors[idx].jscolor.fromString(color);
+    this.resizeModal.colors[idx].value = color;
+    this.checkTheme();
     this.storeSessionConfigAsync();
   }
 
@@ -269,7 +309,11 @@ class Config {
     this.board.fgAdapter.colors = this.colors;
     for (let i = 0; i < 12; i++) {
       this.board.colorButtons[i].style.backgroundColor = this.colors[i];
+      this.configModal.ruleMenus[i].button.style.backgroundColor = this.colors[i];
+      this.resizeModal.colors[i].jscolor.fromString(this.colors[i]);
+      this.resizeModal.colors[i].value = this.colors[i];
     }
+    this.checkTheme();
     this.storeSessionConfigAsync();
   }
 
@@ -328,14 +372,15 @@ class Config {
   setOnDraw(fnName) {
     this.onDraw = fnName;
     Object.values(this.resizeModal.onDraw).forEach((e) => e.classList.remove('active'));
-    let fns = this.onDrawAvailable.map((e) => Hexular.classes.adapters.CanvasAdapter[e]);
+    let fns = this.onDrawAvailable.map((e) => this.board.bgAdapter[e]);
     this.board.bgAdapter.onDraw.replace(
       this.board.bgAdapter.onDraw.filter((e) => !fns.includes(e))
     );
     if (this.onDrawAvailable.includes(this.onDraw)) {
       this.resizeModal.onDraw[this.onDraw].classList.add('active');
-      this.board.bgAdapter.onDraw.unshift(Hexular.classes.adapters.CanvasAdapter[this.onDraw]);
+      this.board.bgAdapter.onDraw.unshift(this.board.bgAdapter[this.onDraw]);
     }
+    this.checkTheme();
     this.storeSessionConfigAsync();
   }
 
@@ -343,11 +388,12 @@ class Config {
     this.onDrawCell = fnName || this.onDrawCell;
     Object.values(this.resizeModal.onDrawCell).forEach((e) => e.classList.remove('active'));
     this.resizeModal.onDrawCell[this.onDrawCell].classList.add('active');
-    let fns = this.onDrawCellAvailable.map((e) => Hexular.classes.adapters.CanvasAdapter[e]);
+    let fns = this.onDrawCellAvailable.map((e) => this.board.bgAdapter[e]);
     this.board.bgAdapter.onDrawCell.replace(
       this.board.bgAdapter.onDrawCell.filter((e) => !fns.includes(e))
     );
-    this.board.bgAdapter.onDrawCell.unshift(Hexular.classes.adapters.CanvasAdapter[this.onDrawCell]);
+    this.board.bgAdapter.onDrawCell.unshift(this.board.bgAdapter[this.onDrawCell]);
+    this.checkTheme();
     this.storeSessionConfigAsync();
   }
 
@@ -471,25 +517,27 @@ class Config {
   setShowModelBackground(value) {
     value = this.showModelBackground = value != null ? value : this.showModelBackground;
     let hookList = this.board.bgAdapter.onDraw;
-    let fn = Hexular.classes.adapters.CanvasAdapter.drawCubicBackground;
+    let fn = this.board.bgAdapter.drawCubicBackground;
     // We don't, at this point, care about order
     if (value)
-      hookList.includes(fn) || hookList.push(fn);
+      hookList.includes(fn) || hookList.unshift(fn);
     else
       hookList.includes(fn) && hookList.splice(hookList.indexOf(fn), 1);
     this.storeSessionConfigAsync();
   }
 
   setRecordingMode(value) {
-      let hookList = this.board.bgAdapter.onDraw;
-      let drawCubicBackground = Hexular.classes.adapters.CanvasAdapter.drawCubicBackground;
-      let drawBackground = Hexular.classes.adapters.CanvasAdapter.drawBackground;
+    let hookList = this.board.bgAdapter.onDraw;
+    let drawCubicBackground = this.board.bgAdapter.drawCubicBackground;
+    let drawBackground = this.board.bgAdapter.drawBackground;
     if (value) {
-      hookList.includes(drawCubicBackground) && hookList.splice(hookList.indexOf(drawCubicBackground), 1);
-      hookList.includes(drawBackground) || hookList.push(drawBackground);
+      this.recordingMode = true;
+      hookList.replace(hookList.filter((e) => e != drawCubicBackground));
+      hookList.includes(drawBackground) || hookList.unshift(drawBackground);
     }
     else {
-      hookList.includes(drawBackground) && hookList.splice(hookList.indexOf(drawBackground), 1);
+      this.recordingMode = false;
+      hookList.replace(hookList.filter((e) => e != drawBackground));
       this.setShowModelBackground(this.showModelBackground);
     }
   }
@@ -504,22 +552,30 @@ class Config {
   setTheme(themeName) {
     if (this.themes[themeName]) {
       this.theme = themeName;
+      this.resizeModal.selectTheme.value = themeName;
+      this.resizeModal.addTheme.disabled = true;
+      let theme = this.getThemeFromObject(this.themes[themeName]);
+      Config.merge(this, theme);
+      this.setThemable();
     }
-    let {cellGap, cellBorderWidth, showModelBackground, background, colors} = Config.defaults;
-    let defaults = {cellGap, cellBorderWidth, showModelBackground, background, colors};
-    let theme = Config.merge(defaults, this.themes[this.theme]);
-    Config.merge(this, theme);
-    this.setBackground()
-    this.setColors();
-    this.setCellGap();
-    this.setCellBorderWidth();
-    this.setShowModelBackground();
+    else {
+      this.theme = null;
+      this.resizeModal.selectTheme.value = null;
+      this.resizeModal.addTheme.disabled = false;
+    }
     this.board.draw();
     this.storeSessionConfigAsync();
   }
 
+  setThemable() {
+    this.setBackground();
+    this.setColors();
+    this.setCellGap();
+    this.setCellBorderWidth();
+  }
+
   setTool(tool, fallbackTool) {
-    if (tool) {
+    if (tool && this.board.toolClasses[tool]) {
       this.tool = tool;
       this.fallbackTool = fallbackTool || tool;
       this.storeSessionConfig();
@@ -568,6 +624,39 @@ class Config {
     }
   }
 
+  checkTheme() {
+    let theme = this.themes[this.theme];
+    if (!theme || !this.theme) {
+      this.setTheme();
+      return;
+    }
+    theme = this.getThemeFromObject(this.themes[this.theme]);
+    let dirty = false;
+    if (theme.colors)
+    for (let i = 0; i < this.maxNumStates; i ++) {
+      if (theme.colors[i] != this.colors[i]) {
+        dirty = true;
+        break;
+      }
+    }
+    dirty = dirty
+      || theme.pageBackground != this.pageBackground
+      || theme.modelBackground != this.modelBackground
+      || theme.cellGap != this.cellGap
+      || theme.cellBorderWidth != this.cellBorderWidth;
+    if (dirty) {
+      this.setTheme();
+    }
+  }
+
+  getThemeFromObject(obj) {
+    let args = [Config.defaults, obj].map((e) => {
+      let {cellGap, cellBorderWidth, pageBackground, modelBackground, colors} = e;
+      return {cellGap, cellBorderWidth, pageBackground, modelBackground, colors};
+    });
+    return Config.merge(...args);
+  }
+
   // --- STORAGE ---
 
   getKeyValues(keys) {
@@ -583,6 +672,7 @@ class Config {
       'cellBorderWidth',
       'cellGap',
       'codec',
+      'colors',
       'colorMode',
       'defaultRule',
       'filters',
@@ -590,10 +680,12 @@ class Config {
       'groundState',
       'interval',
       'maxNumStates',
+      'modelBackground',
       'nh',
       'numStates',
       'onDraw',
       'onDrawCell',
+      'pageBackground',
       'paintColors',
       'preset',
       'radius',
@@ -657,7 +749,7 @@ class Config {
       }
       catch (e) {
         this.board.setMessage(`Error while loading rule "${rule}"`);
-        console.log(e);
+        console.error(e);
         console.trace();
       }
       if (typeof fn == 'function')
@@ -693,7 +785,8 @@ class Config {
 
   storeSessionConfig() {
     let config = this.getSessionConfig();
-    config.preset = config.preset || 'none';
+    config.preset = config.preset || '';
+    config.theme = config.theme || '';
     this.sessionStorageObj.setItem('sessionConfig', JSON.stringify(config));
   }
 

@@ -422,6 +422,7 @@ button:disabled {
 }
 
 .modal {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -450,8 +451,20 @@ button:disabled {
 }
 
 .modal-title {
+  position: relative;
   padding: 0.5em 0.75em;
   cursor: pointer;
+}
+
+.close-box {
+  position: absolute;
+  height: 1em;
+  top: 0.5em;
+  left: 0.75em;
+}
+
+.close-box:hover {
+  color: #44aacc;
 }
 
 .modal-content {
@@ -476,7 +489,10 @@ button:disabled {
   margin-bottom: 0.5em;
 }
 
-.modal .group > * {
+.modal .group input,
+.modal .group button,
+.modal .group textarea,
+.modal .group select {
   margin:.25em;
 }
 
@@ -510,9 +526,11 @@ select {
 
 .modal .group textarea {
   height: 10em;
-  padding: 0.75em;
-  margin-bottom: 0.75em;
-  border-radius: 0.5em
+  padding: calc(0.75em * 4/3);
+  margin: calc(0.25em * 4/3);
+  border-radius: calc(0.5em * 4/3);
+  font-size: 0.75em;
+  outline: 0;
 }
 
 .modal .text {
@@ -525,20 +543,23 @@ select {
 
 .modal .divider {
   width: 0.05em;
-  margin-top: 0.25em;
-  margin-bottom: 0.25em;
+  margin: 0.5em 0.25em;
   background-color: #ccc;
 }
 
 .modal label {
   flex: 1 1 auto;
-  padding: 0 0 0 0.25em;
+  padding: 0.25em;
   line-height: 2;
   text-align: right;
 }
 
 .modal label.left {
   min-width: 25%;
+}
+
+.modal label.half {
+  width: 50%;
 }
 
 .modal label.indicator {
@@ -616,12 +637,16 @@ select {
 }
 
 .modal .rule-menu button {
-  margin-right: 0.5em;
+  margin: 0 0.5em 0 0;
   display: flex;
   flex: 0 0 2em;
   justify-content: center;
   align-items: center;
   width: 2em;
+}
+
+.modal .rule-menu select {
+  margin: 0;
 }
 
 .modal button.checkable {
@@ -634,6 +659,30 @@ body .modal button.checkable:hover {
 
 .modal .checked button.checkable {
   border-color: #66ddee;
+}
+
+.group.color {
+  flex-wrap: wrap;
+}
+
+.group.color input {
+  flex: 1 1 calc(100% / 4 - 1em);
+}
+
+.group.color input.wide {
+  flex: 1 1 calc(50% - 1em);
+}
+
+.modal input.jscolor {
+  height: auto;
+  text-align: center;
+  font-size: 0.75em;
+  margin: 0.333em;
+  border-radius: 2em;
+}
+
+.group.color label {
+  flex: 1 2 calc(100% / 3);
 }
 
 @media screen and (max-width: 640px) {

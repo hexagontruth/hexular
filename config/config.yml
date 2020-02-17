@@ -13,6 +13,7 @@ default:
       - client/classes/preset.js
       - client/classes/recorder.js
       - client/classes/select.js
+      - client/classes/transfer-canvas.js
       - client/classes/modals/config-modal.js
       - client/classes/modals/confirm-modal.js
       - client/classes/modals/custom-modal.js
@@ -22,6 +23,7 @@ default:
       - client/library/rules.js
       - client/library/presets.js
       - client/library/themes.js
+      - client/vendor/jscolor.js
       - client/app.js
     client.css:
       - client/icon-main.css

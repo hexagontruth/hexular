@@ -2,23 +2,15 @@ class Recorder {
   constructor(board) {
     this.board = board;
     this.config = board.config;
-    this.canvas = document.createElement('canvas');
-    this.ctx = this.canvas.getContext('2d');
-    this.canvas.width = window.innerWidth;
-    this.canvas.height = window.innerHeight;
-    this.draw();
+    this.transferCanvas = new TransferCanvas(this.board);
   }
 
   draw() {
-    this.ctx.drawImage(
-      this.board.bg,
-      0, 0, this.board.bg.width, this.board.bg.height,
-      0, 0, this.canvas.width, this.canvas.height
-    );
+    this.transferCanvas.draw();
   }
 
   start() {
-    this.stream = this.canvas.captureStream();
+    this.stream = this.transferCanvas.canvas.captureStream();
     let constraints = {
       frameRate: 60,
     };

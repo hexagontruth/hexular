@@ -3,39 +3,72 @@ class ResizeModal extends Modal {
     super(...args);
     this.defaultInterval = Config.defaults.interval;
     this.radius = this.defaultRadius = Config.defaults.radius;
+    this.colors = Array.from(document.querySelectorAll('.group.color input')).slice(2);
+    this.pageBackground = document.querySelector('#page-bg');
+    this.modelBackground = document.querySelector('#model-bg');
     this.onDraw = {
       sortCellsAsc: document.querySelector('#sort-cells-asc'),
       sortCellsDesc: document.querySelector('#sort-cells-desc'),
     };
     this.onDrawCell = {
-      drawFilledHex: document.querySelector('#draw-filled-hex'),
-      drawOutlineHex: document.querySelector('#draw-outline-hex'),
+      drawFilledPointyHex: document.querySelector('#draw-filled-pointy-hex'),
+      drawOutlinePointyHex: document.querySelector('#draw-outline-pointy-hex'),
+      drawFilledFlatHex: document.querySelector('#draw-filled-flat-hex'),
+      drawOutlineFlatHex: document.querySelector('#draw-outline-flat-hex'),
       drawFilledCircle: document.querySelector('#draw-filled-circle'),
       drawOutlineCircle: document.querySelector('#draw-outline-circle'),
     };
     this.autopause = document.querySelector('#autopause');
     this.cellGap = document.querySelector('#cell-gap');
     this.cellBorderWidth = document.querySelector('#cell-border-width');
-    this.theme = document.querySelector('#select-theme').select;
+    this.selectTheme = document.querySelector('#select-theme').select;
+    this.addTheme = document.querySelector('#add-theme');
     this.interval = document.querySelector('#interval-slider');
     this.intervalIndicator = document.querySelector('#interval-indicator');
     this.resize = document.querySelector('#resize-slider');
     this.resizeIndicator = document.querySelector('#resize-indicator');
 
+    this.colors.forEach((el, idx) => {
+      let pickerClosed = false;
+      el.setAttribute('title', `Color ${idx}`);
+      el.onchange = () => this.config.setColor(idx, el.value);
+      el.onfocus = el.onclick = () => pickerClosed = false;
+      el.onkeydown = (ev) => {
+        if (ev.key == 'Escape' && !pickerClosed) {
+          el.jscolor.hide();
+          pickerClosed = true;
+          ev.stopPropagation();
+        }
+      }
+    });
+    ['pageBackground', 'modelBackground'].forEach((key) => {
+      let pickerClosed = false;
+      let el = this[key];
+      el.onchange = () => this.config.setBackground(key, el.value);
+      el.onfocus = el.onclick = () => pickerClosed = false;
+      el.onkeydown = (ev) => {
+        if (ev.key == 'Escape' && !pickerClosed) {
+          el.jscolor.hide();
+          pickerClosed = true;
+          ev.stopPropagation();
+        }
+      }
+    });
     Object.entries(this.onDraw).forEach(([fnName, button]) => button.onclick = () => this._setOnDraw(fnName));
     Object.entries(this.onDrawCell).forEach(([fnName, button]) => button.onclick = () => this._setOnDrawCell(fnName));
     this.autopause.onclick = (ev) => this._setAutopause(!this.config.autopause);
     this.cellGap.onchange = (ev) => this._setCellGap(this.cellGap.value);
     this.cellBorderWidth.onchange = (ev) => this._setCellBorderWidth(this.cellBorderWidth.value);
     this.set = document.querySelector('#resize-set');
-    this.theme.onchange = (ev) => this._selectTheme();
+    this.selectTheme.onchange = (ev) => this._handleSelectTheme();
+    this.addTheme.onclick = (ev) => this._handleAddTheme();
     this.interval.oninput = (ev) => this._updateInterval(this.interval.value);
     this.resize.oninput = (ev) => this._updateResize(this.resize.value);
     this.set.onclick = (ev) => this._resize();
   }
 
   reset() {
-    this.theme.value = this.config.theme;
+    this.selectTheme.value = this.config.theme;
     this._setAutopause();
     this._setCellGap();
     this._setCellBorderWidth();
@@ -48,7 +81,7 @@ class ResizeModal extends Modal {
   }
 
   update() {
-    this.theme.replace(Object.keys(this.config.themes).sort(), this.config.theme);
+    this.selectTheme.replace(Object.keys(this.config.themes).sort(), this.config.theme, 1);
   }
 
   _setAutopause(value) {
@@ -78,8 +111,17 @@ class ResizeModal extends Modal {
     this.board.draw();
   }
 
-  _selectTheme() {
-    this.config.setTheme(this.theme.value);
+  _handleSelectTheme() {
+    this.config.setTheme(this.selectTheme.value);
+  }
+
+  _handleAddTheme() {
+    // TODO: Replace native prompt
+    let themeName = window.prompt('Please enter a theme name:');
+    if (themeName) {
+      this.config.addTheme(themeName, this.config);
+      this.config.setTheme(themeName);
+    }
   }
 
   _updateInterval(value) {

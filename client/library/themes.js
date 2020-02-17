@@ -1,7 +1,7 @@
 const Themes = (() => {
   // Original 2017 color palette
   let classicColors = Object.assign([], Hexular.DEFAULTS.colors, [
-    '#ffffff',
+    'transparent',
     '#cccccc',
     '#999999',
     '#666666',
@@ -16,7 +16,7 @@ const Themes = (() => {
   ]);
 
   let rainbow = Object.assign([], Hexular.DEFAULTS.colors, [
-    '#ffffff',
+    'transparent',
     '#ff0000',
     '#ffaa00',
     '#aaff00',
@@ -61,7 +61,7 @@ const Themes = (() => {
       colors: classicColors,
     },
     white: {
-      background: '#ffffff',
+      pageBackground: '#ffffff',
       colors: Hexular.DEFAULTS.colors.slice(),
     },
     lightRainbow: {
@@ -70,8 +70,10 @@ const Themes = (() => {
     },
     vaporRainbow : {
       cellGap: -0.5,
+      pageBackground: '#ffffff',
+      modelBackground: '#fffff7',
       colors: Config.merge(classicColors, [
-        '#fffff7',
+        null,
         '#f7f7ef',
         '#efefe7',
         '#e7e7df',
@@ -86,9 +88,10 @@ const Themes = (() => {
       ]),
     },
     beigeRainbow: {
-      background: '#ffffff',
+      pageBackground: '#ffffff',
+      modelBackground: '#fafafa',
       colors: [
-        '#fafafa',
+        null,
         '#ccccbb',
         '#ffaa11',
         '#ffcc22',
@@ -103,10 +106,11 @@ const Themes = (() => {
       ],
     },
     dark: {
-      background: '#111111',
+      pageBackground: '#111111',
+      modelBackground: '#000000',
       cellGap: -0.5,
       colors: Config.merge([], classicColors, [
-        '#000000',
+        null,
         '#888888',
         '#aaaaaa',
         '#cccccc',
@@ -114,9 +118,10 @@ const Themes = (() => {
       ]),
     },
     darkRainbow: {
-      background: '#111111',
+      pageBackground: '#111111',
+      modelBackground: '#000000',
       cellGap: -0.5,
-      colors: Config.merge(rainbow, ['#000000']),
+      colors: rainbow,
     },
   };
   return themes;

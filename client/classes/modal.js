@@ -6,12 +6,19 @@ class Modal {
     this.name = name;
     this.modal = document.querySelector(`.modal.${name}`);
     let title = this.modal.querySelector('.modal-title');
-    if (title)
-      title.onclick = () => this.board.toggleModal();
+    if (title) {
+      let closeBox = document.createElement('div');
+      closeBox.className = 'close-box icon-clear';
+      title.appendChild(closeBox);
+      closeBox.onclick = (ev) => this.board.toggleModal();
+      title.onmousedown = (ev) => this.board.translateModal([ev.pageX, ev.pageY]);
+    }
   }
 
   open() {
     this.board.modal = this;
+    this.modal.style.left = '0';
+    this.modal.style.top = '0';
     this.reset();
     this.modal.classList.remove('hidden');
     this.board.overlay.classList.remove('hidden');

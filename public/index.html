@@ -4,8 +4,8 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no"/>
   <link rel="icon" type="image/png" href="icon.png"/>
-  <script src="build/client.js?v=0.5"></script>
-  <link rel="stylesheet" type="text/css" href="build/client.css?v=0.5"/>
+  <script src="build/client.js?v=0.6"></script>
+  <link rel="stylesheet" type="text/css" href="build/client.css?v=0.6"/>
   <title>Hexular Studio</title>
 </head>
 <body class="splash">
@@ -40,7 +40,7 @@
     <div class="group tools">
       <button id="show-config" title="Model configuration (Ctrl+M)" class="icon-gear"></button>
       <button id="show-rb" title="Rulebuilder (Ctrl+B)" class="icon-function"></button>
-      <button id="show-resize" title="Appearance (Ctrl+A)" class="icon-rainbow"></button>
+      <button id="show-resize" title="Appearance (Ctrl+R)" class="icon-rainbow"></button>
       <button id="show-custom" title="Custom code (Ctrl+F)" class="icon-code"></button>
       <button id="show-clear" title="Clear local data (Ctrl+X)" class="icon-refresh"></button>
     </div>
@@ -97,24 +97,44 @@
       <div class="modal-content">
         <div class="group">
           <label>Theme:</label>
-          <select id="select-theme" class="focus" title="Select theme"></select>
+          <select id="select-theme" class="focus" title="Select theme">
+            <option selected value="">[ Select theme ]</option>
+          </select>
+          <button id="add-theme" class="icon-plus" title="Save theme..."></button>
+        </div>
+        <div class="group color">
+            <input type="text" id="page-bg" class="jscolor wide" title="Page background color"/>
+            <input type="text" id="model-bg" class="jscolor wide" title="Model background color"/>
+            <input type="text" class="jscolor"></input>
+            <input type="text "class="jscolor"></input>
+            <input type="text" class="jscolor"></input>
+            <input type="text" class="jscolor"></input>
+            <input type="text" class="jscolor"></input>
+            <input type="text" class="jscolor"></input>
+            <input type="text" class="jscolor"></input>
+            <input type="text" class="jscolor"></input>
+            <input type="text" class="jscolor"></input>
+            <input type="text" class="jscolor"></input>
+            <input type="text" class="jscolor"></input>
+            <input type="text" class="jscolor"></input>
         </div>
         <div class="group">
           <label>Gap:</label>
           <input type="number" id="cell-gap" step="0.1"/>
           <label>Border:</label>
           <input type="number" id="cell-border-width" min="0" step="0.1"/>
+                    <button id="autopause" class="icon-pause" title="Autopause"></button>
         </div>
         <div class="group buttons">
           <button id="sort-cells-asc" class="icon-sort-ascending" title="Draw in ascending order (may cause slowness)"></button>
           <button id="sort-cells-desc" class="icon-sort-descending" title="Draw in descending order (may cause slowness)"></button>
           <div class="divider"></div>
-          <button id="draw-filled-hex" class="icon-hexagon" title="Filled hexagon"></button>
-          <button id="draw-outline-hex" class="icon-hexagon-outline" title="Outline hexagon"></button>
+          <button id="draw-filled-pointy-hex" class="icon-hexagon" title="Filled pointy hex"></button>
+          <button id="draw-outline-pointy-hex" class="icon-hexagon-outline" title="Outline pointy hex"></button>
+          <button id="draw-filled-flat-hex" class="icon-hexagon rotate" title="Filled flat hex"></button>
+          <button id="draw-outline-flat-hex" class="icon-hexagon-outline rotate" title="Outline flat hex"></button>
           <button id="draw-filled-circle" class="icon-circle" title="Filled circle"></button>
           <button id="draw-outline-circle" class="icon-circle-outline" title="Outline circle"></button>
-          <div class="divider"></div>
-          <button id="autopause" class="icon-pause" title="Autopause"></button>
         </div>
         <div class="group">
           <label class="left">Interval:</label>
@@ -219,7 +239,15 @@
       <div class="modal-title"><i class="icon-code"></i> Custom code</div>
       <div class="modal-content">
         <div class="group">
-          <textarea id="custom-code" class="focus" placeholder="Board.config.addRule('newRule', (cell) => cell.state)"></textarea>
+          <select id="select-example">
+            <option value="">[ Select example ]</option>
+          </select>
+        </div>
+        <div class="group">
+          <textarea id="custom-input" class="focus" placeholder="// See global Examples object for more"></textarea>
+        </div>
+        <div class="group">
+          <input type="text" id="custom-output" readonly/>
         </div>
         <div class="group buttons">
           <button id="add-custom-code">Add custom code</button>

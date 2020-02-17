@@ -189,7 +189,7 @@ Control flow, state, and configuration buttons run along the along the top of th
     - Open model configuration modal (Ctrl+G)
     - Open rulebuilder modal (Ctrl+B)
     - Open custom code modal (Ctrl+F)
-    - Open appearance modal (Ctrl+A)
+    - Open appearance modal (Ctrl+R)
     - Clear local settings (Ctrl+X)
   - Undo (Ctrl+Z)
   - Redo (Ctrl+Shift+Z)

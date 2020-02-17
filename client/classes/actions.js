@@ -64,7 +64,7 @@ class Action {
   }
 
   _hypotToModel(h) {
-    return h / this.model.cellApothem / this.board.scaleZoom;
+    return h / this.model.cellApothem / this.board.scale;
   }
 }
 
@@ -89,7 +89,7 @@ class PinchAction extends Action {
   }
   move(ev) {
     let newHypot = this._getHypotFromTouch(ev);
-    this.board.scale(newHypot / this.hypot);
+    this.board.scaleRelative(newHypot / this.hypot);
     this.hypot = newHypot;
   }
   _getHypotFromTouch(ev) {
@@ -203,7 +203,7 @@ class LocklineAction extends LineAction {
 
 class HexAction extends LineAction {
   _calculateCells() {
-    let pixRad = this.length / this.board.scaleZoom;
+    let pixRad = this.length / this.board.scale;
     this.radius = Math.ceil(pixRad / (this.board.model.cellApothem * 2) + 0.5);
     let cells = Hexular.util.hexWrap(this.originCell, this.radius);
     let outline = cells.slice((-this.radius + 1) * 6);

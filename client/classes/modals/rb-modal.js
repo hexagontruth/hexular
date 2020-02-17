@@ -4,7 +4,7 @@ class RbModal extends Modal {
     let states = this.config.rbStates;
     this.ruleName = document.querySelector('#rule-name');
     this.selectAvailable = document.querySelector('#select-available').select;
-    this.selectAll = document.querySelector('#rule-select-all');
+    this.checkAll = document.querySelector('#rule-select-all');
     this.ruleMiss = document.querySelector('#rule-miss').select;
     this.ruleMatch = document.querySelector('#rule-match').select;
     this.stateGrid = document.querySelector('#state-grid');
@@ -64,14 +64,7 @@ class RbModal extends Modal {
       this.parseRuleString();
     };
 
-    this.selectAll.onclick = () => {
-      this.settingState = this.selectAll.classList.toggle('active');
-      for (let i = 0; i < 64; i++)
-        this.setState(i);
-      this.settingState = null;
-      this.updateRuleString();
-      this.config.storeSessionConfigAsync();
-    };
+    this.checkAll.onclick = () => this._handleCheckAll();
 
     this.ruleName.onchange = () => this.config.setRbName();
 
@@ -124,12 +117,12 @@ class RbModal extends Modal {
     if (value) {
       item.classList.add('active');
       if (!states.some((e) => !e)) {
-        this.selectAll.classList.add('active');
+        this.checkAll.classList.add('active');
       }
     }
     else {
       item.classList.remove('active');
-      this.selectAll.classList.remove('active');
+      this.checkAll.classList.remove('active');
     }
   }
 
@@ -147,9 +140,9 @@ class RbModal extends Modal {
         this.stateElements[idx].classList.remove('active');
     });
     if (states.filter((e) => e).length == 64)
-      this.selectAll.classList.add('active');
+      this.checkAll.classList.add('active');
     else
-      this.selectAll.classList.remove('active');
+      this.checkAll.classList.remove('active');
   }
 
   getRuleString() {
@@ -189,6 +182,15 @@ class RbModal extends Modal {
       this.config.setRbMatch([match, matchRel]);
       this.config.storeSessionConfigAsync();
     }
+  }
+
+  _handleCheckAll() {
+    this.settingState = this.checkAll.classList.toggle('active');
+    for (let i = 0; i < 64; i++)
+      this.setState(i);
+    this.settingState = null;
+    this.updateRuleString();
+    this.config.storeSessionConfigAsync();
   }
 
   _getMasks() {

@@ -49,10 +49,9 @@ var Hexular = (function () {
     cellRadius: 10,
     cellGap: 1,
     cellBorderWidth: 0,
-    highlightColor: '#ffbb33',
     highlightLineWidth: 2,
     colors: [
-      '#ffffff',
+      'transparent',
       '#ccccbb',
       '#99998f',
       '#666655',
@@ -64,11 +63,14 @@ var Hexular = (function () {
       '#66aaaa',
       '#4455bb',
       '#aa55bb',
-      '#ccccff', // The last color is used as a fallback
     ],
+    backgroundColor: '#ffffff',
+    defaultColor: '#ccccff',
   };
 
   const APOTHEM = Math.sqrt(3) / 2;
+  const TYPE_FLAT = 0;
+  const TYPE_POINTY = 1;
 
   /**
    * A collection of mathematical properties and functions used internally, which may be of interest when extending
@@ -86,7 +88,7 @@ var Hexular = (function () {
       [0.5, -APOTHEM],
       [1, 0],
       [0.5, APOTHEM],
-      [-0.5, APOTHEM]
+      [-0.5, APOTHEM],
     ],
     /**
      * 2*2 basis matrix for converting unit cubic [u, v] coordinates to cartesian [x, y].
@@ -282,8 +284,8 @@ var Hexular = (function () {
     /**
      * Add filter function to model.
      *
-     * @param  {function} filter                  Filter to add
-     * @param  {number} [idx=this.filters.length] Optional insertion index (defaults to end of array)
+     * @param {function} filter                  Filter to add
+     * @param {number} [idx=this.filters.length] Optional insertion index (defaults to end of array)
      */
     addFilter(filter, idx=this.filters.length) {
       let boundFilter = filter.bind(this);
@@ -298,7 +300,7 @@ var Hexular = (function () {
      * those in `this.filters`, . Thus we identify and compare functions based on a hash value derived from the string
      * version of the function. The upshot being any identically-coded functions will be equivalent.
      *
-     * @param  {function} filter Filter to remove
+     * @param {function} filter Filter to remove
      */
     removeFilter(filter) {
       let hash = this._hash(filter.toString());
@@ -354,7 +356,7 @@ var Hexular = (function () {
     /**
      * Set {@link Cell#neighborhood} for each cell to given value.
      *
-     * @param  {number} neighborhood One of the natural numbers [6, 12, 18, 7, 13, 19].
+     * @param {number} neighborhood One of the natural numbers [6, 12, 18, 7, 13, 19].
      */
     setNeighborhood(neighborhood) {
       this.eachCell((cell) => {
@@ -367,7 +369,7 @@ var Hexular = (function () {
      *
      * This is essentially `forEach` on {@link Model#cells} but with array comprehension behavior.
      *
-     * @param  {function} fn Function to call for each {@link Cell|cell}, taking the cell as an argument
+     * @param {function} fn Function to call for each {@link Cell|cell}, taking the cell as an argument
      * @return {number[]}    Array of return values with same size as {@link Model#cells|this.cells}
      */
     eachCell(fn) {
@@ -396,7 +398,7 @@ var Hexular = (function () {
      *
      * This is typically used by a model's constructor to instantiate cells, but should be exposed externally as well.
      *
-     * @param  {function} fn Function to call for each coordinate, taking a coordinate argument that e.g. is used to
+     * @param {function} fn Function to call for each coordinate, taking a coordinate argument that e.g. is used to
      *                       construct {@link Cell#coord}
      */
     eachCoord(fn) {
@@ -406,8 +408,8 @@ var Hexular = (function () {
     /**
      * Get coordinates of cell according to {@link Model#cellRadius}, relative to an origin defined by a subclass.
      *
-     * @param  {Adapter} adapter An adapter instance with {@link Model#cellRadius} and {@link Model#basis} defined
-     * @param  {Cell} cell       The cell to position
+     * @param {Adapter} adapter An adapter instance with {@link Model#cellRadius} and {@link Model#basis} defined
+     * @param {Cell} cell       The cell to position
      * @return {number[]}       The cell's [x, y] position in the adapter's frame of reference
      */
     getCoord(adapter, cell) {
@@ -421,7 +423,7 @@ var Hexular = (function () {
      * onus on specific `Model` subclasses to convert cubic coordinates to their internal coordinate system, and allow
      * e.g. {@link Adapter} subclass instances to look up cells spatially using this convention.
      *
-     * @param  {number[]} coord Array of [u, v, w] coordinates
+     * @param {number[]} coord Array of [u, v, w] coordinates
      * @return {Cell}           Cell at coordinates, or null
      */
     cellAtCubic([u, v, w]) {
@@ -434,7 +436,7 @@ var Hexular = (function () {
      * This is used by Hexular Studio and potentially other display-facing applications for locating a cell from e.g.
      * a user's cursor position using {@link Model#cellRadius}.
      *
-     * @param  {number[]} coord An [x, y] coordinate tuple
+     * @param {number[]} coord An [x, y] coordinate tuple
      * @return {Cell}           The cell at this location, or null
      * @see {@link Hexular.math.cartesianToCubic}
      * @see {@link Hexular.math.roundCubic}
@@ -467,7 +469,7 @@ var Hexular = (function () {
     /**
      * Import cell states from typed or untyped array.
      *
-     * @param  {TypedArray|Array} array Any array of cell states
+     * @param {TypedArray|Array} array Any array of cell states
      * @see {@link Model#arrayType})
      * @see {@link Model#export}
      */
@@ -480,7 +482,7 @@ var Hexular = (function () {
     /**
      * Internal hashing function to track bound functions. Not actually important.
      *
-     * @param  {string} str Some string
+     * @param {string} str Some string
      * @return {string}     Chunked, summed mod 256 hexadecimal string
      */
     _hash(str) {
@@ -705,9 +707,9 @@ var Hexular = (function () {
     /**
      * Creates `Cell` instance.
      *
-     * @param  {Model} model       Model for populating {@link Cell#model|this.model}
-     * @param  {number[]} coord    Coordinate array for populating {@link Cell#coord|this.coord}
-     * @param  {...object} ...args One or more settings objects to apply to cell
+     * @param {Model} model       Model for populating {@link Cell#model|this.model}
+     * @param {number[]} coord    Coordinate array for populating {@link Cell#coord|this.coord}
+     * @param {...object} ...args One or more settings objects to apply to cell
      */
     constructor(model, coord, ...args) {
       let defaults = {
@@ -860,9 +862,9 @@ var Hexular = (function () {
     /**
      * Creates `Neighborhood` instance.
      *
-     * @param  {Cell} cell  Parent cell, usually instantiator of neighborhood
-     * @param  {number} min Minimum index (inclusive) of neighborhood in {@link Cell#nbrs}.
-     * @param  {number} max Maximum index (exclusive) of neighborhood in {@link Cell#nbrs}.
+     * @param {Cell} cell  Parent cell, usually instantiator of neighborhood
+     * @param {number} min Minimum index (inclusive) of neighborhood in {@link Cell#nbrs}.
+     * @param {number} max Maximum index (exclusive) of neighborhood in {@link Cell#nbrs}.
      */
     constructor(cell, min, max) {
       this.cell = cell;
@@ -992,8 +994,8 @@ var Hexular = (function () {
     /**
      * Creates `HookList` instance.
      *
-     * @param  {*} owner              Object or value for populating {@link HookList#owner|this.owner}
-     * @param  {function[]} functions Optional list of functions to add
+     * @param {*} owner              Object or value for populating {@link HookList#owner|this.owner}
+     * @param {function[]} functions Optional list of functions to add
      */
     constructor(owner, functions=[]) {
       super();
@@ -1012,7 +1014,7 @@ var Hexular = (function () {
     /**
      * Convenience method for removing all existing callbacks and optionally adding new ones.
      *
-     * @param  {function[]} functions List of new functions to add
+     * @param {function[]} functions List of new functions to add
      */
     replace(functions=[]) {
       this.length = 0;
@@ -1035,8 +1037,8 @@ var Hexular = (function () {
      * The former mechanism is used by {@link Model#filters}, while the latter is used by
      * {@link CanvasAdapter#onDrawSelector}, and, when drawing individual cells, by {@link CanvasAdapter#onDrawCell}.
      *
-     * @param  {*} val        First argument to be passed to at least initial function
-     * @param  {...*} ...args Additional arguments to pass to each hook function
+     * @param {*} val        First argument to be passed to at least initial function
+     * @param {...*} ...args Additional arguments to pass to each hook function
      * @return {*}            Return value of last hook function called, or original `val`
      */
     call(val, ...args) {
@@ -1054,13 +1056,18 @@ var Hexular = (function () {
      * Used by {@link CanvasAdapter#draw} to finish each successive drawing function for all cells in turn, allowing
      * more complex intercellular drawings.
      *
-     * @param  {array} array       Array of values to pass to hook to functions
-     * @param  {...object} ...args Additional arguments to pass to each hook function
+     * @param {array} array       Array of values to pass to hook to functions
+     * @param {...object} ...args Additional arguments to pass to each hook function
      */
     callParallel(array, ...args) {
       for (let i = 0; i < this.length; i++) {
         for (let j = 0; j < array.length; j++) {
-          this[i].call(this.owner, array[j], ...args);
+          try {
+            this[i].call(this.owner, array[j], ...args);
+          }
+          catch (e) {
+            console.error(e);
+          }
         }
       }
     }
@@ -1075,8 +1082,8 @@ var Hexular = (function () {
     /**
      * Creates `Adapter` instance.
      *
-     * @param  {Model} model       Model to associate with this adapter
-     * @param  {...object} ...args One or more settings objects to apply to adapter
+     * @param {Model} model       Model to associate with this adapter
+     * @param {...object} ...args One or more settings objects to apply to adapter
      */
     constructor(model, ...args) {
       /**
@@ -1121,122 +1128,13 @@ var Hexular = (function () {
    * @augments Adapter
    */
   class CanvasAdapter extends Adapter {
-
-    /**
-     * Default cell drawing method.
-     *
-     * @param  {Cell} cell The cell being drawn
-     */
-    static drawFilledHex(cell) {
-      this.context.fillStyle = this.colors[cell.state] || this.colors.slice(-1)[0];
-      this._drawHexPath(cell);
-      this.context.fill();
-    }
-
-    /**
-     * Draw cell outline.
-     *
-     * An alternative drawing method that uses {@link CanvasAdapter#cellBorderWidth|this.cellBorderWidth} to draw an
-     * outline instead of a filled hex. Must be manually added via {@link CanvasAdapter#onDrawCell}.
-     *
-     * @param  {Cell} cell The cell being drawn
-     */
-
-    static drawOutlineHex(cell) {
-      this.context.strokeStyle = this.colors[cell.state] || this.colors.slice(-1)[0];
-      this.context.lineWidth = this.model.cellBorderWidth;
-      this._drawHexPath(cell);
-      this.context.stroke();
-    }
-
-    /**
-     * Draw cell as filled cicle.
-     *
-     * An alternative drawing method that draws a filled circle instead of a hex. Must be manually added via
-     * {@link CanvasAdapter#onDrawCell}.
-     *
-     * @param  {Cell} cell The cell being drawn
-     */
-
-    static drawFilledCircle(cell) {
-      this.context.fillStyle = this.colors[cell.state] || this.colors.slice(-1)[0];
-      this._drawCirclePath(cell);
-      this.context.fill();
-    }
-
-    /**
-     * Draw cell as outline cicle.
-     *
-     * An alternative drawing method that uses {@link CanvasAdapter#cellBorderWidth|this.cellBorderWidth} to draw an
-     * outlined circle instead of a filled hex. Must be manually added via {@link CanvasAdapter#onDrawCell}.
-     *
-     * @param  {Cell} cell The cell being drawn
-     */
-
-    static drawOutlineCircle(cell) {
-      this.context.strokeStyle = this.colors[cell.state] || this.colors.slice(-1)[0];
-      this.context.lineWidth = this.model.cellBorderWidth;
-      this._drawCirclePath(cell);
-      this.context.stroke();
-    }
-
-    /**
-     * Optional {@link CanvasAdapter#onDraw} callback that sorts model cells from lowest to highest state.
-     *
-     * This allows e.g. overlapping drawing functions to be executed in some sensible order, rather than the top-left
-     * to-bottom-right order they would normally be drawn in. This has the potential to slow down larger models quite
-     * a bit.
-     */
-    static sortCellsAsc() {
-      this.cells = this.cells || this.model.cells.slice();
-      this.cells.sort((a, b) => a.state - b.state);
-    }
-
-    /**
-     * Optional {@link CanvasAdapter#onDraw} callback that sorts model cells from highest to lowest state.
-     */
-    static sortCellsDesc() {
-      this.cells = this.cells || this.model.cells.slice();
-      this.cells.sort((a, b) => b.state - a.state);
-    }
-
-    /**
-     * Optional {@link CanvasAdapter#onDraw} callback that draws a solid background in the style given by
-     * {@link Model#groundState|this.colors[this.model.groundState]}.
-     */
-    static drawBackground() {
-      this.context.save();
-      this.context.setTransform(1, 0, 0, 1, 0, 0);
-      this.context.fillStyle = this.colors[this.model.groundState];
-      this.context.fillRect(0, 0, this.context.canvas.width, this.context.canvas.height);
-      this.context.restore();
-    }
-
-    /**
-     * Optional {@link CanvasAdapter#onDraw} callback that draws a hexagonal background appropriate to the size if the
-     * model in the style given by {@link Model#groundState|this.colors[this.model.groundState]}.
-     */
-    static drawCubicBackground() {
-      if (!this.model.radius) return;
-      let radius = this.model.radius * this.cellRadius * APOTHEM * 2;
-      this.context.beginPath();
-      this.context.moveTo(radius, 0);
-      for (let i = 0; i < 6; i++) {
-        let a = Math.PI / 3 * i;
-        this.context.lineTo(Math.cos(a) * radius, Math.sin(a) * radius);
-      }
-      this.context.closePath();
-      this.context.fillStyle = this.colors[this.model.groundState];
-      this.context.fill();
-    }
-
     /**
      * Creates `CanvasAdapter` instance.
      *
      * Requires at least {@link CanvasAdapter#context} to be given in `...args` settings.
      *
-     * @param  {Model} model       Model to associate with this adapter
-     * @param  {...object} ...args One or more settings objects to apply to adapter
+     * @param {Model} model       Model to associate with this adapter
+     * @param {...object} ...args One or more settings objects to apply to adapter
      */
     constructor(model, ...args) {
       super(model);
@@ -1249,19 +1147,18 @@ var Hexular = (function () {
          * @default Some colors
          */
         colors: DEFAULTS.colors,
-
         /**
-         * @name CanvasAdapter#hightlightColor
+         * @name CanvasAdapter#defaultColor
          * @type string
-         * @default #ffbb33
+         * @default #ccccff
          */
-        highlightColor: DEFAULTS.highlightColor,
+        defaultColor: DEFAULTS.defaultColor,
         /**
-         * @name CanvasAdapter#highlightLineWidth
-         * @type number
-         * @default 2
+         * @name CanvasAdapter#backgroundColor
+         * @type string
+         * @default #ffffff
          */
-        highlightLineWidth: DEFAULTS.highlightLineWidth,
+        backgroundColor: DEFAULTS.backgroundColor,
         /**
          * @name CanvasAdapter#cellRadius
          * @type number
@@ -1309,10 +1206,10 @@ var Hexular = (function () {
       /**
        * @name CanvasAdapter#onDrawCell
        * @type HookList
-       * @default {@link CanvasAdapter#drawFilledHex|[this.defaultDawCell]}
+       * @default {@link CanvasAdapter#drawfilledPointyHex|[this.defaultDawCell]}
        */
       this.onDrawCell = new HookList(this);
-      this.onDrawCell.push(CanvasAdapter.drawFilledHex);
+      this.onDrawCell.push(this.drawFilledPointyHex);
     }
 
     /**
@@ -1321,7 +1218,8 @@ var Hexular = (function () {
     updateMathPresets() {
       this.cellRadius = this.model.cellRadius;
       this.innerRadius = this.cellRadius - this.cellGap / (2 * math.apothem);
-      this.vertices = scalarOp(math.vertices, this.innerRadius);
+      this.flatVertices = scalarOp(math.vertices, this.innerRadius);
+      this.pointyVertices = scalarOp(math.vertices.map(([x, y]) => [y, x]), this.innerRadius);
     }
 
     /**
@@ -1357,7 +1255,7 @@ var Hexular = (function () {
      *
      * This was originally called by {@link CanvasAdapter#draw}, but is now a standalone utility method.
      *
-     * @param  {Cell} cell The cell to draw
+     * @param {Cell} cell The cell to draw
      */
     drawCell(cell) {
       this.onDrawCell.call(cell);
@@ -1369,48 +1267,71 @@ var Hexular = (function () {
    * Used for drawing new cell state segments, and then applying the changes to the underlying model as an atomic,
    * batch operation. This is used by e.g. painting tools in Hexular Studio.
    *
-   * @param  {Cell} cell The cell being drawn
+   * @param {Cell} cell The cell being drawn
    */
     defaultDrawBuffer(cell) {
-      let color = this.colors[this.stateBuffer.get(cell)] || this.colors.slice(-1)[0];
+      let color = this.colors[this.stateBuffer.get(cell)] || this.defaultColor;
       if (color) {
         this.context.fillStyle = color;
-        this._drawHexPath(cell);
+        this.drawPath(cell);
         this.context.fill();
       }
-    }
-
-  /**
-   * Default cell selector drawing method.
-   *
-   * It's just a yellow outline.
-   *
-   * @param  {Cell} cell The selected cell being drawn
-   */
-    defaultDrawSelector(cell) {
-      this._drawHexPath(cell);
-      this.context.strokeStyle = this.highlightColor;
-      this.context.lineWidth = this.highlightLineWidth;
-      this.context.stroke();
     }
 
     /**
      * Internal method used to draw hexes for both selectors and cells.
      *
-     * @param  {Cell} cell The cell being drawn
+     * @param {Cell} cell The cell being drawn
      */
-    _drawHexPath(cell) {
+    drawPath(cell, path=this.pointyVertices) {
       const [x, y] = this.model.cellMap.get(cell);
-      const vertices = this.vertices;
       let ctx = this.context;
       ctx.beginPath();
-      ctx.moveTo(x + vertices[0][1], y + vertices[0][0]);
-      ctx.lineTo(x + vertices[1][1], y + vertices[1][0]);
-      ctx.lineTo(x + vertices[2][1], y + vertices[2][0]);
-      ctx.lineTo(x + vertices[3][1], y + vertices[3][0]);
-      ctx.lineTo(x + vertices[4][1], y + vertices[4][0]);
-      ctx.lineTo(x + vertices[5][1], y + vertices[5][0]);
+      ctx.moveTo(x + path[0][0], y + path[0][1]);
+      for (let i = 1; i < path.length; i++)
+        ctx.lineTo(x + path[i][0], y + path[i][1]);
       ctx.closePath();
+    }
+
+    /**
+     * Utility function for drawing arbitrary hexagon
+     *
+     * @param {Cell|number[]} locator           The cell at the position to be drawn, or an [x, y] coordinate tuple
+     * @param {number} radius                   The hexagon's radius
+     * @param {object} opts                     Optional arguments specifying e.g. stroke, fill, &c.
+     * @param {boolean} [opts.stroke=false]     Whether to draw stroke
+     * @param {boolean} [opts.fill=false]       Whether to draw fill
+     * @param {boolean} [opts.strokeStyle=null] Stroke style
+     * @param {boolean} [opts.fillStyle=null]   Fill style
+     */
+    drawHexagon(locator, radius, opts={}) {
+      let defaults = {
+        type: TYPE_POINTY,
+        stroke: false,
+        fill: false,
+        strokeStyle: null,
+        lineWidth: 0,
+        fillStyle: null,
+      }
+      opts = Object.assign(defaults, opts);
+      const [x, y] = locator instanceof Cell ? this.model.cellMap.get(locator) : locator;
+      let ctx = this.context;
+      let path = opts.type == TYPE_POINTY ? math.vertices : math.vertices.map(([x, y]) => [y, x]);
+      path = scalarOp(path, radius);
+      ctx.beginPath();
+      ctx.moveTo(x + path[0][0], y + path[0][1]);
+      for (let i = 1; i < path.length; i++)
+        ctx.lineTo(x + path[i][0], y + path[i][1]);
+      ctx.closePath();
+      if (opts.fill) {
+        ctx.fillStyle = opts.fillStyle;
+        ctx.fill();
+      }
+      if (opts.stroke) {
+        ctx.strokeStyle = opts.strokeStyle;
+        ctx.lineWidth = opts.lineWidth;
+        ctx.stroke();
+      }
     }
 
     /**
@@ -1418,14 +1339,156 @@ var Hexular = (function () {
      *
      * Convenience method for use by optional or custom drawing callbacks.
      *
-     * @param  {Cell} cell The cell being drawn
+     * @param {Cell} cell The cell being drawn
      */
-    _drawCirclePath(cell) {
+    drawCircle(cell, radius=this.innerRadius) {
       const [x, y] = this.model.cellMap.get(cell);
       let ctx = this.context;
       ctx.beginPath();
-      ctx.arc(x, y, this.innerRadius, 0, Math.PI * 2);
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
       ctx.closePath();
+    }
+
+
+    /**
+     * Default cell drawing method.
+     *
+     * @param {Cell} cell           The cell being drawn
+     * @param {string} [style=null] Optional argument when called directly specifying fill style
+     */
+    drawFilledPointyHex(cell, style) {
+      this.context.fillStyle = style || this.colors[cell.state] || this.defaultColor;
+      this.drawPath(cell);
+      this.context.fill();
+    }
+
+    /**
+     * Draw cell outline.
+     *
+     * An alternative drawing method that uses {@link CanvasAdapter#cellBorderWidth|this.cellBorderWidth} to draw an
+     * outline instead of a filled hex.
+     *
+     * @param {Cell} cell                               The cell being drawn
+     * @param {string} [style=this.colors[cell.state]]  Optional stroke style
+     * @param {number} [lineWidth=this.cellBorderWidth] Optional line width
+     */
+
+    drawOutlinePointyHex(cell, style, lineWidth=this.cellBorderWidth) {
+      this.context.strokeStyle = style || this.colors[cell.state] || this.defaultColor;
+      this.context.lineWidth = lineWidth;
+      this.drawPath(cell);
+      this.context.stroke();
+    }
+
+    /**
+     * Draw filled, flat-top cell.
+     *
+     * @param {Cell} cell                              The cell being drawn
+     * @param {string} [style=this.colors[cell.state]] Optional stroke style
+     */
+    drawFilledFlatHex(cell, style) {
+      this.context.fillStyle = style || this.colors[cell.state] || this.defaultColor;
+      this.drawPath(cell, this.flatVertices);
+      this.context.fill();
+    }
+
+    /**
+     * Draw flat-topped cell outline.
+     *
+     * @param {Cell} cell                               The cell being drawn
+     * @param {string} [style=this.colors[cell.state]]  Optional stroke style
+     * @param {number} [lineWidth=this.cellBorderWidth] Optional line width
+     */
+
+    drawOutlineFlatHex(cell, style, lineWidth=this.cellBorderWidth) {
+      this.context.strokeStyle = style || this.colors[cell.state] || this.defaultColor;
+      this.context.lineWidth = lineWidth;
+      this.drawPath(cell, this.flatVertices);
+      this.context.stroke();
+    }
+
+    /**
+     * Draw cell as filled cicle.
+     *
+     * An alternative drawing method that draws a filled circle instead of a hex. Must be manually added via
+     * {@link CanvasAdapter#onDrawCell}.
+     *
+     * @param {Cell} cell                              The cell being drawn
+     * @param {string} [style=this.colors[cell.state]] Optional stroke style
+     */
+
+    drawFilledCircle(cell, style) {
+      this.context.fillStyle = style || this.colors[cell.state] || this.defaultColor;
+      this.drawCircle(cell);
+      this.context.fill();
+    }
+
+    /**
+     * Draw cell as outline cicle.
+     *
+     * An alternative drawing method that uses {@link CanvasAdapter#cellBorderWidth|this.cellBorderWidth} to draw an
+     * outlined circle instead of a filled hex. Must be manually added via {@link CanvasAdapter#onDrawCell}.
+     *
+     * @param {Cell} cell                               The cell being drawn
+     * @param {string} [style=this.colors[cell.state]]  Optional stroke style
+     * @param {number} [lineWidth=this.cellBorderWidth] Optional line width
+     */
+
+    drawOutlineCircle(cell, style, lineWidth=this.cellBorderWidth) {
+      this.context.strokeStyle = style || this.colors[cell.state] || this.defaultColor;
+      this.context.lineWidth = lineWidth
+      this.drawCircle(cell);
+      this.context.stroke();
+    }
+
+    /**
+     * Optional {@link CanvasAdapter#onDraw} callback that sorts model cells from lowest to highest state.
+     *
+     * This allows e.g. overlapping drawing functions to be executed in some sensible order, rather than the top-left
+     * to-bottom-right order they would normally be drawn in. This has the potential to slow down larger models quite
+     * a bit.
+     */
+    sortCellsAsc() {
+      this.cells = this.cells || this.model.cells.slice();
+      this.cells.sort((a, b) => a.state - b.state);
+    }
+
+    /**
+     * Optional {@link CanvasAdapter#onDraw} callback that sorts model cells from highest to lowest state.
+     */
+    sortCellsDesc() {
+      this.cells = this.cells || this.model.cells.slice();
+      this.cells.sort((a, b) => b.state - a.state);
+    }
+
+    /**
+     * Optional {@link CanvasAdapter#onDraw} callback that draws a solid background in the style given by
+     *  {@link CanvasAdapter#backgroundColor|this.backgroundColor}.
+     */
+    drawBackground() {
+      this.context.save();
+      this.context.setTransform(1, 0, 0, 1, 0, 0);
+      this.context.fillStyle = this.backgroundColor;
+      this.context.fillRect(0, 0, this.context.canvas.width, this.context.canvas.height);
+      this.context.restore();
+    }
+
+    /**
+     * Optional {@link CanvasAdapter#onDraw} callback that draws a hexagonal background appropriate to the size if the
+     * model in the style given by {@link CanvasAdapter#backgroundColor|this.backgroundColor}.
+     */
+    drawCubicBackground() {
+      if (!this.model.radius) return;
+      let radius = this.model.radius * this.cellRadius * APOTHEM * 2;
+      this.context.beginPath();
+      this.context.moveTo(radius, 0);
+      for (let i = 0; i < 6; i++) {
+        let a = Math.PI / 3 * i;
+        this.context.lineTo(Math.cos(a) * radius, Math.sin(a) * radius);
+      }
+      this.context.closePath();
+      this.context.fillStyle = this.backgroundColor;
+      this.context.fill();
     }
   }
 
@@ -1529,8 +1592,8 @@ var Hexular = (function () {
    *
    * This is used to order {@link CubicModel#cells}, and by the hex-drawing tools in Hexular Studio.
    *
-   * @param  {Cell} origin   Central cell
-   * @param  {number} radius A natural number greater than 0
+   * @param {Cell} origin   Central cell
+   * @param {number} radius A natural number greater than 0
    * @return {Cell[]}        An array of cells, including the origin, of length `3 * radius * (radius - 1) + 1`
    * @memberof Hexular.util
    * @see {@link Cell#nbrs}
@@ -1633,8 +1696,8 @@ var Hexular = (function () {
   /**
    * Modulo operation for reals.
    *
-   * @param  {number} a Dividend
-   * @param  {number} n Divisor
+   * @param {number} a Dividend
+   * @param {number} n Divisor
    * @return {number} Modulus
    * @memberof Hexular.math
    */
@@ -1645,9 +1708,9 @@ var Hexular = (function () {
   /**
    * Perform element-wise arithmetic operation on arbitrarily-dimensioned tensor.
    *
-   * @param  {number[]} obj    Arbitrary-dimensional array of numbers
-   * @param  {number} scalar   Real number
-   * @param  {string} [op='*'] Either '+' or '*' &mdash; for subtraction or division, invert `scalar` argument
+   * @param {number[]} obj    Arbitrary-dimensional array of numbers
+   * @param {number} scalar   Real number
+   * @param {string} [op='*'] Either '+' or '*' &mdash; for subtraction or division, invert `scalar` argument
    * @return {number[]}        Result array with same shape as `obj`
    * @memberof Hexular.math
    */
@@ -1664,9 +1727,9 @@ var Hexular = (function () {
    * Multiply row-major matrix by another matrix, or by a transposed one-dimensional vector (i.e. right-multiply a
    * matrix and a vector).
    *
-   * @param  {number[][]} a          Two-dimensional array representing an `m`*`n` matrix, where outer length = `m` and
+   * @param {number[][]} a          Two-dimensional array representing an `m`*`n` matrix, where outer length = `m` and
    *                                 inner length = `n`
-   * @param  {number[][]|number[]} b Two-dimensional array representing an `p`*`q` matrix or a one-dimensional array
+   * @param {number[][]|number[]} b Two-dimensional array representing an `p`*`q` matrix or a one-dimensional array
    *                                 representing `q`-length vector
    * @return {number[][]}            Two-dimensional array representing an `m`*`q` matrix
    * @memberof Hexular.math
@@ -1689,8 +1752,8 @@ var Hexular = (function () {
   /**
    * Element-wise addition of two identical-length arrays.
    *
-   * @param  {array} u `n`-dimensional first argument
-   * @param  {array} v `n`-dimensional second argument
+   * @param {array} u `n`-dimensional first argument
+   * @param {array} v `n`-dimensional second argument
    * @return {array}   `n`-dimensional sum
    * @memberof Hexular.math
    */
@@ -1701,7 +1764,7 @@ var Hexular = (function () {
   /**
    * Helper function for finding the maximum absolute value among several real numbers.
    *
-   * @param  {...number} ...args Real numbers
+   * @param {...number} ...args Real numbers
    * @return {number}            Maximum absolute value of provided arguments
    * @memberof Hexular.math
    */
@@ -1712,7 +1775,7 @@ var Hexular = (function () {
   /**
    * Convert [x, y] coordinates to cubic coordinates [u, v, w].
    *
-   * @param  {array} coord Tuple of coordinates [x, y]
+   * @param {array} coord Tuple of coordinates [x, y]
    * @return {array}       Raw (real) cubic coordinates [u, v, w]
    * @memberof Hexular.math
    */
@@ -1725,8 +1788,8 @@ var Hexular = (function () {
   /**
    * Convert real-valued [u, v, w] to their rounded, whole-number counterparts.
    *
-   * @param  {array} coord       Array of real-valued cubic coordinates [u, v, w]
-   * @param  {number} [radius=1] Optional radius scalar &mdash; for converting "pixel" coords to "cell" coords
+   * @param {array} coord       Array of real-valued cubic coordinates [u, v, w]
+   * @param {number} [radius=1] Optional radius scalar &mdash; for converting "pixel" coords to "cell" coords
    * @return {array}             Integer cubic coordinates [u, v, w]
    * @memberof Hexular.math
    */
@@ -1753,6 +1816,10 @@ var Hexular = (function () {
 
   let attributes = {
     DEFAULTS: Object.assign(DEFAULTS, {model: CubicModel}),
+    enums: {
+      TYPE_FLAT,
+      TYPE_POINTY,
+    },
     rules: {
       identityRule,
       nullRule,
@@ -1797,7 +1864,7 @@ var Hexular = (function () {
   /**
    * Principal function object assigned to global `Hexular` object or returned as module.
    *
-   * @param  {...object} ...args Arguments to pass to Model constructor
+   * @param {...object} ...args Arguments to pass to Model constructor
    * @return {Model}             Model instance
    * @global
    */

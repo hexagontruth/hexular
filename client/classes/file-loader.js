@@ -4,6 +4,7 @@ class FileLoader {
       reader: 'readAsText',
       multiple: false,
       readIdx: 0,
+      fileTypes: [],
       filterFn: () => Array(this.input.files.length).fill(true),
       loadFn: () => null,
       fileReader: new FileReader(),
@@ -39,6 +40,7 @@ class FileLoader {
 
   _readNext() {
     let idx = this.readIdx;
+    this.fileTypes[idx] = this.input.files[idx].type;
     this.readFilter[idx] && this.fileReader[this.reader](this.input.files[idx]);
   }
 }
