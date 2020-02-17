@@ -40,8 +40,8 @@
     <div class="group tools">
       <button id="show-config" title="Model configuration (Ctrl+M)" class="icon-gear"></button>
       <button id="show-rb" title="Rulebuilder (Ctrl+B)" class="icon-function"></button>
-      <button id="show-custom" title="Enter custom code (Ctrl+F)" class="icon-code"></button>
-      <button id="show-resize" title="Appearance &amp; size (Ctrl+A)" class="icon-rainbow"></button>
+      <button id="show-resize" title="Appearance (Ctrl+A)" class="icon-rainbow"></button>
+      <button id="show-custom" title="Custom code (Ctrl+F)" class="icon-code"></button>
       <button id="show-clear" title="Clear local data (Ctrl+X)" class="icon-refresh"></button>
     </div>
   </div>
@@ -93,11 +93,28 @@
   </div>
   <div class="overlay hidden">
     <div class="modal resize hidden">
-      <div class="modal-title"><i class="icon-rainbow"></i> Appearance &amp; size</div>
+      <div class="modal-title"><i class="icon-rainbow"></i> Appearance</div>
       <div class="modal-content">
         <div class="group">
-          <label class="left">Theme:</label>
+          <label>Theme:</label>
           <select id="select-theme" class="focus" title="Select theme"></select>
+        </div>
+        <div class="group">
+          <label>Gap:</label>
+          <input type="number" id="cell-gap" step="0.1"/>
+          <label>Border:</label>
+          <input type="number" id="cell-border-width" min="0" step="0.1"/>
+        </div>
+        <div class="group buttons">
+          <button id="sort-cells-asc" class="icon-sort-ascending" title="Draw in ascending order (may cause slowness)"></button>
+          <button id="sort-cells-desc" class="icon-sort-descending" title="Draw in descending order (may cause slowness)"></button>
+          <div class="divider"></div>
+          <button id="draw-filled-hex" class="icon-hexagon" title="Filled hexagon"></button>
+          <button id="draw-outline-hex" class="icon-hexagon-outline" title="Outline hexagon"></button>
+          <button id="draw-filled-circle" class="icon-circle" title="Filled circle"></button>
+          <button id="draw-outline-circle" class="icon-circle-outline" title="Outline circle"></button>
+          <div class="divider"></div>
+          <button id="autopause" class="icon-pause" title="Autopause"></button>
         </div>
         <div class="group">
           <label class="left">Interval:</label>
