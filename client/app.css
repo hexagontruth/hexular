@@ -493,6 +493,10 @@ textarea, select, input {
   flex: 1 1 auto;
 }
 
+input[type=number] {
+  max-width: 33.33%; /* wtf firefox */
+}
+
 select {
   appearance: none;
   -webkit-appearance: none;
@@ -517,6 +521,13 @@ select {
   margin-bottom: 0.5em;
   width: 100%;
   text-align: center;
+}
+
+.modal .divider {
+  width: 0.05em;
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+  background-color: #ccc;
 }
 
 .modal label {

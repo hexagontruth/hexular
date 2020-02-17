@@ -27,7 +27,7 @@ class Config {
       background: '#f8f8f8',
       showModelBackground: true,
       cellGap: 1,
-      cellBorderWidth: 1,
+      cellBorderWidth: 2,
       colors: Hexular.DEFAULTS.colors,
       availableRules: Config.merge({}, Rules),
       rules: Array(this.maxNumStates).fill(this.defaultRule),
@@ -38,7 +38,7 @@ class Config {
       defaultFilename: 'hexular.bin',
       defaultVideoFilename: 'hexular.webm',
       defaultSettingsFilename: 'hexular.json',
-      codec: 'h264',
+      codec: 'vp9',
       scaleFactor: 1,
       tool: 'brush',
       shiftTool: 'move',
@@ -53,6 +53,18 @@ class Config {
       rbMatchRel: 0,
       rbRel: 0,
       rbStates: Array(64).fill(false),
+      onDrawAvailable: [
+        'sortCellsAsc',
+        'sortCellsDesc',
+      ],
+      onDraw: null,
+      onDrawCellAvailable: [
+        'drawFilledHex',
+        'drawOutlineHex',
+        'drawFilledCircle',
+        'drawOutlineCircle',
+      ],
+      onDrawCell: 'drawFilledHex',
       localStorageObj: window.localStorage,
       sessionStorageObj: window.sessionStorage,
     };
@@ -171,6 +183,7 @@ class Config {
 
     // Appearance aka resize modal
     this.resizeModal.update();
+    this.resizeModal.reset();
   }
 
   // --- ADDERS, IMPORT/EXPORT ---
@@ -211,6 +224,15 @@ class Config {
   }
 
   // --- SETTERS ---
+
+  setAutopause(value) {
+    this.autopause = value;
+    if (value)
+      this.resizeModal.autopause.classList.add('active');
+    else
+      this.resizeModal.autopause.classList.remove('active');
+    this.storeSessionConfigAsync();
+  }
   
   setBackground(color) {
     this.background = color || this.background;
@@ -219,6 +241,7 @@ class Config {
 
   setCellGap(width) {
     this.cellGap = width != null ? width : this.cellGap;
+    this.resizeModal.cellGap.value = this.cellGap;
     this.board.bgAdapter.cellGap = this.cellGap;
     this.board.fgAdapter.cellGap = this.cellGap;
     this.board.bgAdapter.updateMathPresets();
@@ -227,6 +250,7 @@ class Config {
 
   setCellBorderWidth(width) {
     this.cellBorderWidth = width != null ? width : this.cellBorderWidth;
+    this.resizeModal.cellBorderWidth.value = this.cellBorderWidth;
     this.board.model.cellBorderWidth = this.cellBorderWidth;
     this.board.model.cellBorderWidth = this.cellBorderWidth;
   }
@@ -301,12 +325,38 @@ class Config {
     this.storeSessionConfig();
   }
 
+  setOnDraw(fnName) {
+    this.onDraw = fnName;
+    Object.values(this.resizeModal.onDraw).forEach((e) => e.classList.remove('active'));
+    let fns = this.onDrawAvailable.map((e) => Hexular.classes.adapters.CanvasAdapter[e]);
+    this.board.bgAdapter.onDraw.replace(
+      this.board.bgAdapter.onDraw.filter((e) => !fns.includes(e))
+    );
+    if (this.onDrawAvailable.includes(this.onDraw)) {
+      this.resizeModal.onDraw[this.onDraw].classList.add('active');
+      this.board.bgAdapter.onDraw.unshift(Hexular.classes.adapters.CanvasAdapter[this.onDraw]);
+    }
+    this.storeSessionConfigAsync();
+  }
+
+  setOnDrawCell(fnName) {
+    this.onDrawCell = fnName || this.onDrawCell;
+    Object.values(this.resizeModal.onDrawCell).forEach((e) => e.classList.remove('active'));
+    this.resizeModal.onDrawCell[this.onDrawCell].classList.add('active');
+    let fns = this.onDrawCellAvailable.map((e) => Hexular.classes.adapters.CanvasAdapter[e]);
+    this.board.bgAdapter.onDrawCell.replace(
+      this.board.bgAdapter.onDrawCell.filter((e) => !fns.includes(e))
+    );
+    this.board.bgAdapter.onDrawCell.unshift(Hexular.classes.adapters.CanvasAdapter[this.onDrawCell]);
+    this.storeSessionConfigAsync();
+  }
+
   setPaintColor(idx, color) {
     this.paintColors[idx] = color;
     let className = `active-${idx}`;
     this.board.colorButtons.forEach((e) => e.classList.remove(className));
     this.board.colorButtons[color] && this.board.colorButtons[color].classList.add(className);
-    this.storeSessionConfig();
+    this.storeSessionConfigAsync();
   }
 
   getPaintColor(idx) {
@@ -327,7 +377,7 @@ class Config {
       this.board.menus.color.classList.add('hidden');
       this.board.toolMisc.color.classList.remove('active');
     }
-    this.storeSessionConfig();
+    this.storeSessionConfigAsync();
   }
 
   setPreset(presetName) {
@@ -456,7 +506,7 @@ class Config {
       this.theme = themeName;
     }
     let {cellGap, cellBorderWidth, showModelBackground, background, colors} = Config.defaults;
-    let defaults = {cellGap, showModelBackground, background, colors};
+    let defaults = {cellGap, cellBorderWidth, showModelBackground, background, colors};
     let theme = Config.merge(defaults, this.themes[this.theme]);
     Config.merge(this, theme);
     this.setBackground()
@@ -529,6 +579,7 @@ class Config {
 
   getSessionConfig() {
     let sessionConfig = this.getKeyValues([
+      'autopause',
       'cellBorderWidth',
       'cellGap',
       'codec',
@@ -541,7 +592,8 @@ class Config {
       'maxNumStates',
       'nh',
       'numStates',
-      'autopause',
+      'onDraw',
+      'onDrawCell',
       'paintColors',
       'preset',
       'radius',

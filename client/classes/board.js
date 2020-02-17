@@ -10,6 +10,8 @@ class Board {
         if (oldBoard) {
           board.undoStack = oldBoard.undoStack;
           board.redoStack = oldBoard.redoStack;
+          board.bgAdapter.onDraw.replace(oldBoard.bgAdapter.onDraw);
+          board.bgAdapter.onDrawCell.replace(oldBoard.bgAdapter.onDrawCell);
           board.refreshHistoryButtons();
         }
         Board.config = board.config;
@@ -77,8 +79,8 @@ class Board {
         redo: document.querySelector('#redo'),
         toggleMenu: document.querySelector('#toggle-menu'),
         showConfig: document.querySelector('#show-config'),
-        showResize: document.querySelector('#show-resize'),
         showRb: document.querySelector('#show-rb'),
+        showResize: document.querySelector('#show-resize'),
         showCustom: document.querySelector('#show-custom'),
         showClear: document.querySelector('#show-clear'),
         showDoc: document.querySelector('#show-doc'),
@@ -90,9 +92,6 @@ class Board {
         saveData: document.querySelector('#save-data'),
         loadData: document.querySelector('#load-data'),
         import: document.querySelector('#import'),
-        allNonrecording: document.querySelectorAll(
-          '.toolbar .group button:not(#toggle-record):not(#toggle-play):not(#show-config):not(#show-doc)'
-        ),
       },
       tools: {
         fill: document.querySelector('#tool-fill'),
@@ -114,6 +113,16 @@ class Board {
       },
       colorButtons: Array.from(document.querySelectorAll('.toolbar.colors button')),
     };
+    props.disableWhenRecording = [
+      props.buttons.step,
+      props.buttons.undo,
+      props.buttons.redo,
+      props.buttons.saveSnapshot,
+      props.buttons.loadSnapshot,
+      props.buttons.saveImage,
+      props.buttons.save,
+      props.buttons.load,
+    ];
     Object.assign(this, props);
     this.config = new Config(this, ...args);
 
@@ -212,10 +221,15 @@ class Board {
     if (this.bgAdapter && !this.drawPromise) {
       this.drawPromise = new Promise((resolve, reject) => {
         requestAnimationFrame(() => {
-          this.bgAdapter.draw();
-          this.recorder && this.recorder.draw();
-          this.drawPromise = null;
-          resolve();
+          try {
+            this.bgAdapter.draw();
+            this.recorder && this.recorder.draw();
+            this.drawPromise = null;
+            resolve();
+          }
+          catch (e) {
+            reject(e);
+          }
         });
       });
     }
@@ -229,7 +243,7 @@ class Board {
       if (!this.running)
         requestAnimationFrame(() => this.start());
       this.playStart = Date.now();
-      this.buttons.allNonrecording.forEach((e) => e.disabled = true);
+      this.disableWhenRecording.forEach((e) => e.disabled = true);
       this.buttons.toggleRecord.className = 'icon-stop active';
       this.setButtonTitle(this.buttons.toggleRecord, 'Stop');
       this.recorder = new Recorder(this);
@@ -246,7 +260,7 @@ class Board {
       this.config.setRecordingMode(false);
       this.buttons.toggleRecord.className = 'icon-record';
       this.setButtonTitle(this.buttons.toggleRecord, 'Record');
-      this.buttons.allNonrecording.forEach((e) => e.disabled = false);
+      this.disableWhenRecording.forEach((e) => e.disabled = false);
     }
   }
 
@@ -312,11 +326,11 @@ class Board {
     this.infoBoxes.timer.classList.remove('recording');
   }
 
-  step() {
+  async step() {
     this.newHistoryState();
     try {
       this.model.step();
-      this.draw();
+      await this.draw();
       this.storeModelState();
       if (!this.model.changed && this.config.autopause) {
         this.stop();
@@ -336,8 +350,6 @@ class Board {
 
   clear() {
     this.newHistoryState();
-    if (this.running)
-      this.stop();
     this.model.clear();
     this.draw();
     this.storeModelState();
@@ -486,10 +498,13 @@ class Board {
         this.config.storeLocalConfigAsync();
         this.config.storeSessionConfigAsync();
         this.config.setTheme();
+        this.config.setCellGap();
+        this.config.setCellBorderWidth();
         this.setMessage('Settings restored!');
       }
-      catch {
+      catch (e) {
         this.setMessage('Unable to parse settings file!', 'error');
+        console.log(e);
       }
     };
     fileLoader.prompt();

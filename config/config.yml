@@ -18,6 +18,7 @@ default:
       - client/classes/modals/custom-modal.js
       - client/classes/modals/rb-modal.js
       - client/classes/modals/resize-modal.js
+      - client/library/examples.js
       - client/library/rules.js
       - client/library/presets.js
       - client/library/themes.js

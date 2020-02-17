@@ -158,6 +158,8 @@ We can also override or extend the default cell-drawing behavior of `CanvasAdapt
           }
         });
 
+Variations on these triangles and perhaps other examples can be found in the global `Examples` object in Hexular Studio.
+
 ## Hexular Studio
 
 The built-in demo site, Hexular Studio, can be run as-is with any static HTTP server, or built and run using NPM and Node:
@@ -187,7 +189,7 @@ Control flow, state, and configuration buttons run along the along the top of th
     - Open model configuration modal (Ctrl+G)
     - Open rulebuilder modal (Ctrl+B)
     - Open custom code modal (Ctrl+F)
-    - Appearance & size modal (Ctrl+A)
+    - Open appearance modal (Ctrl+A)
     - Clear local settings (Ctrl+X)
   - Undo (Ctrl+Z)
   - Redo (Ctrl+Shift+Z)

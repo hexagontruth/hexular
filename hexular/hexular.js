@@ -1127,7 +1127,7 @@ var Hexular = (function () {
      *
      * @param  {Cell} cell The cell being drawn
      */
-    static drawCellFilled(cell) {
+    static drawFilledHex(cell) {
       this.context.fillStyle = this.colors[cell.state] || this.colors.slice(-1)[0];
       this._drawHexPath(cell);
       this.context.fill();
@@ -1142,7 +1142,7 @@ var Hexular = (function () {
      * @param  {Cell} cell The cell being drawn
      */
 
-    static drawCellOutline(cell) {
+    static drawOutlineHex(cell) {
       this.context.strokeStyle = this.colors[cell.state] || this.colors.slice(-1)[0];
       this.context.lineWidth = this.model.cellBorderWidth;
       this._drawHexPath(cell);
@@ -1158,7 +1158,7 @@ var Hexular = (function () {
      * @param  {Cell} cell The cell being drawn
      */
 
-    static drawCircleFilled(cell) {
+    static drawFilledCircle(cell) {
       this.context.fillStyle = this.colors[cell.state] || this.colors.slice(-1)[0];
       this._drawCirclePath(cell);
       this.context.fill();
@@ -1173,7 +1173,7 @@ var Hexular = (function () {
      * @param  {Cell} cell The cell being drawn
      */
 
-    static drawCircleOutline(cell) {
+    static drawOutlineCircle(cell) {
       this.context.strokeStyle = this.colors[cell.state] || this.colors.slice(-1)[0];
       this.context.lineWidth = this.model.cellBorderWidth;
       this._drawCirclePath(cell);
@@ -1187,9 +1187,17 @@ var Hexular = (function () {
      * to-bottom-right order they would normally be drawn in. This has the potential to slow down larger models quite
      * a bit.
      */
-    static sortCells() {
+    static sortCellsAsc() {
       this.cells = this.cells || this.model.cells.slice();
       this.cells.sort((a, b) => a.state - b.state);
+    }
+
+    /**
+     * Optional {@link CanvasAdapter#onDraw} callback that sorts model cells from highest to lowest state.
+     */
+    static sortCellsDesc() {
+      this.cells = this.cells || this.model.cells.slice();
+      this.cells.sort((a, b) => b.state - a.state);
     }
 
     /**
@@ -1301,10 +1309,10 @@ var Hexular = (function () {
       /**
        * @name CanvasAdapter#onDrawCell
        * @type HookList
-       * @default {@link CanvasAdapter#drawCellFilled|[this.defaultDawCell]}
+       * @default {@link CanvasAdapter#drawFilledHex|[this.defaultDawCell]}
        */
       this.onDrawCell = new HookList(this);
-      this.onDrawCell.push(CanvasAdapter.drawCellFilled);
+      this.onDrawCell.push(CanvasAdapter.drawFilledHex);
     }
 
     /**
