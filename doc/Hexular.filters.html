@@ -165,7 +165,7 @@ modified form of that value.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1526">line 1526</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1552">line 1552</a>
     </li></ul></dd>
     
 
@@ -254,7 +254,7 @@ modified form of that value.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1550">line 1550</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1575">line 1575</a>
     </li></ul></dd>
     
 
@@ -342,7 +342,7 @@ modified form of that value.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1559">line 1559</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1584">line 1584</a>
     </li></ul></dd>
     
 
@@ -387,9 +387,8 @@ modified form of that value.</p>
 
 <div class="description">
     <p>Add new state to current cell state if nonzero, otherwise set to zero.</p>
-<p>This is the some sense the opposite of, and generally mutually exclusive with,
-<a href="Hexular.filters.html#.binaryFilter"><code>binaryFilter</code></a>. Nonetheless the two can potentially be
-combined in constructive ways, to e.g. &quot;flatten&quot; an incrementor.</p>
+<p>This is the some sense the opposite of, and generally — though not always — mutually exclusive with,
+<a href="Hexular.filters.html#.binaryFilter"><code>binaryFilter</code></a>.</p>
 </div>
 
 
@@ -433,7 +432,7 @@ combined in constructive ways, to e.g. &quot;flatten&quot; an incrementor.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1539">line 1539</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1564">line 1564</a>
     </li></ul></dd>
     
 
@@ -479,7 +478,7 @@ combined in constructive ways, to e.g. &quot;flatten&quot; an incrementor.</p>
 <div class="description">
     <p>Always set edge cells to ground state.</p>
 <p>This filter has the effect of disabling wraparound cells, since no cell state can affect a cell neighborhood
-across the two-cell boundary width. This may have unexpected and undesirable effects with certain rules though.</p>
+across the two-cell boundary width. This may have unexpected and undesirable effects with certain rules.</p>
 </div>
 
 
@@ -523,7 +522,7 @@ across the two-cell boundary width. This may have unexpected and undesirable eff
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1584">line 1584</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1609">line 1609</a>
     </li></ul></dd>
     
 
@@ -570,7 +569,7 @@ across the two-cell boundary width. This may have unexpected and undesirable eff
     <p>Set new cell values to modulus with respect to <a href="Model.html#numStates"><code>Model#numStates</code></a>.</p>
 <p>This filter has the effect of making states cyclical. Historically this was the default behavior. There is, in
 principle, nothing preventing one from using non-numeric or complex multivalued cell states, but like much of the
-boilerplate functionality, this filter is implemented with the assumption that states will be natural numbers.</p>
+boilerplate functionality, this filter is implemented on the assumption that states will be natural numbers.</p>
 </div>
 
 
@@ -614,7 +613,7 @@ boilerplate functionality, this filter is implemented with the assumption that s
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1572">line 1572</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1597">line 1597</a>
     </li></ul></dd>
     
 
@@ -659,7 +658,7 @@ boilerplate functionality, this filter is implemented with the assumption that s
 
   </main>
   <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="Hexular.filters.html">filters</a></li><li><a href="Hexular.math.html">math</a></li><li><a href="Hexular.rules.html">rules</a></li><li><a href="Hexular.util.html">util</a></li></ul><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="CanvasAdapter.html">CanvasAdapter</a></li><li><a href="Cell.html">Cell</a></li><li><a href="CubicModel.html">CubicModel</a></li><li><a href="HexError.html">HexError</a></li><li><a href="HookList.html">HookList</a></li><li><a href="Model.html">Model</a></li><li><a href="Neighborhood.html">Neighborhood</a></li><li><a href="OffsetModel.html">OffsetModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Hexular">Hexular</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="Hexular.enums.html">enums</a></li><li><a href="Hexular.filters.html">filters</a></li><li><a href="Hexular.math.html">math</a></li><li><a href="Hexular.rules.html">rules</a></li><li><a href="Hexular.util.html">util</a></li></ul><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="CanvasAdapter.html">CanvasAdapter</a></li><li><a href="Cell.html">Cell</a></li><li><a href="CubicModel.html">CubicModel</a></li><li><a href="HexError.html">HexError</a></li><li><a href="HookList.html">HookList</a></li><li><a href="Model.html">Model</a></li><li><a href="Neighborhood.html">Neighborhood</a></li><li><a href="OffsetModel.html">OffsetModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Hexular">Hexular</a></li></ul>
   </nav>
 </div>
 <footer>

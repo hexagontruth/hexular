@@ -43,7 +43,7 @@
     <section>
         <article><h1 id="hexular">Hexular</h1>
 <p>An extensible hexagonal CA platform.</p>
-<p>(C) 2020 Graham Steele. Distributed under the <a href="../LICENSE.txt">Hexagonal Awareness License</a>.</p>
+<p>(C) 2020 Graham Steele. Distributed under the Hexagonal Awareness License.</p>
 <ul>
 <li><a href="https://hexagrahamaton.github.io/hexular">Hexular Studio (Demo)</a></li>
 <li><a href="https://hexagrahamaton.github.io/hexular/doc/">Documentation</a></li>
@@ -111,12 +111,10 @@ end user to implement her own extensions via the Hexular API:</p>
 <li><a href="Model.html#step"><code>step()</code></a> — Perform single state increment step</li>
 <li><a href="Model.html#clear"><code>clear()</code></a> — Clear all cell states</li>
 </ul>
-<p>States are not drawn or redrawn on screen with adapters. Useful <code>CanvasAdapter</code> methods include:</p>
+<p>Adapters map a model to some space — e.g. a web canvas. Useful <code>CanvasAdapter</code> methods include:</p>
 <ul>
 <li><a href="CanvasAdapter.html#draw"><code>draw()</code></a> — Draws all cells</li>
 <li><a href="CanvasAdapter.html#drawCell"><code>drawCell(cell)</code></a> — Draws an individual cell</li>
-<li><a href="CanvasAdapter.html#selectCell"><code>selectCell(cell)</code></a> — Highlights individual cell</li>
-<li><a href="CanvasAdapter.html#cellAt"><code>cellAt(x, y)</code></a> — Returns cell at given coordinates on the canvas</li>
 </ul>
 <h2 id="configuration">Configuration</h2>
 <p>The Hexular constructor accepts an optional first argument giving a model class (e.g. <code>Hexular.classes.models.OffsetTopology</code>), and any number of settings arguments. Different settings are required by different model classes.</p>
@@ -124,7 +122,7 @@ end user to implement her own extensions via the Hexular API:</p>
 <p>For additional model configuration options, please see the <a href="Model.html"><code>Model</code></a> documentation.</p>
 <h3 id="rules">Rules</h3>
 <p>Cell rules are given on a per-state basis, and applied individually to each cell. The rules are stored in the <a href="Model.html#rules"><code>model.rules</code></a> array, and can be reassigned at any time.</p>
-<p>A valid rule is a function that take a cell as an argument, and return a value corresponding to the next desired state. Hexular is generally opinionated towards natural number states, but they can in principle be any values that can be coerced into a JavaScript object key. The rule function has access to the cell's current state, its neighbors' states (through <a href="Cell.html#nbrs"><code>cell.nbrs</code></a> and the neighborhood-bound helper functions), and by extension the state of every cell in the grid — though philosophically speaking CAs should only consider cell states within some finite local neighborhood.</p>
+<p>A valid rule is a function that take a cell as an argument, and return a value corresponding to the next desired state. Hexular is generally opinionated towards natural number states, but they can in principle be any values that can be coerced into a JavaScript object key. The rule function has access to the cell's current state, its neighbors' states (through <a href="Cell.html#nbrs"><code>cell.nbrs</code></a> and the neighborhood-bound helper functions), and by extension the state of every cell in the grid — though in principle CAs should only consider cell states within some finite local neighborhood.</p>
 <p>One could, if one were so inclined, create rules utilizing larger local neighborhoods, additional internal state data, etc.</p>
 <h4 id="rule-helpers">Rule helpers</h4>
 <p>Cell instances have several helper methods to perform common rule calculations:</p>
@@ -148,7 +146,6 @@ end user to implement her own extensions via the Hexular API:</p>
 <li><code>rel = false</code></li>
 </ul>
 <p>The <code>range</code> attribute determines which neighbors to consider when applying the rule, with the default being <code>[1, 7]</code> (corresponding to the immediate neighborhood N6). This can be changed to e.g. <code>[0, 7]</code> to include the home cell itself, or <code>[1, 19]</code> to consider the 18 nearest neighbors excluding the home cell. The individual state masks in the first argument array are thus 6 bits in the default case (0-63), or 7 bits in the latter case (0-127). The &quot;rule number&quot; produced will be up to 64 bits, or 18,446,744,073,709,551,616 possible combinations, for the 6-neighbor default, or up to 128 bits, or 340,282,366,920,938,463,463,374,607,431,768,211,456 possible combinations, for the 7-neighbor variant. If one were to consider the full <code>[0, 19]</code> neighborhood, one would have a 157,827-decimal-digit-long number of possible rules, which I will not repeat here.</p>
-<p>This representation is obviously a bit less well-suited to the brute indexing approach than Wolfram's 256 one-dimensional rules, but it is hoped that at least the array version will be helpful in constructing simple rules, which may then be composed into more complex rules, &amp;c.</p>
 <p>So e.g.. we might use this function as follows to create a rule to activate if and only if two opposite pairs of neighbors are exclusively active:</p>
 <pre><code>    let fancyElementaryRule = Hexular.util.ruleBuilder([
       0b001001,
@@ -161,12 +158,12 @@ end user to implement her own extensions via the Hexular API:</p>
       0b001001,
       0b010010,
       0b100100
-    ], {miss: 0, missRel: true, match: -1});
+    ], {miss: 0,  match: -1, missRel: true, matchRel: true});
 </code></pre>
 <p>Note this would be a somewhat useless rule under most circumstances.</p>
 <p>Please the relevant <a href="Hexular.util.html#.ruleBuilder">documentation</a> for additional details on the ruleBuilder function.</p>
 <h3 id="customization">Customization</h3>
-<p>Beyond modifying rules and neighborhoods, model behavior can be extended and modified in a number of ways.</p>
+<p>Beyond modifying rules and neighborhoods, model behavior can be extended and modified in a number of ways:</p>
 <h4 id="filters">Filters</h4>
 <p>Filters allow us to, e.g., perform a modulo operation on new cell states, to keep them confined to a certain range. This was historically the default behavior, but has now been spun out into a separate functionality that must be added explicitly to a new model:</p>
 <pre><code>    model.addFilter(Hexular.filters.modFilter)
@@ -174,7 +171,7 @@ end user to implement her own extensions via the Hexular API:</p>
 <p>Filters simply take a state value and an optional <a href="Cell.html"><code>cell</code></a> instance, and return a filtered state value.</p>
 <h4 id="drawing-hooks">Drawing hooks</h4>
 <p>We can also override or extend the default cell-drawing behavior of <code>CanvasAdapter</code> in arbitrary aesthetic ways, to create more complex renderings. For example opening the console in the Hexular Studio interface and running the following will add a tasteful red triangle between any three activated cells:</p>
-<pre><code>    Board.instance.bgAdapter.onDrawCell.push(function(cell) {
+<pre><code>    Board.bgAdapter.onDrawCell.push(function(cell) {
       if (!cell.state)
         return;
       let slice = cell.with[6].nbrSlice;
@@ -193,27 +190,26 @@ end user to implement her own extensions via the Hexular API:</p>
       }
     });
 </code></pre>
-<p>Variations on these triangles and perhaps other examples can be found in the global <code>Examples</code> object in Hexular Studio.</p>
+<p>Variations on these triangles and other examples can be found in the global <code>Examples</code> object in Hexular Studio.</p>
 <h2 id="hexular-studio">Hexular Studio</h2>
 <p>The built-in demo site, Hexular Studio, can be run as-is with any static HTTP server, or built and run using NPM and Node:</p>
 <ul>
 <li>Run <code>npm install</code> from the project directory</li>
-<li>Then run <code>npm start</code></li>
+<li>Run <code>npm start</code></li>
 </ul>
-<p>The principal Studio interface consists of a <code>CubicModel</code> instance, centered on the page, with buttons and keyboard shortcuts implementing various functions. A number of settings can be set via URL parameters. Some debatably-important ones that presently aren't also configurable through the interface include:</p>
+<p>The principal Studio interface consists of a <code>CubicModel</code> instance centered on the page, with buttons and keyboard shortcuts implementing various functions. A number of settings can be set via URL parameters. Some debatably-important ones that presently aren't also configurable through the interface include:</p>
 <ul>
 <li><code>cellGap=1</code></li>
 <li><code>showModelBackground=true</code></li>
-<li><code>interval=100</code></li>
 <li><code>groundState=0</code></li>
 <li><code>undoStackSize=64</code></li>
 </ul>
-<p>URL parameters are overriden by themes and presets according to a somewhat complicated formula, and it's probably advisable to use the in-page configuration tools when possible. Generally things like tool settings and particular rule settings will persist for a current page session, while things like imported presets will persist across multiple sessions. Both can be cleared by clicking the &quot;Clear locally-stored settings&quot; button.</p>
+<p>URL parameters are overriden by themes and presets according to a somewhat complicated arrangement, and it's probably advisable to use the in-page configuration tools when possible. Generally things like tool settings and particular rule settings will persist for a current page session, while presets, rules, and themes will persist across multiple sessions. Both can be cleared by clicking the &quot;Clear locally-stored settings&quot; button under the three-dotted conifg menu.</p>
 <h3 id="interface">Interface</h3>
 <p>Control flow, state, and configuration buttons run along the along the top of the window:</p>
 <ul>
 <li>Record/Stop (Shift+Tab) — Start timer and record canvas to webm video</li>
-<li>Start/Pause (Tab) — Step model at 100ms intervals (this may be slower for larger grids, depending on hardware, and can be set via the <code>interval</code> URL parameter)</li>
+<li>Start/Pause (Tab) — Step model at 100ms intervals (this may be slower for larger grids, depending on hardware, and can be set via the appearance modal)</li>
 <li>Step (Space) — Perform individual step</li>
 <li>Clear (Ctrl+C)</li>
 <li>Configuration menu toggle (Alt)
@@ -253,14 +249,14 @@ end user to implement her own extensions via the Hexular API:</p>
 <li>Set tool size to 2 (2)</li>
 <li>Set tool size to 3 (3)</li>
 <li>Re-scale and re-center model (R)</li>
-<li>Toggle color mode toggle (C) — Override the default color assignment on paint actions with specific color</li>
+<li>Toggle color mode (C) — Override the default color assignment on paint actions with specific state colors</li>
 </ul>
 <p>Holding <code>&lt;Shift&gt;</code> will temporarily select the move tool by default, or whatever tool is given in the <code>shiftTool</code> parameter. Holding <code>&lt;Alt&gt;</code> temporarily expands the configuration menu.</p>
 <p>Additionally, <code>&lt;Escape&gt;</code> toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open. Scrolling a central mouse wheel or equivalent will zoom the canvas.</p>
-<p>Cell states are changed by clicking and dragging with a paint tool selected. By default, the painting state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo <code>Board.instance.model.numStates</code>. Right clicking, conversely, decrements the cell state by one, and ctrl+clicking clears to the ground state. Setting a specific state color can be effected by toggling the color mode button on the bottom right. Toggling color mode off brings back the default behavior.</p>
+<p>Cell states are changed by clicking and dragging with a paint tool selected. By default, the painting state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo <code>Board.instance.model.numStates</code>. Right clicking, conversely, decrements the cell state by one, and ctrl+clicking clears to the ground state. Setting a specific state color can be effected by toggling the color mode button on the bottom right.</p>
 <p>The basic flow of the program is to set one's preferred state using either the mouse or by importing a saved file, setting desired rules, &amp;c. in the configuration modal, and then either starting the timer (tab) or incrementing the state one step at a time (space).</p>
 <h3 id="prepopulated-rules">Prepopulated rules</h3>
-<p>Several predefined rules are given in <code>client/library/rules.js</code>. These are largely provided for convenience and aren't meant to be exhaustive. A number of built-in presets, or groups of rules, are defined <code>client/library/presets.js</code> and can be selected from the configuration modal in lieu of individual rules.</p>
+<p>Several predefined rules are given in <code>client/library/rules.js</code>. These are largely provided for convenience and aren't meant to be exhaustive. A number of built-in presets, or groups of rules, are defined <code>client/library/presets.js</code> and can be selected from the model configuration modal in lieu of individual rules.</p>
 <h3 id="studio-configuration-and-customization">Studio configuration and customization</h3>
 <p>The model configuration modal consists of the following fields:</p>
 <ul>
@@ -269,31 +265,33 @@ end user to implement her own extensions via the Hexular API:</p>
 <li>Bulk rule assignment dropdown with &quot;select all&quot; button</li>
 <li>Individual dropdowns for each of the twelve possible states supported by the demo</li>
 <li>Default rule dropdown menu — This should only really matter when running rules without <code>modFilter</code> (which may cause other undesirable effects such as corrupted model exports, &amp;c., and should generally be thought of as voiding the warranty)</li>
-<li>Cell neighborhood dropdown — Not all rules use the default neighborhood, but most built-in rules involving totals, counts, &amp;c. will do so</li>
+<li>Cell neighborhood dropdown — Not all rules use the default neighborhood (those constructed using the <code>ruleBuilder</code> function do not for instance), but most built-in rules involving totals, counts, &amp;c. will</li>
 <li>A series of buttons to activate and deactivate particular built-in filters</li>
 </ul>
-<p>In the configuration modal, rule assignment select menus are populated with the contents of the <code>rules</code> object loaded from <code>demo/rules.js</code>, merged with those already available in Hexular core. Custom rules may be added to this object via the console, e.g.:</p>
+<p>In the configuration modal, rule assignment select menus are populated with the contents of the <code>rules</code> object loaded from <code>demo/rules.js</code>, merged with those already available in Hexular core. Custom rules may be added via the console, e.g.:</p>
 <pre><code>    Board.config.addRule(name, (cell) =&gt; cell.state == 3 ? 1 : 0)
 </code></pre>
 <p>We can also add our own rule presets via the console, e.g.:</p>
-<pre><code>    Board.config.addPreset('fancyPreset', new Preset(['binary23', 'binary34', 'stepUp']))
+<pre><code>    Board.config.addPreset('fancyPreset', new Preset(['binary23', 'binary34', 'stepUp'], {deltaFilter: true, modFilter: true}))
 </code></pre>
 <p>Such modifications can also be effected via the custom code modal (Ctrl+F) or JavaScript import button (Ctrl+I), using the same global objects, &amp;c. Specifically, every board instance attaches the following to the global <code>Board</code> object:</p>
 <ul>
 <li><code>Board.instance</code> - The board itself</li>
 <li><code>Board.config</code> - Alias for <code>Board.instance.config</code></li>
 <li><code>Board.model</code> - Alias for <code>Board.instance.model</code></li>
+<li><code>Board.bgAdater</code> - Alias for <code>Board.instance.bgAdapter</code></li>
+<li><code>Board.fgAdapter</code> - Alias for <code>Board.instance.fgAdapter</code></li>
 </ul>
 <p>Customization of the global <code>Board.model</code> model can be performed as described above and in the documentation.</p>
 <h4 id="rulebuilder">Rulebuilder</h4>
 <p>The rulebuilder modal (Ctrl+B) exposes a somewhat-simplified interface for calling the <a href="Hexular.util.html#.ruleBuilder"><code>ruleBuilder</code></a> function discussed above, limited to the <code>N6</code> neighborhood, and six possible miss and match states, with the default being to set cell state to 0 on misses, and 1 on matches.</p>
 <p>Note that the miss and match rules can interact with <a href="Hexular.filters.html#.deltaFilter"><code>deltaFilter</code></a> in strange ways. For instance, a rule built using the default settings in this modal, coupled with <code>deltaFilter</code>, will have the same effect as one without the filter, but with the match rule set to &quot;State + 1.&quot; Likewise, if we then add the filter back in, we will add the state twice on matches — which may or may not be desirable, but is sort of weird.</p>
-<p>The rule is copied to a text field at the bottom of the modal, where it can be further edited before instantiation by e.g. adding custom <code>miss</code> and <code>match</code> values, or saved as part of a larger scripted customization. The array as populated can be fed into the <code>ruleBuilder</code> function using ES6 spread syntax (<code>...</code>), or by simply decoupling the two constituent elements from the array.</p>
-<p>Elementary rules constructed through the rulebuilder interface are only a small subset of possible rules using the core cell API, and they do not, by default, differentiate between nonzero cell states. Thus they are not suited for &quot;noisy&quot; rulesets where all or most cells are in a nonzero state (e.g., what one sees with the built-in preset &quot;grayGoo&quot;). There is however an optional attribute <code>rel</code>, exposed bottom text field, which causes the rule to compare neighbor states relative to the current state, matching where a neighbor has an equal or greater nonzero value to the current state.</p>
-<p>Note that, as with most persistent attributes in the demo frontend, previous values will simply be overwritten — this allows one to e.g. iterate quickly when developing an experimental rule.</p>
+<p>The rule is copied to a text field at the bottom of the modal, where it can be further edited before instantiation by e.g. adding custom <code>miss</code> and <code>match</code> values, or saved as part of a larger scripted customization. The JSON array generated in this field can be fed directly to the<code>ruleBuilder</code> function using ES6 spread syntax (<code>...</code>).</p>
+<p>Elementary rules constructed through the rulebuilder interface are only a small subset of possible rules using the core cell API, and they do not, by default, differentiate between nonzero cell states. Thus they are not suited for &quot;noisy&quot; rulesets where all or most cells are in a nonzero state (e.g., what one sees with the built-in preset &quot;grayGoo&quot;). There is however an optional attribute <code>rel</code>, exposed in the generated JSON field, which causes the rule to compare neighbor states relative to the current state, matching where a neighbor has an equal or greater nonzero value to the current state.</p>
+<p>Note that, as with most persistent attributes in the demo interface, previous values will simply be overwritten — this allows one to e.g. iterate quickly when developing an experimental rule.</p>
 <h4 id="timer-hooks">Timer hooks</h4>
 <p>We can add functions to be called at a given time index during play or recording via the <code>board.addHook()</code> method. For example, to turn cells with state 4 cyan after five seconds, we could run the following from the console or the custom code modal:</p>
-<pre><code>    Board.instance.addHook('timer', 5, () =&gt; Board.config.setColor(3, '#33cccc'));
+<pre><code>    Board.instance.addHook('timer', 5000, () =&gt; Board.config.setColor(3, '#33cccc'));
 </code></pre>
 <p>Timer hooks will be rerun at their appropriate time index after every stop/start event, but changes they make to e.g. the configuration object will persist until explicitly reset. At the moment they are the only hook type implemented.</p>
 <h2 id="more-information">More information</h2>
@@ -313,6 +311,7 @@ end user to implement her own extensions via the Hexular API:</p>
 <li>
 <p>For more information on HEXAGONAL AWARENESS, please check out:</p>
 <ul>
+<li><a href="https://hexagon.life/">https://hexagon.life/</a></li>
 <li><a href="https://twitter.com/hexagonalnews">https://twitter.com/hexagonalnews</a></li>
 <li><a href="https://facebook.com/hexagons">https://facebook.com/hexagons</a></li>
 <li><a href="https://reddit.com/r/hexagons">https://reddit.com/r/hexagons</a></li>
@@ -436,7 +435,7 @@ end user to implement her own extensions via the Hexular API:</p>
 
   </main>
   <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="Hexular.filters.html">filters</a></li><li><a href="Hexular.math.html">math</a></li><li><a href="Hexular.rules.html">rules</a></li><li><a href="Hexular.util.html">util</a></li></ul><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="CanvasAdapter.html">CanvasAdapter</a></li><li><a href="Cell.html">Cell</a></li><li><a href="CubicModel.html">CubicModel</a></li><li><a href="HexError.html">HexError</a></li><li><a href="HookList.html">HookList</a></li><li><a href="Model.html">Model</a></li><li><a href="Neighborhood.html">Neighborhood</a></li><li><a href="OffsetModel.html">OffsetModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Hexular">Hexular</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="Hexular.enums.html">enums</a></li><li><a href="Hexular.filters.html">filters</a></li><li><a href="Hexular.math.html">math</a></li><li><a href="Hexular.rules.html">rules</a></li><li><a href="Hexular.util.html">util</a></li></ul><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="CanvasAdapter.html">CanvasAdapter</a></li><li><a href="Cell.html">Cell</a></li><li><a href="CubicModel.html">CubicModel</a></li><li><a href="HexError.html">HexError</a></li><li><a href="HookList.html">HookList</a></li><li><a href="Model.html">Model</a></li><li><a href="Neighborhood.html">Neighborhood</a></li><li><a href="OffsetModel.html">OffsetModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Hexular">Hexular</a></li></ul>
   </nav>
 </div>
 <footer>
