@@ -6,7 +6,7 @@ class OptParser {
       defaults.scaleFactor = window.devicePixelRatio;
       defaults.mobile = true;
       defaults.radius = defaults.mobileRadius;
-      defaults.cellRadius = defaults.mobileCellRadius;
+      defaults.defaultScale = defaults.mobileDefaultScale;
       defaults.undoStackSize = defaults.mobileUndoStackSize;
     }
 

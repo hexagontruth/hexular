@@ -138,7 +138,7 @@
         </div>
         <div class="group">
           <label class="left">Interval:</label>
-          <input type="range" id="interval-slider" min="0" max="1000" step="10"
+          <input type="range" id="interval-slider" min="0" max="1000" step="5"
             value="60" list="interval-ticks" title="Timer interval (ms)"/>
           <datalist id="interval-ticks">
             <option>0</option>
@@ -154,6 +154,28 @@
             <option>1000</option>
           </datalist>
           <label id="interval-indicator" class="indicator"></label>
+        </div>
+        <div class="group">
+          <label class="left">Scale:</label>
+          <input type="range" id="scale-slider" min="0" max="3" step="0.1"
+            value="60" list="scale-ticks"-ticks" title="Default scale"/>
+          <datalist id="scale-ticks">
+            <option>0.1</option>
+            <option>0.2</option>
+            <option>0.3</option>
+            <option>0.4</option>
+            <option>0.5</option>
+            <option>0.6</option>
+            <option>0.7</option>
+            <option>0.8</option>
+            <option>0.9</option>
+            <option>1</option>
+            <option>1.5</option>
+            <option>2</option>
+            <option>2.5</option>
+            <option>3</option>
+          </datalist>
+          <label id="scale-indicator" class="indicator"></label>
         </div>
         <div class="group">
           <label class="left">Radius:</label>

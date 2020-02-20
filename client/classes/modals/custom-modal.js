@@ -7,11 +7,24 @@ class CustomModal extends Modal {
     this.output = document.querySelector('#custom-output');
 
     this.selectExample.onchange = (ev) => {
-      if (this.selectExample.value)
-        this.input.value = Examples.customCodeDemos[this.selectExample.value];
+      let str = Examples.customCodeDemos[this.selectExample.value];
+      if (str) {
+        if (document.execCommand) {
+          this.input.focus();
+          this.input.select();
+          document.execCommand("delete", false, str);
+          document.execCommand("insertText", false, str);
+        }
+        else {
+          this.input.value = str;
+        }
+      }
     };
 
     this.input.oninput = (ev) => this.selectExample.value = null;
+
+    this.input.onchange = (ev) => this.config.setCustomInput(this.input.value);
+
     this.output.onclick = (ev) => this.output.select();
 
     this.button.onclick = (ev) => {

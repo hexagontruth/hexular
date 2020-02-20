@@ -1,7 +1,6 @@
 class RbModal extends Modal {
   constructor(...args) {
     super(...args);
-    let states = this.config.rbStates;
     this.ruleName = document.querySelector('#rule-name');
     this.selectAvailable = document.querySelector('#select-available').select;
     this.checkAll = document.querySelector('#rule-select-all');
@@ -13,11 +12,12 @@ class RbModal extends Modal {
     this.addButton = document.querySelector('#add-rule');
     this.stateElements = [];
     this.settingState = null;
+    this.updateRuleStringPending = false;
 
     while (this.stateGrid.firstChild)
       this.stateGrid.firstChild.remove();
     let template = document.querySelector('.statemask');
-    states.forEach((state, i) => {
+    this.config.rbStates.forEach((state, i) => {
       let item = template.cloneNode(true);
       this.stateElements.push(item);
       item.setAttribute('title', i);
@@ -30,12 +30,12 @@ class RbModal extends Modal {
       });
       this.stateGrid.appendChild(item);
       item.onmousedown = () => {
-        this.settingState = !states[i];
+        this.settingState = !this.config.rbStates[i];
         this.setState(i);
       };
       item.onkeydown = (ev) => {
         if (ev.key == ' ' || ev.key == 'Enter') {
-          this.setState(i, !states[i]);
+          this.setState(i, !this.config.rbStates[i]);
           this.updateRuleString();
           this.config.storeSessionConfigAsync();
         }
@@ -78,7 +78,7 @@ class RbModal extends Modal {
     this.ruleMiss.onchange = () => this.config.setRbMiss();
     this.ruleMatch.onchange = () => this.config.setRbMatch();
 
-    this.ruleString.onchange = () => this.parseRuleString();
+    this.ruleString.oninput = () => this.parseRuleString();
     this.ruleString.onfocus = () => this.ruleString.select();
 
     this.resetButton.onclick = () => this.clear();
@@ -158,18 +158,25 @@ class RbModal extends Modal {
   }
 
   updateRuleString() {
-    let [strRule, strOpts] = this.getRuleString();
-    let configRule = this._getMasks();
-    let [miss, missRel] = [this.config.rbMiss, this.config.rbMissRel];
-    let [match, matchRel] = [this.config.rbMatch, this.config.rbMatchRel];
-    let rel = this.config.rbRel;
-    let rule = configRule ? configRule : strRule;
-    let opts = Config.merge({}, strOpts, {miss, match, missRel, matchRel, rel});
-    let ruleString  = JSON.stringify([rule, opts]);
-    if (this.ruleString.value != ruleString) {
-      this.ruleString.value = ruleString;
-      this.selectAvailable.value = null;
+    if (!this.updateRuleStringPending) {
+      this.updateRuleStringPending = true;
+      requestAnimationFrame(() => {
+        let [strRule, strOpts] = this.getRuleString();
+        let configRule = this._getMasks();
+        let [miss, missRel] = [this.config.rbMiss, this.config.rbMissRel];
+        let [match, matchRel] = [this.config.rbMatch, this.config.rbMatchRel];
+        let rel = this.config.rbRel;
+        let rule = configRule ? configRule : strRule;
+        let opts = Config.merge({}, strOpts, {miss, match, missRel, matchRel, rel});
+        let ruleString  = JSON.stringify([rule, opts]);
+        if (this.ruleString.value != ruleString) {
+          this.ruleString.value = ruleString;
+          this.selectAvailable.value = null;
+        }
+        this.updateRuleStringPending = false;
+      });
     }
+
   }
 
   parseRuleString() {

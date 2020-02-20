@@ -5,6 +5,7 @@ class Config {
       theme: 'light',
       radius: 60,
       cellRadius: 10,
+      defaultScale: 1,
       numStates: 12,
       maxNumStates: 12,
       groundState: 0,
@@ -20,7 +21,7 @@ class Config {
       },
       undoStackSize: 64,
       mobileRadius: 30,
-      mobileCellRadius: 15,
+      mobileDefaultScale: 1.5,
       mobileUndoStackSize: 16,
       interval: 100,
       autopause: true,
@@ -44,6 +45,7 @@ class Config {
       recordingMode: false,
       codec: 'vp9',
       scaleFactor: 1,
+
       tool: 'brush',
       shiftTool: 'move',
       toolSize: 1,
@@ -71,6 +73,7 @@ class Config {
         'drawOutlineCircle',
       ],
       onDrawCell: 'drawFilledPointyHex',
+      customInput: null,
       localStorageObj: window.localStorage,
       sessionStorageObj: window.sessionStorage,
     };
@@ -156,6 +159,7 @@ class Config {
       this.configModal.update();
       this.rbModal = this.board.modals.rb;
       this.resizeModal = this.board.modals.resize;
+      this.customModal = this.board.modals.custom;
 
       // Adapter
       this.setShowModelBackground();
@@ -170,6 +174,7 @@ class Config {
       this.setTool(this.tool);
       this.setToolSize(this.toolSize);
       this.setSteps(this.steps);
+      this.setDefaultScale(this.defaultScale);
 
       // Config modal
       this.setPreset(this.preset);
@@ -193,6 +198,9 @@ class Config {
       // Appearance aka resize modal
       this.resizeModal.update();
       this.resizeModal.reset();
+
+      // Custom code modal
+      this.setCustomInput(this.customInput);
     }
     catch (error) {
       console.error(error);
@@ -279,6 +287,12 @@ class Config {
     this.updateAdapter();
   }
 
+  setCustomInput(value) {
+    this.customInput = value || this.customInput;
+    this.customModal.input.value = this.customInput || '';
+    this.storeSessionConfigAsync();
+  }
+
   updateAdapter() {
     this.board.bgAdapter.cellGap = this.cellGap * this.scaleRatio;
     this.board.fgAdapter.cellGap = this.cellGap * this.scaleRatio;
@@ -293,8 +307,10 @@ class Config {
 
   setColor(idx, color) {
     this.colors[idx] = color;
-    this.board.bgAdapter.colors[idx] = color;
-    this.board.fgAdapter.colors[idx] = color;
+    this.board.bgAdapter.fillColors[idx] = color;
+    this.board.bgAdapter.strokeColors[idx] = color;
+    this.board.fgAdapter.fillColors[idx] = color;
+    this.board.fgAdapter.strokeColors[idx] = color;
     this.board.colorButtons[idx].style.backgroundColor = color;
     this.configModal.ruleMenus[idx].button.style.backgroundColor = color;
     this.resizeModal.colors[idx].jscolor.fromString(color);
@@ -305,8 +321,10 @@ class Config {
 
   setColors(colors=[]) {
     this.colors = Config.merge(this.colors, colors);
-    this.board.bgAdapter.colors = this.colors;
-    this.board.fgAdapter.colors = this.colors;
+    this.board.bgAdapter.fillColors = this.colors.slice();
+    this.board.bgAdapter.strokeColors = this.colors.slice();
+    this.board.fgAdapter.fillColors = this.colors.slice();
+    this.board.fgAdapter.strokeColors = this.colors.slice();
     for (let i = 0; i < 12; i++) {
       this.board.colorButtons[i].style.backgroundColor = this.colors[i];
       this.configModal.ruleMenus[i].button.style.backgroundColor = this.colors[i];
@@ -314,6 +332,17 @@ class Config {
       this.resizeModal.colors[i].value = this.colors[i];
     }
     this.checkTheme();
+    this.storeSessionConfigAsync();
+  }
+
+  setDefaultScale(scale) {
+    this.defaultScale = scale;
+    this.board.scaleTo(scale);
+    if (this.resizeModal.scale.value != '0') {
+      let sliderValue = Math.max(Math.min(scale, this.resizeModal.scaleMax), this.resizeModal.scaleMin);
+      this.resizeModal.scale.value = sliderValue;
+    }
+    this.resizeModal.scaleIndicator.innerHTML = scale;
     this.storeSessionConfigAsync();
   }
 
@@ -484,6 +513,7 @@ class Config {
     });
     this.configModal.defaultRuleMenu.select.value = this.defaultRule;
     this.model.defaultRule = this.availableRules[this.defaultRule];
+    this.checkPreset();
     this.storeSessionConfig();
   }
 
@@ -674,7 +704,9 @@ class Config {
       'codec',
       'colors',
       'colorMode',
+      'customInput',
       'defaultRule',
+      'defaultScale',
       'filters',
       'fallbackTool',
       'groundState',

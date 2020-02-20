@@ -156,7 +156,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line158">line 158</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line179">line 179</a>
     </li></ul></dd>
     
 
@@ -255,7 +255,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line170">line 170</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line191">line 191</a>
     </li></ul></dd>
     
 
@@ -328,7 +328,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line259">line 259</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line281">line 281</a>
     </li></ul></dd>
     
 
@@ -409,7 +409,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line270">line 270</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line292">line 292</a>
     </li></ul></dd>
     
 
@@ -433,8 +433,8 @@
 
 
 <div class="description">
-    <p>Mapping of cells to x, y coordinates computed using <a href="Model.html#cellRadius"><code>Model#cellRadius</code></a> and (implementation-dependent)
-<a href="Model.html#getCoord"><code>Model#getCoord</code></a>.</p>
+    <p>Mapping of cells to [x, y] coordinates computed using <a href="Model.html#cellRadius"><code>Model#cellRadius</code></a> and (implementation
+-dependent) <a href="Model.html#getCoord"><code>Model#getCoord</code></a>.</p>
 <p>Like <a href="Model.html#cellRadius"><code>Model#cellRadius</code></a> and <a href="Model.html#basis"><code>Model#basis</code></a>, this is only necessary when rendering cells in a
 spatial context.</p>
 </div>
@@ -484,7 +484,7 @@ spatial context.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line237">line 237</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line258">line 258</a>
     </li></ul></dd>
     
 
@@ -510,7 +510,7 @@ spatial context.</p>
 <div class="description">
     <p>Non-negative numberic value defining cell radius for spatial rendering.</p>
 <p>Used for determining x, y position of a cell in a given topology for e.g. rendering on a canvas. Not used
-otherwise.</p>
+internally by model.</p>
 </div>
 
 
@@ -558,7 +558,7 @@ otherwise.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line198">line 198</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line219">line 219</a>
     </li></ul></dd>
     
 
@@ -639,7 +639,7 @@ otherwise.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line230">line 230</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line251">line 251</a>
     </li></ul></dd>
     
 
@@ -663,7 +663,8 @@ otherwise.</p>
 
 
 <div class="description">
-    <p>Boolean flag that is set to true during <a href="Model.html#step"><code>Model#step</code></a> when any <a href="Cell.html#state"><code>Cell#state</code></a> is changed.</p>
+    <p>Boolean flag that is set to true during <a href="Model.html#step"><code>Model#step</code></a> when any <a href="Cell.html#state"><code>Cell#state</code></a> is changed, and false
+otherwise.</p>
 <p>Can be used to e.g. automatically stop an auto-incrementing model when it goes &quot;dead.&quot;</p>
 </div>
 
@@ -712,7 +713,7 @@ otherwise.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line248">line 248</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line269">line 269</a>
     </li></ul></dd>
     
 
@@ -790,7 +791,7 @@ otherwise.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line160">line 160</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line181">line 181</a>
     </li></ul></dd>
     
 
@@ -867,7 +868,7 @@ otherwise.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line222">line 222</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line243">line 243</a>
     </li></ul></dd>
     
 
@@ -946,7 +947,7 @@ potentially by <a href="Hexular.filters.html"><code>filters</code></a>, <a href=
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line187">line 187</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line208">line 208</a>
     </li></ul></dd>
     
 
@@ -1024,7 +1025,7 @@ potentially by <a href="Hexular.filters.html"><code>filters</code></a>, <a href=
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line177">line 177</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line198">line 198</a>
     </li></ul></dd>
     
 
@@ -1050,7 +1051,7 @@ potentially by <a href="Hexular.filters.html"><code>filters</code></a>, <a href=
 <div class="description">
     <p>Array of rule functions.</p>
 <p>Cells are matched with rules based on their states, with e.g. <code>rules[1]</code> being caled when
-<a href="Cell.html#state"><code>cell.state</code></a> == <code>1</code>. Arbitrary state keys can be added for non-numeric states, if desired.</p>
+<a href="Cell.html#state"><code>cell.state</code></a> == <code>1</code>.</p>
 </div>
 
 
@@ -1098,7 +1099,7 @@ potentially by <a href="Hexular.filters.html"><code>filters</code></a>, <a href=
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line211">line 211</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line232">line 232</a>
     </li></ul></dd>
     
 
@@ -1234,7 +1235,7 @@ potentially by <a href="Hexular.filters.html"><code>filters</code></a>, <a href=
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line488">line 488</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line510">line 510</a>
     </li></ul></dd>
     
 
@@ -1448,7 +1449,7 @@ potentially by <a href="Hexular.filters.html"><code>filters</code></a>, <a href=
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line290">line 290</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line312">line 312</a>
     </li></ul></dd>
     
 
@@ -1538,7 +1539,7 @@ cells. This method should be idempotent.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line389">line 389</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line411">line 411</a>
     </li></ul></dd>
     
 
@@ -1677,7 +1678,7 @@ a user's cursor position using <a href="Model.html#cellRadius"><code>Model#cellR
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line445">line 445</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line467">line 467</a>
     </li></ul></dd>
     
 
@@ -1850,7 +1851,7 @@ e.g. <a href="Adapter.html"><code>Adapter</code></a> subclass instances to look 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line429">line 429</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line451">line 451</a>
     </li></ul></dd>
     
 
@@ -1960,7 +1961,7 @@ e.g. <a href="Adapter.html"><code>Adapter</code></a> subclass instances to look 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line350">line 350</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line372">line 372</a>
     </li></ul></dd>
     
 
@@ -2048,7 +2049,7 @@ e.g. <a href="Adapter.html"><code>Adapter</code></a> subclass instances to look 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line317">line 317</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line339">line 339</a>
     </li></ul></dd>
     
 
@@ -2186,7 +2187,7 @@ e.g. <a href="Adapter.html"><code>Adapter</code></a> subclass instances to look 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line375">line 375</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line397">line 397</a>
     </li></ul></dd>
     
 
@@ -2347,7 +2348,7 @@ construct <a href="Cell.html#coord"><code>Cell#coord</code></a></p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line404">line 404</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line426">line 426</a>
     </li></ul></dd>
     
 
@@ -2438,7 +2439,7 @@ under the default settings, for non-numeric states or states outside the range -
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line464">line 464</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line486">line 486</a>
     </li></ul></dd>
     
 
@@ -2629,7 +2630,7 @@ under the default settings, for non-numeric states or states outside the range -
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line415">line 415</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line437">line 437</a>
     </li></ul></dd>
     
 
@@ -2791,7 +2792,7 @@ under the default settings, for non-numeric states or states outside the range -
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line476">line 476</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line498">line 498</a>
     </li></ul></dd>
     
 
@@ -2940,7 +2941,7 @@ version of the function. The upshot being any identically-coded functions will b
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line305">line 305</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line327">line 327</a>
     </li></ul></dd>
     
 
@@ -3077,7 +3078,7 @@ version of the function. The upshot being any identically-coded functions will b
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line361">line 361</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line383">line 383</a>
     </li></ul></dd>
     
 
@@ -3165,7 +3166,7 @@ version of the function. The upshot being any identically-coded functions will b
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line325">line 325</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line347">line 347</a>
     </li></ul></dd>
     
 
@@ -3210,7 +3211,7 @@ version of the function. The upshot being any identically-coded functions will b
 
   </main>
   <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="Hexular.filters.html">filters</a></li><li><a href="Hexular.math.html">math</a></li><li><a href="Hexular.rules.html">rules</a></li><li><a href="Hexular.util.html">util</a></li></ul><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="CanvasAdapter.html">CanvasAdapter</a></li><li><a href="Cell.html">Cell</a></li><li><a href="CubicModel.html">CubicModel</a></li><li><a href="HexError.html">HexError</a></li><li><a href="HookList.html">HookList</a></li><li><a href="Model.html">Model</a></li><li><a href="Neighborhood.html">Neighborhood</a></li><li><a href="OffsetModel.html">OffsetModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Hexular">Hexular</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Namespaces</h3><ul><li><a href="Hexular.enums.html">enums</a></li><li><a href="Hexular.filters.html">filters</a></li><li><a href="Hexular.math.html">math</a></li><li><a href="Hexular.rules.html">rules</a></li><li><a href="Hexular.util.html">util</a></li></ul><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="CanvasAdapter.html">CanvasAdapter</a></li><li><a href="Cell.html">Cell</a></li><li><a href="CubicModel.html">CubicModel</a></li><li><a href="HexError.html">HexError</a></li><li><a href="HookList.html">HookList</a></li><li><a href="Model.html">Model</a></li><li><a href="Neighborhood.html">Neighborhood</a></li><li><a href="OffsetModel.html">OffsetModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Hexular">Hexular</a></li></ul>
   </nav>
 </div>
 <footer>

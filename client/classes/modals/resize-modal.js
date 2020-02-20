@@ -25,6 +25,10 @@ class ResizeModal extends Modal {
     this.addTheme = document.querySelector('#add-theme');
     this.interval = document.querySelector('#interval-slider');
     this.intervalIndicator = document.querySelector('#interval-indicator');
+    this.scale = document.querySelector('#scale-slider');
+    this.scaleIndicator = document.querySelector('#scale-indicator');
+    this.scaleMin = parseFloat(this.scale.min);
+    this.scaleMax = parseFloat(this.scale.max);
     this.resize = document.querySelector('#resize-slider');
     this.resizeIndicator = document.querySelector('#resize-indicator');
 
@@ -63,6 +67,7 @@ class ResizeModal extends Modal {
     this.selectTheme.onchange = (ev) => this._handleSelectTheme();
     this.addTheme.onclick = (ev) => this._handleAddTheme();
     this.interval.oninput = (ev) => this._updateInterval(this.interval.value);
+    this.scale.oninput = (ev) => this._updateScale(this.scale.value);
     this.resize.oninput = (ev) => this._updateResize(this.resize.value);
     this.set.onclick = (ev) => this._resize();
   }
@@ -75,8 +80,10 @@ class ResizeModal extends Modal {
     this._setOnDraw();
     this._setOnDrawCell();
     this.resize.value = this.config.radius;
+    this.scale.value = this.config.scale;
     this.interval.value = this.config.interval;
     this._updateInterval();
+    this._updateScale(this.config.defaultScale);
     this._updateResize();
   }
 
@@ -128,6 +135,12 @@ class ResizeModal extends Modal {
     if (value != null)
       this.config.interval = parseInt(value) || this.defaultInterval;
     this.intervalIndicator.innerHTML = this.config.interval;
+  }
+
+  _updateScale(value) {
+    value = parseFloat(value);
+    if (value != this.config.defaultScale)
+      this.config.setDefaultScale(value || 1);
   }
 
   _updateResize(value) {

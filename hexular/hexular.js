@@ -68,8 +68,26 @@ var Hexular = (function () {
     defaultColor: '#ccccff',
   };
 
-  const APOTHEM = Math.sqrt(3) / 2;
+  /**
+   * A collection of elements representing common hexagonal concepts for general semantic interoperability.
+   *
+   * @namespace {object} Hexular.enums
+   */
+
+    /**
+     * Enumerator representing flat-topped, the greatest of all hexagons.
+     *
+     * @name TYPE_FLAT
+     * @memberof Hexular.enums
+     */
   const TYPE_FLAT = 0;
+
+    /**
+     * Enumerator representing pointy-topped hexagons.
+     *
+     * @name TYPE_POINTY
+     * @memberof Hexular.enums
+     */
   const TYPE_POINTY = 1;
 
   /**
@@ -78,6 +96,9 @@ var Hexular = (function () {
    *
    * @namespace {object} Hexular.math
    */
+
+  const APOTHEM = Math.sqrt(3) / 2;
+
   let math = {
     apothem: APOTHEM,
     hextant: Math.PI * 2 / 6,
@@ -199,7 +220,7 @@ var Hexular = (function () {
          * Non-negative numberic value defining cell radius for spatial rendering.
          *
          * Used for determining x, y position of a cell in a given topology for e.g. rendering on a canvas. Not used
-         * otherwise.
+         * internally by model.
          *
          * @name Model#cellRadius
          * @type number
@@ -212,7 +233,7 @@ var Hexular = (function () {
          * Array of rule functions.
          *
          * Cells are matched with rules based on their states, with e.g. `rules[1]` being caled when
-         * {@link Cell#state|cell.state} == `1`. Arbitrary state keys can be added for non-numeric states, if desired.
+         * {@link Cell#state|cell.state} == `1`.
          *
          * @name Model#rules
          * @type function[]
@@ -235,8 +256,8 @@ var Hexular = (function () {
          */
         cells: [],
         /**
-         * Mapping of cells to x, y coordinates computed using {@link Model#cellRadius} and (implementation-dependent)
-         * {@link Model#getCoord}.
+         * Mapping of cells to [x, y] coordinates computed using {@link Model#cellRadius} and (implementation
+         *-dependent) {@link Model#getCoord}.
          *
          * Like {@link Model#cellRadius} and {@link Model#basis}, this is only necessary when rendering cells in a
          * spatial context.
@@ -246,7 +267,8 @@ var Hexular = (function () {
          */
         cellMap: new Map(),
         /**
-         * Boolean flag that is set to true during {@link Model#step} when any {@link Cell#state} is changed.
+         * Boolean flag that is set to true during {@link Model#step} when any {@link Cell#state} is changed, and false
+         * otherwise.
          *
          * Can be used to e.g. automatically stop an auto-incrementing model when it goes "dead."
          *
@@ -753,8 +775,9 @@ var Hexular = (function () {
          * - Entries 13-18 correspond to cells one full cell from the cell, where `nbrs[13]` corresponds to the cell
          *   touching `nbrs[1]` opposite the home cell, also progressing in the same direction as the other two
          *
-         * That is, we have three rings where the first neighbor in each ring zigzags away from the home cell. This
-         * arrangement allows successive neighborhoods to be iterated through contiguously using the same array.
+         * That is, we have three rings where the first neighbor in each ring forms a line zigzagging away from the
+         * home cell. This arrangement allows successive neighborhoods to be iterated through contiguously using the
+         * same array.
          *
          * @name Cell#nbrs
          * @type number
@@ -1062,12 +1085,7 @@ var Hexular = (function () {
     callParallel(array, ...args) {
       for (let i = 0; i < this.length; i++) {
         for (let j = 0; j < array.length; j++) {
-          try {
-            this[i].call(this.owner, array[j], ...args);
-          }
-          catch (e) {
-            console.error(e);
-          }
+          this[i].call(this.owner, array[j], ...args);
         }
       }
     }
@@ -1140,13 +1158,21 @@ var Hexular = (function () {
       super(model);
       let defaults = {
         /**
-         * Array of CSS hex or RGB color codes, for drawing cells with each entry's respective indicial state.
+         * Array of CSS hex or RGB color codes for cell fill color.
          *
-         * @name CanvasAdapter#colors
+         * @name CanvasAdapter#fillColors
          * @type string[]
-         * @default Some colors
+         * @default Hexular.DEFAULTS.colors
          */
-        colors: DEFAULTS.colors,
+        fillColors: DEFAULTS.colors,
+        /**
+         * Array of CSS hex or RGB color codes for cell line stroke color, if applicable.
+         *
+         * @name CanvasAdapter#strokeColors
+         * @type string[]
+         * @default Hexular.DEFAULTS.colors
+         */
+        strokeColors: DEFAULTS.colors,
         /**
          * @name CanvasAdapter#defaultColor
          * @type string
@@ -1270,7 +1296,7 @@ var Hexular = (function () {
    * @param {Cell} cell The cell being drawn
    */
     defaultDrawBuffer(cell) {
-      let color = this.colors[this.stateBuffer.get(cell)] || this.defaultColor;
+      let color = this.fillColors[this.stateBuffer.get(cell)] || this.defaultColor;
       if (color) {
         this.context.fillStyle = color;
         this.drawPath(cell);
@@ -1357,7 +1383,7 @@ var Hexular = (function () {
      * @param {string} [style=null] Optional argument when called directly specifying fill style
      */
     drawFilledPointyHex(cell, style) {
-      this.context.fillStyle = style || this.colors[cell.state] || this.defaultColor;
+      this.context.fillStyle = style || this.fillColors[cell.state] || this.defaultColor;
       this.drawPath(cell);
       this.context.fill();
     }
@@ -1368,13 +1394,13 @@ var Hexular = (function () {
      * An alternative drawing method that uses {@link CanvasAdapter#cellBorderWidth|this.cellBorderWidth} to draw an
      * outline instead of a filled hex.
      *
-     * @param {Cell} cell                               The cell being drawn
-     * @param {string} [style=this.colors[cell.state]]  Optional stroke style
-     * @param {number} [lineWidth=this.cellBorderWidth] Optional line width
+     * @param {Cell} cell                                   The cell being drawn
+     * @param {string} [style=this.strokeColors[cell.state]] Optional stroke style
+     * @param {number} [lineWidth=this.cellBorderWidth]     Optional line width
      */
 
     drawOutlinePointyHex(cell, style, lineWidth=this.cellBorderWidth) {
-      this.context.strokeStyle = style || this.colors[cell.state] || this.defaultColor;
+      this.context.strokeStyle = style || this.strokeColors[cell.state] || this.defaultColor;
       this.context.lineWidth = lineWidth;
       this.drawPath(cell);
       this.context.stroke();
@@ -1383,11 +1409,11 @@ var Hexular = (function () {
     /**
      * Draw filled, flat-top cell.
      *
-     * @param {Cell} cell                              The cell being drawn
-     * @param {string} [style=this.colors[cell.state]] Optional stroke style
+     * @param {Cell} cell                                  The cell being drawn
+     * @param {string} [style=this.fillColors[cell.state]] Optional stroke style
      */
     drawFilledFlatHex(cell, style) {
-      this.context.fillStyle = style || this.colors[cell.state] || this.defaultColor;
+      this.context.fillStyle = style || this.fillColors[cell.state] || this.defaultColor;
       this.drawPath(cell, this.flatVertices);
       this.context.fill();
     }
@@ -1395,13 +1421,13 @@ var Hexular = (function () {
     /**
      * Draw flat-topped cell outline.
      *
-     * @param {Cell} cell                               The cell being drawn
-     * @param {string} [style=this.colors[cell.state]]  Optional stroke style
-     * @param {number} [lineWidth=this.cellBorderWidth] Optional line width
+     * @param {Cell} cell                                   The cell being drawn
+     * @param {string} [style=this.strokeColors[cell.state]] Optional stroke style
+     * @param {number} [lineWidth=this.cellBorderWidth]     Optional line width
      */
 
     drawOutlineFlatHex(cell, style, lineWidth=this.cellBorderWidth) {
-      this.context.strokeStyle = style || this.colors[cell.state] || this.defaultColor;
+      this.context.strokeStyle = style || this.strokeColors[cell.state] || this.defaultColor;
       this.context.lineWidth = lineWidth;
       this.drawPath(cell, this.flatVertices);
       this.context.stroke();
@@ -1413,12 +1439,12 @@ var Hexular = (function () {
      * An alternative drawing method that draws a filled circle instead of a hex. Must be manually added via
      * {@link CanvasAdapter#onDrawCell}.
      *
-     * @param {Cell} cell                              The cell being drawn
-     * @param {string} [style=this.colors[cell.state]] Optional stroke style
+     * @param {Cell} cell                                  The cell being drawn
+     * @param {string} [style=this.fillColors[cell.state]] Optional stroke style
      */
 
     drawFilledCircle(cell, style) {
-      this.context.fillStyle = style || this.colors[cell.state] || this.defaultColor;
+      this.context.fillStyle = style || this.fillColors[cell.state] || this.defaultColor;
       this.drawCircle(cell);
       this.context.fill();
     }
@@ -1429,13 +1455,13 @@ var Hexular = (function () {
      * An alternative drawing method that uses {@link CanvasAdapter#cellBorderWidth|this.cellBorderWidth} to draw an
      * outlined circle instead of a filled hex. Must be manually added via {@link CanvasAdapter#onDrawCell}.
      *
-     * @param {Cell} cell                               The cell being drawn
-     * @param {string} [style=this.colors[cell.state]]  Optional stroke style
-     * @param {number} [lineWidth=this.cellBorderWidth] Optional line width
+     * @param {Cell} cell                                  The cell being drawn
+     * @param {string} [style=this.fillColors[cell.state]] Optional stroke style
+     * @param {number} [lineWidth=this.cellBorderWidth]    Optional line width
      */
 
     drawOutlineCircle(cell, style, lineWidth=this.cellBorderWidth) {
-      this.context.strokeStyle = style || this.colors[cell.state] || this.defaultColor;
+      this.context.strokeStyle = style || this.fillColors[cell.state] || this.defaultColor;
       this.context.lineWidth = lineWidth
       this.drawCircle(cell);
       this.context.stroke();
@@ -1506,7 +1532,7 @@ var Hexular = (function () {
   /**
    * A rule that returns 0.
    *
-   * Debatably, this should return `model.groundState`, but for various reasons it doesn't.
+   * Debatably, this should return {@link Model#groundState}, but for various reasons doesn't.
    *
    * @memberof Hexular.rules
    */
@@ -1530,9 +1556,8 @@ var Hexular = (function () {
   /**
    * Add new state to current cell state if nonzero, otherwise set to zero.
    *
-   * This is the some sense the opposite of, and generally mutually exclusive with,
-   * {@link Hexular.filters.binaryFilter|binaryFilter}. Nonetheless the two can potentially be
-   * combined in constructive ways, to e.g. "flatten" an incrementor.
+   * This is the some sense the opposite of, and generally &mdash; though not always &mdash; mutually exclusive with,
+   * {@link Hexular.filters.binaryFilter|binaryFilter}.
    *
    * @memberof Hexular.filters
    */
@@ -1565,7 +1590,7 @@ var Hexular = (function () {
    *
    * This filter has the effect of making states cyclical. Historically this was the default behavior. There is, in
    * principle, nothing preventing one from using non-numeric or complex multivalued cell states, but like much of the
-   * boilerplate functionality, this filter is implemented with the assumption that states will be natural numbers.
+   * boilerplate functionality, this filter is implemented on the assumption that states will be natural numbers.
    *
    * @memberof Hexular.filters
    */
@@ -1577,7 +1602,7 @@ var Hexular = (function () {
    * Always set edge cells to ground state.
    *
    * This filter has the effect of disabling wraparound cells, since no cell state can affect a cell neighborhood
-   * across the two-cell boundary width. This may have unexpected and undesirable effects with certain rules though.
+   * across the two-cell boundary width. This may have unexpected and undesirable effects with certain rules.
    *
    * @memberof Hexular.filters
    */

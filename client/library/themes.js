@@ -53,9 +53,7 @@ const Themes = (() => {
       ],
     },
     beige: {
-      colors: [
-        '#efefe7',
-      ],
+      modelBackground: '#efefe7',
     },
     classic: {
       colors: classicColors,
@@ -74,9 +72,9 @@ const Themes = (() => {
       modelBackground: '#fffff7',
       colors: Config.merge(classicColors, [
         null,
-        '#f7f7ef',
-        '#efefe7',
-        '#e7e7df',
+        '#f7f7ef33',
+        '#efefe766',
+        '#e7e7df99',
         '#ff0000',
         '#ffaa00',
         '#aaff00',
@@ -123,6 +121,26 @@ const Themes = (() => {
       cellGap: -0.5,
       colors: rainbow,
     },
+    smoothChalkRainbow: {
+      pageBackground: '#111111',
+      modelBackground: '#001122',
+      cellGap: -13,
+      cellBorderWidth: 2,
+      colors: [
+        null,
+        '#664466',
+        '#dd2200',
+        '#ffaa00',
+        '#ddee00',
+        '#00ee00',
+        '#00dddd',
+        '#00aaff',
+        '#0066cc',
+        '#3333ff',
+        '#dd00dd',
+        '#eeeedd',
+      ],
+    }
   };
   return themes;
 })();

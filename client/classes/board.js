@@ -224,22 +224,31 @@ class Board {
   }
 
   draw() {
-    if (!this.drawPromise  && !this.running && this.bgAdapter) {
+    if (!this.drawPromise && this.bgAdapter) {
       this.drawPromise = new Promise((resolve, reject) => {
-        requestAnimationFrame(() => {
-          try {
-            this.bgAdapter.draw();
-            this.recorder && this.recorder.draw();
-            this.drawPromise = null;
-            resolve();
-          }
-          catch (e) {
-            reject(e);
-          }
-        });
+        if (!this.running) {
+          requestAnimationFrame(() => {
+            try {
+              this.drawPromise && this.drawSync();
+              resolve();
+            }
+            catch (e) {
+              reject(e);
+            }
+          });
+        }
+        else {
+          resolve();
+        }
       });
     }
     return this.drawPromise;
+  }
+
+  drawSync() {
+    this.bgAdapter.draw();
+    this.recorder && this.recorder.draw();
+    this.drawPromise = null;
   }
 
   // Button handlers (can also be called directly)
@@ -311,13 +320,13 @@ class Board {
     this.recorder && this.infoBoxes.timer.classList.add('recording');
     this.metaInterval = setInterval(() => {
       let deltaMs = Date.now() - this.playStart;
-      let delta = Math.floor(deltaMs / 1000);
+      let deltaSecs = Math.floor(deltaMs / 1000);
       let thirds = Math.floor((deltaMs % 1000) * 60 / 1000);
-      let secs = delta % 60;
-      let mins = Math.floor(delta / 60) % 60;
+      let secs = deltaSecs % 60;
+      let mins = Math.floor(deltaSecs / 60) % 60;
       let str = `${sexFmt(mins)}:${sexFmt(secs)}:${sexFmt(thirds)}`;
       this.setInfoBox('timer', str);
-      while (hooks[0] && hooks[0].trigger <= delta) {
+      while (hooks[0] && hooks[0].trigger <= deltaMs) {
         let hook = hooks.shift();
         hook.run();
       }
@@ -336,8 +345,7 @@ class Board {
     this.newHistoryState();
     try {
       this.model.step();
-      this.bgAdapter.draw();
-      this.recorder && this.recorder.draw();
+      this.drawSync();
       this.storeModelState();
       if (!this.model.changed && this.config.autopause) {
         this.stop();
@@ -631,12 +639,13 @@ class Board {
     this.scaleY = 1;
     this.offsetX = 0;
     this.offsetY = 0;
-    this.scale = 1;
+    this.scale = 1
     this.eachContext((ctx) => {
       ctx.canvas.width = this.canvasWidth;
       ctx.canvas.height = this.canvasHeight;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
     });
+    this.scaleTo(this.config.defaultScale);
     // Resize
     let [oldX, oldY] = [this.scaleX, this.scaleY];
     this.scaleX = this.canvasWidth / window.innerWidth;
@@ -667,6 +676,9 @@ class Board {
   scaleTo(target, interval=0, step=50, timingFn) {
     if (this.scaling) {
       this.scaleQueue.push([target, interval, step, timingFn]);
+      return;
+    } else if (!interval) {
+      this.scaleRelative(target / this.scale);
       return;
     }
     this.scaling = true;
@@ -755,7 +767,7 @@ class Board {
 
     // Modal-specific stuff
     if (this.modal && ev.type == 'keydown') {
-      let tagNames = ['TEXTAREA', 'INPUT', 'SELECT', 'BUTTON'];
+      let isInput = ['TEXTAREA', 'INPUT'].includes(ev.target.tagName);
       if (ev.key == 'Escape') {
         this.toggleModal();
         ev.preventDefault();
@@ -763,19 +775,24 @@ class Board {
       }
       else if (!ev.repeat && ev.ctrlKey) {
         if (key == 'a') {
-          if (this.modal == this.modals.config) {
-            this.modals.config._handleCheckAll();
+          if (isInput) {
+            return;
           }
-          else if (this.modal == this.modals.rb) {
-            this.modals.rb._handleCheckAll();
-          }
-          else if (this.modal == this.modals.custom && document.activeElement == this.modals.custom.input) {
-            this.modals.custom.input.select();
+          else {
+            if (this.modal == this.modals.config) {
+              this.modals.config._handleCheckAll();
+            }
+            else if (this.modal == this.modals.rb) {
+              this.modals.rb._handleCheckAll();
+            }
+            else if (this.modal == this.modals.custom && document.activeElement == this.modals.custom.input) {
+              this.modals.custom.input.select();
+            }
           }
         }
       }
       let ctrlSkip = ['c', 'x', 'v', 'z'].includes(key);
-      if (ctrlSkip || !ev.ctrlKey && tagNames.includes(ev.target.tagName)) {
+      if (ctrlSkip || !ev.ctrlKey && isInput) {
         return;
       }
     }
@@ -872,7 +889,7 @@ class Board {
       }
 
       // TAB to start/stop
-      else if (ev.key == 'Tab') {
+      else if (ev.key == 'Tab' && !this.modal) {
         if (ev.shiftKey) {
           this.toggleRecord();
         }
