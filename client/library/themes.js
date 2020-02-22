@@ -55,6 +55,10 @@ const Themes = (() => {
     beige: {
       modelBackground: '#efefe7',
     },
+    beigeBlobular: {
+      modelBackground: '#efefe7',
+      cellGap: -12.75,
+    },
     classic: {
       colors: classicColors,
     },
@@ -120,6 +124,25 @@ const Themes = (() => {
       modelBackground: '#000000',
       cellGap: -0.5,
       colors: rainbow,
+    },
+    darkRainbow2: {
+      pageBackground: '#111111',
+      modelBackground: '#000000',
+      cellGap: 8,
+      colors: [
+        null,
+        '#ff2d00',
+        '#ff7708',
+        '#ffd400',
+        '#e4ff00',
+        '#5cff00',
+        '#00eeff',
+        '#0080ff',
+        '#0044ff',
+        '#dd00ff',
+        '#ff00cc',
+        '#ffffff',
+      ],
     },
     smoothChalkRainbow: {
       pageBackground: '#111111',

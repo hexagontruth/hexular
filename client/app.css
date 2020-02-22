@@ -530,7 +530,12 @@ select {
   margin: calc(0.25em * 4/3);
   border-radius: calc(0.5em * 4/3);
   font-size: 0.75em;
+  line-height: 1.5;
   outline: 0;
+}
+
+.modal .group textarea#rule-string {
+  height: 5em;
 }
 
 .modal .text {

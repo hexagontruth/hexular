@@ -1,5 +1,5 @@
 const Examples = (() => {
-  let fnCount = 1;
+  let fnCount = 0;
 
   let customCodeDemos = {
     addRule: `Board.config.addRule('newRule', (cell) => cell.max > 2 ? cell.state + 1 : 0)`,
@@ -17,18 +17,25 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
     customCodeDemos[k] = v.trim();
   });
 
-  function hexagonFactory(opts, cb) {
+  // Yes this is very inconsistent with the other two
+  function hexagonFactory(defaultOpts, cb) {
     let defaults = {
       type: Hexular.enums.TYPE_POINTY,
       stroke: false,
       fill: false,
+      fillStyle: null,
+      strokeStyle: null,
     };
     if (!cb)
       cb = (a, b, c) => Math.max(a.state, b.state, c.state);
-    opts = Object.assign(defaults, opts);
+    defaultOpts = Object.assign({}, defaults, defaultOpts);
     return (radius, optOverrides) => {
-      opts = Object.assign(opts, optOverrides);
+      let opts = Object.assign({}, defaultOpts, optOverrides);
       let fn = function(cell) {
+        let adapter = Board.bgAdapter;
+        let model = Board.model;
+        let fillStyle = opts.fillstyle;
+        let strokeStyle = opts.strokeStyle;
         if (!cell.state)
           return;
         let slice = cell.with[6].nbrSlice;
@@ -37,20 +44,21 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
           let n2 = slice[(i + 1) % 6];
           if (n1.state && n2.state && !n1.edge && !n2.edge) {
             let state = cb(cell, n1, n2);
-            let [x0, y0] = this.model.cellMap.get(cell);
-            let [x1, y1] = this.model.cellMap.get(n1);
-            let [x2, y2] = this.model.cellMap.get(n2);
+            let [x0, y0] = model.cellMap.get(cell);
+            let [x1, y1] = model.cellMap.get(n1);
+            let [x2, y2] = model.cellMap.get(n2);
             let x = (x0 + x1 + x2) / 3;
             let y = (y0 + y1 + y2) / 3;
+            let r = radius || adapter.innerRadius;
             if (opts.stroke)
-              opts.strokeStyle = this.strokeColors[state];
+              opts.strokeStyle = strokeStyle || adapter.strokeColors[state];
             if (opts.fill)
-              opts.fillStyle = this.fillColors[state];
-            this.drawHexagon([x, y], radius || this.innerRadius, opts);
+              opts.fillStyle = fillStyle || adapter.fillColors[state];
+            adapter.drawHexagon([x, y], r, opts);
           }
         }
       }
-      fn.idx = fnCount++;
+      fn.idx = ++fnCount;
       Board.bgAdapter.onDrawCell.push(fn);
       Board.instance.draw();
       return fn.idx;
@@ -60,6 +68,8 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
   function circleFactory(cb) {
     return (radius) => {
       let fn = function(cell) {
+        let adapter = Board.bgAdapter;
+        let model = Board.model;
         if (!cell.state)
           return;
         let slice = cell.with[6].nbrSlice;
@@ -67,19 +77,19 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
           let n1 = slice[i];
           let n2 = slice[(i + 1) % 6];
           if (n1.state && n2.state && !n1.edge && !n2.edge) {
-            let [x0, y0] = this.model.cellMap.get(cell);
-            let [x1, y1] = this.model.cellMap.get(n1);
-            let [x2, y2] = this.model.cellMap.get(n2);
+            let [x0, y0] = model.cellMap.get(cell);
+            let [x1, y1] = model.cellMap.get(n1);
+            let [x2, y2] = model.cellMap.get(n2);
             let x = (x0 + x1 + x2) / 3;
             let y = (y0 + y1 + y2) / 3;
-            this.context.beginPath();
-            this.context.arc(x, y, radius || this.innerRadius, 0, Math.PI * 2);
-            this.context.closePath();
-            cb(this.context, cell, n1, n2);
+            let r = radius || adapter.innerRadius;
+            adapter.context.beginPath();
+            adapter.context.arc(x, y, r, 0, Math.PI * 2);
+            cb(adapter.context, cell, n1, n2);
           }
         }
       }
-      fn.idx = fnCount++;
+      fn.idx = ++fnCount;
       Board.bgAdapter.onDrawCell.push(fn);
       Board.instance.draw();
       return fn.idx;
@@ -87,8 +97,15 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
   }
 
   function triangleFactory(cb) {
-    return () => {
+    return (radius, opts) => {
+      opts = Object.assign({
+        center: true,
+        vertex: false,
+      }, opts);
+      let vertices = Hexular.math.vertices.map(([x, y]) => [y, x]);
       let fn = function(cell) {
+        let adapter = Board.bgAdapter;
+        let model = Board.model;
         if (!cell.state)
           return;
         let slice = cell.with[6].nbrSlice;
@@ -96,47 +113,93 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
           let n1 = slice[i];
           let n2 = slice[(i + 1) % 6];
           if (n1.state && n2.state && !n1.edge && !n2.edge) {
-            this.context.beginPath();
-            this.context.moveTo(...this.model.cellMap.get(cell));
-            this.context.lineTo(...this.model.cellMap.get(n1));
-            this.context.lineTo(...this.model.cellMap.get(n2));
-            this.context.closePath();
-            cb(this.context, cell, n1, n2);
+            let [x0, y0] = model.cellMap.get(cell);
+            let [x1, y1] = model.cellMap.get(n1);
+            let [x2, y2] = model.cellMap.get(n2);
+            let x = (x0 + x1 + x2) / 3;
+            let y = (y0 + y1 + y2) / 3;
+            let r = radius || adapter.innerRadius;
+            let o = i % 2;
+            for (let e of [opts.center, opts.vertex]) {
+              o = o ^1;
+              if (!e) continue;
+              adapter.context.beginPath();
+              adapter.context.moveTo(x + vertices[o][0] * r, y + vertices[o][1] * r);
+              adapter.context.lineTo(x + vertices[o + 2][0] * r, y + vertices[o + 2][1] * r);
+              adapter.context.lineTo(x + vertices[o + 4][0] * r, y + vertices[o + 4][1] * r);
+              adapter.context.closePath();
+              cb(adapter.context, cell, n1, n2);
+            }
           }
         }
       };
-      fn.idx = fnCount++;
+      fn.idx = ++fnCount;
       Board.bgAdapter.onDrawCell.push(fn);
       Board.instance.draw();
       return fn.idx;
     };
   }
 
-  function fillMax(ctx, cell, n1, n2) {
-    let state = Math.max(cell.state, n1.state, n2.state);
+  function lineFactory(cb) {
+    return (radius) => {
+      let fn = function(cell) {
+        let adapter = Board.bgAdapter;
+        let model = Board.model;
+        if (cell.edge)
+          return;
+        let slice = cell.with[6].nbrSlice;
+        for (let i = 0; i < 5; i += 2) {
+          let nbr = slice[i];
+          if (!nbr.state || !cell.state || nbr.edge)
+            continue;
+          let [x0, y0] = model.cellMap.get(cell);
+          let [x1, y1] = model.cellMap.get(nbr);
+          adapter.context.beginPath();
+          adapter.context.moveTo(x0, y0);
+          adapter.context.lineTo(x1, y1);
+          cb(adapter.context, cell, nbr);
+        }
+      };
+      fn.idx = ++fnCount;
+      Board.bgAdapter.onDrawCell.unshift(fn);
+      Board.instance.draw();
+      return fn.idx;
+    };
+  }
+
+  function fillMax(ctx, ...cells) {
+    let state = Math.max(...cells.map((e) => e.state));
     ctx.fillStyle = Board.bgAdapter.fillColors[state];
     ctx.fill();
   }
 
-  function fillMin(ctx, cell, n1, n2) {
-    let state = Math.min(cell.state, n1.state, n2.state);
+  function fillMin(ctx, ...cells) {
+    let state = Math.min(...cells.map((e) => e.state));
     ctx.fillStyle = Board.bgAdapter.fillColors[state];
     ctx.fill();
   }
 
-  function outlineMax(ctx, cell, n1, n2) {
-    let state = Math.max(cell.state, n1.state, n2.state);
+  function outlineMax(ctx, ...cells) {
+    let lineWidth = Board.config.cellBorderWidth;
+    if (lineWidth == 0)
+      return;
+    let state = Math.max(...cells.map((e) => e.state));
     ctx.strokeStyle = Board.bgAdapter.strokeColors[state];
-    ctx.lineWidth = Board.config.cellBorderWidth;
+    ctx.lineWidth = lineWidth;
     ctx.lineJoin = "round";
+    ctx.lineCap = "round";
     ctx.stroke();
   }
 
-  function outlineMin(ctx, cell, n1, n2) {
-    let state = Math.min(cell.state, n1.state, n2.state);
+  function outlineMin(ctx, ...cells) {
+    let lineWidth = Board.config.cellBorderWidth;
+    if (lineWidth == 0)
+      return;
+    let state = Math.min(...cells.map((e) => e.state));
     ctx.strokeStyle = Board.bgAdapter.strokeColors[state];
-    ctx.lineWidth = Board.config.cellBorderWidth;
+    ctx.lineWidth = lineWidth;
     ctx.lineJoin = "round";
+    ctx.lineCap = "round";
     ctx.stroke();
   }
 
@@ -154,24 +217,40 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
     });
   }
 
-  function remove(idx) {
+  function remove(...idxs) {
+    let adapter = Board.bgAdapter;
     let onDraw = Board.bgAdapter.onDraw;
     let onDrawCell = Board.bgAdapter.onDrawCell;
-    onDraw.replace(onDraw.filter((e) => !e.idx || e.idx != idx));
-    onDrawCell.replace(onDrawCell.filter((e) => !e.idx || e.idx != idx));
-    Board.instance.draw();
+    idxs[0] || idxs.push(
+      adapter.onDraw.concat(adapter.onDrawCell)
+      .filter((e) => e.idx).map((e) => e.idx).sort().slice(-1)[0]
+    );
+    for (let idx of idxs) {
+      onDraw.replace(onDraw.filter((e) => !e.idx || e.idx != idx));
+      onDrawCell.replace(onDrawCell.filter((e) => !e.idx || e.idx != idx));
+      Board.instance.draw();
+    }
+  }
+
+  function removeAll() {
+    let adapter = Board.bgAdapter;
+    let idxs = adapter.onDraw.concat(adapter.onDrawCell).filter((e) => e.idx).map((e) => e.idx);
+    remove(...idxs);
   }
 
   let examples = {
     customCodeDemos,
+    hexagonFactory,
     circleFactory,
     triangleFactory,
+    lineFactory,
     fillMax,
     fillMin,
     outlineMax,
     outlineMin,
     loadImageAsUrl,
     remove,
+    removeAll,
 
     maxFilledCircle: circleFactory(fillMax),
     minFilledCircle: circleFactory(fillMin),
@@ -181,6 +260,9 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
     minFilledTriangle: triangleFactory(fillMin),
     maxOutlineTriangle: triangleFactory(outlineMax),
     minOutlineTriangle: triangleFactory(outlineMin),
+
+    maxLine: lineFactory(outlineMax),
+    minLine: lineFactory(outlineMin),
 
     maxFilledHexagon: hexagonFactory({fill: true}, (a, b, c) => Math.max(a.state, b.state, c.state)),
     minFilledHexagon: hexagonFactory({fill: true}, (a, b, c) => Math.min(a.state, b.state, c.state)),
@@ -197,13 +279,13 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
           drawFn(cell, style);
         });
       };
-      fn.idx = fnCount++;
+      fn.idx = ++fnCount;
       adapter.onDraw.push(fn);
       return fn.idx;
     },
 
     drawBackgroundImage: (url, opts={}) => {
-      let fnIdx = fnCount++;
+      let fnIdx = ++fnCount;
       let adapter = Board.bgAdapter;
       (async () => {
         let defaults = {
@@ -287,14 +369,14 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
           }
         }
       };
-      fn.idx = fnCount++;
+      fn.idx = ++fnCount;
       Board.bgAdapter.onDrawCell.push(fn);
       Board.instance.draw();
       return fn.idx;
     },
 
     drawCellImage: (url, opts={}) => {
-      let fnIdx = fnCount++;
+      let fnIdx = ++fnCount;
       let adapter = Board.bgAdapter;
       (async () => {
         let defaults = {
@@ -333,13 +415,21 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
             adapter.context.drawImage(img, 0, 0, img.width, img.height, x, y, w, h);
             adapter.context.restore();
           };
-          fn.idx = fnCount++;
+          fn.idx = ++fnCount;
           adapter.onDrawCell.push(fn);
           Board.instance.draw();
         }
       })();
       return fnIdx;
-    }
+    },
+
+    rotateColors: () => {
+      Board.instance.addHook('step', () => {
+        let colors = Board.bgAdapter.fillColors.slice();
+        colors = colors.concat(colors.splice(1,1));
+        Board.bgAdapter.fillColors = colors;
+      });
+    },
   }
 
   return examples;

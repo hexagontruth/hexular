@@ -1035,7 +1035,7 @@ var Hexular = (function () {
     }
 
     /**
-     * Convenience method for removing all existing callbacks and optionally adding new ones.
+     * Convenience method for removing all existing functions and optionally adding new ones.
      *
      * @param {function[]} functions List of new functions to add
      */
@@ -1043,6 +1043,41 @@ var Hexular = (function () {
       this.length = 0;
       for (let fn of functions)
         this.push(fn);
+    }
+
+    /**
+     * Convenience method for removing member functions with filter function.
+     *
+     * @param {function} fn Filter function taking a member function and returning a boolean value
+     * @return {function[]} Member functions removed during filtering
+     */
+    remove(fn) {
+      let removed = [];
+      this.replace(this.filter((e) => {
+        let val = fn(e);
+        val || removed.push(e);
+        return val;
+      }));
+      return removed;
+    }
+
+    /**
+     * Convenience method for rotating callback order.
+     *
+     * Sometimes a drawing callback is in the wrong place wrt others. This is essentially a wrapper for
+     * `hookList.unshift(hookList.pop())` (default behavior) and associated operations.
+     *
+     * @param {number} [n=1] Negative/positive offset
+     */
+    rotate(n=1) {
+      if (n > 0) {
+        let slice = this.splice(this.length -n);
+        this.replace(slice.concat(this));
+      }
+      else if (n < 0) {
+        let slice = this.splice(0, -n);
+        this.replace(this.concat(slice));
+      }
     }
 
     /**
@@ -1296,7 +1331,15 @@ var Hexular = (function () {
    * @param {Cell} cell The cell being drawn
    */
     defaultDrawBuffer(cell) {
-      let color = this.fillColors[this.stateBuffer.get(cell)] || this.defaultColor;
+      let state = this.stateBuffer.get(cell);
+      let color = this.fillColors[state];
+      if (!color)
+        color = this.defaultColor;
+      else if (color == 'transparent'
+        || color.length == '9' && color.slice(-2) == '00'
+        || color.length == '5' && color.slice(-1) == '0'
+        || color.length && color.slice(-2) == '0)')
+        color = this.backgroundColor;
       if (color) {
         this.context.fillStyle = color;
         this.drawPath(cell);
@@ -1338,11 +1381,11 @@ var Hexular = (function () {
         strokeStyle: null,
         lineWidth: 0,
         fillStyle: null,
-      }
+      };
       opts = Object.assign(defaults, opts);
       const [x, y] = locator instanceof Cell ? this.model.cellMap.get(locator) : locator;
       let ctx = this.context;
-      let path = opts.type == TYPE_POINTY ? math.vertices : math.vertices.map(([x, y]) => [y, x]);
+      let path = opts.type == TYPE_POINTY ? math.pointyVertices : math.flatVertices;
       path = scalarOp(path, radius);
       ctx.beginPath();
       ctx.moveTo(x + path[0][0], y + path[0][1]);
@@ -1372,7 +1415,6 @@ var Hexular = (function () {
       let ctx = this.context;
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, Math.PI * 2);
-      ctx.closePath();
     }
 
 
@@ -1400,6 +1442,8 @@ var Hexular = (function () {
      */
 
     drawOutlinePointyHex(cell, style, lineWidth=this.cellBorderWidth) {
+      if (lineWidth == 0)
+        return;
       this.context.strokeStyle = style || this.strokeColors[cell.state] || this.defaultColor;
       this.context.lineWidth = lineWidth;
       this.drawPath(cell);
@@ -1427,6 +1471,8 @@ var Hexular = (function () {
      */
 
     drawOutlineFlatHex(cell, style, lineWidth=this.cellBorderWidth) {
+      if (lineWidth == 0)
+        return;
       this.context.strokeStyle = style || this.strokeColors[cell.state] || this.defaultColor;
       this.context.lineWidth = lineWidth;
       this.drawPath(cell, this.flatVertices);
@@ -1461,6 +1507,8 @@ var Hexular = (function () {
      */
 
     drawOutlineCircle(cell, style, lineWidth=this.cellBorderWidth) {
+      if (lineWidth == 0)
+        return;
       this.context.strokeStyle = style || this.fillColors[cell.state] || this.defaultColor;
       this.context.lineWidth = lineWidth
       this.drawCircle(cell);
@@ -1683,6 +1731,9 @@ var Hexular = (function () {
     matchRel = +matchRel;
     rel = +rel;
 
+    if (typeof ruleDef == 'function' && ruleDef.n) {
+      ruleDef = ruleDef.toObject()[0];
+    }
     let n;
     if (ruleDef && ruleDef.length) {
       // For serialization consistency
@@ -1710,9 +1761,8 @@ var Hexular = (function () {
     };
     rule.n = n;
     rule.range = range;
-    rule.toString = () => {
-      return JSON.stringify([ruleDef, {range, miss, match, missRel, matchRel, rel}]);
-    };
+    rule.toObject = () => [ruleDef, {range, miss, match, missRel, matchRel, rel}];
+    rule.toString = () => JSON.stringify(rule.toObject());
     return rule;
   }
 
@@ -1869,6 +1919,8 @@ var Hexular = (function () {
       absMax,
       cartesianToCubic,
       roundCubic,
+      flatVertices: math.vertices,
+      pointyVertices: math.vertices.map(([x, y]) => [y, x]),
     }),
     classes: {
       adapters: {

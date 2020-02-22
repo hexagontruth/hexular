@@ -1,6 +1,8 @@
 const Presets = {
   default: new Preset({filters: {deltaFilter: true}}, Array(12).fill('ennead')),
 
+  enneadPlus: new Preset({filters: {clipBottomFilter: true, modFilter: true, edgeFilter: true}}, Array(12).fill('enneadPlus')),
+
   gliderWorld: new Preset({filters: {edgeFilter: true}}, [
     'ennead',
     'ennead',

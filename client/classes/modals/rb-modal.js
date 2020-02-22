@@ -53,7 +53,7 @@ class RbModal extends Modal {
 
     this.selectAvailable.onchange = () => {
       let rule = this.selectAvailable.value;
-      this.config.setRbName(rule + 'Copy');
+      this.config.setRbName(rule);
       let fn = this.config.availableRules[rule];
       if (fn) {
         let obj = JSON.parse(fn);
