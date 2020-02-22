@@ -12,7 +12,7 @@ class Recorder {
   start() {
     this.stream = this.transferCanvas.canvas.captureStream();
     let constraints = {
-      frameRate: 60,
+      frameRate: 30,
     };
     let opts = {};
     let customCodec = `video/webm;codecs=${this.config.codec || 'vp9'}`;

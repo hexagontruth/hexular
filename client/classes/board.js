@@ -39,6 +39,8 @@ class Board {
       shift: false,
       configMenu: false,
       hooks: {
+        playStep: [],
+        step: [],
         timer: [],
       },
       scaling: false,
@@ -346,6 +348,10 @@ class Board {
     try {
       this.model.step();
       this.drawSync();
+      this.running
+      this.running
+        ? this.hooks.playStep.forEach((e) => e.run())
+        : this.hooks.step.forEach((e) => e.run());
       this.storeModelState();
       if (!this.model.changed && this.config.autopause) {
         this.stop();
@@ -371,7 +377,8 @@ class Board {
     this.config.setSteps(0);
   }
 
-  addHook(key, trigger, run) {
+  addHook(...args) {
+    let [key, trigger, run] = args.length == 3 ? args : [args[0], null, args[1]];
     if (this.hooks[key]) {
       this.hooks[key].push({trigger, run});
       this.hooks[key].sort((a, b) => a.trigger - b.trigger);
@@ -493,7 +500,9 @@ class Board {
     let dataUri = transferCanvas.canvas.toDataURL('image/png');
     this.config.setRecordingMode(recordingMode);
     await this.draw();
-    this.promptDownload(this.config.defaultImageFilename, dataUri);
+    let padStep = ('000' + this.config.steps).slice(-3);
+    let filename = `${this.config.defaultImageFilenameBase}-${padStep}.png`;
+    this.promptDownload(filename, dataUri);
   }
 
   save() {
@@ -1109,14 +1118,16 @@ class Board {
         let width = this.config.selectWidth;
         width = (width + width / this.scale) / 2;
         let size = this.sizableTools.includes(this.config.tool) ? this.config.toolSize : 1;
+        let opts = {stroke: true, lineWidth: width, strokeStyle: color};
+        let radius = this.config.cellRadius;
         if (size == 1) {
-          this.fgAdapter.drawOutlinePointyHex(cell, color, width);
+          opts.type = Hexular.enums.TYPE_POINTY;
         }
         else {
-          let radius = (size * 2 - 1) * this.config.cellRadius * Hexular.math.apothem;
-          let opts = {stroke: true, lineWidth: width, strokeStyle: color};
-          this.fgAdapter.drawHexagon(cell, radius, opts);
+          opts.type = Hexular.enums.TYPE_FLAT;
+          radius = radius * (size * 2 - 1) * Hexular.math.apothem;
         }
+        this.fgAdapter.drawHexagon(cell, radius, opts);
       }
     }
   }

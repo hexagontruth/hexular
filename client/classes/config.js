@@ -38,7 +38,7 @@ class Config {
       themes: Config.merge(Themes),
       presets: Config.merge({}, Presets),
       arrayType: 'Int8Array',
-      defaultImageFilename: 'hexular.png',
+      defaultImageFilenameBase: 'hexular',
       defaultFilename: 'hexular.bin',
       defaultVideoFilename: 'hexular.webm',
       defaultSettingsFilename: 'hexular.json',

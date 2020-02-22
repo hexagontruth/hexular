@@ -80,7 +80,6 @@ class ResizeModal extends Modal {
     this._setOnDraw();
     this._setOnDrawCell();
     this.resize.value = this.config.radius;
-    this.scale.value = this.config.scale;
     this.interval.value = this.config.interval;
     this._updateInterval();
     this._updateScale(this.config.defaultScale);

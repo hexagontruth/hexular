@@ -1364,11 +1364,11 @@ var Hexular = (function () {
         strokeStyle: null,
         lineWidth: 0,
         fillStyle: null,
-      }
+      };
       opts = Object.assign(defaults, opts);
       const [x, y] = locator instanceof Cell ? this.model.cellMap.get(locator) : locator;
       let ctx = this.context;
-      let path = opts.type == TYPE_POINTY ? math.vertices : math.vertices.map(([x, y]) => [y, x]);
+      let path = opts.type == TYPE_POINTY ? math.pointyVertices : math.flatVertices;
       path = scalarOp(path, radius);
       ctx.beginPath();
       ctx.moveTo(x + path[0][0], y + path[0][1]);
@@ -1398,7 +1398,6 @@ var Hexular = (function () {
       let ctx = this.context;
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, Math.PI * 2);
-      ctx.closePath();
     }
 
 
@@ -1895,6 +1894,8 @@ var Hexular = (function () {
       absMax,
       cartesianToCubic,
       roundCubic,
+      flatVertices: math.vertices,
+      pointyVertices: math.vertices.map(([x, y]) => [y, x]),
     }),
     classes: {
       adapters: {

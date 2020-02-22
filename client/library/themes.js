@@ -55,6 +55,10 @@ const Themes = (() => {
     beige: {
       modelBackground: '#efefe7',
     },
+    beigeBlobular: {
+      modelBackground: '#efefe7',
+      cellGap: -12.75,
+    },
     classic: {
       colors: classicColors,
     },
