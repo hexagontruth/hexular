@@ -3,8 +3,9 @@ class CustomModal extends Modal {
     super(...args);
     this.selectExample = document.querySelector('#select-example').select;
     this.input = document.querySelector('#custom-input');
-    this.button = document.querySelector('#add-custom-code');
     this.output = document.querySelector('#custom-output');
+    this.import = document.querySelector('#import'),
+    this.button = document.querySelector('#add-custom-code');
 
     this.selectExample.onchange = (ev) => {
       let str = Examples.customCodeDemos[this.selectExample.value];
@@ -26,6 +27,8 @@ class CustomModal extends Modal {
     this.input.onchange = (ev) => this.config.setCustomInput(this.input.value);
 
     this.output.onclick = (ev) => this.output.select();
+
+    this.import.onclick = (ev) => this.board.import();
 
     this.button.onclick = (ev) => {
       if (this.input.value == '') {

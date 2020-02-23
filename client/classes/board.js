@@ -26,6 +26,10 @@ class Board {
     });
   }
 
+  static get aspectRatio() {
+    return window.innerWidth / window.innerHeight;
+  }
+
   constructor(...args) {
     let props = {
       selected: null,
@@ -38,7 +42,9 @@ class Board {
       msgIdx: 0,
       shift: false,
       configMenu: false,
+      imageCapture: null,
       hooks: {
+        incrementStep: [],
         playStep: [],
         step: [],
         timer: [],
@@ -91,15 +97,15 @@ class Board {
         showResize: document.querySelector('#show-resize'),
         showCustom: document.querySelector('#show-custom'),
         showClear: document.querySelector('#show-clear'),
-        showDoc: document.querySelector('#show-doc'),
         saveSnapshot: document.querySelector('#snapshot-save'),
         loadSnapshot: document.querySelector('#snapshot-load'),
+        showDoc: document.querySelector('#show-doc'),
+        saveImage: document.querySelector('#save-image'),
+        toggleImageCapture: document.querySelector('#toggle-image-capture'),
         load: document.querySelector('#load'),
         save: document.querySelector('#save'),
-        saveImage: document.querySelector('#save-image'),
         saveData: document.querySelector('#save-data'),
         loadData: document.querySelector('#load-data'),
-        import: document.querySelector('#import'),
       },
       tools: {
         fill: document.querySelector('#tool-fill'),
@@ -128,6 +134,7 @@ class Board {
       props.buttons.saveSnapshot,
       props.buttons.loadSnapshot,
       props.buttons.saveImage,
+      props.buttons.toggleImageCapture,
       props.buttons.save,
       props.buttons.load,
     ];
@@ -170,15 +177,15 @@ class Board {
     this.buttons.showCustom.onmousedown = () => this.toggleModal('custom');
     this.buttons.showClear.onmousedown = () => this.handleClearStorage();
 
-    this.buttons.showDoc.onclick = this.click(this.showDoc);
     this.buttons.saveSnapshot.onclick = this.click(this.saveSnapshot);
     this.buttons.loadSnapshot.onclick = this.click(this.loadSnapshot);
+    this.buttons.showDoc.onclick = this.click(this.showDoc);
+    this.buttons.saveImage.onclick = this.click(this.promptSaveImage);
+    this.buttons.toggleImageCapture.onclick = this.click(this.toggleImageCapture);
     this.buttons.load.onclick = this.click(this.load);
     this.buttons.save.onclick = this.click(this.save);
-    this.buttons.saveImage.onclick = this.click(this.saveImage);
     this.buttons.loadData.onclick = this.click(this.loadData);
     this.buttons.saveData.onclick = this.click(this.saveData);
-    this.buttons.import.onclick = this.click(this.import);
 
     this.tools.move.onclick = this.click((ev) => this.config.setTool('move'), this.config);
     this.tools.brush.onclick = this.click((ev) => this.config.setTool('brush'), this.config);
@@ -274,7 +281,8 @@ class Board {
         this.stop();
         this.draw();
       });
-      this.config.setRecordingMode(false);
+      if (!this.imageCapture)
+        this.config.setRecordingMode(false);
       this.buttons.toggleRecord.className = 'icon-record';
       this.setButtonTitle(this.buttons.toggleRecord, 'Record');
       this.disableWhenRecording.forEach((e) => e.disabled = false);
@@ -348,10 +356,6 @@ class Board {
     try {
       this.model.step();
       this.drawSync();
-      this.running
-      this.running
-        ? this.hooks.playStep.forEach((e) => e.run())
-        : this.hooks.step.forEach((e) => e.run());
       this.storeModelState();
       if (!this.model.changed && this.config.autopause) {
         this.stop();
@@ -359,6 +363,10 @@ class Board {
       }
       else {
         this.config.setSteps(this.config.steps + 1);
+        this.running
+          ? this.hooks.playStep.forEach((e) => e.run())
+          : this.hooks.incrementStep.forEach((e) => e.run());
+        this.hooks.step.forEach((e) => e.run());
       }
     }
     catch (e) {
@@ -492,6 +500,60 @@ class Board {
     }
   }
 
+  toggleImageCapture() {
+    if (!this.imageCapture) {
+      this.imageCapture = [];
+      this.config.setRecordingMode(true);
+      this.draw();
+      let fn = async (e) => {
+        this.imageCapture.push([this.getImageFilename(), await this.saveImage()]);
+      };
+      fn.imageCaptureCb = true;
+      this.addHook('step', fn);
+      // Capture current state
+      fn();
+      this.buttons.toggleImageCapture.classList.add('active');
+    }
+    else {
+      if (!this.recorder)
+        this.config.setRecordingMode(false);
+      this.draw();
+      this.processImageCaptures(this.imageCapture);
+      this.imageCapture = null;
+      this.hooks.step = this.hooks.step.filter((e) => !e.run.imageCaptureCb);
+      this.buttons.toggleImageCapture.classList.remove('active');
+    }
+  }
+
+  async processImageCaptures(captures) {
+    if (captures.length < 0)
+      return;
+    let string2bytes = (str) => Uint8Array.from(str.split('').map((e) => e.charCodeAt(0)));
+    let padString = (str, length) => (str + ' '.repeat(length)).slice(0, length);
+    let segments = [string2bytes('!<arch>\n')];
+    captures.forEach(([filename, dataUri]) => {
+      // I have literally no idea what I'm doing
+      let data = atob(dataUri.split(',')[1]);
+      let length = data.length;
+      if (data.length % 2 == 1) {
+        data += '\n';
+      }
+      let bytes = Uint8Array.from(string2bytes(data));
+      let header = padString(filename + '/', 16)
+        + padString('0', 12)
+        + padString('0', 6)
+        + padString('0', 6)
+        + padString('644', 8)
+        + padString(bytes.length.toString(), 10)
+        + '`\n';
+      segments.push(string2bytes(header));
+      segments.push(bytes);
+    });
+    let blob = new Blob(segments, {type: 'application/x-archive'});
+    let dataUri = window.URL.createObjectURL(blob);
+    this.promptDownload(this.config.defaultArchiveFilename, dataUri);
+  }
+
   async saveImage() {
     let recordingMode = this.config.recordingMode;
     this.config.setRecordingMode(true);
@@ -500,9 +562,17 @@ class Board {
     let dataUri = transferCanvas.canvas.toDataURL('image/png');
     this.config.setRecordingMode(recordingMode);
     await this.draw();
+    return transferCanvas.canvas.toDataURL('image/png');
+  }
+
+  async promptSaveImage() {
+    let dataUri = await this.saveImage();
+    this.promptDownload(this.getImageFilename(), dataUri);
+  }
+
+  getImageFilename() {
     let padStep = ('000' + this.config.steps).slice(-3);
-    let filename = `${this.config.defaultImageFilenameBase}-${padStep}.png`;
-    this.promptDownload(filename, dataUri);
+    return `${this.config.defaultImageFilenameBase}-${padStep}.png`;
   }
 
   save() {
@@ -757,7 +827,7 @@ class Board {
 
   handleBlur(ev) {
     this.shift = false;
-    this.config.setTool();
+    this.config.setTool('move');
   }
 
   handleScale(ev) {
@@ -846,6 +916,9 @@ class Board {
           else if (key == 'c') {
             this.clear();
           }
+          else if (key == 'e') {
+            this.toggleModal('resize');
+          }
           else if (key == 'f') {
             this.toggleModal('custom');
           }
@@ -854,9 +927,6 @@ class Board {
           }
           else if (key == 'g') {
             this.toggleModal('config');
-          }
-          else if (key == 'r') {
-            this.toggleModal('resize');
           }
           else if (key == 'x') {
             this.handleClearStorage();
@@ -870,7 +940,7 @@ class Board {
         }
         else if (ev.shiftKey) {
           if (key == 's') {
-            this.saveImage();
+            this.promptSaveImage();
           }
           else {
             return;

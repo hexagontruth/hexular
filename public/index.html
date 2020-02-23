@@ -40,7 +40,7 @@
     <div class="group tools">
       <button id="show-config" title="Model configuration (Ctrl+M)" class="icon-gear"></button>
       <button id="show-rb" title="Rulebuilder (Ctrl+B)" class="icon-function"></button>
-      <button id="show-resize" title="Appearance (Ctrl+R)" class="icon-rainbow"></button>
+      <button id="show-resize" title="Appearance (Ctrl+E)" class="icon-rainbow"></button>
       <button id="show-custom" title="Custom code (Ctrl+F)" class="icon-code"></button>
       <button id="show-clear" title="Clear local data (Ctrl+X)" class="icon-refresh"></button>
     </div>
@@ -65,14 +65,16 @@
   </div>
   <div class="toolbar left">
     <div class="group">
+      <button id="save-image" title="Save image... (Ctrl+Shift+S)" class="icon-image"></button>
+      <button id="toggle-image-capture" title="Toggle image capture mode" class="icon-image-multiple"></button>
+    </div>
+    <div class="group">
       <button id="load" title="Load model state... (Ctrl+O)" class="icon-hexagon-left rotate"></button>
       <button id="save" title="Save model state... (Ctrl+S)" class="icon-hexagon-right rotate"></button>
-      <button id="save-image" title="Save image... (Ctrl+Shift+S)" class="icon-image"></button>
     </div>
     <div class="group">
       <button id="load-data" title="Load settings... (Ctrl+Alt+O)" class="icon-upload"></button>
       <button id="save-data" title="Save settings... (Ctrl+Alt+S)" class="icon-download"></button>
-      <button id="import" title="Import custom JavaScript... (Ctrl+I)" class="icon-cloud-code"></button>
     </div>
   </div>
   <div id="color-menu" class="toolbar right colors hidden">
@@ -272,7 +274,8 @@
           <input type="text" id="custom-output" readonly/>
         </div>
         <div class="group buttons">
-          <button id="add-custom-code">Add custom code</button>
+          <button id="import" title="Import custom JavaScript...">Import...</button>
+          <button id="add-custom-code" title="Run custom code">Run</button>
         </div>
       </div>
     </div>

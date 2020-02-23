@@ -133,7 +133,7 @@ class ConfigModal extends Modal {
 
   handleNh(ev) {
     this.config.setNh(parseInt(this.selectNh.value));
-    this.board.setMessage(`Set neighborhood to ${this.config.nh}`)
+    this.board.setMessage(`Set neighborhood to N${this.config.nh}`)
   }
 
   _handleFilter(filter) {

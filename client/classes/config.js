@@ -38,7 +38,8 @@ class Config {
       themes: Config.merge(Themes),
       presets: Config.merge({}, Presets),
       arrayType: 'Int8Array',
-      defaultImageFilenameBase: 'hexular',
+      defaultImageFilenameBase: 'hex',
+      defaultArchiveFilename: 'hexular.ar',
       defaultFilename: 'hexular.bin',
       defaultVideoFilename: 'hexular.webm',
       defaultSettingsFilename: 'hexular.json',
@@ -264,10 +265,13 @@ class Config {
     type = type ? [type] : ['pageBackground', 'modelBackground'];
     type.forEach((key) => {
       let thisColor = this[key] = color || this[key];
-      if (key == 'pageBackground')
+      if (key == 'pageBackground'){
         document.body.style.backgroundColor = thisColor;
-      else
+      }
+      else {
         this.board.bgAdapter.backgroundColor = thisColor;
+        this.board.fgAdapter.backgroundColor = thisColor;
+      }
       this.resizeModal[key].jscolor.fromString(thisColor || 'transparent');
     });
 
@@ -418,10 +422,13 @@ class Config {
     Object.values(this.resizeModal.onDrawCell).forEach((e) => e.classList.remove('active'));
     this.resizeModal.onDrawCell[this.onDrawCell].classList.add('active');
     let fns = this.onDrawCellAvailable.map((e) => this.board.bgAdapter[e]);
-    this.board.bgAdapter.onDrawCell.replace(
-      this.board.bgAdapter.onDrawCell.filter((e) => !fns.includes(e))
-    );
-    this.board.bgAdapter.onDrawCell.unshift(this.board.bgAdapter[this.onDrawCell]);
+    let curIdx = this.board.bgAdapter.onDrawCell.findIndex((e) => fns.includes(e));
+    let del = 1;
+    if (curIdx == -1) {
+      curIdx = 0;
+      del = 0;
+    }
+    this.board.bgAdapter.onDrawCell.splice(curIdx, del, this.board.bgAdapter[this.onDrawCell]);
     this.checkTheme();
     this.storeSessionConfigAsync();
   }

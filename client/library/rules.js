@@ -126,6 +126,21 @@ const Rules = (() => {
       0b110011,
     ], {"miss":0,"match":-1,"missRel":1,"matchRel":1,"rel":0}),
 
+    uncial: Hexular.util.ruleBuilder([
+      0b000011,
+      0b000110,
+      0b000111,
+      0b001100,
+      0b001110,
+      0b011000,
+      0b011100,
+      0b100001,
+      0b100011,
+      0b110000,
+      0b110001,
+      0b111000,
+    ], {"miss":-1,"match":1,"missRel":1,"matchRel":1,"rel":1}),
+
     fancytown: (cell) => {
       const tot = cell.total;
       if (tot > 2 && tot < 5)

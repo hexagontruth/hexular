@@ -28,9 +28,9 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
     opts = Object.assign(defaults, opts);
     return (radius, optOverrides) => {
       opts = Object.assign(opts, optOverrides);
-      let adapter = Board.bgAdapter;
-      let model = Board.model;
       let fn = function(cell) {
+        let adapter = Board.bgAdapter;
+        let model = Board.model;
         if (!cell.state)
           return;
         let slice = cell.with[6].nbrSlice;
@@ -62,9 +62,9 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
 
   function circleFactory(cb) {
     return (radius) => {
-      let adapter = Board.bgAdapter;
-      let model = Board.model;
       let fn = function(cell) {
+        let adapter = Board.bgAdapter;
+        let model = Board.model;
         if (!cell.state)
           return;
         let slice = cell.with[6].nbrSlice;
@@ -93,10 +93,10 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
 
   function triangleFactory(cb) {
     return (radius) => {
-      let adapter = Board.bgAdapter;
-      let model = Board.model;
       let vertices = Hexular.math.vertices.map(([x, y]) => [y, x]);
       let fn = function(cell) {
+        let adapter = Board.bgAdapter;
+        let model = Board.model;
         if (!cell.state)
           return;
         let slice = cell.with[6].nbrSlice;
@@ -128,9 +128,9 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
 
   function lineFactory(cb) {
     return (radius) => {
-      let adapter = Board.bgAdapter;
-      let model = Board.model;
       let fn = function(cell) {
+        let adapter = Board.bgAdapter;
+        let model = Board.model;
         if (cell.edge)
           return;
         let slice = cell.with[6].nbrSlice;
@@ -399,7 +399,15 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
         }
       })();
       return fnIdx;
-    }
+    },
+
+    rotateColors: () => {
+      Board.instance.addHook('step', () => {
+        let colors = Board.bgAdapter.fillColors.slice();
+        colors = colors.concat(colors.splice(1,1));
+        Board.bgAdapter.fillColors = colors;
+      });
+    },
   }
 
   return examples;

@@ -1035,7 +1035,7 @@ var Hexular = (function () {
     }
 
     /**
-     * Convenience method for removing all existing callbacks and optionally adding new ones.
+     * Convenience method for removing all existing functions and optionally adding new ones.
      *
      * @param {function[]} functions List of new functions to add
      */
@@ -1043,6 +1043,22 @@ var Hexular = (function () {
       this.length = 0;
       for (let fn of functions)
         this.push(fn);
+    }
+
+    /**
+     * Convenience method for removing member functions with filter function.
+     *
+     * @param {function} fn Filter function taking a member function and returning a boolean value
+     * @return {function[]} Member functions removed during filtering
+     */
+    remove(fn) {
+      let removed = [];
+      this.replace(this.filter((e) => {
+        let val = fn(e);
+        val || removed.push(e);
+        return val;
+      }));
+      return removed;
     }
 
     /**
@@ -1296,7 +1312,15 @@ var Hexular = (function () {
    * @param {Cell} cell The cell being drawn
    */
     defaultDrawBuffer(cell) {
-      let color = this.fillColors[this.stateBuffer.get(cell)] || this.defaultColor;
+      let state = this.stateBuffer.get(cell);
+      let color = this.fillColors[state];
+      if (!color)
+        color = this.defaultColor;
+      else if (color == 'transparent'
+        || color.length == '9' && color.slice(-2) == '00'
+        || color.length == '5' && color.slice(-1) == '0'
+        || color.length && color.slice(-2) == '0)')
+        color = this.backgroundColor;
       if (color) {
         this.context.fillStyle = color;
         this.drawPath(cell);
