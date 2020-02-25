@@ -1062,6 +1062,25 @@ var Hexular = (function () {
     }
 
     /**
+     * Convenience method for rotating callback order.
+     *
+     * Sometimes a drawing callback is in the wrong place wrt others. This is essentially a wrapper for
+     * `hookList.unshift(hookList.pop())` (default behavior) and associated operations.
+     *
+     * @param {number} [n=1] Negative/positive offset
+     */
+    rotate(n=1) {
+      if (n > 0) {
+        let slice = this.splice(this.length -n);
+        this.replace(slice.concat(this));
+      }
+      else if (n < 0) {
+        let slice = this.splice(0, -n);
+        this.replace(this.concat(slice));
+      }
+    }
+
+    /**
      * Call each function entry in hook list, bound to {@link HookList#owner|this.owner}.
      *
      * The first function is called with the arguments as given to this method. When a called
@@ -1423,6 +1442,8 @@ var Hexular = (function () {
      */
 
     drawOutlinePointyHex(cell, style, lineWidth=this.cellBorderWidth) {
+      if (lineWidth == 0)
+        return;
       this.context.strokeStyle = style || this.strokeColors[cell.state] || this.defaultColor;
       this.context.lineWidth = lineWidth;
       this.drawPath(cell);
@@ -1450,6 +1471,8 @@ var Hexular = (function () {
      */
 
     drawOutlineFlatHex(cell, style, lineWidth=this.cellBorderWidth) {
+      if (lineWidth == 0)
+        return;
       this.context.strokeStyle = style || this.strokeColors[cell.state] || this.defaultColor;
       this.context.lineWidth = lineWidth;
       this.drawPath(cell, this.flatVertices);
@@ -1484,6 +1507,8 @@ var Hexular = (function () {
      */
 
     drawOutlineCircle(cell, style, lineWidth=this.cellBorderWidth) {
+      if (lineWidth == 0)
+        return;
       this.context.strokeStyle = style || this.fillColors[cell.state] || this.defaultColor;
       this.context.lineWidth = lineWidth
       this.drawCircle(cell);

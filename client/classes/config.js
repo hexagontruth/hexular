@@ -23,7 +23,7 @@ class Config {
       mobileRadius: 30,
       mobileDefaultScale: 1.5,
       mobileUndoStackSize: 16,
-      interval: 100,
+      interval: 125,
       autopause: true,
       pageBackground: '#f8f8f8',
       modelBackground: '#ffffff',

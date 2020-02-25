@@ -17,20 +17,25 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
     customCodeDemos[k] = v.trim();
   });
 
-  function hexagonFactory(opts, cb) {
+  // Yes this is very inconsistent with the other two
+  function hexagonFactory(defaultOpts, cb) {
     let defaults = {
       type: Hexular.enums.TYPE_POINTY,
       stroke: false,
       fill: false,
+      fillStyle: null,
+      strokeStyle: null,
     };
     if (!cb)
       cb = (a, b, c) => Math.max(a.state, b.state, c.state);
-    opts = Object.assign(defaults, opts);
+    defaultOpts = Object.assign({}, defaults, defaultOpts);
     return (radius, optOverrides) => {
-      opts = Object.assign(opts, optOverrides);
+      let opts = Object.assign({}, defaultOpts, optOverrides);
       let fn = function(cell) {
         let adapter = Board.bgAdapter;
         let model = Board.model;
+        let fillStyle = opts.fillstyle;
+        let strokeStyle = opts.strokeStyle;
         if (!cell.state)
           return;
         let slice = cell.with[6].nbrSlice;
@@ -46,9 +51,9 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
             let y = (y0 + y1 + y2) / 3;
             let r = radius || adapter.innerRadius;
             if (opts.stroke)
-              opts.strokeStyle = adapter.strokeColors[state];
+              opts.strokeStyle = strokeStyle || adapter.strokeColors[state];
             if (opts.fill)
-              opts.fillStyle = adapter.fillColors[state];
+              opts.fillStyle = fillStyle || adapter.fillColors[state];
             adapter.drawHexagon([x, y], r, opts);
           }
         }
@@ -92,7 +97,11 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
   }
 
   function triangleFactory(cb) {
-    return (radius) => {
+    return (radius, opts) => {
+      opts = Object.assign({
+        center: true,
+        vertex: false,
+      }, opts);
       let vertices = Hexular.math.vertices.map(([x, y]) => [y, x]);
       let fn = function(cell) {
         let adapter = Board.bgAdapter;
@@ -110,12 +119,17 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
             let x = (x0 + x1 + x2) / 3;
             let y = (y0 + y1 + y2) / 3;
             let r = radius || adapter.innerRadius;
-            adapter.context.beginPath();
-            adapter.context.moveTo(x + vertices[1][0] * r, y + vertices[1][1] * r);
-            adapter.context.lineTo(x + vertices[3][0] * r, y + vertices[3][1] * r);
-            adapter.context.lineTo(x + vertices[5][0] * r, y + vertices[5][1] * r);
-            adapter.context.closePath();
-            cb(adapter.context, cell, n1, n2);
+            let o = i % 2;
+            for (let e of [opts.center, opts.vertex]) {
+              o = o ^1;
+              if (!e) continue;
+              adapter.context.beginPath();
+              adapter.context.moveTo(x + vertices[o][0] * r, y + vertices[o][1] * r);
+              adapter.context.lineTo(x + vertices[o + 2][0] * r, y + vertices[o + 2][1] * r);
+              adapter.context.lineTo(x + vertices[o + 4][0] * r, y + vertices[o + 4][1] * r);
+              adapter.context.closePath();
+              cb(adapter.context, cell, n1, n2);
+            }
           }
         }
       };
@@ -166,18 +180,26 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
   }
 
   function outlineMax(ctx, ...cells) {
+    let lineWidth = Board.config.cellBorderWidth;
+    if (lineWidth == 0)
+      return;
     let state = Math.max(...cells.map((e) => e.state));
     ctx.strokeStyle = Board.bgAdapter.strokeColors[state];
-    ctx.lineWidth = Board.config.cellBorderWidth;
+    ctx.lineWidth = lineWidth;
     ctx.lineJoin = "round";
+    ctx.lineCap = "round";
     ctx.stroke();
   }
 
   function outlineMin(ctx, ...cells) {
+    let lineWidth = Board.config.cellBorderWidth;
+    if (lineWidth == 0)
+      return;
     let state = Math.min(...cells.map((e) => e.state));
     ctx.strokeStyle = Board.bgAdapter.strokeColors[state];
-    ctx.lineWidth = Board.config.cellBorderWidth;
+    ctx.lineWidth = lineWidth;
     ctx.lineJoin = "round";
+    ctx.lineCap = "round";
     ctx.stroke();
   }
 

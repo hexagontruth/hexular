@@ -448,6 +448,7 @@ class Board {
     this.buttons.toolHider.classList.toggle('active');
     this.buttons.toolHider.classList.toggle('icon-eye');
     this.buttons.toolHider.classList.toggle('icon-eye-off');
+    setTimeout(() => this.resizeMenu(), 500);
   }
 
   setButtonTitle(button, title) {
@@ -704,10 +705,7 @@ class Board {
   }
 
   resize() {
-    // Menu stuff
-    let {x, y, height} = this.buttons.toggleMenu.getBoundingClientRect();
-    this.menus.config.style.top = `${y + height}px`;
-    this.menus.config.style.left = `${x}px`;
+    this.resizeMenu();
 
     // Canvas stuff
     this.canvasWidth = this.config.logicalWidth / this.config.scaleFactor;
@@ -736,6 +734,12 @@ class Board {
     // Translate to center
     this.translate([this.canvasWidth / this.scaleX / 2, this.canvasHeight / this.scaleY / 2]);
     this.draw();
+  }
+
+  resizeMenu() {
+    let {x, y, height} = this.buttons.toggleMenu.getBoundingClientRect();
+    this.menus.config.style.top = `${y + height}px`;
+    this.menus.config.style.left = `${x}px`;
   }
 
   refreshHistoryButtons() {

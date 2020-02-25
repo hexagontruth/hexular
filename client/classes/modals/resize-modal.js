@@ -75,8 +75,8 @@ class ResizeModal extends Modal {
   reset() {
     this.selectTheme.value = this.config.theme;
     this._setAutopause();
-    this._setCellGap();
-    this._setCellBorderWidth();
+    this._setCellGap(this.config.cellGap);
+    this._setCellBorderWidth(this.config.cellBorderWidth);
     this._setOnDraw();
     this._setOnDrawCell();
     this.resize.value = this.config.radius;
@@ -95,12 +95,12 @@ class ResizeModal extends Modal {
   }
 
   _setCellGap(value) {
-    this.config.setCellGap(value);
+    this.config.setCellGap(parseFloat(value || 0));
     this.board.draw();
   }
 
   _setCellBorderWidth(value) {
-    this.config.setCellBorderWidth(value);
+    this.config.setCellBorderWidth(parseFloat(value || 0));
     this.board.draw();
   }
 
