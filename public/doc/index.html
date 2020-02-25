@@ -117,7 +117,7 @@ end user to implement her own extensions via the Hexular API:</p>
 <li><a href="CanvasAdapter.html#drawCell"><code>drawCell(cell)</code></a> — Draws an individual cell</li>
 </ul>
 <h2 id="configuration">Configuration</h2>
-<p>The Hexular constructor accepts an optional first argument giving a model class (e.g. <code>Hexular.classes.models.OffsetTopology</code>), and any number of settings arguments. Different settings are required by different model classes.</p>
+<p>The Hexular function accepts an optional first argument giving a model class (e.g. <code>Hexular.classes.models.OffsetTopology</code>), and any number of settings arguments. Different settings are required by different model classes.</p>
 <p><code>CubicModel</code> is morphologically determined by its <code>radius</code>, which gives the number of rings of cells from the center to the edge. So, e.g., a seven-cell grid would have radius 2. Conversely, <code>OffsetModel</code> takes <code>rows</code> and <code>cols</code> arguments.</p>
 <p>For additional model configuration options, please see the <a href="Model.html"><code>Model</code></a> documentation.</p>
 <h3 id="rules">Rules</h3>
@@ -199,7 +199,6 @@ end user to implement her own extensions via the Hexular API:</p>
 </ul>
 <p>The principal Studio interface consists of a <code>CubicModel</code> instance centered on the page, with buttons and keyboard shortcuts implementing various functions. A number of settings can be set via URL parameters. Some debatably-important ones that presently aren't also configurable through the interface include:</p>
 <ul>
-<li><code>cellGap=1</code></li>
 <li><code>showModelBackground=true</code></li>
 <li><code>groundState=0</code></li>
 <li><code>undoStackSize=64</code></li>
@@ -256,7 +255,7 @@ end user to implement her own extensions via the Hexular API:</p>
 <p>Cell states are changed by clicking and dragging with a paint tool selected. By default, the painting state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo <code>Board.instance.model.numStates</code>. Right clicking, conversely, decrements the cell state by one, and ctrl+clicking clears to the ground state. Setting a specific state color can be effected by toggling the color mode button on the bottom right.</p>
 <p>The basic flow of the program is to set one's preferred state using either the mouse or by importing a saved file, setting desired rules, &amp;c. in the configuration modal, and then either starting the timer (tab) or incrementing the state one step at a time (space).</p>
 <h3 id="prepopulated-rules">Prepopulated rules</h3>
-<p>Several predefined rules are given in <code>client/library/rules.js</code>. These are largely provided for convenience and aren't meant to be exhaustive. A number of built-in presets, or groups of rules, are defined <code>client/library/presets.js</code> and can be selected from the model configuration modal in lieu of individual rules.</p>
+<p>Several predefined rules are given in <code>client/library/rules.js</code>. These are largely provided for convenience and aren't meant to be exhaustive. A number of built-in presets, or groups of rules and filters, are defined <code>client/library/presets.js</code> and can be selected from the model configuration modal in lieu of individual rules.</p>
 <h3 id="studio-configuration-and-customization">Studio configuration and customization</h3>
 <p>The model configuration modal consists of the following fields:</p>
 <ul>
@@ -272,9 +271,9 @@ end user to implement her own extensions via the Hexular API:</p>
 <pre><code>    Board.config.addRule(name, (cell) =&gt; cell.state == 3 ? 1 : 0)
 </code></pre>
 <p>We can also add our own rule presets via the console, e.g.:</p>
-<pre><code>    Board.config.addPreset('fancyPreset', new Preset(['binary23', 'binary34', 'stepUp'], {deltaFilter: true, modFilter: true}))
+<pre><code>    Board.config.addPreset('fancyPreset', new Preset(['binary23', 'binary34', 'stepUp'], {filters: {deltaFilter: true, modFilter: true}}))
 </code></pre>
-<p>Such modifications can also be effected via the custom code modal (Ctrl+F) or JavaScript import button (Ctrl+I), using the same global objects, &amp;c. Specifically, every board instance attaches the following to the global <code>Board</code> object:</p>
+<p>Such modifications can also be effected via the custom code modal (Ctrl+F) using the same global objects, &amp;c. Specifically, every board instance attaches the following to the global <code>Board</code> object:</p>
 <ul>
 <li><code>Board.instance</code> - The board itself</li>
 <li><code>Board.config</code> - Alias for <code>Board.instance.config</code></li>
@@ -293,7 +292,8 @@ end user to implement her own extensions via the Hexular API:</p>
 <p>We can add functions to be called at a given time index during play or recording via the <code>board.addHook()</code> method. For example, to turn cells with state 4 cyan after five seconds, we could run the following from the console or the custom code modal:</p>
 <pre><code>    Board.instance.addHook('timer', 5000, () =&gt; Board.config.setColor(3, '#33cccc'));
 </code></pre>
-<p>Timer hooks will be rerun at their appropriate time index after every stop/start event, but changes they make to e.g. the configuration object will persist until explicitly reset. At the moment they are the only hook type implemented.</p>
+<p>Timer hooks will be rerun at their appropriate time index after every stop/start event, but changes they make to e.g. the configuration object will persist until explicitly reset.</p>
+<p>Other hooks include <code>incrementStep</code>, <code>playStep</code>, and <code>step</code>.</p>
 <h2 id="more-information">More information</h2>
 <ul>
 <li>
@@ -307,6 +307,9 @@ end user to implement her own extensions via the Hexular API:</p>
 </li>
 <li>
 <p>Many of the icons used in the Hexular Studio interface are taken from the <a href="https://materialdesignicons.com/">Material Design Icons</a> project, and distributed under the Open Font License. The font itself was compiled using <a href="http://fontello.com/">Fontello</a>.</p>
+</li>
+<li>
+<p>At the moment I am also using <a href="http://jscolor.com/">jscolor</a> for the appearance modal color selectors.</p>
 </li>
 <li>
 <p>For more information on HEXAGONAL AWARENESS, please check out:</p>

@@ -58,7 +58,7 @@ Adapters map a model to some space &mdash; e.g. a web canvas. Useful `CanvasAdap
 
 ## Configuration
 
-The Hexular constructor accepts an optional first argument giving a model class (e.g. `Hexular.classes.models.OffsetTopology`), and any number of settings arguments. Different settings are required by different model classes.
+The Hexular function accepts an optional first argument giving a model class (e.g. `Hexular.classes.models.OffsetTopology`), and any number of settings arguments. Different settings are required by different model classes.
 
 `CubicModel` is morphologically determined by its `radius`, which gives the number of rings of cells from the center to the edge. So, e.g., a seven-cell grid would have radius 2. Conversely, `OffsetModel` takes `rows` and `cols` arguments.
 
@@ -165,7 +165,6 @@ The built-in demo site, Hexular Studio, can be run as-is with any static HTTP se
 
 The principal Studio interface consists of a `CubicModel` instance centered on the page, with buttons and keyboard shortcuts implementing various functions. A number of settings can be set via URL parameters. Some debatably-important ones that presently aren't also configurable through the interface include:
 
-  - `cellGap=1`
   - `showModelBackground=true`
   - `groundState=0`
   - `undoStackSize=64`
@@ -226,7 +225,7 @@ The basic flow of the program is to set one's preferred state using either the m
 
 ### Prepopulated rules
 
-Several predefined rules are given in `client/library/rules.js`. These are largely provided for convenience and aren't meant to be exhaustive. A number of built-in presets, or groups of rules, are defined `client/library/presets.js` and can be selected from the model configuration modal in lieu of individual rules.
+Several predefined rules are given in `client/library/rules.js`. These are largely provided for convenience and aren't meant to be exhaustive. A number of built-in presets, or groups of rules and filters, are defined `client/library/presets.js` and can be selected from the model configuration modal in lieu of individual rules.
 
 ### Studio configuration and customization
 
@@ -246,9 +245,9 @@ In the configuration modal, rule assignment select menus are populated with the 
 
 We can also add our own rule presets via the console, e.g.:
 
-        Board.config.addPreset('fancyPreset', new Preset(['binary23', 'binary34', 'stepUp'], {deltaFilter: true, modFilter: true}))
+        Board.config.addPreset('fancyPreset', new Preset(['binary23', 'binary34', 'stepUp'], {filters: {deltaFilter: true, modFilter: true}}))
 
-Such modifications can also be effected via the custom code modal (Ctrl+F) or JavaScript import button (Ctrl+I), using the same global objects, &c. Specifically, every board instance attaches the following to the global `Board` object:
+Such modifications can also be effected via the custom code modal (Ctrl+F) using the same global objects, &c. Specifically, every board instance attaches the following to the global `Board` object:
 
 - `Board.instance` - The board itself
 - `Board.config` - Alias for `Board.instance.config`
@@ -276,7 +275,9 @@ We can add functions to be called at a given time index during play or recording
 
         Board.instance.addHook('timer', 5000, () => Board.config.setColor(3, '#33cccc'));
 
-Timer hooks will be rerun at their appropriate time index after every stop/start event, but changes they make to e.g. the configuration object will persist until explicitly reset. At the moment they are the only hook type implemented.
+Timer hooks will be rerun at their appropriate time index after every stop/start event, but changes they make to e.g. the configuration object will persist until explicitly reset.
+
+Other hooks include `incrementStep`, `playStep`, and `step`.
 
 ## More information
 
@@ -287,6 +288,8 @@ Timer hooks will be rerun at their appropriate time index after every stop/start
   - Despite my general expertise in this area, I continue to find Amit Patel's [Hexagonal Grids](http://www.redblobgames.com/grids/hexagons/) page to be an invaluable resource when dealing with hex grids, and much of the terminology I've used around cubic coordinates is taken from his distillation of the topic.
 
   - Many of the icons used in the Hexular Studio interface are taken from the [Material Design Icons](https://materialdesignicons.com/) project, and distributed under the Open Font License. The font itself was compiled using [Fontello](http://fontello.com/).
+
+  - At the moment I am also using [jscolor](http://jscolor.com/) for the appearance modal color selectors.
 
   - For more information on HEXAGONAL AWARENESS, please check out:
     - [https://hexagon.life/](https://hexagon.life/)

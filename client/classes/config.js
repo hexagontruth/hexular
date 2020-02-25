@@ -45,6 +45,7 @@ class Config {
       defaultSettingsFilename: 'hexular.json',
       recordingMode: false,
       codec: 'vp9',
+      videoBitsPerSecond: 120e6,
       scaleFactor: 1,
 
       tool: 'brush',

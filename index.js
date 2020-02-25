@@ -1,3 +1,3 @@
 if (module) {
-  module.exports = require('./src/hexular');
+  module.exports = require('./hexular/hexular');
 }

@@ -507,6 +507,7 @@ textarea, select, input {
   background: #fff;
   font-family: inherit;
   flex: 1 1 auto;
+  min-width: 0;
 }
 
 input[type=number] {

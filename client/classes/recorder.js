@@ -14,7 +14,9 @@ class Recorder {
     let constraints = {
       frameRate: 30,
     };
-    let opts = {};
+    let opts = {
+      videoBitsPerSecond: this.config.videoBitsPerSecond,
+    };
     let customCodec = `video/webm;codecs=${this.config.codec || 'vp9'}`;
     if (MediaRecorder.isTypeSupported(customCodec))
       opts.mimeType = customCodec;
