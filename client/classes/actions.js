@@ -31,7 +31,7 @@ class Action {
     if (this.board.fgAdapter.stateBuffer.size > 0) {
       this.board.newHistoryState();
       this.board.fgAdapter.stateBuffer.forEach((state, cell) => {
-        cell.state = state;
+        cell.setState(state);
       });
       this.board.fgAdapter.stateBuffer.clear();
       this.board.fgAdapter.clear();

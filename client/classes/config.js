@@ -45,15 +45,16 @@ class Config {
       defaultSettingsFilename: 'hexular.json',
       recordingMode: false,
       codec: 'vp9',
+      frameRate: 30,
       videoBitsPerSecond: 120e6,
       scaleFactor: 1,
-
       tool: 'brush',
       shiftTool: 'move',
       toolSize: 1,
       colorMode: 0,
       paintColors: [1, 0],
       steps: 0,
+      drawStepInterval: 1,
       rbName: 'newElementaryRule',
       rbMiss: 0,
       rbMatch: 1,
@@ -393,10 +394,11 @@ class Config {
   setNumStates(num) {
     if (num)
       this.configModal.numStates.value = num;
-    const numStates = parseInt(this.configModal.numStates.value);
-    this.numStates = this.model.numStates = numStates;
+    else
+      num = parseInt(this.configModal.numStates.value);
+    this.numStates = this.model.numStates = num;
     this.configModal.ruleMenus.forEach((ruleMenu) => {
-      let disabled = ruleMenu.idx >= numStates;
+      let disabled = ruleMenu.idx >= num;
       ruleMenu.container.setAttribute('data-disabled', disabled);
     });
     this.checkPreset();
@@ -419,9 +421,10 @@ class Config {
   }
 
   setOnDrawCell(fnName) {
-    this.onDrawCell = fnName || this.onDrawCell;
+    this.onDrawCell = fnName;
     Object.values(this.resizeModal.onDrawCell).forEach((e) => e.classList.remove('active'));
-    this.resizeModal.onDrawCell[this.onDrawCell].classList.add('active');
+    let fnButton = this.resizeModal.onDrawCell[this.onDrawCell];
+    fnButton && fnButton.classList.add('active');
     let fns = this.onDrawCellAvailable.map((e) => this.board.bgAdapter[e]);
     let curIdx = this.board.bgAdapter.onDrawCell.findIndex((e) => fns.includes(e));
     let del = 1;
@@ -429,7 +432,9 @@ class Config {
       curIdx = 0;
       del = 0;
     }
-    this.board.bgAdapter.onDrawCell.splice(curIdx, del, this.board.bgAdapter[this.onDrawCell]);
+    let newFn = this.board.bgAdapter[this.onDrawCell];
+    let newFnArg = newFn ? [newFn] : [];
+    this.board.bgAdapter.onDrawCell.splice(curIdx, del, ...newFnArg);
     this.checkTheme();
     this.storeSessionConfigAsync();
   }
@@ -715,8 +720,9 @@ class Config {
       'customInput',
       'defaultRule',
       'defaultScale',
-      'filters',
       'fallbackTool',
+      'filters',
+      'frameRate',
       'groundState',
       'interval',
       'maxNumStates',

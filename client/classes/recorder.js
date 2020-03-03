@@ -12,7 +12,7 @@ class Recorder {
   start() {
     this.stream = this.transferCanvas.canvas.captureStream();
     let constraints = {
-      frameRate: 30,
+      frameRate: this.config.frameRate,
     };
     let opts = {
       videoBitsPerSecond: this.config.videoBitsPerSecond,

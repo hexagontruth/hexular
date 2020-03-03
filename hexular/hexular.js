@@ -362,6 +362,7 @@ var Hexular = (function () {
           this.changed = true;
       });
       this.eachCell((cell) => {
+        cell.lastState = cell.state;
         cell.state = cell.nextState;
       });
     }
@@ -497,7 +498,7 @@ var Hexular = (function () {
      */
     import(array) {
       this.cells.forEach((cell, idx) => {
-        cell.state = array[idx] || this.groundState;
+        cell.setState(array[idx] || this.groundState);
       });
     }
 
@@ -765,6 +766,13 @@ var Hexular = (function () {
          */
         nextState: 0,
         /**
+         * The previous cell state.
+         *
+         * @name Cell#lastState
+         * @type number
+         */
+        lastState: 0,
+        /**
          * Numeric 19-element array with entries for the cell itself and its 18 nearest neighbors.
          *
          * - Entry 0 corresponds to the cell itself
@@ -822,6 +830,16 @@ var Hexular = (function () {
         this.nbrs[i + 6] = this.nbrs[i].nbrs[source12];
         this.nbrs[i + 12] = this.nbrs[i].nbrs[i];
       }
+    }
+
+    /**
+     * Set state and erase value of lastState.
+     *
+     * @param {*} state New cell state
+     */
+    setState(state) {
+      this.state = state;
+      this.lastState = this.model.groundState;
     }
 
     /**

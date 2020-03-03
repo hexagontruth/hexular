@@ -113,7 +113,7 @@ class ResizeModal extends Modal {
   }
 
   _setOnDrawCell(fnName) {
-    this.config.setOnDrawCell(fnName);
+    this.config.setOnDrawCell(fnName || this.config.onDrawCell);
     this.board.draw();
   }
 

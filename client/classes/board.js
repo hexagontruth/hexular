@@ -12,6 +12,7 @@ class Board {
           board.redoStack = oldBoard.redoStack;
           board.bgAdapter.onDraw.replace(oldBoard.bgAdapter.onDraw);
           board.bgAdapter.onDrawCell.replace(oldBoard.bgAdapter.onDrawCell);
+          board.hooks = Config.merge(oldBoard.hooks);
           board.refreshHistoryButtons();
         }
         Board.config = board.config;
@@ -19,6 +20,7 @@ class Board {
         Board.bgAdapter = board.bgAdapter;
         Board.fgAdapter = board.fgAdapter;
         Board.modals = board.modals;
+        board.hooks.resize.forEach((e) => e.run())
         await board.draw();
         document.body.classList.remove('splash');
         resolve();
@@ -36,6 +38,7 @@ class Board {
       lastSet: null,
       setState: null,
       timer: null,
+      drawStep: 0,
       messageTimer: null,
       undoStack: [],
       redoStack: [],
@@ -48,6 +51,7 @@ class Board {
         playStep: [],
         step: [],
         timer: [],
+        resize: [],
       },
       scaling: false,
       scaleQueue: [],
@@ -270,9 +274,10 @@ class Board {
       this.disableWhenRecording.forEach((e) => e.disabled = true);
       this.buttons.toggleRecord.className = 'icon-stop active';
       this.setButtonTitle(this.buttons.toggleRecord, 'Stop');
-      this.recorder = new Recorder(this);
       this.config.setRecordingMode(true);
-      this.draw().then(() => this.recorder.start());
+      this.drawSync();
+      this.recorder = new Recorder(this);
+      this.recorder.start();
     }
     else {
       this.recorder.stop();
@@ -315,6 +320,7 @@ class Board {
         this.toggleRecord();
       clearInterval(this.timer);
       this.timer = null;
+      this.drawStep = 0;
       this.playStart = null;
       this.stopMeta();
       this.buttons.step.disabled = false;
@@ -352,22 +358,25 @@ class Board {
   }
 
   async step() {
-    this.newHistoryState();
     try {
-      this.model.step();
+      this.drawStep = (this.drawStep + 1) % this.config.drawStepInterval;
+      if (!this.drawStep) {
+        this.newHistoryState();
+        this.model.step();
+        this.storeModelState();
+        if (!this.model.changed && this.config.autopause) {
+          this.stop();
+          this.undo(true);
+        }
+        else {
+          this.config.setSteps(this.config.steps + 1);
+          this.running
+            ? this.hooks.playStep.forEach((e) => e.run())
+            : this.hooks.incrementStep.forEach((e) => e.run());
+          this.hooks.step.forEach((e) => e.run());
+        }
+      }
       this.drawSync();
-      this.storeModelState();
-      if (!this.model.changed && this.config.autopause) {
-        this.stop();
-        this.undo(true);
-      }
-      else {
-        this.config.setSteps(this.config.steps + 1);
-        this.running
-          ? this.hooks.playStep.forEach((e) => e.run())
-          : this.hooks.incrementStep.forEach((e) => e.run());
-        this.hooks.step.forEach((e) => e.run());
-      }
     }
     catch (e) {
       console.error(e);
@@ -375,6 +384,7 @@ class Board {
       if (this.running)
         this.stop();
     }
+
   }
 
   clear() {
@@ -383,6 +393,7 @@ class Board {
     this.draw();
     this.storeModelState();
     this.config.setSteps(0);
+    this.config.drawStep = 0;
   }
 
   addHook(...args) {
@@ -684,6 +695,7 @@ class Board {
       if (!discard)
         this.redoStack.push(curState);
       this.draw();
+      this.drawStep = 0;
       this.refreshHistoryButtons();
     }
   }
@@ -700,6 +712,7 @@ class Board {
       if (!discard)
         this.undoStack.push(curState);
       this.draw();
+      this.drawStep = 0;
       this.refreshHistoryButtons();
     }
   }
@@ -718,9 +731,11 @@ class Board {
     this.offsetY = 0;
     this.scale = 1
     this.eachContext((ctx) => {
+      let gco = ctx.globalCompositeOperation;
       ctx.canvas.width = this.canvasWidth;
       ctx.canvas.height = this.canvasHeight;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.globalCompositeOperation = gco;
     });
     this.scaleTo(this.config.defaultScale);
     // Resize
