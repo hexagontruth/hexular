@@ -144,6 +144,18 @@ const Themes = (() => {
         '#ffffff',
       ],
     },
+    darkLight: {
+      pageBackground: '#111111',
+      modelBackground: '#000000',
+      cellGap: 0,
+      colors: Config.merge(Hexular.DEFAULTS.colors.slice(), [
+        null,
+        '#33332f',
+        '#666655',
+        '#99998f',
+        '#ccccbb',
+      ]),
+    },
     smoothChalkRainbow: {
       pageBackground: '#111111',
       modelBackground: '#001122',

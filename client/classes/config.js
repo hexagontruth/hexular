@@ -393,10 +393,11 @@ class Config {
   setNumStates(num) {
     if (num)
       this.configModal.numStates.value = num;
-    const numStates = parseInt(this.configModal.numStates.value);
-    this.numStates = this.model.numStates = numStates;
+    else
+      num = parseInt(this.configModal.numStates.value);
+    this.numStates = this.model.numStates = num;
     this.configModal.ruleMenus.forEach((ruleMenu) => {
-      let disabled = ruleMenu.idx >= numStates;
+      let disabled = ruleMenu.idx >= num;
       ruleMenu.container.setAttribute('data-disabled', disabled);
     });
     this.checkPreset();
