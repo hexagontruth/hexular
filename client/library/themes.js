@@ -145,12 +145,11 @@ const Themes = (() => {
       ],
     },
     darkLight: {
-      pageBackground: '#111111',
-      modelBackground: '#000000',
-      cellGap: 0,
+      pageBackground: '#24222d',
+      modelBackground: '#3a3545',
       colors: Config.merge(Hexular.DEFAULTS.colors.slice(), [
         null,
-        '#33332f',
+        '#5d524b',
         '#666655',
         '#99998f',
         '#ccccbb',
