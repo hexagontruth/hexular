@@ -47,13 +47,13 @@ class Config {
       codec: 'vp9',
       videoBitsPerSecond: 120e6,
       scaleFactor: 1,
-
       tool: 'brush',
       shiftTool: 'move',
       toolSize: 1,
       colorMode: 0,
       paintColors: [1, 0],
       steps: 0,
+      drawStepInterval: 1,
       rbName: 'newElementaryRule',
       rbMiss: 0,
       rbMatch: 1,
@@ -420,9 +420,10 @@ class Config {
   }
 
   setOnDrawCell(fnName) {
-    this.onDrawCell = fnName || this.onDrawCell;
+    this.onDrawCell = fnName;
     Object.values(this.resizeModal.onDrawCell).forEach((e) => e.classList.remove('active'));
-    this.resizeModal.onDrawCell[this.onDrawCell].classList.add('active');
+    let fnButton = this.resizeModal.onDrawCell[this.onDrawCell];
+    fnButton && fnButton.classList.add('active');
     let fns = this.onDrawCellAvailable.map((e) => this.board.bgAdapter[e]);
     let curIdx = this.board.bgAdapter.onDrawCell.findIndex((e) => fns.includes(e));
     let del = 1;
@@ -430,7 +431,9 @@ class Config {
       curIdx = 0;
       del = 0;
     }
-    this.board.bgAdapter.onDrawCell.splice(curIdx, del, this.board.bgAdapter[this.onDrawCell]);
+    let newFn = this.board.bgAdapter[this.onDrawCell];
+    let newFnArg = newFn ? [newFn] : [];
+    this.board.bgAdapter.onDrawCell.splice(curIdx, del, ...newFnArg);
     this.checkTheme();
     this.storeSessionConfigAsync();
   }
