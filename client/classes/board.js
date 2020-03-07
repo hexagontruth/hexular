@@ -274,9 +274,10 @@ class Board {
       this.disableWhenRecording.forEach((e) => e.disabled = true);
       this.buttons.toggleRecord.className = 'icon-stop active';
       this.setButtonTitle(this.buttons.toggleRecord, 'Stop');
-      this.recorder = new Recorder(this);
       this.config.setRecordingMode(true);
-      this.draw().then(() => this.recorder.start());
+      this.drawSync();
+      this.recorder = new Recorder(this);
+      this.recorder.start();
     }
     else {
       this.recorder.stop();
