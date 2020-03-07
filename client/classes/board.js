@@ -12,6 +12,7 @@ class Board {
           board.redoStack = oldBoard.redoStack;
           board.bgAdapter.onDraw.replace(oldBoard.bgAdapter.onDraw);
           board.bgAdapter.onDrawCell.replace(oldBoard.bgAdapter.onDrawCell);
+          board.hooks = Config.merge(oldBoard.hooks);
           board.refreshHistoryButtons();
         }
         Board.config = board.config;
@@ -19,6 +20,7 @@ class Board {
         Board.bgAdapter = board.bgAdapter;
         Board.fgAdapter = board.fgAdapter;
         Board.modals = board.modals;
+        board.hooks.resize.forEach((e) => e.run())
         await board.draw();
         document.body.classList.remove('splash');
         resolve();
@@ -49,6 +51,7 @@ class Board {
         playStep: [],
         step: [],
         timer: [],
+        resize: [],
       },
       scaling: false,
       scaleQueue: [],
