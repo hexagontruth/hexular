@@ -498,7 +498,7 @@ var Hexular = (function () {
      */
     import(array) {
       this.cells.forEach((cell, idx) => {
-        cell.state = array[idx] || this.groundState;
+        cell.setState(array[idx] || this.groundState);
       });
     }
 
@@ -830,6 +830,16 @@ var Hexular = (function () {
         this.nbrs[i + 6] = this.nbrs[i].nbrs[source12];
         this.nbrs[i + 12] = this.nbrs[i].nbrs[i];
       }
+    }
+
+    /**
+     * Set state and erase value of lastState.
+     *
+     * @param {*} state New cell state
+     */
+    setState(state) {
+      this.state = state;
+      this.lastState = this.model.groundState;
     }
 
     /**

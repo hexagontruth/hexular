@@ -10,7 +10,7 @@
     adapter.onDrawCell.replace([(cell) => {
       if (!cell.state)
         return;
-      let step = board.drawStep % config.drawStepInterval;
+      let step = board.drawStep;
       let m = step / config.drawStepInterval;
       let diff = cell.state - cell.lastState;
       let r = adapter.innerRadius;

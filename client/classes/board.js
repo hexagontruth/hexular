@@ -358,10 +358,10 @@ class Board {
   }
 
   async step() {
-    this.newHistoryState();
     try {
-      let modelStep = this.drawStep % this.config.drawStepInterval == 0;
-      if (modelStep) {
+      this.drawStep = (this.drawStep + 1) % this.config.drawStepInterval;
+      if (!this.drawStep) {
+        this.newHistoryState();
         this.model.step();
         this.storeModelState();
         if (!this.model.changed && this.config.autopause) {
@@ -377,7 +377,6 @@ class Board {
         }
       }
       this.drawSync();
-      this.drawStep ++;
     }
     catch (e) {
       console.error(e);
@@ -394,6 +393,7 @@ class Board {
     this.draw();
     this.storeModelState();
     this.config.setSteps(0);
+    this.config.drawStep = 0;
   }
 
   addHook(...args) {
@@ -695,6 +695,7 @@ class Board {
       if (!discard)
         this.redoStack.push(curState);
       this.draw();
+      this.drawStep = 0;
       this.refreshHistoryButtons();
     }
   }
@@ -711,6 +712,7 @@ class Board {
       if (!discard)
         this.undoStack.push(curState);
       this.draw();
+      this.drawStep = 0;
       this.refreshHistoryButtons();
     }
   }
