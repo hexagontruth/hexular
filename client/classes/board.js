@@ -39,6 +39,7 @@ class Board {
       setState: null,
       timer: null,
       drawStep: 0,
+      drawStepQ: 0,
       messageTimer: null,
       undoStack: [],
       redoStack: [],
@@ -320,7 +321,7 @@ class Board {
         this.toggleRecord();
       clearInterval(this.timer);
       this.timer = null;
-      this.drawStep = 0;
+      this.resetDrawStep();
       this.playStart = null;
       this.stopMeta();
       this.buttons.step.disabled = false;
@@ -360,6 +361,7 @@ class Board {
   async step() {
     try {
       this.drawStep = (this.drawStep + 1) % this.config.drawStepInterval;
+      this.drawStepQ = this.drawStep / this.config.drawStepInterval;
       if (!this.drawStep) {
         this.newHistoryState();
         this.model.step();
@@ -393,7 +395,7 @@ class Board {
     this.draw();
     this.storeModelState();
     this.config.setSteps(0);
-    this.config.drawStep = 0;
+    this.resetDrawStep();
   }
 
   addHook(...args) {
@@ -695,7 +697,7 @@ class Board {
       if (!discard)
         this.redoStack.push(curState);
       this.draw();
-      this.drawStep = 0;
+      this.resetDrawStep();
       this.refreshHistoryButtons();
     }
   }
@@ -712,9 +714,14 @@ class Board {
       if (!discard)
         this.undoStack.push(curState);
       this.draw();
-      this.drawStep = 0;
+      this.resetDrawStep();
       this.refreshHistoryButtons();
     }
+  }
+
+  resetDrawStep() {
+    this.drawStep = 0;
+    this.drawStepQ = 0;
   }
 
   resize() {
