@@ -70,8 +70,8 @@
           let a = 0; //Math.PI / 3 * m * Math.sign(diff);
           let p = [];
           for (let i = 0; i < 6; i++) {
-            let x = r * Math.sin(a + TAU / 6 * i);
-            let y = r * Math.cos(a + TAU / 6 * i);
+            let x = r * Math.cos(a + TAU / 6 * i);
+            let y = r * Math.sin(a + TAU / 6 * i);
             p.push([x, y]);
           }
           adapter.drawPath(cell, p);

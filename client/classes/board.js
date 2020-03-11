@@ -49,6 +49,7 @@ class Board {
       imageCapture: null,
       hooks: {
         incrementStep: [],
+        drawStep: [],
         playStep: [],
         step: [],
         timer: [],
@@ -378,6 +379,7 @@ class Board {
           this.hooks.step.forEach((e) => e.run());
         }
       }
+      this.hooks.drawStep.forEach((e) => e.run());
       this.drawSync();
     }
     catch (e) {
@@ -523,7 +525,7 @@ class Board {
         this.imageCapture.push([this.getImageFilename(), await this.saveImage()]);
       };
       fn.imageCaptureCb = true;
-      this.addHook('step', fn);
+      this.addHook('drawStep', fn);
       // Capture current state
       fn();
       this.buttons.toggleImageCapture.classList.add('active');
@@ -585,7 +587,9 @@ class Board {
   }
 
   getImageFilename() {
-    let padStep = ('000' + this.config.steps).slice(-3);
+    let padStep = ('0000' + this.config.steps).slice(-4);
+    if (this.config.drawStepInterval > 1)
+      padStep += '-' + ('00' + this.drawStep).slice(-2);
     return `${this.config.defaultImageFilenameBase}-${padStep}.png`;
   }
 
