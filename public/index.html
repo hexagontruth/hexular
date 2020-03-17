@@ -121,11 +121,43 @@
             <input type="text" class="jscolor"></input>
         </div>
         <div class="group">
+          <label>Blend:</label>
+          <select id="select-blend">
+            <option>color-burn</option>
+            <option>color-dodge</option>
+            <option>color</option>
+            <option>darken</option>
+            <option>destination-atop</option>
+            <option>destination-in</option>
+            <option>destination-out</option>
+            <option>destination-over</option>
+            <option>difference</option>
+            <option>exclusion</option>
+            <option>hard-light</option>
+            <option>hue</option>
+            <option>lighten</option>
+            <option>lighter</option>
+            <option>luminosity</option>
+            <option>multiply</option>
+            <option>overlay</option>
+            <option>saturation</option>
+            <option>screen</option>
+            <option>soft-light</option>
+            <option>source-atop</option>
+            <option>source-in</option>
+            <option>source-out</option>
+            <option selected>source-over</option>
+            <option>xor</option>
+          </select>
+          <label>Draw Steps:</label>
+          <input class="short" type="number" id="draw-steps" step="1" value="1" min="1"/>
+        </div>
+        <div class="group">
           <label>Gap:</label>
           <input type="number" id="cell-gap" step="0.1"/>
           <label>Border:</label>
           <input type="number" id="cell-border-width" min="0" step="0.1"/>
-                    <button id="autopause" class="icon-pause" title="Autopause"></button>
+          <button id="autopause" class="icon-pause" title="Autopause"></button>
         </div>
         <div class="group buttons">
           <button id="sort-cells-asc" class="icon-sort-ascending" title="Draw in ascending order (may cause slowness)"></button>

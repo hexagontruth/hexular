@@ -514,6 +514,10 @@ input[type=number] {
   max-width: 33.33%; /* wtf firefox */
 }
 
+input[type=number].short {
+  max-width: 3rem;
+}
+
 select {
   appearance: none;
   -webkit-appearance: none;
@@ -558,6 +562,7 @@ select {
   padding: 0.25em;
   line-height: 2;
   text-align: right;
+  white-space: nowrap;
 }
 
 .modal label.left {

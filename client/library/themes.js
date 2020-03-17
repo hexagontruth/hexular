@@ -174,7 +174,41 @@ const Themes = (() => {
         '#dd00dd',
         '#eeeedd',
       ],
-    }
+    },
+    vegetableGarden: {
+      colors: [
+        null,
+        '#ddd7c3',
+        '#bdbaa4',
+        '#8b9e62',
+        '#63a55c',
+        '#54a298',
+        '#47496e',
+        '#6e5765',
+        '#6a5f58',
+        '#474743',
+        '#393a31',
+        '#39423a',
+      ],
+    },
+    hardRainbow: {
+      pageBackground: '#111111',
+      modelBackground: '#000000',
+        colors: [
+          null,
+          '#ffffff',
+          '#ff00ff',
+          '#0000ff',
+          '#00ffff',
+          '#00ff00',
+          '#ffff00',
+          '#ff0000',
+          'transparent',
+          'transparent',
+          'transparent',
+          'transparent',
+        ],
+    },
   };
   return themes;
 })();

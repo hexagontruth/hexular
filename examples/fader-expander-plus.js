@@ -58,17 +58,45 @@
         else {
           return;
         }
-        cell.color = getHex(color);
+        cell.color = color;
+        cell.hexColor = getHex(color);
+      },
+      (cell) => {
+        if (cell.state && !cell.edge) {
+          for (let i = 0; i < 6; i = i + 3) {
+            let n1 = cell.nbrs[i + 1]
+            let n2 = cell.nbrs[(i + 1) % 6 + 1];
+            if (n1.state && n2.state) {
+              let [x0, y0] = model.cellMap.get(cell);
+              let [x1, y1] = model.cellMap.get(n1);
+              let [x2, y2] = model.cellMap.get(n2);
+              let x = (x0 + x1 + x2) / 3;
+              let y = (y0 + y1 + y2) / 3;
+              let color = mergeColor(n1.color, n2.color);
+              color = mergeColor(color, cell.color, 2 / 3);
+              // color = [
+              //   (color[0] + 127) % 256,
+              //   (color[1] + 127) % 256,
+              //   (color[2] + 127) % 256,
+              //   color[3],
+              // ];
+              let hexColor = getHex(color);
+              adapter.drawHexagon([x, y], cell.r, {type: config.meta.hexType, fill: true, fillStyle: hexColor})
+            }
+          }
+        }
       },
       (cell) => {
         if (cell.color) {
           let step = board.drawStep;
           let diff = cell.state - cell.lastState;
           let r = cell.r;
-          adapter.drawHexagon(cell, r, {type: config.meta.hexType, fill: true, fillStyle: cell.color});
+          adapter.drawHexagon(cell, r, {type: config.meta.hexType, fill: true, fillStyle: cell.hexColor});
         }
-        cell.color = null;
       },
+      (cell) => {
+        cell.color = null;
+      }
     ]);
   };
   Board.instance.addHook('resize', fn);
