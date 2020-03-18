@@ -40,6 +40,8 @@ class Board {
       timer: null,
       drawStep: 0,
       drawStepQ: 0,
+      playStart: null,
+      playSteps: 0,
       messageTimer: null,
       undoStack: [],
       redoStack: [],
@@ -54,6 +56,7 @@ class Board {
         step: [],
         timer: [],
         resize: [],
+        debugCell: [],
       },
       scaling: false,
       scaleQueue: [],
@@ -307,8 +310,15 @@ class Board {
 
   start() {
     if (!this.running) {
-      this.playStart = this.playStart || Date.now();
-      this.timer = setInterval(this.step.bind(this), this.config.interval);
+      this.playStart = Date.now();
+      this.playSteps = 0;
+      this.timer = setInterval(() => {
+        let delta = Date.now() - this.playStart;
+        if (delta / this.config.interval > this.playSteps) {
+          this.playSteps ++;
+          this.step();
+        }
+      }, 5);
       this.startMeta();
       this.buttons.step.disabled = true;
       this.buttons.togglePlay.className = 'icon-pause';
@@ -536,7 +546,7 @@ class Board {
       this.draw();
       this.processImageCaptures(this.imageCapture);
       this.imageCapture = null;
-      this.hooks.step = this.hooks.step.filter((e) => !e.run.imageCaptureCb);
+      this.hooks.drawStep = this.hooks.drawStep.filter((e) => !e.run.imageCaptureCb);
       this.buttons.toggleImageCapture.classList.remove('active');
     }
   }
@@ -1104,6 +1114,9 @@ class Board {
           let setState = this.config.getPaintColor(1);
           this.startAction(ev, {setState});
         }
+        else if ((ev.buttons & 4) && this.selected) {
+          this.debugCell();
+        }
       }
       this.clickTarget = ev.target;
     }
@@ -1235,6 +1248,15 @@ class Board {
   cellAt([x, y]) {
     [x, y] = this.windowToModel([x, y]);
     return this.model.cellAt([x, y]);
+  }
+
+  debugCell() {
+    let cell = this.selected;
+    if (cell) {
+      window.cell = cell;
+      this.setMessage(`Cell at ${cell.coord}`);
+      this.hooks.debugCell.forEach((e) => e.run(cell));
+    }
   }
 
   // TODO: Use Hexular.math.matrixMult

@@ -102,6 +102,7 @@ var Hexular = (function () {
   let math = {
     apothem: APOTHEM,
     hextant: Math.PI * 2 / 6,
+    tau: Math.PI * 2,
     inverseApothem: 1 / APOTHEM,
     vertices: [
       [-1, 0],
