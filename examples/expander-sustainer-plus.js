@@ -79,8 +79,8 @@
               let xa = x1 * q + x0 * (1 - q);
               let ya = y1 * q + y0 * (1 - q);
               ctx.quadraticCurveTo(xa, ya, xn, yn);
-              xa = (xa + x0) / 2;
-              ya = (ya + y0) / 2;
+              xa = xa  * 0.75 + x0 * 0.25;
+              ya = ya * 0.75 + y0 * 0.25;
               ctx.quadraticCurveTo(xa, ya, x, y);
               ctx.arc(x, y, adapter.innerRadius * q / 2, 0, Hexular.math.tau);
               ctx.fill();

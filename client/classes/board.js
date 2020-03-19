@@ -42,6 +42,7 @@ class Board {
       drawStepQ: 0,
       playStart: null,
       playSteps: 0,
+      playLast: null,
       messageTimer: null,
       undoStack: [],
       redoStack: [],
@@ -310,11 +311,13 @@ class Board {
 
   start() {
     if (!this.running) {
-      this.playStart = Date.now();
+      this.playLast = this.playStart = Date.now();
       this.playSteps = 0;
       this.timer = setInterval(() => {
-        let delta = Date.now() - this.playStart;
-        if (delta / this.config.interval > this.playSteps) {
+        let cur = Date.now();
+        let delta = cur - this.playLast;
+        if (delta >= this.config.interval) {
+          this.playLast = cur;
           this.playSteps ++;
           this.step();
         }
@@ -334,6 +337,7 @@ class Board {
       this.timer = null;
       this.resetDrawStep();
       this.playStart = null;
+      this.playLast = null;
       this.stopMeta();
       this.buttons.step.disabled = false;
       this.buttons.togglePlay.className = 'icon-play';
@@ -372,7 +376,7 @@ class Board {
   async step() {
     try {
       this.drawStep = (this.drawStep + 1) % this.config.drawStepInterval;
-      this.drawStepQ = this.drawStep / this.config.drawStepInterval;
+      this.drawStepQ = this.drawStep / (this.config.drawStepInterval - 1 || 1);
       if (!this.drawStep) {
         this.newHistoryState();
         this.model.step();
@@ -404,10 +408,10 @@ class Board {
   clear() {
     this.newHistoryState();
     this.model.clear();
+    this.resetDrawStep();
     this.draw();
     this.storeModelState();
     this.config.setSteps(0);
-    this.resetDrawStep();
   }
 
   addHook(...args) {
@@ -511,9 +515,10 @@ class Board {
           diff = true;
           break;
         }
+      this.resetDrawStep();
+      this.draw();
       if (diff) {
         this.model.import(bytes);
-        this.draw();
         this.storeModelState();
         this.setMessage('Snapshot loaded!');
       }

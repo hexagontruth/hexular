@@ -373,7 +373,7 @@ var Hexular = (function () {
      */
     clear() {
       this.eachCell((cell) => {
-        cell.state = this.groundState;
+        cell.setState(this.groundState);
       });
     }
 
