@@ -437,9 +437,12 @@ var Hexular = (function () {
      * cells. This method should be idempotent.
      */
     buildCellMap() {
+      // TODO: This makes no sense
       this.cellMap.clear();
       this.eachCell((cell) => {
-        this.cellMap.set(cell, this.getCoord(cell));
+        let mapCoord = this.getCoord(cell);
+        cell.mapCoord = mapCoord;
+        this.cellMap.set(cell, mapCoord);
       });
     }
 

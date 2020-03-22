@@ -35,6 +35,7 @@ class Board {
   constructor(...args) {
     let props = {
       selected: null,
+      debugSelected: null,
       lastSet: null,
       setState: null,
       timer: null,
@@ -57,7 +58,8 @@ class Board {
         step: [],
         timer: [],
         resize: [],
-        debugCell: [],
+        debugSelect: [],
+        debugStep: [],
       },
       scaling: false,
       scaleQueue: [],
@@ -391,6 +393,7 @@ class Board {
             ? this.hooks.playStep.forEach((e) => e.run())
             : this.hooks.incrementStep.forEach((e) => e.run());
           this.hooks.step.forEach((e) => e.run());
+          this.debugSelected && this.hooks.debugStep.forEach((e) => e.run(this.debugSelected));
         }
       }
       this.hooks.drawStep.forEach((e) => e.run());
@@ -590,10 +593,9 @@ class Board {
     this.config.setRecordingMode(true);
     await this.draw();
     let transferCanvas = new TransferCanvas(this);
-    let dataUri = transferCanvas.canvas.toDataURL('image/png');
     this.config.setRecordingMode(recordingMode);
     await this.draw();
-    return transferCanvas.canvas.toDataURL('image/png');
+    return transferCanvas.canvas.toDataURL(`image/${this.config.imageFormat}`);
   }
 
   async promptSaveImage() {
@@ -605,7 +607,7 @@ class Board {
     let padStep = ('0000' + this.config.steps).slice(-4);
     if (this.config.drawStepInterval > 1)
       padStep += '-' + ('00' + this.drawStep).slice(-2);
-    return `${this.config.defaultImageFilenameBase}-${padStep}.png`;
+    return `${this.config.defaultImageFilenameBase}-${padStep}.${this.config.imageFormat}`;
   }
 
   save() {
@@ -1120,7 +1122,7 @@ class Board {
           this.startAction(ev, {setState});
         }
         else if ((ev.buttons & 4) && this.selected) {
-          this.debugCell();
+          this.debugSelect();
         }
       }
       this.clickTarget = ev.target;
@@ -1255,12 +1257,12 @@ class Board {
     return this.model.cellAt([x, y]);
   }
 
-  debugCell() {
+  debugSelect() {
     let cell = this.selected;
+      this.debugSelected = window.cell = cell;
     if (cell) {
-      window.cell = cell;
       this.setMessage(`Cell at ${cell.coord}`);
-      this.hooks.debugCell.forEach((e) => e.run(cell));
+      this.hooks.debugSelect.forEach((e) => e.run(cell));
     }
   }
 

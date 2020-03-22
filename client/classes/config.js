@@ -39,6 +39,7 @@ class Config {
       themes: Config.merge(Themes),
       presets: Config.merge({}, Presets),
       arrayType: 'Int8Array',
+      imageFormat: 'png',
       defaultImageFilenameBase: 'hex',
       defaultArchiveFilename: 'hexular.ar',
       defaultFilename: 'hexular.bin',
@@ -518,7 +519,8 @@ class Config {
       rule = this.defaultRule;
     }
     if (idx != null) {
-      this.configModal.ruleMenus[idx].select.value = rule;
+      if (this.configModal.ruleMenus[idx])
+        this.configModal.ruleMenus[idx].select.value = rule;
       this.rules[idx] = rule;
       this.model.rules[idx] = fn;
     }
@@ -538,7 +540,8 @@ class Config {
         fn = this.availableRules[this.defaultRule];
         rule = this.defaultRule;
       }
-      this.configModal.ruleMenus[idx].select.value = rule;
+      if (this.configModal.ruleMenus[idx])
+        this.configModal.ruleMenus[idx].select.value = rule;
       this.model.rules[idx] = fn;
     });
     this.configModal.defaultRuleMenu.select.value = this.defaultRule;
@@ -745,6 +748,7 @@ class Config {
       'filters',
       'frameRate',
       'groundState',
+      'imageFormat',
       'interval',
       'maxNumStates',
       'meta',
