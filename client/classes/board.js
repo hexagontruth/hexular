@@ -1261,7 +1261,7 @@ class Board {
     let cell = this.selected;
       this.debugSelected = window.cell = cell;
     if (cell) {
-      this.setMessage(`Cell at ${cell.coord}`);
+      this.setMessage(`Cell at ${cell}: ${cell.state}`);
       this.hooks.debugSelect.forEach((e) => e.run(cell));
     }
   }

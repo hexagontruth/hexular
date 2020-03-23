@@ -353,10 +353,14 @@ var Hexular = (function () {
           nextState = (this.rules[cell.state] || this.defaultRule)(cell);
         }
         catch (e) {
-          if (e instanceof TypeError)
+          let idx = this.cells.findIndex((e) => e == cell);
+          console.error(`An error occurred while processing cell ${cell} at index ${idx}:`, e);
+          if (e instanceof TypeError) {
             throw new HexError(`Invalid rule function for state "${cell.state}"`);
-          else
+          }
+          else {
             throw e;
+          }
         }
         cell.nextState = this.filters.call(nextState, cell);
         if (!this.changed && cell.nextState != cell.state)
@@ -837,6 +841,15 @@ var Hexular = (function () {
     }
 
     /**
+     * String representation of cell for debugging purposes.
+     *
+     * @return {string} String representation of {@link Cell#coord|this.coord} wrapped in square brackets.
+     */
+    toString() {
+      return `[${this.coord}]`;
+    }
+
+    /**
      * Set state and erase value of lastState.
      *
      * @param {*} state New cell state
@@ -1069,6 +1082,8 @@ var Hexular = (function () {
 
     /**
      * Convenience method for removing member functions with filter function.
+     *
+     * Member functions that return true are kept; others are returned in an array.
      *
      * @param {function} fn Filter function taking a member function and returning a boolean value
      * @return {function[]} Member functions removed during filtering

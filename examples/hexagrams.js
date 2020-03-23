@@ -20,46 +20,63 @@
       return lines[0] + lines[1] * 2 + lines[2] * 4 + lines[3] * 8 + lines[4] * 16 + lines[5] * 32;
     }
     let ruleFn = (cell) => {
-      let newLines = cell.newLines = cell.lines.slice();
+      let newLines = cell.newLines = [0, 0, 0, 0, 0, 0];
+      let state = cell.state;
       for (let i = 0; i < 6; i++) {
         let nbr = cell.nbrs[i + 1];
-        if (cell.lines[i]) {
-          for (let j = 0; j < 6; j++) {
-            newLines[j] = newLines[j] ^ nbr.lines[j];
-          }
-        }
-        else {
-          for (let j = 0; j < 6; j++) {
-            newLines[j] = newLines[j] ^ (1 - nbr.lines[j]);
-          }
-        }
+        newLines[i] = cell.lines[i] ^ nbr.lines[i];
       }
       return fromLines(newLines);
     };
+    let onDrawFn = () => {
+    }
+    onDrawFn.demo = true;
     model.eachCell((cell) => {
-      cell.newLines = toLines(cell.state);
+      cell.lines = cell.newLines = toLines(cell.state);
+      cell.hDist = Array(6).fill(0);
     });
     config.addRule('hexagrams', ruleFn);
     config.setNumStates(64);
     for (let i = 0; i < 64; i++) {
       config.setRule(i, 'hexagrams');
     }
+    adapter.onDraw.push(onDrawFn);
     adapter.onDrawCell.replace([
       (cell) => {
-        cell.lastLines = cell.lines;
-        cell.lines = cell.newLines;
-        cell.lines = toLines(cell.state);
+        if (board.drawStep == 0) {
+          cell.lastLines = cell.lines;
+          cell.lines = toLines(cell.state);
+        }
+        for (let i = 0; i < 6; i += 2) {
+          let nbr = cell.nbrs[i + 1];
+          let m = cell.lines;
+          let n = nbr.lines;
+          let dist =
+            m[0] == n[0] +
+            m[1] == n[1] +
+            m[2] == n[2] +
+            m[3] == n[3] +
+            m[4] == n[4] +
+            m[5] == n[5];
+          cell.hDist[i] = nbr.hDist[(i + 3) % 6] = dist;
+        }
       },
       (cell) => {
-        let r = adapter.cellRadius;
-        // adapter.drawHexagon(cell, r, {fill: true, fillStyle: '#000000' + ('0' + (cell.state * 4).toString(16)).slice(-2)});
+        let r = adapter.innerRadius;
         let q = board.drawStepQ;
         let step = board.drawStep;
-                  if (cell == board.debugSelected)
-            console.log(cell.state, cell.lines);
+        let color, cur, next = 1;
         for (let i = 5; i >= 0; i--) {
-          let color = cell.lines[i] ? adapter.fillColors[1] : adapter.backgroundColor;
-          adapter.drawHexagon(cell, r * (i + 1) / 6, {fill: true, fillStyle: color});
+          cur = next;
+          next = i / 6;
+          if (q <= cur) {
+            color = cell.lastLines[i] ? adapter.fillColors[i + 1] : adapter.fillColors[0];
+            adapter.drawHexagon(cell, r * cur, {fill: true, fillStyle: color});
+          }
+          if (q > next) {
+            color = cell.lines[i] ? adapter.fillColors[i + 1] : adapter.fillColors[0];
+            adapter.drawHexagon(cell, Math.min(r * q, r * cur), {fill: true, fillStyle: color});
+          }
         }
       },
     ]);
