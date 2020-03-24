@@ -60,6 +60,7 @@ class Board {
         resize: [],
         debugSelect: [],
         debugStep: [],
+        clear: [],
       },
       scaling: false,
       scaleQueue: [],
@@ -415,6 +416,7 @@ class Board {
     this.draw();
     this.storeModelState();
     this.config.setSteps(0);
+    this.hooks.clear.forEach((e) => e.run());
   }
 
   addHook(...args) {

@@ -430,6 +430,27 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
         Board.bgAdapter.fillColors = colors;
       });
     },
+
+    findDuplicateSteps: (radius=7,   cell=Board.instance.debugSelected) => {
+      let cells = Hexular.util.hexWrap(cell, radius);
+      let map = window.stateMap = new Map();
+      let dups = window.duplicates = [];
+      let getStateKey = () => cells.map((e) => ('0' + e.state.toString(8)).slice(-2)).join('');
+      let fn = () => {
+        let stateKey = getStateKey();
+        let cur = map.get(stateKey);
+        if (cur != null) {
+          dups.push([cur, Board.config.steps, stateKey]);
+          Board.instance.setMessage(`Duplicate at ${cur}, ${Board.config.steps}!`);
+          console.log(`Duplicate at ${cur}, ${Board.config.steps}: ${stateKey}`);
+        }
+        map.set(stateKey, Board.config.steps);
+      }
+      fn.duplicateMapper = true;
+      Board.instance.hooks.step = Board.instance.hooks.step.filter((e) => !e.run.duplicateMapper);
+      Board.instance.addHook('step', fn);
+      return [map, dups];
+    }
   }
 
   return examples;
