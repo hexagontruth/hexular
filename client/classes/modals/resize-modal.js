@@ -18,6 +18,8 @@ class ResizeModal extends Modal {
       drawFilledCircle: document.querySelector('#draw-filled-circle'),
       drawOutlineCircle: document.querySelector('#draw-outline-circle'),
     };
+    this.selectBlendMode = document.querySelector('#select-blend').select;
+    this.drawSteps = document.querySelector('#draw-steps');
     this.autopause = document.querySelector('#autopause');
     this.cellGap = document.querySelector('#cell-gap');
     this.cellBorderWidth = document.querySelector('#cell-border-width');
@@ -31,6 +33,7 @@ class ResizeModal extends Modal {
     this.scaleMax = parseFloat(this.scale.max);
     this.resize = document.querySelector('#resize-slider');
     this.resizeIndicator = document.querySelector('#resize-indicator');
+    this.set = document.querySelector('#resize-set');
 
     this.colors.forEach((el, idx) => {
       let pickerClosed = false;
@@ -60,10 +63,12 @@ class ResizeModal extends Modal {
     });
     Object.entries(this.onDraw).forEach(([fnName, button]) => button.onclick = () => this._setOnDraw(fnName));
     Object.entries(this.onDrawCell).forEach(([fnName, button]) => button.onclick = () => this._setOnDrawCell(fnName));
+    this.selectBlendMode.onchange = (ev) => this._setBlendMode(this.selectBlendMode.value);
+    this.drawSteps.onchange = (ev) => this._setDrawSteps(this.drawSteps.value);
     this.autopause.onclick = (ev) => this._setAutopause(!this.config.autopause);
     this.cellGap.onchange = (ev) => this._setCellGap(this.cellGap.value);
     this.cellBorderWidth.onchange = (ev) => this._setCellBorderWidth(this.cellBorderWidth.value);
-    this.set = document.querySelector('#resize-set');
+
     this.selectTheme.onchange = (ev) => this._handleSelectTheme();
     this.addTheme.onclick = (ev) => this._handleAddTheme();
     this.interval.oninput = (ev) => this._updateInterval(this.interval.value);
@@ -74,6 +79,8 @@ class ResizeModal extends Modal {
 
   reset() {
     this.selectTheme.value = this.config.theme;
+    this._setBlendMode(this.config.blendMode);
+    this._setDrawSteps(this.config.drawStepInterval);
     this._setAutopause();
     this._setCellGap(this.config.cellGap);
     this._setCellBorderWidth(this.config.cellBorderWidth);
@@ -88,6 +95,14 @@ class ResizeModal extends Modal {
 
   update() {
     this.selectTheme.replace(Object.keys(this.config.themes).sort(), this.config.theme, 1);
+  }
+
+  _setBlendMode(value) {
+    this.config.setBlendMode(value != null ? value : this.config.blendMode);
+  }
+
+  _setDrawSteps(value) {
+    this.config.setDrawStepInterval(parseFloat(value || this.config.drawStepInterval));
   }
 
   _setAutopause(value) {

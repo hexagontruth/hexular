@@ -35,10 +35,15 @@ class Board {
   constructor(...args) {
     let props = {
       selected: null,
+      debugSelected: null,
       lastSet: null,
       setState: null,
       timer: null,
       drawStep: 0,
+      drawStepQ: 0,
+      playStart: null,
+      playSteps: 0,
+      playLast: null,
       messageTimer: null,
       undoStack: [],
       redoStack: [],
@@ -48,10 +53,14 @@ class Board {
       imageCapture: null,
       hooks: {
         incrementStep: [],
+        drawStep: [],
         playStep: [],
         step: [],
         timer: [],
         resize: [],
+        debugSelect: [],
+        debugStep: [],
+        clear: [],
       },
       scaling: false,
       scaleQueue: [],
@@ -305,8 +314,17 @@ class Board {
 
   start() {
     if (!this.running) {
-      this.playStart = this.playStart || Date.now();
-      this.timer = setInterval(this.step.bind(this), this.config.interval);
+      this.playLast = this.playStart = Date.now();
+      this.playSteps = 0;
+      this.timer = setInterval(() => {
+        let cur = Date.now();
+        let delta = cur - this.playLast;
+        if (delta >= this.config.interval) {
+          this.playLast = cur;
+          this.playSteps ++;
+          this.step();
+        }
+      }, 5);
       this.startMeta();
       this.buttons.step.disabled = true;
       this.buttons.togglePlay.className = 'icon-pause';
@@ -320,8 +338,9 @@ class Board {
         this.toggleRecord();
       clearInterval(this.timer);
       this.timer = null;
-      this.drawStep = 0;
+      this.resetDrawStep();
       this.playStart = null;
+      this.playLast = null;
       this.stopMeta();
       this.buttons.step.disabled = false;
       this.buttons.togglePlay.className = 'icon-play';
@@ -360,6 +379,7 @@ class Board {
   async step() {
     try {
       this.drawStep = (this.drawStep + 1) % this.config.drawStepInterval;
+      this.drawStepQ = this.drawStep / (this.config.drawStepInterval - 1 || 1);
       if (!this.drawStep) {
         this.newHistoryState();
         this.model.step();
@@ -374,8 +394,10 @@ class Board {
             ? this.hooks.playStep.forEach((e) => e.run())
             : this.hooks.incrementStep.forEach((e) => e.run());
           this.hooks.step.forEach((e) => e.run());
+          this.debugSelected && this.hooks.debugStep.forEach((e) => e.run(this.debugSelected));
         }
       }
+      this.hooks.drawStep.forEach((e) => e.run());
       this.drawSync();
     }
     catch (e) {
@@ -390,10 +412,11 @@ class Board {
   clear() {
     this.newHistoryState();
     this.model.clear();
+    this.resetDrawStep();
     this.draw();
     this.storeModelState();
     this.config.setSteps(0);
-    this.config.drawStep = 0;
+    this.hooks.clear.forEach((e) => e.run());
   }
 
   addHook(...args) {
@@ -497,9 +520,10 @@ class Board {
           diff = true;
           break;
         }
+      this.resetDrawStep();
+      this.draw();
       if (diff) {
         this.model.import(bytes);
-        this.draw();
         this.storeModelState();
         this.setMessage('Snapshot loaded!');
       }
@@ -521,7 +545,7 @@ class Board {
         this.imageCapture.push([this.getImageFilename(), await this.saveImage()]);
       };
       fn.imageCaptureCb = true;
-      this.addHook('step', fn);
+      this.addHook('drawStep', fn);
       // Capture current state
       fn();
       this.buttons.toggleImageCapture.classList.add('active');
@@ -532,7 +556,7 @@ class Board {
       this.draw();
       this.processImageCaptures(this.imageCapture);
       this.imageCapture = null;
-      this.hooks.step = this.hooks.step.filter((e) => !e.run.imageCaptureCb);
+      this.hooks.drawStep = this.hooks.drawStep.filter((e) => !e.run.imageCaptureCb);
       this.buttons.toggleImageCapture.classList.remove('active');
     }
   }
@@ -571,10 +595,9 @@ class Board {
     this.config.setRecordingMode(true);
     await this.draw();
     let transferCanvas = new TransferCanvas(this);
-    let dataUri = transferCanvas.canvas.toDataURL('image/png');
     this.config.setRecordingMode(recordingMode);
     await this.draw();
-    return transferCanvas.canvas.toDataURL('image/png');
+    return transferCanvas.canvas.toDataURL(`image/${this.config.imageFormat}`);
   }
 
   async promptSaveImage() {
@@ -583,8 +606,10 @@ class Board {
   }
 
   getImageFilename() {
-    let padStep = ('000' + this.config.steps).slice(-3);
-    return `${this.config.defaultImageFilenameBase}-${padStep}.png`;
+    let padStep = ('0000' + this.config.steps).slice(-4);
+    if (this.config.drawStepInterval > 1)
+      padStep += '-' + ('00' + this.drawStep).slice(-2);
+    return `${this.config.defaultImageFilenameBase}-${padStep}.${this.config.imageFormat}`;
   }
 
   save() {
@@ -695,7 +720,7 @@ class Board {
       if (!discard)
         this.redoStack.push(curState);
       this.draw();
-      this.drawStep = 0;
+      this.resetDrawStep();
       this.refreshHistoryButtons();
     }
   }
@@ -712,9 +737,14 @@ class Board {
       if (!discard)
         this.undoStack.push(curState);
       this.draw();
-      this.drawStep = 0;
+      this.resetDrawStep();
       this.refreshHistoryButtons();
     }
+  }
+
+  resetDrawStep() {
+    this.drawStep = 0;
+    this.drawStepQ = 0;
   }
 
   resize() {
@@ -1093,6 +1123,9 @@ class Board {
           let setState = this.config.getPaintColor(1);
           this.startAction(ev, {setState});
         }
+        else if ((ev.buttons & 4) && this.selected) {
+          this.debugSelect();
+        }
       }
       this.clickTarget = ev.target;
     }
@@ -1224,6 +1257,15 @@ class Board {
   cellAt([x, y]) {
     [x, y] = this.windowToModel([x, y]);
     return this.model.cellAt([x, y]);
+  }
+
+  debugSelect() {
+    let cell = this.selected;
+      this.debugSelected = window.cell = cell;
+    if (cell) {
+      this.setMessage(`Cell at ${cell}: ${cell.state}`);
+      this.hooks.debugSelect.forEach((e) => e.run(cell));
+    }
   }
 
   // TODO: Use Hexular.math.matrixMult

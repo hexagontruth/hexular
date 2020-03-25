@@ -3,6 +3,7 @@ class Config {
     return {
       preset: 'default',
       theme: 'light',
+      meta: {},
       radius: 60,
       cellRadius: 10,
       defaultScale: 1,
@@ -38,6 +39,7 @@ class Config {
       themes: Config.merge(Themes),
       presets: Config.merge({}, Presets),
       arrayType: 'Int8Array',
+      imageFormat: 'png',
       defaultImageFilenameBase: 'hex',
       defaultArchiveFilename: 'hexular.ar',
       defaultFilename: 'hexular.bin',
@@ -55,6 +57,7 @@ class Config {
       paintColors: [1, 0],
       steps: 0,
       drawStepInterval: 1,
+      blendMode: 'source-over',
       rbName: 'newElementaryRule',
       rbMiss: 0,
       rbMatch: 1,
@@ -311,6 +314,15 @@ class Config {
     this.storeSessionConfigAsync();
   }
 
+  setBlendMode(mode) {
+    this.blendMode = mode;
+    this.board.bgAdapter.context.globalCompositeOperation = mode;
+    this.resizeModal.selectBlendMode.value = mode;
+    this.checkTheme();
+    this.board.draw();
+    this.storeSessionConfigAsync();
+  }
+
   setColor(idx, color) {
     this.colors[idx] = color;
     this.board.bgAdapter.fillColors[idx] = color;
@@ -349,6 +361,12 @@ class Config {
       this.resizeModal.scale.value = sliderValue;
     }
     this.resizeModal.scaleIndicator.innerHTML = scale;
+    this.storeSessionConfigAsync();
+  }
+
+  setDrawStepInterval(value) {
+    this.drawStepInterval = value;
+    this.resizeModal.drawSteps.value = value;
     this.storeSessionConfigAsync();
   }
 
@@ -393,7 +411,7 @@ class Config {
 
   setNumStates(num) {
     if (num)
-      this.configModal.numStates.value = num;
+      this.configModal.numStates.value = num = parseInt(num);
     else
       num = parseInt(this.configModal.numStates.value);
     this.numStates = this.model.numStates = num;
@@ -501,7 +519,8 @@ class Config {
       rule = this.defaultRule;
     }
     if (idx != null) {
-      this.configModal.ruleMenus[idx].select.value = rule;
+      if (this.configModal.ruleMenus[idx])
+        this.configModal.ruleMenus[idx].select.value = rule;
       this.rules[idx] = rule;
       this.model.rules[idx] = fn;
     }
@@ -521,7 +540,8 @@ class Config {
         fn = this.availableRules[this.defaultRule];
         rule = this.defaultRule;
       }
-      this.configModal.ruleMenus[idx].select.value = rule;
+      if (this.configModal.ruleMenus[idx])
+        this.configModal.ruleMenus[idx].select.value = rule;
       this.model.rules[idx] = fn;
     });
     this.configModal.defaultRuleMenu.select.value = this.defaultRule;
@@ -612,6 +632,7 @@ class Config {
 
   setThemable() {
     this.setBackground();
+    this.setBlendMode(this.blendMode);
     this.setColors();
     this.setCellGap();
     this.setCellBorderWidth();
@@ -685,6 +706,7 @@ class Config {
     dirty = dirty
       || theme.pageBackground != this.pageBackground
       || theme.modelBackground != this.modelBackground
+      || theme.blendMode != this.blendMode
       || theme.cellGap != this.cellGap
       || theme.cellBorderWidth != this.cellBorderWidth;
     if (dirty) {
@@ -694,8 +716,8 @@ class Config {
 
   getThemeFromObject(obj) {
     let args = [Config.defaults, obj].map((e) => {
-      let {cellGap, cellBorderWidth, pageBackground, modelBackground, colors} = e;
-      return {cellGap, cellBorderWidth, pageBackground, modelBackground, colors};
+      let {blendMode, cellGap, cellBorderWidth, pageBackground, modelBackground, colors} = e;
+      return {blendMode, cellGap, cellBorderWidth, pageBackground, modelBackground, colors};
     });
     return Config.merge(...args);
   }
@@ -712,6 +734,7 @@ class Config {
   getSessionConfig() {
     let sessionConfig = this.getKeyValues([
       'autopause',
+      'blendMode',
       'cellBorderWidth',
       'cellGap',
       'codec',
@@ -720,12 +743,15 @@ class Config {
       'customInput',
       'defaultRule',
       'defaultScale',
+      'drawStepInterval',
       'fallbackTool',
       'filters',
       'frameRate',
       'groundState',
+      'imageFormat',
       'interval',
       'maxNumStates',
+      'meta',
       'modelBackground',
       'nh',
       'numStates',

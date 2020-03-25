@@ -409,7 +409,7 @@ button:disabled {
   left: 0;
   opacity: 1;
   padding: 30px;
-  background: #0000003f;
+  /*background: #0000003f;*/
 }
 
 .overlay.hidden {
@@ -433,6 +433,7 @@ button:disabled {
   max-height: 100%;
   overflow: auto;
   border-radius: 1em;
+  box-shadow: 0 1px 2px #0000001f;
 }
 
 .modal div:first-child {
@@ -514,6 +515,10 @@ input[type=number] {
   max-width: 33.33%; /* wtf firefox */
 }
 
+input[type=number].short {
+  max-width: 3rem;
+}
+
 select {
   appearance: none;
   -webkit-appearance: none;
@@ -558,6 +563,7 @@ select {
   padding: 0.25em;
   line-height: 2;
   text-align: right;
+  white-space: nowrap;
 }
 
 .modal label.left {
