@@ -28,7 +28,6 @@ class Config {
       autopause: true,
       pageBackground: '#f8f8f8',
       modelBackground: '#ffffff',
-      showModelBackground: true,
       selectWidth: 2,
       selectColor: '#ffbb33',
       cellGap: 1,
@@ -66,11 +65,11 @@ class Config {
       rbMatchRel: 0,
       rbRel: 0,
       rbStates: Array(64).fill(false),
-      onDrawAvailable: [
-        'sortCellsAsc',
-        'sortCellsDesc',
-      ],
-      onDraw: null,
+      onDraw: {
+        'drawModelBackground': true,
+        'sortCellsAsc': false,
+        'sortCellsDesc': false,
+      },
       onDrawCellAvailable: [
         'drawFilledPointyHex',
         'drawOutlinePointyHex',
@@ -78,6 +77,9 @@ class Config {
         'drawOutlineFlatHex',
         'drawFilledCircle',
         'drawOutlineCircle',
+      ],
+      radioGroups: [
+        ['sortCellsAsc', 'sortCellsDesc']
       ],
       onDrawCell: 'drawFilledPointyHex',
       customInput: null,
@@ -162,14 +164,17 @@ class Config {
   initialize() {
     try {
       this.model = this.board.model;
+      this.bgAdapter = this.board.bgAdapter;
+      this.fgAdapter = this.board.fgAdapter;
       this.configModal = this.board.modals.config;
-      this.configModal.update();
-      this.rbModal = this.board.modals.rb;
-      this.resizeModal = this.board.modals.resize;
       this.customModal = this.board.modals.custom;
+      this.drawModal = this.board.modals.draw;
+      this.rbModal = this.board.modals.rb;
+      this.themeModal = this.board.modals.theme;
+      this.configModal.update();
 
       // Adapter
-      this.setShowModelBackground();
+      this.setOnDraw();
 
       // Board
       this.setTheme(this.theme);
@@ -202,9 +207,13 @@ class Config {
       this.rbModal.updateRuleString();
       this.rbModal.update();
 
-      // Appearance aka resize modal
-      this.resizeModal.update();
-      this.resizeModal.reset();
+      // Draw modal
+      this.drawModal.update();
+      this.drawModal.reset();
+
+      // Theme modal
+      this.themeModal.update();
+      this.themeModal.reset();
 
       // Custom code modal
       this.setCustomInput(this.customInput);
@@ -236,7 +245,7 @@ class Config {
 
   addTheme(themeName, themeObj) {
     this.themes[themeName] = this.getThemeFromObject(themeObj || this);
-    this.resizeModal.update();
+    this.themeModal.update();
     this.storeLocalConfigAsync();
   }
 
@@ -256,14 +265,21 @@ class Config {
     Board.resize(radius);
   }
 
+  radioAlts(buttonName) {
+    for (let radioGroup of this.radioGroups)
+      if (radioGroup.includes(buttonName))
+        return radioGroup.filter((e) => e != buttonName);
+    return [];
+  }
+
   // --- SETTERS ---
 
   setAutopause(value) {
     this.autopause = value;
     if (value)
-      this.resizeModal.autopause.classList.add('active');
+      this.drawModal.autopause.classList.add('active');
     else
-      this.resizeModal.autopause.classList.remove('active');
+      this.drawModal.autopause.classList.remove('active');
     this.storeSessionConfigAsync();
   }
 
@@ -275,10 +291,10 @@ class Config {
         document.body.style.backgroundColor = thisColor;
       }
       else {
-        this.board.bgAdapter.backgroundColor = thisColor;
-        this.board.fgAdapter.backgroundColor = thisColor;
+        this.bgAdapter.backgroundColor = thisColor;
+        this.bgAdapter.backgroundColor = thisColor;
       }
-      this.resizeModal[key].jscolor.fromString(thisColor || 'transparent');
+      this.themeModal[key].jscolor.fromString(thisColor || 'transparent');
     });
 
     this.checkTheme();
@@ -287,13 +303,13 @@ class Config {
 
   setCellGap(width) {
     this.cellGap = width != null ? width : this.cellGap;
-    this.resizeModal.cellGap.value = this.cellGap;
+    this.themeModal.cellGap.value = this.cellGap;
     this.updateAdapter();
   }
 
   setCellBorderWidth(width) {
     this.cellBorderWidth = width != null ? width : this.cellBorderWidth;
-    this.resizeModal.cellBorderWidth.value = this.cellBorderWidth;
+    this.themeModal.cellBorderWidth.value = this.cellBorderWidth;
     this.updateAdapter();
   }
 
@@ -304,12 +320,12 @@ class Config {
   }
 
   updateAdapter() {
-    this.board.bgAdapter.cellGap = this.cellGap * this.scaleRatio;
-    this.board.fgAdapter.cellGap = this.cellGap * this.scaleRatio;
-    this.board.bgAdapter.cellBorderWidth = this.cellBorderWidth * this.scaleRatio;
-    this.board.fgAdapter.cellBorderWidth = this.cellBorderWidth * this.scaleRatio;
-    this.board.bgAdapter.updateMathPresets();
-    this.board.fgAdapter.updateMathPresets();
+    this.bgAdapter.cellGap = this.cellGap * this.scaleRatio;
+    this.bgAdapter.cellGap = this.cellGap * this.scaleRatio;
+    this.bgAdapter.cellBorderWidth = this.cellBorderWidth * this.scaleRatio;
+    this.bgAdapter.cellBorderWidth = this.cellBorderWidth * this.scaleRatio;
+    this.bgAdapter.updateMathPresets();
+    this.bgAdapter.updateMathPresets();
     this.checkTheme();
     this.board.draw();
     this.storeSessionConfigAsync();
@@ -317,8 +333,8 @@ class Config {
 
   setBlendMode(mode) {
     this.blendMode = mode;
-    this.board.bgAdapter.context.globalCompositeOperation = mode;
-    this.resizeModal.selectBlendMode.value = mode;
+    this.bgAdapter.context.globalCompositeOperation = mode;
+    this.themeModal.selectBlendMode.value = mode;
     this.checkTheme();
     this.board.draw();
     this.storeSessionConfigAsync();
@@ -326,29 +342,29 @@ class Config {
 
   setColor(idx, color) {
     this.colors[idx] = color;
-    this.board.bgAdapter.fillColors[idx] = color;
-    this.board.bgAdapter.strokeColors[idx] = color;
-    this.board.fgAdapter.fillColors[idx] = color;
-    this.board.fgAdapter.strokeColors[idx] = color;
+    this.bgAdapter.fillColors[idx] = color;
+    this.bgAdapter.strokeColors[idx] = color;
+    this.bgAdapter.fillColors[idx] = color;
+    this.bgAdapter.strokeColors[idx] = color;
     this.board.colorButtons[idx].style.backgroundColor = color;
     this.configModal.ruleMenus[idx].button.style.backgroundColor = color;
-    this.resizeModal.colors[idx].jscolor.fromString(color);
-    this.resizeModal.colors[idx].value = color;
+    this.themeModal.colors[idx].jscolor.fromString(color);
+    this.themeModal.colors[idx].value = color;
     this.checkTheme();
     this.storeSessionConfigAsync();
   }
 
   setColors(colors=[]) {
     this.colors = Config.merge(this.colors, colors);
-    this.board.bgAdapter.fillColors = this.colors.slice();
-    this.board.bgAdapter.strokeColors = this.colors.slice();
-    this.board.fgAdapter.fillColors = this.colors.slice();
-    this.board.fgAdapter.strokeColors = this.colors.slice();
+    this.bgAdapter.fillColors = this.colors.slice();
+    this.bgAdapter.strokeColors = this.colors.slice();
+    this.bgAdapter.fillColors = this.colors.slice();
+    this.bgAdapter.strokeColors = this.colors.slice();
     for (let i = 0; i < 12; i++) {
       this.board.colorButtons[i].style.backgroundColor = this.colors[i];
       this.configModal.ruleMenus[i].button.style.backgroundColor = this.colors[i];
-      this.resizeModal.colors[i].jscolor.fromString(this.colors[i]);
-      this.resizeModal.colors[i].value = this.colors[i];
+      this.themeModal.colors[i].jscolor.fromString(this.colors[i]);
+      this.themeModal.colors[i].value = this.colors[i];
     }
     this.checkTheme();
     this.storeSessionConfigAsync();
@@ -357,17 +373,17 @@ class Config {
   setDefaultScale(scale) {
     this.defaultScale = scale;
     this.board.scaleTo(scale);
-    if (this.resizeModal.scale.value != '0') {
-      let sliderValue = Math.max(Math.min(scale, this.resizeModal.scaleMax), this.resizeModal.scaleMin);
-      this.resizeModal.scale.value = sliderValue;
+    if (this.drawModal.scale.value != '0') {
+      let sliderValue = Math.max(Math.min(scale, this.drawModal.scaleMax), this.drawModal.scaleMin);
+      this.drawModal.scale.value = sliderValue;
     }
-    this.resizeModal.scaleIndicator.innerHTML = scale;
+    this.drawModal.scaleIndicator.innerHTML = scale;
     this.storeSessionConfigAsync();
   }
 
   setDrawStepInterval(value) {
     this.drawStepInterval = value;
-    this.resizeModal.drawSteps.value = value;
+    this.drawModal.drawSteps.value = value;
     this.storeSessionConfigAsync();
   }
 
@@ -424,36 +440,50 @@ class Config {
     this.storeSessionConfig();
   }
 
-  setOnDraw(fnName) {
-    this.onDraw = fnName;
-    Object.values(this.resizeModal.onDraw).forEach((e) => e.classList.remove('active'));
-    let fns = this.onDrawAvailable.map((e) => this.board.bgAdapter[e]);
-    this.board.bgAdapter.onDraw.replace(
-      this.board.bgAdapter.onDraw.filter((e) => !fns.includes(e))
-    );
-    if (this.onDrawAvailable.includes(this.onDraw)) {
-      this.resizeModal.onDraw[this.onDraw].classList.add('active');
-      this.board.bgAdapter.onDraw.unshift(this.board.bgAdapter[this.onDraw]);
+  setOnDraw(fnName, value, radio=true) {
+    let fnNames = Object.keys(this.onDraw);
+    if (value == null) {
+      value = this.onDraw[fnName];
     }
-    this.checkTheme();
-    this.storeSessionConfigAsync();
+    if (!fnName) {
+      for (let name of fnNames) {
+        this.setOnDraw(name, this.onDraw[name]);
+      }
+    }
+    else if (fnNames.includes(fnName)) {
+      this.onDraw[fnName] = value;
+      let button = this.drawModal.onDraw[fnName];
+      if (value) {
+        button && button.classList.add('active');
+        this.bgAdapter.onDraw.unshift(this.bgAdapter[fnName]);
+      }
+      else {
+        button && button.classList.remove('active');
+        this.bgAdapter.onDraw.keep((e) => e != this.bgAdapter[fnName]);
+      }
+      if (radio) {
+        let radioAlts = this.radioAlts(fnName);
+        radioAlts.forEach((e) => this.setOnDraw(e, false, false));
+      }
+      this.storeSessionConfigAsync();
+    }
   }
 
   setOnDrawCell(fnName) {
     this.onDrawCell = fnName;
-    Object.values(this.resizeModal.onDrawCell).forEach((e) => e.classList.remove('active'));
-    let fnButton = this.resizeModal.onDrawCell[this.onDrawCell];
+    Object.values(this.drawModal.onDrawCell).forEach((e) => e.classList.remove('active'));
+    let fnButton = this.drawModal.onDrawCell[this.onDrawCell];
     fnButton && fnButton.classList.add('active');
-    let fns = this.onDrawCellAvailable.map((e) => this.board.bgAdapter[e]);
-    let curIdx = this.board.bgAdapter.onDrawCell.findIndex((e) => fns.includes(e));
+    let fns = this.onDrawCellAvailable.map((e) => this.bgAdapter[e]);
+    let curIdx = this.bgAdapter.onDrawCell.findIndex((e) => fns.includes(e));
     let del = 1;
     if (curIdx == -1) {
       curIdx = 0;
       del = 0;
     }
-    let newFn = this.board.bgAdapter[this.onDrawCell];
+    let newFn = this.bgAdapter[this.onDrawCell];
     let newFnArg = newFn ? [newFn] : [];
-    this.board.bgAdapter.onDrawCell.splice(curIdx, del, ...newFnArg);
+    this.bgAdapter.onDrawCell.splice(curIdx, del, ...newFnArg);
     this.checkTheme();
     this.storeSessionConfigAsync();
   }
@@ -580,31 +610,20 @@ class Config {
     this.storeSessionConfigAsync();
   }
 
-  setShowModelBackground(value) {
-    value = this.showModelBackground = value != null ? value : this.showModelBackground;
-    let hookList = this.board.bgAdapter.onDraw;
-    let fn = this.board.bgAdapter.drawCubicBackground;
-    // We don't, at this point, care about order
-    if (value)
-      hookList.includes(fn) || hookList.unshift(fn);
-    else
-      hookList.includes(fn) && hookList.splice(hookList.indexOf(fn), 1);
-    this.storeSessionConfigAsync();
-  }
-
   setRecordingMode(value) {
-    let hookList = this.board.bgAdapter.onDraw;
-    let drawCubicBackground = this.board.bgAdapter.drawCubicBackground;
-    let drawBackground = this.board.bgAdapter.drawBackground;
+    let drawModelBackground = this.bgAdapter.drawModelBackground;
+    let drawSolidBackground = this.bgAdapter.drawSolidBackground;
+    let hookList = this.bgAdapter.onDraw;
     if (value) {
       this.recordingMode = true;
-      hookList.replace(hookList.filter((e) => e != drawCubicBackground));
-      hookList.includes(drawBackground) || hookList.unshift(drawBackground);
+      hookList.keep((e) => e != drawSolidBackground && e != drawModelBackground);
+      hookList.unshift(drawSolidBackground);
     }
     else {
       this.recordingMode = false;
-      hookList.replace(hookList.filter((e) => e != drawBackground));
-      this.setShowModelBackground(this.showModelBackground);
+      hookList.keep((e) => e != drawSolidBackground && e != drawModelBackground);
+      if (this.onDraw.drawModelBackground)
+        hookList.unshift(drawModelBackground);
     }
   }
 
@@ -618,16 +637,16 @@ class Config {
   setTheme(themeName) {
     if (this.themes[themeName]) {
       this.theme = themeName;
-      this.resizeModal.selectTheme.value = themeName;
-      this.resizeModal.addTheme.disabled = true;
+      this.themeModal.selectTheme.value = themeName;
+      this.themeModal.addTheme.disabled = true;
       let theme = this.getThemeFromObject(this.themes[themeName]);
       Config.merge(this, theme);
       this.setThemable();
     }
     else {
       this.theme = null;
-      this.resizeModal.selectTheme.value = null;
-      this.resizeModal.addTheme.disabled = false;
+      this.themeModal.selectTheme.value = null;
+      this.themeModal.addTheme.disabled = false;
     }
     this.board.draw();
     this.storeSessionConfigAsync();

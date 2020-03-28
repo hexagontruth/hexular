@@ -107,8 +107,10 @@ class Board {
         redo: document.querySelector('#redo'),
         toggleMenu: document.querySelector('#toggle-menu'),
         showConfig: document.querySelector('#show-config'),
-        showRb: document.querySelector('#show-rb'),
+        showDraw: document.querySelector('#show-draw'),
+        showTheme: document.querySelector('#show-theme'),
         showResize: document.querySelector('#show-resize'),
+        showRb: document.querySelector('#show-rb'),
         showCustom: document.querySelector('#show-custom'),
         showClear: document.querySelector('#show-clear'),
         saveSnapshot: document.querySelector('#snapshot-save'),
@@ -186,6 +188,8 @@ class Board {
     this.buttons.toggleRecord.onclick = this.click(this.toggleRecord);
     this.buttons.toggleMenu.onclick = this.click(this.toggleMenu);
     this.buttons.showConfig.onmousedown = () => this.toggleModal('config');
+    this.buttons.showDraw.onmousedown = () => this.toggleModal('draw');
+    this.buttons.showTheme.onmousedown = () => this.toggleModal('theme');
     this.buttons.showResize.onmousedown = () => this.toggleModal('resize');
     this.buttons.showRb.onmousedown = () => this.toggleModal('rb');
     this.buttons.showCustom.onmousedown = () => this.toggleModal('custom');
@@ -229,6 +233,8 @@ class Board {
       custom: new CustomModal(this, 'custom'),
       rb: new RbModal(this, 'rb'),
       resize: new ResizeModal(this, 'resize'),
+      theme: new ThemeModal(this, 'theme'),
+      draw: new DrawModal(this, 'draw'),
     }
     this.toggleModal();
     this.config.restoreModel();
@@ -967,7 +973,7 @@ class Board {
             this.clear();
           }
           else if (key == 'e') {
-            this.toggleModal('resize');
+            this.toggleModal('theme');
           }
           else if (key == 'f') {
             this.toggleModal('custom');
@@ -977,6 +983,12 @@ class Board {
           }
           else if (key == 'g') {
             this.toggleModal('config');
+          }
+          else if (key == 'r') {
+            this.toggleModal('resize');
+          }
+          else if (key == 'y') {
+            this.toggleModal('draw');
           }
           else if (key == 'x') {
             this.handleClearStorage();

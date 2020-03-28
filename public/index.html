@@ -44,10 +44,12 @@
   </div>
   <div id="config-menu" class="toolbar menu hidden">
     <div class="group tools">
-      <button id="show-config" title="Model configuration (Ctrl+M)" class="icon-gear"></button>
+      <button id="show-config" title="Model Configuration (Ctrl+M)" class="icon-gear"></button>
+      <button id="show-draw" title="Draw Configuration (Ctrl+Y)" class="icon-lead-pencil"></button>
+      <button id="show-theme" title="Theme (Ctrl+E)" class="icon-rainbow"></button>
+      <button id="show-resize" title="Resize Model (Ctrl+R)" class="icon-arrow-top-right-bottom-left"></button>
       <button id="show-rb" title="Rulebuilder (Ctrl+B)" class="icon-function"></button>
-      <button id="show-resize" title="Appearance (Ctrl+E)" class="icon-rainbow"></button>
-      <button id="show-custom" title="Custom code (Ctrl+F)" class="icon-code"></button>
+      <button id="show-custom" title="Custom Code (Ctrl+F)" class="icon-code"></button>
       <button id="show-clear" title="Clear local data (Ctrl+X)" class="icon-refresh"></button>
     </div>
   </div>
@@ -100,8 +102,8 @@
     </div>
   </div>
   <div class="overlay hidden">
-    <div class="modal resize hidden">
-      <div class="modal-title"><i class="icon-rainbow"></i> Appearance</div>
+    <div class="modal theme hidden">
+      <div class="modal-title"><i class="icon-rainbow"></i> Theme</div>
       <div class="modal-content">
         <div class="group">
           <label>Theme:</label>
@@ -149,20 +151,26 @@
             <option selected>source-over</option>
             <option>xor</option>
           </select>
-          <label>Draw Steps:</label>
-          <input class="short" type="number" id="draw-steps" step="1" value="1" min="1"/>
         </div>
         <div class="group">
           <label>Gap:</label>
           <input type="number" id="cell-gap" step="0.1"/>
           <label>Border:</label>
           <input type="number" id="cell-border-width" min="0" step="0.1"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal draw hidden">
+      <div class="modal-title"><i class="icon-rainbow"></i> Draw Configuration</div>
+      <div class="modal-content">
+        <div class="group buttons">
           <button id="autopause" class="icon-pause" title="Autopause"></button>
+          <div class="divider"></div>
+          <button id="draw-model-background" class="icon-hexception" title="Draw model background"></button>
+          <button id="sort-cells-asc" class="icon-sort-ascending" title="Draw in ascending order (may cause performance issues)"></button>
+          <button id="sort-cells-desc" class="icon-sort-descending" title="Draw in descending order (may cause performance issues)"></button>
         </div>
         <div class="group buttons">
-          <button id="sort-cells-asc" class="icon-sort-ascending" title="Draw in ascending order (may cause slowness)"></button>
-          <button id="sort-cells-desc" class="icon-sort-descending" title="Draw in descending order (may cause slowness)"></button>
-          <div class="divider"></div>
           <button id="draw-filled-pointy-hex" class="icon-hexagon" title="Filled pointy hex"></button>
           <button id="draw-outline-pointy-hex" class="icon-hexagon-outline" title="Outline pointy hex"></button>
           <button id="draw-filled-flat-hex" class="icon-hexagon rotate" title="Filled flat hex"></button>
@@ -171,7 +179,7 @@
           <button id="draw-outline-circle" class="icon-circle-outline" title="Outline circle"></button>
         </div>
         <div class="group">
-          <label class="left">Interval:</label>
+          <label class="third">Interval:</label>
           <input type="range" id="interval-slider" min="0" max="1000" step="5"
             value="60" list="interval-ticks" title="Timer interval (ms)"/>
           <datalist id="interval-ticks">
@@ -190,7 +198,21 @@
           <label id="interval-indicator" class="indicator"></label>
         </div>
         <div class="group">
-          <label class="left">Scale:</label>
+          <label class="third">Draw steps:</label>
+          <input type="range" id="draw-step-slider" min="1" max="60" step="1"
+            value="1" list="draw-step-ticks" title="Intermediate draw steps between model steps"/>
+          <datalist id="draw-step-ticks">
+            <option>1</option>
+            <option>4</option>
+            <option>8</option>
+            <option>15</option>
+            <option>30</option>
+            <option>60</option>
+          </datalist>
+          <label id="draw-step-indicator" class="indicator"></label>
+        </div>
+        <div class="group">
+          <label class="third">Scale:</label>
           <input type="range" id="scale-slider" min="0" max="4" step="0.1"
             value="60" list="scale-ticks"-ticks" title="Default scale"/>
           <datalist id="scale-ticks">
@@ -211,8 +233,13 @@
           </datalist>
           <label id="scale-indicator" class="indicator"></label>
         </div>
+      </div>
+    </div>
+    <div class="modal resize hidden">
+      <div class="modal-title"><i class="icon-arrow-top-right-bottom-left"></i> Resize Model</div>
+      <div class="modal-content">
         <div class="group">
-          <label class="left">Radius:</label>
+          <label>Resize:</label>
           <input type="range" id="resize-slider" min="0" max="360" step="1"
             value="60" list="resize-ticks"-ticks" title="Board radius"/>
           <datalist id="resize-ticks">
@@ -233,7 +260,7 @@
           <label id="resize-indicator" class="indicator"></label>
         </div>
         <div class="group buttons">
-          <button id="resize-set"></button>
+          <button id="resize-set"><i class="icon-arrow-top-right-bottom-left"></i> Resize to 10,621 cells</button>
         </div>
       </div>
     </div>
@@ -292,7 +319,7 @@
       </div>
     </div>
     <div class="modal custom hidden">
-      <div class="modal-title"><i class="icon-code"></i> Custom code</div>
+      <div class="modal-title"><i class="icon-code"></i> Custom Code</div>
       <div class="modal-content">
         <div class="group">
           <select id="select-example">
@@ -312,7 +339,7 @@
       </div>
     </div>
     <div class="modal config hidden">
-      <div class="modal-title"><i class="icon-gear"></i> Configure model</div>
+      <div class="modal-title"><i class="icon-gear"></i> Model Configuration</div>
       <div class="modal-content">
         <div class="group">
           <button id="add-preset" class="icon-plus" title="Save preset..."></button>
@@ -323,6 +350,7 @@
           <button id="load-preset" class="icon-upload" title="Upload preset..."></button>
         </div>
         <div class="group">
+          <label>States:</label>
           <input type="range" id="num-states" min="2" max="12" step="1"
             value="2" list="num-states-ticks" title="Number of States (2-12)"/>
           <datalist id="num-states-ticks">
@@ -348,6 +376,7 @@
         </div>
         <div class="group rule-group" id="rule-group"></div>
         <div class="group">
+          <label>Neighborhood:</label>
           <select id="select-neighborhood" title="Default neighborhood for cell helper functions">
             <option value="6" selected>N6: 6 immediate neighbors</option>
             <option value="12">N12: 12 closest neighbors</option>

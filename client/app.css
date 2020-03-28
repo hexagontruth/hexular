@@ -566,11 +566,15 @@ select {
   white-space: nowrap;
 }
 
-.modal label.left {
+.modal .group .quarter {
   min-width: 25%;
 }
 
-.modal label.half {
+.modal .group .third {
+  min-width: calc(100% / 3);
+}
+
+.modal .group .half {
   width: 50%;
 }
 

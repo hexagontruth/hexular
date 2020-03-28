@@ -1081,12 +1081,12 @@ var Hexular = (function () {
     /**
      * Convenience method for removing member functions with filter function.
      *
-     * Member functions that return true are kept; others are returned in an array.
+     * Member functions that return true are kept; others are removed and returned in an array.
      *
      * @param {function} fn Filter function taking a member function and returning a boolean value
      * @return {function[]} Member functions removed during filtering
      */
-    remove(fn) {
+    keep(fn) {
       let removed = [];
       this.replace(this.filter((e) => {
         let val = fn(e);
@@ -1574,7 +1574,7 @@ var Hexular = (function () {
      * Optional {@link CanvasAdapter#onDraw} callback that draws a solid background in the style given by
      *  {@link CanvasAdapter#backgroundColor|this.backgroundColor}.
      */
-    drawBackground() {
+    drawSolidBackground() {
       this.context.save();
       this.context.setTransform(1, 0, 0, 1, 0, 0);
       this.context.fillStyle = this.backgroundColor;
@@ -1586,7 +1586,7 @@ var Hexular = (function () {
      * Optional {@link CanvasAdapter#onDraw} callback that draws a hexagonal background appropriate to the size if the
      * model in the style given by {@link CanvasAdapter#backgroundColor|this.backgroundColor}.
      */
-    drawCubicBackground() {
+    drawModelBackground() {
       if (!this.model.radius) return;
       let radius = this.model.radius * this.cellRadius * APOTHEM * 2;
       this.context.beginPath();
