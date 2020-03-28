@@ -55,6 +55,7 @@ class Config {
       toolSize: 1,
       colorMode: 0,
       paintColors: [1, 0],
+      customPaintMap: null,
       steps: 0,
       drawStepInterval: 1,
       blendMode: 'source-over',
@@ -469,6 +470,8 @@ class Config {
     let offset = idx ? -1 : 1;
     if (this.colorMode)
       return this.paintColors[idx];
+    else if (this.customPaintMap)
+      return this.customPaintMap(idx, this.board.selected.state);
     else
       return Hexular.math.mod(this.board.selected.state + offset, this.numStates);
   }

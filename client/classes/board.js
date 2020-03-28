@@ -61,6 +61,7 @@ class Board {
         debugSelect: [],
         debugStep: [],
         clear: [],
+        paint: [],
       },
       scaling: false,
       scaleQueue: [],
@@ -972,7 +973,7 @@ class Board {
             this.toggleModal('custom');
           }
           else if (key == 'i') {
-            this.import();
+            this.toggleImageCapture();
           }
           else if (key == 'g') {
             this.toggleModal('config');

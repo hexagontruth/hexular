@@ -29,12 +29,14 @@ class Action {
 
   _applyBuffer() {
     if (this.board.fgAdapter.stateBuffer.size > 0) {
+      let cells = Array.from(this.board.fgAdapter.stateBuffer.keys());
       this.board.newHistoryState();
       this.board.fgAdapter.stateBuffer.forEach((state, cell) => {
         cell.setState(state);
       });
       this.board.fgAdapter.stateBuffer.clear();
       this.board.fgAdapter.clear();
+      this.board.hooks.paint.forEach((e) => e.run(cells));
       this.board.draw();
     }
   }

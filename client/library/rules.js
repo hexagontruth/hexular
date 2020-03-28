@@ -26,6 +26,8 @@ const Rules = (() => {
 
     stepUp: (cell) => cell.state + 1,
 
+    xor: (cell) => cell.map.reduce((a, e) => e ^ a, 0),
+
     xorCount: (cell) => cell.count % 2,
 
     xorTotal: (cell) => cell.total % 2,

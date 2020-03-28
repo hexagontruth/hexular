@@ -1,4 +1,26 @@
 (() => {
+  let toLines = (state) => {
+    return [
+      state % 2,
+      (state >> 1) % 2,
+      (state >> 2) % 2,
+      (state >> 3) % 2,
+      (state >> 4) % 2,
+      (state >> 5) % 2,
+    ];
+  };
+  let fromLines = (lines) => {
+    return lines[0] + lines[1] * 2 + lines[2] * 4 + lines[3] * 8 + lines[4] * 16 + lines[5] * 32;
+  };
+  let setLines = (cell) => cell.lines = cell.newLines = toLines(cell.state);
+  let clearLines = () => {
+    Board.model.eachCell(setLines);
+  };
+  let paintLines = (cells) => cells.forEach(setLines);
+
+  Board.instance.addHook('clear', clearLines);
+  Board.instance.addHook('paint', paintLines);
+
   let fn = () => {
     let adapter = Board.bgAdapter;
     let board = Board.instance;
@@ -6,22 +28,7 @@
     let config = Board.config;
     let ctx = adapter.context;
     config.setOnDrawCell(null);
-    let toLines = (state) => {
-      return [
-        state % 2,
-        (state >> 1) % 2,
-        (state >> 2) % 2,
-        (state >> 3) % 2,
-        (state >> 4) % 2,
-        (state >> 5) % 2,
-      ];
-    };
-    let fromLines = (lines) => {
-      return lines[0] + lines[1] * 2 + lines[2] * 4 + lines[3] * 8 + lines[4] * 16 + lines[5] * 32;
-    }
-    model.eachCell((cell) => {
-      cell.lines = cell.newLines = toLines(cell.state);
-    });
+    clearLines();
     config.maxNumStates = 64;
     config.setNumStates(64);
     for (let i = 0; i < 64; i++) {
