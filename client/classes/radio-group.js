@@ -1,30 +1,27 @@
 class RadioGroup {
-  constructor(name, group={}) {
-    this.name = name;
-    this.keys = new Set(Object.keys(group));
-    this.fns = Object.merge({}, group);
+  constructor(keys, cb=()=>()=>{}) {
+    this.keys = keys.slice();
+    this.cb = cb;
+    this.active = null;
     this._fn = () => {};
-    let radioGroup = this;
-    this.fn = function(...args) {
-      radioGroup._fn(...args);
-    };
+    this.fn = (...args) => this._fn(...args);
+    this.fn.radio = true;
   }
 
-  add(key, fn) {
-    this.keys.add(key);
-    this.fns[key] = fn;
+  add(key) {
+    this.keys.includes(key) || this.keys.push(key);
   }
 
   has(key) {
-    return this.keys.has(key);
+    return this.keys.includes(key);
+  }
+
+  alts(key=this.active) {
+    return this.keys.filter((e) => e != key);
   }
 
   set(key) {
-    if (!key)
-      this._fn = () => {};
-    else if (!this.fns[key])
-      throw new Hexular.classes.HexError(`Key "${key}" does not belong to radio group "${this.name}"`);
-    else
-      this._fn = this.fns[key];
+    this.active = key;
+    this._fn = this.cb(this.active, this.alts()) || (() => {});
   }
 }

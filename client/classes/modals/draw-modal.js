@@ -3,12 +3,10 @@ class DrawModal extends Modal {
     super(...args);
     this.defaultInterval = Config.defaults.interval;
     this.radius = this.defaultRadius = Config.defaults.radius;
-    this.onDraw = {
+    this.drawButtons = {
       drawModelBackground: document.querySelector('#draw-model-background'),
       sortCellsAsc: document.querySelector('#sort-cells-asc'),
       sortCellsDesc: document.querySelector('#sort-cells-desc'),
-    };
-    this.onDrawCell = {
       drawFilledPointyHex: document.querySelector('#draw-filled-pointy-hex'),
       drawOutlinePointyHex: document.querySelector('#draw-outline-pointy-hex'),
       drawFilledFlatHex: document.querySelector('#draw-filled-flat-hex'),
@@ -26,8 +24,7 @@ class DrawModal extends Modal {
     this.scaleMin = parseFloat(this.scale.min);
     this.scaleMax = parseFloat(this.scale.max);
 
-    Object.entries(this.onDraw).forEach(([fnName, button]) => button.onclick = () => this._setOnDraw(fnName));
-    Object.entries(this.onDrawCell).forEach(([fnName, button]) => button.onclick = () => this._setOnDrawCell(fnName));
+    Object.entries(this.drawButtons).forEach(([fnName, button]) => button.onclick = () => this._setDraw(fnName));
     this.drawSteps.oninput = (ev) => this._setDrawSteps(this.drawSteps.value);
     this.autopause.onclick = (ev) => this._setAutopause(!this.config.autopause);
     this.interval.oninput = (ev) => this._updateInterval(this.interval.value);
@@ -37,8 +34,7 @@ class DrawModal extends Modal {
   reset() {
     this._setDrawSteps(this.config.drawStepInterval);
     this._setAutopause();
-    this._setOnDraw();
-    this._setOnDrawCell();
+    this._setDraw();
     this.interval.value = this.config.interval;
     this._updateInterval();
     this._updateScale(this.config.defaultScale);
@@ -56,13 +52,8 @@ class DrawModal extends Modal {
     this.config.setAutopause(value != null ? value : this.config.autopause);
   }
 
-  _setOnDraw(fnName) {
-    this.config.setOnDraw(fnName, !this.config.onDraw[fnName]);
-    this.board.draw();
-  }
-
-  _setOnDrawCell(fnName) {
-    this.config.setOnDrawCell(fnName, !this.config.onDrawCell[fnName]);
+  _setDraw(fnName) {
+    this.config.setDraw(fnName, !this.config.drawFunctions[fnName]);
     this.board.draw();
   }
 

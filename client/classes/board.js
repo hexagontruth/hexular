@@ -10,8 +10,8 @@ class Board {
         if (oldBoard) {
           board.undoStack = oldBoard.undoStack;
           board.redoStack = oldBoard.redoStack;
-          board.bgAdapter.onDraw.replace(oldBoard.bgAdapter.onDraw);
-          board.bgAdapter.onDrawCell.replace(oldBoard.bgAdapter.onDrawCell);
+          board.bgAdapter.onDraw.replace(oldBoard.bgAdapter.onDraw.filter((e) => !e.radio));
+          board.bgAdapter.onDrawCell.replace(oldBoard.bgAdapter.onDrawCell.filter((e) => !e.radio));
           board.hooks = Config.merge(oldBoard.hooks);
           board.refreshHistoryButtons();
         }

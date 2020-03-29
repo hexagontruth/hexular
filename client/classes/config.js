@@ -65,12 +65,12 @@ class Config {
       rbMatchRel: 0,
       rbRel: 0,
       rbStates: Array(64).fill(false),
-      onDraw: {
+      drawFunctions: {
+        // onDraw
         drawModelBackground: true,
         sortCellsAsc: false,
         sortCellsDesc: false,
-      },
-      onDrawCell: {
+        // onDrawCell
         drawFilledPointyHex: true,
         drawOutlinePointyHex: false,
         drawFilledFlatHex: false,
@@ -78,7 +78,26 @@ class Config {
         drawFilledCircle: false,
         drawOutlineCircle: false,
       },
-      radioGroups: {},
+      radioGroups: {
+        onDraw: [
+          ['drawModelBackground'],
+          [
+            'sortCellsAsc',
+            'sortCellsDesc',
+          ]
+        ],
+        onDrawCell: [
+          [
+            'drawFilledPointyHex',
+            'drawOutlinePointyHex',
+            'drawFilledFlatHex',
+            'drawOutlineFlatHex',
+            'drawFilledCircle',
+            'drawOutlineCircle',
+          ]
+        ],
+      },
+      radioMap: {},
       customInput: null,
       localStorageObj: window.localStorage,
       sessionStorageObj: window.sessionStorage,
@@ -170,18 +189,27 @@ class Config {
       this.themeModal = this.board.modals.theme;
       this.configModal.update();
 
-      // Radio groups
-      let sortingGroup = new RadioGroup('sorting', ['sortCellsAsc', 'sortCellsDesc']);
-      let drawCellGroup = new RadioGroup('drawCell', Object.keys(this.onDrawCell));
-      this.radioGroups.sorting = sortingGroup;
-      this.radioGroups.drawCell = drawCellGroup;
-      this.bgAdapter.onDraw.push(sortingGroup.fn);
-      this.bgAdapter.onDrawCell.push(drawCellGroup.fn);
-
-
-      // Adapter
-      this.setOnDraw();
-      this.setOnDrawCell();
+      // Drawing config initialization
+      let drawCb = (active, alts) => {
+        for (let alt of alts) {
+          this.drawModal.drawButtons[alt].classList.remove('active');
+          this.drawFunctions[alt] = false;
+        }
+        if (active) {
+          this.drawFunctions[active] = true;
+          this.drawModal.drawButtons[active].classList.add('active');
+        }
+        return this.bgAdapter.constructor[active];
+      };
+      for (let hook of Object.keys(this.radioGroups)) {
+        for (let group of this.radioGroups[hook]) {
+          let radioGroup = new RadioGroup(group, drawCb);
+          for (let key of group)
+            this.radioMap[key] = radioGroup;
+          this.bgAdapter[hook].unshift(radioGroup.fn);
+        }
+      }
+      this.setDraw();
 
       // Board
       this.setTheme(this.theme);
@@ -444,70 +472,19 @@ class Config {
       ruleMenu.container.setAttribute('data-disabled', disabled);
     });
     this.checkPreset();
-    this.storeSessionConfig();
+    this.storeSessionConfig(); 
   }
 
-  setOnDraw(fnName, value, radio=true) {
-    let fnNames = Object.keys(this.onDraw);
-    if (value == null) {
-      value = this.onDraw[fnName];
-    }
+  setDraw(fnName, value, radio=true) {
     if (!fnName) {
-      for (let name of fnNames) {
-        this.setOnDraw(name, this.onDraw[name]);
-      }
+      let activeFns = Object.entries(this.drawFunctions).filter(([k, v]) => v).map(([k, v]) => k);
+      for (let name of activeFns)
+        this.setDraw(name, true);
     }
-    else if (fnNames.includes(fnName)) {
-      this.onDraw[fnName] = value;
-      let button = this.drawModal.onDraw[fnName];
-      if (value) {
-        button && button.classList.add('active');
-        this.bgAdapter.onDraw.unshift(this.bgAdapter[fnName]);
-      }
-      else {
-        button && button.classList.remove('active');
-        this.bgAdapter.onDraw.keep((e) => e != this.bgAdapter[fnName]);
-      }
-      if (radio) {
-        let radioAlts = this.radioAlts(fnName);
-        radioAlts.forEach((e) => this.setOnDraw(e, false, false));
-      }
-      this.storeSessionConfigAsync();
-    }
-  }
-
-  setOnDrawCell(fnName, value) {
-    let fnNames = Object.keys(this.onDrawCell);
-    let fns = fnNames.map((e) => this.bgAdapter[e]).filter((e) => e);
-    if (value == null) {
-      value = this.onDrawCell[fnName];
-    }
-    if (!fnName) {
-      for (let name of fnNames) {
-        this.setOnDrawCell(name, this.onDrawCell[name]);
-      }
-    }
-    else if (fnNames.includes(fnName)) {
-      this.onDrawCell[fnName] = value;
-      let button = this.drawModal.onDrawCell[fnName];
-      if (value) {
-        button && button.classList.add('active');
-        let idx = this.bgAdapter.onDrawCell.find((e) => !fns.includes(e));
-        if (idx == -1)
-          idx = this.bgAdapter.length;
-        this.bgAdapter.onDrawCell.splice(idx, 1, this.bgAdapter[fnName]);
-      }
-      else {
-        button && button.classList.remove('active');
-        this.bgAdapter.onDrawCell.keep((e) => !fns.includes(e));
-      }
-      let radioAlts = this.radioAlts(fnName);
-      radioAlts.forEach((e) => {
-        this.onDrawCell[e] = false;
-        let button = this.drawModal.onDrawCell[e];
-        button && button.classList.remove('active');
-        this.bgAdapter.onDrawCell.keep((f) => f != this.bgAdapter[e]);
-      });
+    else {
+      if (value == null)
+        value = this.drawFunctions[fnName];
+      this.radioMap[fnName].set(value ? fnName : null);
       this.storeSessionConfigAsync();
     }
   }
@@ -789,6 +766,7 @@ class Config {
       'customInput',
       'defaultRule',
       'defaultScale',
+      'drawFunctions',
       'drawStepInterval',
       'fallbackTool',
       'filters',
@@ -801,8 +779,6 @@ class Config {
       'modelBackground',
       'nh',
       'numStates',
-      'onDraw',
-      'onDrawCell',
       'pageBackground',
       'paintColors',
       'preset',

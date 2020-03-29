@@ -135,21 +135,21 @@ Filters simply take a state value and an optional [`cell`](Cell.html) instance, 
 
 We can also override or extend the default cell-drawing behavior of `CanvasAdapter` in arbitrary aesthetic ways, to create more complex renderings. For example opening the console in the Hexular Studio interface and running the following will add a tasteful red triangle between any three activated cells:
 
-        Board.bgAdapter.onDrawCell.push(function(cell) {
+        Board.bgAdapter.onDrawCell.push(function(cell, adapter) {
           if (!cell.state)
             return;
           let slice = cell.with[6].nbrSlice;
-          this.context.fillStyle = '#ff3300';
+          adapter.context.fillStyle = '#ff3300';
           for (let i = 0; i < 5; i++) {
             let n1 = slice[i];
             let n2 = slice[(i + 1) % 6];
             if (n1.state && n2.state && !n1.edge && !n2.edge) {
-              this.context.beginPath();
-              this.context.moveTo(...this.model.cellMap.get(cell));
-              this.context.lineTo(...this.model.cellMap.get(n1));
-              this.context.lineTo(...this.model.cellMap.get(n2));
-              this.context.closePath();
-              this.context.fill();
+              adapter.context.beginPath();
+              adapter.context.moveTo(...adapter.model.cellMap.get(cell));
+              adapter.context.lineTo(...adapter.model.cellMap.get(n1));
+              adapter.context.lineTo(...adapter.model.cellMap.get(n2));
+              adapter.context.closePath();
+              adapter.context.fill();
             }
           }
         });
