@@ -10,7 +10,9 @@ default:
       - client/classes/file-loader.js
       - client/classes/modal.js
       - client/classes/opt-parser.js
+      - client/classes/plugin.js
       - client/classes/preset.js
+      - client/classes/radio-group.js
       - client/classes/recorder.js
       - client/classes/select.js
       - client/classes/transfer-canvas.js

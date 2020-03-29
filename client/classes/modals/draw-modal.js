@@ -62,7 +62,7 @@ class DrawModal extends Modal {
   }
 
   _setOnDrawCell(fnName) {
-    this.config.setOnDrawCell(fnName || this.config.onDrawCell);
+    this.config.setOnDrawCell(fnName, !this.config.onDrawCell[fnName]);
     this.board.draw();
   }
 

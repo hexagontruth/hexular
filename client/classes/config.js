@@ -66,22 +66,19 @@ class Config {
       rbRel: 0,
       rbStates: Array(64).fill(false),
       onDraw: {
-        'drawModelBackground': true,
-        'sortCellsAsc': false,
-        'sortCellsDesc': false,
+        drawModelBackground: true,
+        sortCellsAsc: false,
+        sortCellsDesc: false,
       },
-      onDrawCellAvailable: [
-        'drawFilledPointyHex',
-        'drawOutlinePointyHex',
-        'drawFilledFlatHex',
-        'drawOutlineFlatHex',
-        'drawFilledCircle',
-        'drawOutlineCircle',
-      ],
-      radioGroups: [
-        ['sortCellsAsc', 'sortCellsDesc']
-      ],
-      onDrawCell: 'drawFilledPointyHex',
+      onDrawCell: {
+        drawFilledPointyHex: true,
+        drawOutlinePointyHex: false,
+        drawFilledFlatHex: false,
+        drawOutlineFlatHex: false,
+        drawFilledCircle: false,
+        drawOutlineCircle: false,
+      },
+      radioGroups: {},
       customInput: null,
       localStorageObj: window.localStorage,
       sessionStorageObj: window.sessionStorage,
@@ -173,8 +170,18 @@ class Config {
       this.themeModal = this.board.modals.theme;
       this.configModal.update();
 
+      // Radio groups
+      let sortingGroup = new RadioGroup('sorting', ['sortCellsAsc', 'sortCellsDesc']);
+      let drawCellGroup = new RadioGroup('drawCell', Object.keys(this.onDrawCell));
+      this.radioGroups.sorting = sortingGroup;
+      this.radioGroups.drawCell = drawCellGroup;
+      this.bgAdapter.onDraw.push(sortingGroup.fn);
+      this.bgAdapter.onDrawCell.push(drawCellGroup.fn);
+
+
       // Adapter
       this.setOnDraw();
+      this.setOnDrawCell();
 
       // Board
       this.setTheme(this.theme);
@@ -469,23 +476,40 @@ class Config {
     }
   }
 
-  setOnDrawCell(fnName) {
-    this.onDrawCell = fnName;
-    Object.values(this.drawModal.onDrawCell).forEach((e) => e.classList.remove('active'));
-    let fnButton = this.drawModal.onDrawCell[this.onDrawCell];
-    fnButton && fnButton.classList.add('active');
-    let fns = this.onDrawCellAvailable.map((e) => this.bgAdapter[e]);
-    let curIdx = this.bgAdapter.onDrawCell.findIndex((e) => fns.includes(e));
-    let del = 1;
-    if (curIdx == -1) {
-      curIdx = 0;
-      del = 0;
+  setOnDrawCell(fnName, value) {
+    let fnNames = Object.keys(this.onDrawCell);
+    let fns = fnNames.map((e) => this.bgAdapter[e]).filter((e) => e);
+    if (value == null) {
+      value = this.onDrawCell[fnName];
     }
-    let newFn = this.bgAdapter[this.onDrawCell];
-    let newFnArg = newFn ? [newFn] : [];
-    this.bgAdapter.onDrawCell.splice(curIdx, del, ...newFnArg);
-    this.checkTheme();
-    this.storeSessionConfigAsync();
+    if (!fnName) {
+      for (let name of fnNames) {
+        this.setOnDrawCell(name, this.onDrawCell[name]);
+      }
+    }
+    else if (fnNames.includes(fnName)) {
+      this.onDrawCell[fnName] = value;
+      let button = this.drawModal.onDrawCell[fnName];
+      if (value) {
+        button && button.classList.add('active');
+        let idx = this.bgAdapter.onDrawCell.find((e) => !fns.includes(e));
+        if (idx == -1)
+          idx = this.bgAdapter.length;
+        this.bgAdapter.onDrawCell.splice(idx, 1, this.bgAdapter[fnName]);
+      }
+      else {
+        button && button.classList.remove('active');
+        this.bgAdapter.onDrawCell.keep((e) => !fns.includes(e));
+      }
+      let radioAlts = this.radioAlts(fnName);
+      radioAlts.forEach((e) => {
+        this.onDrawCell[e] = false;
+        let button = this.drawModal.onDrawCell[e];
+        button && button.classList.remove('active');
+        this.bgAdapter.onDrawCell.keep((f) => f != this.bgAdapter[e]);
+      });
+      this.storeSessionConfigAsync();
+    }
   }
 
   setPaintColor(idx, color) {
