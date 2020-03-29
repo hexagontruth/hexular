@@ -3,32 +3,12 @@ default:
   files:
     client.js:
       - hexular/hexular.js
-      - client/classes/actions.js
-      - client/classes/board.js
-      - client/classes/config.js
-      - client/classes/event-hole.js
-      - client/classes/file-loader.js
-      - client/classes/modal.js
-      - client/classes/opt-parser.js
-      - client/classes/plugin.js
-      - client/classes/preset.js
-      - client/classes/radio-group.js
-      - client/classes/recorder.js
-      - client/classes/select.js
-      - client/classes/transfer-canvas.js
-      - client/classes/modals/config-modal.js
-      - client/classes/modals/confirm-modal.js
-      - client/classes/modals/custom-modal.js
-      - client/classes/modals/draw-modal.js
-      - client/classes/modals/rb-modal.js
-      - client/classes/modals/resize-modal.js
-      - client/classes/modals/theme-modal.js
-      - client/library/examples.js
-      - client/library/rules.js
-      - client/library/presets.js
-      - client/library/themes.js
+      - client/classes/*.js
+      - client/classes/modals/*.js
+      - client/library/*.js
       - client/vendor/jscolor.js
       - client/app.js
+      - plugins/*.js
     client.css:
       - client/icon-main.css
       - client/icon-defs.css
