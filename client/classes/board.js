@@ -1,4 +1,9 @@
 class Board {
+  static registerPlugin(PluginClass) {
+    Board.plugins[PluginClass.name] = PluginClass;
+    Board.instance && Board.instance.updatePlugins();
+  }
+
   static resize(opts={}) {
     return new Promise((resolve, reject) => {
       document.body.classList.add('splash');
@@ -63,6 +68,7 @@ class Board {
         clear: [],
         paint: [],
       },
+      plugins: {},
       scaling: false,
       scaleQueue: [],
       toolClasses: {
@@ -237,6 +243,7 @@ class Board {
       draw: new DrawModal(this, 'draw'),
     }
     this.toggleModal();
+    this.updatePlugins();
     this.config.restoreModel();
     this.config.initialize();
   }
@@ -1327,4 +1334,11 @@ class Board {
     requestAnimationFrame(() => this.message.innerHTML = '');
     clearTimeout(this.messageTimer);
   }
+
+  // Plugins
+
+  updatePlugins() {
+    Object.assign(this.plugins, Board.plugins);
+  }
 }
+Board.plugins = {};

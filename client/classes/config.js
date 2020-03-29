@@ -612,19 +612,15 @@ class Config {
   }
 
   setRecordingMode(value) {
-    let drawModelBackground = this.bgAdapter.drawModelBackground;
-    let drawSolidBackground = this.bgAdapter.drawSolidBackground;
+    let drawSolidBackground = this.bgAdapter.constructor.drawSolidBackground;
     let hookList = this.bgAdapter.onDraw;
     if (value) {
       this.recordingMode = true;
-      hookList.keep((e) => e != drawSolidBackground && e != drawModelBackground);
       hookList.unshift(drawSolidBackground);
     }
     else {
       this.recordingMode = false;
-      hookList.keep((e) => e != drawSolidBackground && e != drawModelBackground);
-      if (this.onDraw.drawModelBackground)
-        hookList.unshift(drawModelBackground);
+      hookList.keep((e) => e != drawSolidBackground);
     }
   }
 
