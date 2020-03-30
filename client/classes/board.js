@@ -147,7 +147,8 @@ class Board {
         center: document.querySelector('#center'),
         color: document.querySelector('#tool-color'),
       },
-      colorButtons: Array.from(document.querySelectorAll('.toolbar.colors button')),
+      allColorButtons: Array.from(document.querySelectorAll('.toolbar.colors button')),
+      colorButtons: [],
     };
     props.disableWhenRecording = [
       props.buttons.step,
@@ -223,7 +224,7 @@ class Board {
     this.toolSizes.forEach((button, i) => {
       button.onclick = this.click(() => this.config.setToolSize(i + 1), this.config);
     });
-    this.colorButtons.forEach((button, i) => {
+    this.allColorButtons.forEach((button, i) => {
       button.onmousedown = (ev) => this.handleSetColor(ev, i);
     });
 
@@ -871,6 +872,20 @@ class Board {
       ctx.translate(x, y);
     });
     this.draw();
+  }
+
+  updateColorButtons() {
+    this.colorButtons = [];
+    for (let i = 0; i < this.allColorButtons.length; i++) {
+      let colorButton = this.allColorButtons[i];
+      if (i < this.config.maxNumStates) {
+        this.colorButtons.push(colorButton);
+        colorButton.classList.remove('hidden');
+      }
+      else {
+        colorButton.classList.add('hidden');
+      }
+    }
   }
 
   // Page/canvas listeners

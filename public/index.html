@@ -87,18 +87,6 @@
   </div>
   <div id="color-menu" class="toolbar right colors hidden">
     <div class="group">
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
     </div>
   </div>
   <div class="overlay hidden">
@@ -115,19 +103,8 @@
         <div class="group color">
             <input type="text" id="page-bg" class="jscolor wide" title="Page background color"/>
             <input type="text" id="model-bg" class="jscolor wide" title="Model background color"/>
-            <input type="text" class="jscolor"></input>
-            <input type="text "class="jscolor"></input>
-            <input type="text" class="jscolor"></input>
-            <input type="text" class="jscolor"></input>
-            <input type="text" class="jscolor"></input>
-            <input type="text" class="jscolor"></input>
-            <input type="text" class="jscolor"></input>
-            <input type="text" class="jscolor"></input>
-            <input type="text" class="jscolor"></input>
-            <input type="text" class="jscolor"></input>
-            <input type="text" class="jscolor"></input>
-            <input type="text" class="jscolor"></input>
         </div>
+        <div id="color-controllers" class="group color"></div>
         <div class="group">
           <label>Blend:</label>
           <select id="select-blend">
@@ -372,6 +349,14 @@
             <option>8</option>
             <option>10</option>
             <option>12</option>
+            <option>14</option>
+            <option>16</option>
+            <option>24</option>
+            <option>32</option>
+            <option>40</option>
+            <option>48</option>
+            <option>56</option>
+            <option>64</option>
           </datalist>
         </div>
         <div class="group rule-group">
@@ -423,9 +408,11 @@
     </svg>
   </div>
   <div class="assets" style="display: none;">
+    <button class="paint-button"></button>
+    <input type="text" class="color-controller jscolor"></input>
     <div class="rule-menu">
       <button class="checkable"></button>
-      <select></select>t
+      <select></select>
     </div>
     <div class="group plugin-control">
       <button class="plugin-enabled icon-eye-off"></button>

@@ -210,6 +210,7 @@ class Config {
         }
       }
       this.setDraw();
+      this.setMaxNumStates();
 
       // Board
       this.setTheme(this.theme);
@@ -451,6 +452,15 @@ class Config {
       }
     });
     this.storeSessionConfig();
+  }
+
+  setMaxNumStates(num=this.maxNumStates) {
+    this.maxNumStates = num;
+    if (num < this.numStates)
+      this.setNumStates(num);
+    this.themeModal.update();
+    this.configModal.update();
+    this.board.updateColorButtons();
   }
 
   setNh(nh) {

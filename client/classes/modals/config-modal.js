@@ -41,6 +41,7 @@ class ConfigModal extends Modal {
 
   update() {
     this._updateMenus();
+    this.numStates.max = this.config.maxNumStates;
   }
 
   _handleNumStates() {
