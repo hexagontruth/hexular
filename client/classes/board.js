@@ -1,7 +1,7 @@
 class Board {
   static registerPlugin(PluginClass) {
     Board.plugins[PluginClass.name] = PluginClass;
-    Board.instance && Board.instance.updatePlugins();
+    Board.instance && Board.instance.modals.draw.update();
   }
 
   static resize(opts={}) {
@@ -68,7 +68,7 @@ class Board {
         clear: [],
         paint: [],
       },
-      plugins: {},
+      plugins: [],
       scaling: false,
       scaleQueue: [],
       toolClasses: {
@@ -243,7 +243,6 @@ class Board {
       draw: new DrawModal(this, 'draw'),
     }
     this.toggleModal();
-    this.updatePlugins();
     this.config.restoreModel();
     this.config.initialize();
   }
@@ -439,6 +438,12 @@ class Board {
       this.hooks[key].push({trigger, run});
       this.hooks[key].sort((a, b) => a.trigger - b.trigger);
     }
+  }
+
+  removeHook(hook, fn) {
+    let idx = this.hooks[hook].findIndex((e) => e.run == fn);
+    if (idx != -1)
+      this.hooks[hook].splice(idx, 1);
   }
 
   clearHooks(key) {
@@ -1333,12 +1338,6 @@ class Board {
     this.message.className = 'message';
     requestAnimationFrame(() => this.message.innerHTML = '');
     clearTimeout(this.messageTimer);
-  }
-
-  // Plugins
-
-  updatePlugins() {
-    Object.assign(this.plugins, Board.plugins);
   }
 }
 Board.plugins = {};

@@ -233,6 +233,15 @@
           </datalist>
           <label id="scale-indicator" class="indicator"></label>
         </div>
+        <div class="group">
+          <label class="third">Plugins:</label>
+          <select id="select-plugin">
+            <option value="" selected>[ Select plugin ]</option>
+          </select>
+          <button id="add-plugin" class="icon-plus"></button>
+        </div>
+        <div id="plugin-list" class="group wrap"></div>
+        <div id="plugin-editor" class="group"></div>
       </div>
     </div>
     <div class="modal resize hidden">
@@ -416,7 +425,23 @@
   <div class="assets" style="display: none;">
     <div class="rule-menu">
       <button class="checkable"></button>
-      <select></select>
+      <select></select>t
+    </div>
+    <div class="group plugin-control">
+      <button class="plugin-enabled icon-eye-off"></button>
+      <input class="plugin-label" readonly/>
+      <button class="plugin-edit icon-dots-horizontal"></button>
+      <button class="plugin-delete icon-trash"></button>
+    </div>
+    <div class="group wrap plugin-editor">
+      <div class="group">
+        <textarea class="plugin-editor-field"></textarea>
+      </div>
+      <div class="group buttons">
+        <button class="plugin-reset"><i class="icon-restore"></i> Reset</button>
+        <button class="plugin-revert"><i class="icon-undo"></i> Revert</button>
+        <button class="plugin-save"><i class="icon-save"></i> Save</button>
+      </div>
     </div>
     <button class="statemask">
       <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"

@@ -19,7 +19,7 @@ body {
 }
 
 .overlay-splash {
-  z-index: 100;
+  z-index: 10;
   position: fixed;
   top: 0;
   bottom: 0;
@@ -115,7 +115,7 @@ button:disabled {
 
 .toolbar {
   position: fixed;
-  z-index: 10;
+  z-index: 50;
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
@@ -486,6 +486,10 @@ button:disabled {
   overflow: hidden;
 }
 
+.modal .wrap {
+  flex-wrap: wrap;
+}
+
 .modal .group.sub-buttons {
   margin-bottom: 0.5em;
 }
@@ -542,6 +546,10 @@ select {
 
 .modal .group textarea#rule-string {
   height: 5em;
+}
+
+.modal textarea.plugin-editor-field {
+  height: 8em;
 }
 
 .modal .text {
