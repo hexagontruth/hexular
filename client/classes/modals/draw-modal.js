@@ -27,7 +27,6 @@ class DrawModal extends Modal {
     this.addPlugin = document.querySelector('#add-plugin');
     this.pluginList = document.querySelector('#plugin-list');
     this.pluginEditor = document.querySelector('#plugin-editor');
-    this.pluginControllers = [];
 
     Object.entries(this.drawButtons).forEach(([fnName, button]) => button.onclick = () => this._setDraw(fnName));
     this.drawSteps.oninput = (ev) => this._setDrawSteps(this.drawSteps.value);
@@ -79,117 +78,11 @@ class DrawModal extends Modal {
   }
 
   _addPlugin(pluginName) {
-    new PluginControl(this, pluginName);
+    let plugin = new PluginControl(this.board, pluginName);
+    plugin && this.board.setMessage(`Added ${pluginName} plugin!`);
   }
 
   _updatePlugins() {
     this.addPlugin.disabled = !this.selectPlugin.value;
-  }
-}
-
-class PluginControl {
-  constructor(modal, pluginName, activate=true) {
-    this.modal = modal;
-    this.board = modal.board;
-    this.name = pluginName;
-    let PluginClass = Board.plugins[pluginName];
-    if (!PluginClass)
-      return;
-
-    let plugin = this.plugin = new PluginClass(modal.board);
-    modal.pluginControllers.push(this);
-    this.board.plugins.push(plugin);
-
-    let controllerPrototype = document.querySelector('.assets .plugin-control');
-    let editorPrototype = document.querySelector('.assets .plugin-editor');
-    this.controller = controllerPrototype.cloneNode(true);
-    this.editor = editorPrototype.cloneNode(true);
-
-    this.enabledButton = this.controller.querySelector('.plugin-enabled');
-    this.deleteButton = this.controller.querySelector('.plugin-delete');
-    this.editButton = this.controller.querySelector('.plugin-edit');
-    this.label = this.controller.querySelector('.plugin-label');
-
-    this.editorField = this.editor.querySelector('.plugin-editor-field');
-    this.resetButton = this.editor.querySelector('.plugin-reset');
-    this.revertButton = this.editor.querySelector('.plugin-revert');
-    this.saveButton = this.editor.querySelector('.plugin-save');
-
-    this.label.value = this.name;
-    modal.pluginList.appendChild(this.controller);
-    this.enabledButton.onclick = (ev) => this._toggleEnabled();
-    this.editButton.onclick = (ev) => this._toggleEditor();
-    this.deleteButton.onclick = (ev) => this._delete();
-    this.resetButton.onclick = (ev) => this._reset();
-    this.revertButton.onclick = (ev) => this._revert();
-    this.saveButton.onclick = (ev) => this._save();
-
-    activate && this._activate();
-    this._revert();
-  }
-
-  _toggleEnabled() {
-    this.active ? this._deactivate() : this._activate();
-  }
-
-  _toggleEditor() {
-    this.editing ? this._closeEditor() : this._openEditor();
-  }
-
-  _activate() {
-    this.active = true;
-    this.plugin.activate();
-    this.enabledButton.classList.add('active');
-    this.enabledButton.classList.add('icon-eye');
-    this.enabledButton.classList.remove('icon-eye-off');
-    this.board.draw();
-  }
-
-  _deactivate() {
-    this.active = false;
-    this.plugin.deactivate();
-    this.enabledButton.classList.remove('active');
-    this.enabledButton.classList.add('icon-eye-off');
-    this.enabledButton.classList.remove('icon-eye');
-    this.board.draw();
-  }
-
-  _openEditor() {
-    this.modal.pluginControllers.forEach((e) => e._closeEditor());
-    this.editing = true;
-    this.modal.pluginEditor.appendChild(this.editor);
-    this.editButton.classList.add('active');
-  }
-
-  _closeEditor() {
-    this.editing = false;
-    this.editor.remove();
-    this.editButton.classList.remove('active');
-  }
-
-  _reset() {
-    this.plugin.saveSettings(this.plugin.defaultSettings());
-    this._revert();
-  }
-
-  _revert() {
-    this.editorField.value = this.plugin.getSettings();
-  }
-
-  _save() {
-    try {
-      this.plugin.saveSettings(this.editorField.value);
-      this.board.setMessage(`Settings saved for ${this.name} plugin!`);
-    }
-    catch (err) {
-      this.board.setMessage(err, 'error');
-      console.error(err);
-    }
-  }
-  _delete() {
-    this.plugin.deactivate();
-    this.board.plugins = this.board.plugins.filter((e) => e != this.plugin);
-    this.modal.pluginControllers = this.modal.pluginControllers.filter((e) => e != this);
-    this.controller.remove();
   }
 }

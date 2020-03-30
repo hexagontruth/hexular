@@ -36,7 +36,7 @@ class RotatorExpander extends Plugin {
       adapter.drawPath(cell, p);
       adapter.context.fillStyle = adapter.fillColors[cell.state];
       adapter.context.fill();
-    }
+    };
     this.bgAdapter.onDraw.push(this.drawFn);
     this.bgAdapter.onDrawCell.push(this.drawCellFn);
   }

@@ -9,14 +9,16 @@ class Board {
       document.body.classList.add('splash');
       let oldBoard = Board.instance;
       oldBoard && oldBoard.stop();
-     setTimeout(async () => {
+      setTimeout(async () => {
         let board = new Board(opts);
         Board.instance = board;
         if (oldBoard) {
+          oldBoard.pluginControls.forEach((pluginControl) => {
+            pluginControl.delete();
+            new PluginControl(board, pluginControl.plugin.to(board));
+          });
           board.undoStack = oldBoard.undoStack;
           board.redoStack = oldBoard.redoStack;
-          board.bgAdapter.onDraw.replace(oldBoard.bgAdapter.onDraw.filter((e) => !e.radio));
-          board.bgAdapter.onDrawCell.replace(oldBoard.bgAdapter.onDrawCell.filter((e) => !e.radio));
           board.hooks = Config.merge(oldBoard.hooks);
           board.refreshHistoryButtons();
         }
@@ -69,6 +71,7 @@ class Board {
         paint: [],
       },
       plugins: [],
+      pluginControls: [],
       scaling: false,
       scaleQueue: [],
       toolClasses: {

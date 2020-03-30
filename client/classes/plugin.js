@@ -1,6 +1,6 @@
 class Plugin {
-  static restore(board, PluginClass, settings) {
-    return new PluginClass(board, settings);
+  static restore(board, pluginName, settings) {
+    return new Board.plugins[pluginName](board, settings);
   }
 
   constructor(board, settings) {
@@ -38,6 +38,10 @@ class Plugin {
     else {
       throw new Hexular.classes.HexError('Settings string does not evaluate to an object');
     }
+  }
+
+  to(board) {
+    return new this.constructor(board, this.getSettings());
   }
 
   toString() {

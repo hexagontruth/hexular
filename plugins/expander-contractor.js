@@ -49,7 +49,7 @@ class ExpanderContractor extends Plugin {
       opts.fillStyle = color;
       opts.strokeStyle = color;
       adapter.drawHexagon(cell, r, opts);
-    }
+    };
     this.bgAdapter.onDraw.push(this.drawFn);
     this.bgAdapter.onDrawCell.push(this.drawCellFn);
   }
