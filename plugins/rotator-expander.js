@@ -1,5 +1,4 @@
 class RotatorExpander extends Plugin {
-
   defaultSettings() {
     return `
       {
@@ -10,6 +9,7 @@ class RotatorExpander extends Plugin {
       }
     `;
   }
+
   activate() {
     const tau = Math.PI * 2;
     let direction, typeOffset, angle;

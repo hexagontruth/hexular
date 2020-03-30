@@ -1,5 +1,4 @@
 class ExpanderContractor extends Plugin {
-
   defaultSettings() {
     return `
       {
@@ -13,6 +12,7 @@ class ExpanderContractor extends Plugin {
       }
     `;
   }
+
   activate() {
     const tau = Math.PI * 2;
     let deltaRadius, q, startR, contR, endR, opts;

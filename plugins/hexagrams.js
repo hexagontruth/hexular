@@ -1,5 +1,4 @@
 class Hexagrams extends Plugin {
-  static from
   defaultSettings() {
     return `
       {
@@ -7,6 +6,7 @@ class Hexagrams extends Plugin {
       }
     `;
   }
+
   activate() {
     let board = this.board;
     let model = board.model;

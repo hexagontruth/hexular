@@ -101,7 +101,7 @@ class PluginControl {
   }
   delete() {
     this.closeEditor();
-    this.plugin.deactivate();
+    this.deactivate();
     this.board.plugins = this.board.plugins.filter((e) => e != this.plugin);
     this.board.pluginControls = this.board.pluginControls.filter((e) => e != this);
     this.controller.remove();
