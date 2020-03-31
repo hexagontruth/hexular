@@ -93,6 +93,7 @@ class PluginControl {
     try {
       this.plugin.saveSettings(this.editorField.value);
       this.board.setMessage(`Settings saved for ${this.name} plugin!`);
+      this.board.draw();
     }
     catch (err) {
       this.board.setMessage(err, 'error');

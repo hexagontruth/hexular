@@ -13,8 +13,6 @@ class CubicExpander extends Plugin {
         minRadius: 0,
         maxRadius: 1,
         maxCircleRadius: 0.5,
-        fill: true,
-        stroke: false,
       }
     `;
   }
@@ -38,11 +36,9 @@ class CubicExpander extends Plugin {
         let v3 = Hexular.math.scalarOp(verts[(i + 5) % 6], r);
         adapter.drawPath(cell, [[0, 0], v1, v2, v3]);
         let cols = [fillColors[cell[state]], fillColors[n0[state]], fillColors[n1[state]]];
-        if (this.settings.fill) {
-          ctx.fillStyle =
-            adapter.vcolorToHex(adapter.mergeVcolors(adapter.mergeVcolors(cols[0], cols[1]), cols[2], 0.67));
-          ctx.fill();
-        }
+        ctx.fillStyle =
+          adapter.vcolorToHex(adapter.mergeVcolors(adapter.mergeVcolors(cols[0], cols[1]), cols[2], 0.67));
+        ctx.fill();
       }
     };
     this.drawFn = (adapter) => {
@@ -53,7 +49,7 @@ class CubicExpander extends Plugin {
       radius = r * ((max - min) * q + min);
       invRadius = r * ((max - min) * (1 - q) + min);
       pivotQ = (q > 0.5 ? 1 - q : q) * 2;
-      lineAlpha = this.config.lineAlpha ? Math.min(1, q * 4) : 1;
+      lineAlpha = this.settings.lineAlpha ? Math.min(1, pivotQ * 2) : 1;
     };
     this.drawCellLines = (cell, adapter) => {
       if (cell.state && this.settings.drawLines && !cell.edge) {
