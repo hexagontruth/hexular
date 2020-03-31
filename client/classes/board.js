@@ -27,7 +27,7 @@ class Board {
         Board.bgAdapter = board.bgAdapter;
         Board.fgAdapter = board.fgAdapter;
         Board.modals = board.modals;
-        board.hooks.resize.forEach((e) => e.run())
+        board.runHook('resize');
         await board.draw();
         document.body.classList.remove('splash');
         resolve();
@@ -69,7 +69,10 @@ class Board {
         debugStep: [],
         clear: [],
         paint: [],
+        updatePreset: [],
+        updateTheme: [],
       },
+      hookQueue: new Set(),
       plugins: [],
       pluginControls: [],
       scaling: false,
@@ -408,13 +411,13 @@ class Board {
         else {
           this.config.setSteps(this.config.steps + 1);
           this.running
-            ? this.hooks.playStep.forEach((e) => e.run())
-            : this.hooks.incrementStep.forEach((e) => e.run());
-          this.hooks.step.forEach((e) => e.run());
-          this.debugSelected && this.hooks.debugStep.forEach((e) => e.run(this.debugSelected));
+            ? this.runHook('playStep')
+            : this.runHook('incrementStep');
+          this.runHook('step');
+          this.debugSelected && this.runHook('debugStep', this.debugSelected);
         }
       }
-      this.hooks.drawStep.forEach((e) => e.run());
+      this.runHook('drawStep');
       this.drawSync();
     }
     catch (e) {
@@ -433,7 +436,7 @@ class Board {
     this.draw();
     this.storeModelState();
     this.config.setSteps(0);
-    this.hooks.clear.forEach((e) => e.run());
+    this.runHook('clear');
   }
 
   addHook(...args) {
@@ -453,6 +456,20 @@ class Board {
   clearHooks(key) {
     if (this.hooks[key])
       this.hooks[key] = [];
+  }
+
+  runHook(hook, ...args) {
+    this.hooks[hook].forEach((e) => e.run(...args));
+  }
+
+  runHookAsync(hook, ...args) {
+    if (!this.hookQueue.has(hook)) {
+      this.hookQueue.add(hook);
+      window.requestAnimationFrame(() => {
+        this.hookQueue.delete(hook);
+        this.hooks[hook].forEach((e) => e.run(...args));
+      });
+    }
   }
 
   toggleMenu(state=!this.configMenu) {
@@ -1307,7 +1324,7 @@ class Board {
       this.debugSelected = window.cell = cell;
     if (cell) {
       this.setMessage(`Cell at ${cell}: ${cell.state}`);
-      this.hooks.debugSelect.forEach((e) => e.run(cell));
+      this.runHook('debugSelect', cell);
     }
   }
 

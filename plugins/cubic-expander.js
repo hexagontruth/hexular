@@ -24,8 +24,8 @@ class CubicExpander extends Plugin {
     let adapter = this.bgAdapter;
     let ctx = adapter.context;
     let radius, invRadius, q, pivotQ, lineAlpha;
-    let fillColors = adapter.fillColors.map((e) => adapter.styleToVcolor(e));
-    let strokeColors = adapter.strokeColors.map((e) => adapter.styleToVcolor(e));
+    let fillColors, strokeColors;
+    let t = [127, 127, 127, 0];
     let verts = Hexular.math.pointyVertices;
     let drawCube = (cell, r, state='state') => {
       for (let i = 0; i < 6; i += 2) {
@@ -35,11 +35,19 @@ class CubicExpander extends Plugin {
         let v2 = Hexular.math.scalarOp(verts[(i + 4) % 6], r);
         let v3 = Hexular.math.scalarOp(verts[(i + 5) % 6], r);
         adapter.drawPath(cell, [[0, 0], v1, v2, v3]);
-        let cols = [fillColors[cell[state]], fillColors[n0[state]], fillColors[n1[state]]];
+        let cols = [
+          fillColors[cell[state]] || t,
+          fillColors[n0[state]] || t,
+          fillColors[n1[state]] || t,
+        ];
         ctx.fillStyle =
           adapter.vcolorToHex(adapter.mergeVcolors(adapter.mergeVcolors(cols[0], cols[1]), cols[2], 0.67));
         ctx.fill();
       }
+    };
+    this.updateColors = () => {
+      fillColors = adapter.fillColors.map((e) => adapter.styleToVcolor(e));
+      strokeColors = adapter.strokeColors.map((e) => adapter.styleToVcolor(e));
     };
     this.drawFn = (adapter) => {
       let min = this.settings.minRadius;
@@ -101,12 +109,15 @@ class CubicExpander extends Plugin {
         drawCube(cell, radius);
       }
     };
+    this.updateColors();
+    this.board.addHook('updateTheme', this.updateColors);
     this.bgAdapter.onDraw.push(this.drawFn);
     this.bgAdapter.onDrawCell.push(this.drawCellLines);
     this.bgAdapter.onDrawCell.push(this.drawCellHex);
   }
 
   deactivate() {
+    this.board.removeHook('updateTheme', this.updateColors);
     this.bgAdapter.onDraw.keep((e) => e != this.drawFn);
     this.bgAdapter.onDrawCell.keep((e) => e != this.drawCellLines);
     this.bgAdapter.onDrawCell.keep((e) => e != this.drawCellHex);

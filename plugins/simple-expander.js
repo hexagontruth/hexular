@@ -21,8 +21,6 @@ class SimpleExpander extends Plugin {
     let adapter = this.bgAdapter;
     let ctx = adapter.context;
     let radius, invRadius, q, opts;
-    let fillColors = adapter.fillColors.map((e) => adapter.styleToVcolor(e));
-    let strokeColors = adapter.strokeColors.map((e) => adapter.styleToVcolor(e));
     this.drawFn = (adapter) => {
       let min = this.settings.minRadius;
       let max = this.settings.maxRadius;

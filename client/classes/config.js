@@ -554,6 +554,7 @@ class Config {
     this.configModal.savePreset.disabled = false;
     this.preset = presetName;
     this.storeSessionConfig();
+    this.board.runHookAsync('updatePreset');
   }
 
   setRule(idx, rule) {
@@ -657,6 +658,7 @@ class Config {
     }
     this.board.draw();
     this.storeSessionConfigAsync();
+    this.board.runHookAsync('updateTheme');
   }
 
   setThemable() {
@@ -715,6 +717,7 @@ class Config {
     if (dirty) {
       this.setPreset();
     }
+    this.board.runHookAsync('updatePreset');
   }
 
   checkTheme() {
@@ -741,6 +744,7 @@ class Config {
     if (dirty) {
       this.setTheme();
     }
+    this.board.runHookAsync('updateTheme');
   }
 
   getThemeFromObject(obj) {

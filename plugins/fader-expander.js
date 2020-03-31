@@ -22,9 +22,12 @@ class FaderExpander extends Plugin {
     let adapter = this.bgAdapter;
     let ctx = adapter.context;
     let q, pivotQ, radius, alpha, verts, opts;
-    let fillColors = adapter.fillColors.map((e) => adapter.styleToVcolor(e));
-    let strokeColors = adapter.strokeColors.map((e) => adapter.styleToVcolor(e));
+    let fillColors, strokeColors;
     let t = [127, 127, 127, 0];
+    this.updateColors = () => {
+      fillColors = adapter.fillColors.map((e) => adapter.styleToVcolor(e));
+      strokeColors = adapter.strokeColors.map((e) => adapter.styleToVcolor(e));
+    };
     this.drawFn = (adapter) => {
       let settings = this.settings;
       let minRadius = settings.minRadius;
@@ -61,11 +64,14 @@ class FaderExpander extends Plugin {
         ctx.restore();
       }
     };
+    this.updateColors();
+    this.board.addHook('updateTheme', this.updateColors);
     this.bgAdapter.onDraw.push(this.drawFn);
     this.bgAdapter.onDrawCell.push(this.drawCellFn);
   }
 
   deactivate() {
+    this.board.removeHook('updateTheme', this.updateColors);
     this.bgAdapter.onDraw.keep((e) => e != this.drawFn);
     this.bgAdapter.onDrawCell.keep((e) => e != this.drawCellFn);
   }
