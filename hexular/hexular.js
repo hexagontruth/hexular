@@ -1237,10 +1237,11 @@ var Hexular = (function () {
      * @param {Cell} cell                                    The cell being drawn
      * @param {CanvasAdapter} adapter                        The target adapter
      * @param {string} [style=this.strokeColors[cell.state]] Optional stroke style
-     * @param {number} [lineWidth=this.cellBorderWidth]      Optional line width
+     * @param {number} [lineWidth=adapter.cellBorderWidth]   Optional line width
      */
 
-    static drawOutlinePointyHex(cell, adapter, style, lineWidth=this.cellBorderWidth) {
+    static drawOutlinePointyHex(cell, adapter, style, lineWidth) {
+      lineWidth = lineWidth || adapter.cellBorderWidth;
       if (lineWidth == 0)
         return;
       adapter.context.strokeStyle = style || adapter.strokeColors[cell.state] || adapter.defaultColor;
@@ -1268,10 +1269,11 @@ var Hexular = (function () {
      * @param {Cell} cell                                    The cell being drawn
      * @param {CanvasAdapter} adapter                        The target adapter
      * @param {string} [style=this.strokeColors[cell.state]] Optional stroke style
-     * @param {number} [lineWidth=this.cellBorderWidth]      Optional line width
+     * @param {number} [lineWidth=adapter.cellBorderWidth]   Optional line width
      */
 
-    static drawOutlineFlatHex(cell, adapter, style, lineWidth=this.cellBorderWidth) {
+    static drawOutlineFlatHex(cell, adapter, style, lineWidth) {
+      lineWidth = lineWidth || adapter.cellBorderWidth;
       if (lineWidth == 0)
         return;
       adapter.context.strokeStyle = style || adapter.strokeColors[cell.state] || adapter.defaultColor;
@@ -1306,10 +1308,11 @@ var Hexular = (function () {
      * @param {Cell} cell                                  The cell being drawn
      * @param {CanvasAdapter} adapter                      The target adapter
      * @param {string} [style=this.fillColors[cell.state]] Optional stroke style
-     * @param {number} [lineWidth=this.cellBorderWidth]    Optional line width
+     * @param {number} [lineWidth=adapter.cellBorderWidth] Optional line width
      */
 
-    static drawOutlineCircle(cell, adapter, style, lineWidth=this.cellBorderWidth) {
+    static drawOutlineCircle(cell, adapter, style, lineWidth) {
+      lineWidth = lineWidth || adapter.cellBorderWidth;
       if (lineWidth == 0)
         return;
       adapter.context.strokeStyle = style || adapter.fillColors[cell.state] || adapter.defaultColor;

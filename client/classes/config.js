@@ -357,11 +357,11 @@ class Config {
 
   updateAdapter() {
     this.bgAdapter.cellGap = this.cellGap * this.scaleRatio;
-    this.bgAdapter.cellGap = this.cellGap * this.scaleRatio;
+    this.fgAdapter.cellGap = this.cellGap * this.scaleRatio;
     this.bgAdapter.cellBorderWidth = this.cellBorderWidth * this.scaleRatio;
-    this.bgAdapter.cellBorderWidth = this.cellBorderWidth * this.scaleRatio;
+    this.fgAdapter.cellBorderWidth = this.cellBorderWidth * this.scaleRatio;
     this.bgAdapter.updateMathPresets();
-    this.bgAdapter.updateMathPresets();
+    this.fgAdapter.updateMathPresets();
     this.checkTheme();
     this.board.draw();
     this.storeSessionConfigAsync();

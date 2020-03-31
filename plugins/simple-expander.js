@@ -9,6 +9,7 @@ class SimpleExpander extends Plugin {
         maxRadius: 1,
         fill: true,
         stroke: false,
+        lineWidth: null,
       }
     `;
   }
@@ -29,7 +30,12 @@ class SimpleExpander extends Plugin {
       let q = this.board.drawStepQ;
       radius = r * ((max - min) * q + min);
       invRadius = r * ((max - min) * (1 - q) + min);
-      opts = {type: this.settings.hexType, fill: this.settings.fill, stroke: this.settings.stroke};
+      opts = {
+        type: this.settings.hexType,
+        fill: this.settings.fill,
+        stroke: this.settings.stroke,
+        lineWidth: this.settings.lineWidth != null ? this.settings.lineWidth : adapter.cellBorderWidth,
+      };
     };
     this.drawCellFn = (cell, adapter) => {
       let fill, stroke;

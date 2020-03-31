@@ -6,6 +6,7 @@ class TanhRotator extends Plugin {
         rotationFactor: 1,
         fill: true,
         stroke: false,
+        lineWidth: null,
       }
     `;
   }
@@ -56,7 +57,8 @@ class TanhRotator extends Plugin {
       opts = {
         type: this.settings.hexType,
         fill: this.settings.fill,
-        stroke: this.settings.stroke
+        stroke: this.settings.stroke,
+        lineWidth: this.settings.lineWidth != null ? this.settings.lineWidth : adapter.cellBorderWidth,
       };
       q = config.drawStepInterval == 1 ? 1 : board.drawStep / config.drawStepInterval;
     };
@@ -81,7 +83,7 @@ class TanhRotator extends Plugin {
     config.setNumStates(2);
     config.addRule('tanhRotator', this.ruleFn);
     config.setRule(null, 'tanhRotator');
-    this.drawFn();
+    this.drawFn(this.bgAdapter);
     this.board.addHook('paint', this.paintFn);
     this.config.customPaintMap = this.paintMap;
     this.bgAdapter.onDraw.push(this.drawFn);

@@ -9,6 +9,7 @@ class ExpanderContractor extends Plugin {
         pivot: 0.5,
         fill: true,
         stroke: false,
+        lineWidth: null,
       }
     `;
   }
@@ -31,6 +32,7 @@ class ExpanderContractor extends Plugin {
         type: this.settings.hexType,
         fill: this.settings.fill,
         stroke: this.settings.stroke,
+        lineWidth: this.settings.lineWidth != null ? this.settings.lineWidth : adapter.cellBorderWidth,
       };
     };
     this.drawCellFn = (cell, adapter) => {

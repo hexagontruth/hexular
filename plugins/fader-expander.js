@@ -9,6 +9,7 @@ class FaderExpander extends Plugin {
         maxRadius: 1,
         fill: true,
         stroke: false,
+        lineWidth: null,
       }
     `;
   }
@@ -17,6 +18,7 @@ class FaderExpander extends Plugin {
     const tau = Math.PI * 2;
     let model = this.model;
     let board = this.board;
+    let config = this.config;
     let adapter = this.bgAdapter;
     let ctx = adapter.context;
     let q, pivotQ, radius, alpha, verts, opts;
@@ -24,20 +26,21 @@ class FaderExpander extends Plugin {
     let strokeColors = adapter.strokeColors.map((e) => adapter.styleToVcolor(e));
     let t = [127, 127, 127, 0];
     this.drawFn = (adapter) => {
-      let minRadius = this.settings.minRadius;
-      let maxRadius = this.settings.maxRadius;
-      let minAlpha = this.settings.minAlpha;
-      let maxAlpha = this.settings.maxAlpha;
-
-      q = this.board.drawStepQ;
+      let settings = this.settings;
+      let minRadius = settings.minRadius;
+      let maxRadius = settings.maxRadius;
+      let minAlpha = settings.minAlpha;
+      let maxAlpha = settings.maxAlpha;
+      q = board.drawStepQ;
       pivotQ = (q > 0.5 ? 1 - q : q) * 2;
       radius = adapter.innerRadius * ((maxRadius - minRadius) * pivotQ + minRadius);
       alpha = (maxAlpha - minAlpha) * pivotQ + minAlpha;
-      verts = this.settings.hexType ? Hexular.math.pointyVertices : Hexular.math.flatVertices;
+      verts = settings.hexType ? Hexular.math.pointyVertices : Hexular.math.flatVertices;
       opts = {
-        type: this.settings.hexType,
-        fill: this.settings.fill,
-        stroke: this.settings.stroke,
+        type: settings.hexType,
+        fill: settings.fill,
+        stroke: settings.stroke,
+        lineWidth: settings.lineWidth != null ? settings.lineWidth : config.cellBorderWidth,
       };
     };
     this.drawCellFn = (cell, adapter) => {
