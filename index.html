@@ -4,9 +4,12 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no"/>
   <link rel="icon" type="image/png" href="icon.png"/>
-  <script src="build/client.js?v=0.6"></script>
-  <link rel="stylesheet" type="text/css" href="build/client.css?v=0.6"/>
+  <script src="build/client.js?v=0.7"></script>
+  <link rel="stylesheet" type="text/css" href="build/client.css?v=0.7"/>
   <title>Hexular Studio</title>
+  <meta name="og:title" content="Hexular Studio"/>
+  <meta name="og:image" content="https://hexagrahamaton.github.io/hexular/card-thumb.png"/>
+  <meta name="og:description" content="Create and record hexagonal cellular automata."/>
   <meta name="twitter:card" content="summary"/>
   <meta name="twitter:site" content="@hexagonalnews"/>
   <meta name="twitter:title" content="Hexular Studio"/>
@@ -44,10 +47,12 @@
   </div>
   <div id="config-menu" class="toolbar menu hidden">
     <div class="group tools">
-      <button id="show-config" title="Model configuration (Ctrl+M)" class="icon-gear"></button>
+      <button id="show-config" title="Model Configuration (Ctrl+M)" class="icon-gear"></button>
+      <button id="show-draw" title="Draw Configuration (Ctrl+Y)" class="icon-lead-pencil"></button>
+      <button id="show-theme" title="Theme (Ctrl+E)" class="icon-rainbow"></button>
+      <button id="show-resize" title="Resize Model (Ctrl+R)" class="icon-arrow-top-right-bottom-left"></button>
       <button id="show-rb" title="Rulebuilder (Ctrl+B)" class="icon-function"></button>
-      <button id="show-resize" title="Appearance (Ctrl+E)" class="icon-rainbow"></button>
-      <button id="show-custom" title="Custom code (Ctrl+F)" class="icon-code"></button>
+      <button id="show-custom" title="Custom Code (Ctrl+F)" class="icon-code"></button>
       <button id="show-clear" title="Clear local data (Ctrl+X)" class="icon-refresh"></button>
     </div>
   </div>
@@ -85,285 +90,315 @@
   </div>
   <div id="color-menu" class="toolbar right colors hidden">
     <div class="group">
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
-      <button></button>
     </div>
   </div>
-  <div class="overlay hidden">
-    <div class="modal resize hidden">
-      <div class="modal-title"><i class="icon-rainbow"></i> Appearance</div>
-      <div class="modal-content">
-        <div class="group">
-          <label>Theme:</label>
-          <select id="select-theme" class="focus" title="Select theme">
-            <option selected value="">[ Select theme ]</option>
-          </select>
-          <button id="add-theme" class="icon-plus" title="Save theme..."></button>
-        </div>
-        <div class="group color">
-            <input type="text" id="page-bg" class="jscolor wide" title="Page background color"/>
-            <input type="text" id="model-bg" class="jscolor wide" title="Model background color"/>
-            <input type="text" class="jscolor"></input>
-            <input type="text "class="jscolor"></input>
-            <input type="text" class="jscolor"></input>
-            <input type="text" class="jscolor"></input>
-            <input type="text" class="jscolor"></input>
-            <input type="text" class="jscolor"></input>
-            <input type="text" class="jscolor"></input>
-            <input type="text" class="jscolor"></input>
-            <input type="text" class="jscolor"></input>
-            <input type="text" class="jscolor"></input>
-            <input type="text" class="jscolor"></input>
-            <input type="text" class="jscolor"></input>
-        </div>
-        <div class="group">
-          <label>Blend:</label>
-          <select id="select-blend">
-            <option>color-burn</option>
-            <option>color-dodge</option>
-            <option>color</option>
-            <option>darken</option>
-            <option>difference</option>
-            <option>exclusion</option>
-            <option>hard-light</option>
-            <option>hue</option>
-            <option>lighten</option>
-            <option>lighter</option>
-            <option>luminosity</option>
-            <option>multiply</option>
-            <option>overlay</option>
-            <option>saturation</option>
-            <option>screen</option>
-            <option>soft-light</option>
-            <option>source-out</option>
-            <option selected>source-over</option>
-            <option>xor</option>
-          </select>
-          <label>Draw Steps:</label>
-          <input class="short" type="number" id="draw-steps" step="1" value="1" min="1"/>
-        </div>
-        <div class="group">
-          <label>Gap:</label>
-          <input type="number" id="cell-gap" step="0.1"/>
-          <label>Border:</label>
-          <input type="number" id="cell-border-width" min="0" step="0.1"/>
-          <button id="autopause" class="icon-pause" title="Autopause"></button>
-        </div>
-        <div class="group buttons">
-          <button id="sort-cells-asc" class="icon-sort-ascending" title="Draw in ascending order (may cause slowness)"></button>
-          <button id="sort-cells-desc" class="icon-sort-descending" title="Draw in descending order (may cause slowness)"></button>
-          <div class="divider"></div>
-          <button id="draw-filled-pointy-hex" class="icon-hexagon" title="Filled pointy hex"></button>
-          <button id="draw-outline-pointy-hex" class="icon-hexagon-outline" title="Outline pointy hex"></button>
-          <button id="draw-filled-flat-hex" class="icon-hexagon rotate" title="Filled flat hex"></button>
-          <button id="draw-outline-flat-hex" class="icon-hexagon-outline rotate" title="Outline flat hex"></button>
-          <button id="draw-filled-circle" class="icon-circle" title="Filled circle"></button>
-          <button id="draw-outline-circle" class="icon-circle-outline" title="Outline circle"></button>
-        </div>
-        <div class="group">
-          <label class="left">Interval:</label>
-          <input type="range" id="interval-slider" min="0" max="1000" step="5"
-            value="60" list="interval-ticks" title="Timer interval (ms)"/>
-          <datalist id="interval-ticks">
-            <option>0</option>
-            <option>100</option>
-            <option>200</option>
-            <option>300</option>
-            <option>400</option>
-            <option>500</option>
-            <option>600</option>
-            <option>700</option>
-            <option>800</option>
-            <option>900</option>
-            <option>1000</option>
-          </datalist>
-          <label id="interval-indicator" class="indicator"></label>
-        </div>
-        <div class="group">
-          <label class="left">Scale:</label>
-          <input type="range" id="scale-slider" min="0" max="4" step="0.1"
-            value="60" list="scale-ticks"-ticks" title="Default scale"/>
-          <datalist id="scale-ticks">
-            <option>0.1</option>
-            <option>0.2</option>
-            <option>0.3</option>
-            <option>0.4</option>
-            <option>0.5</option>
-            <option>0.6</option>
-            <option>0.7</option>
-            <option>0.8</option>
-            <option>0.9</option>
-            <option>1</option>
-            <option>1.5</option>
-            <option>2</option>
-            <option>2.5</option>
-            <option>3</option>
-          </datalist>
-          <label id="scale-indicator" class="indicator"></label>
-        </div>
-        <div class="group">
-          <label class="left">Radius:</label>
-          <input type="range" id="resize-slider" min="0" max="360" step="1"
-            value="60" list="resize-ticks"-ticks" title="Board radius"/>
-          <datalist id="resize-ticks">
-            <option>0</option>
-            <option>30</option>
-            <option>60</option>
-            <option>90</option>
-            <option>120</option>
-            <option>150</option>
-            <option>180</option>
-            <option>210</option>
-            <option>240</option>
-            <option>270</option>
-            <option>300</option>
-            <option>330</option>
-            <option>360</option>
-          </datalist>
-          <label id="resize-indicator" class="indicator"></label>
-        </div>
-        <div class="group buttons">
-          <button id="resize-set"></button>
-        </div>
-      </div>
-    </div>
-    <div class="modal confirm hidden">
-      <div class="modal-content">
-        <div class="group">
-          <div id="confirmation-text" class="text"></div>
-        </div>
-       <div class="group buttons">
-          <button id="confirmation-no" class="focus">No</button>
-          <button id="confirmation-yes">Yes</button>
-        </div>
-      </div>
-    </div>
-    <div class="modal rb hidden">
-      <div class="modal-title"><i class="icon-function"></i> Rulebuilder</div>
-      <div class="modal-content">
-        <div class="group">
-          <input class="focus" type="text" id="rule-name" placeholder="Rule name" title="Rule name"/>
-          <select id="select-available" title="Existing elementary rules">
-            <option value="" selected>[ Elementary rules ]</option>
-          </select>
-        </div>
-        <div class="group">
-          <button id="rule-select-all" class="icon-check-all"></button>
-          <label>Miss:</label>
-          <select id="rule-miss" title="Rule miss behavior">
-            <option value="" disabled>Other</option>
-            <option selected value="0:0">0</option>
-            <option value="1:0">1</option>
-            <option value="-1:0">-1</option>
-            <option value="0:1">Identity</option>
-            <option value="1:1">State + 1</option>
-            <option value="-1:1">State - 1</option>
-          </select>
-          <label>Match:</label>
-          <select id="rule-match" title="Rule match behavior">
-            <option value="" disabled>Other</option>
-            <option value="0:0">0</option>
-            <option selected value="1:0">1</option>
-            <option value="-1:0">-1</option>
-            <option value="0:1">Identity</option>
-            <option value="1:1">State + 1</option>
-            <option value="-1:1">State -1</option>
-          </select>
-        </div>
-        <div id="state-grid">
-        </div>
-        <div class="group">
-          <textarea type="text" id="rule-string" title="Hexular.util.ruleBuilder(...arguments)"></textarea>
-        </div>
-        <div class="group buttons">
-          <button id="reset-rule">Reset</button>
-          <button id="add-rule">Save rule</button>
-        </div>
-      </div>
-    </div>
-    <div class="modal custom hidden">
-      <div class="modal-title"><i class="icon-code"></i> Custom code</div>
-      <div class="modal-content">
-        <div class="group">
-          <select id="select-example">
-            <option value="">[ Select example ]</option>
-          </select>
-        </div>
-        <div class="group">
-          <textarea id="custom-input" class="focus" placeholder="// See global Examples object for more"></textarea>
-        </div>
-        <div class="group">
-          <input type="text" id="custom-output" readonly/>
-        </div>
-        <div class="group buttons">
-          <button id="import" title="Import custom JavaScript...">Import...</button>
-          <button id="add-custom-code" title="Run custom code">Run</button>
-        </div>
-      </div>
-    </div>
-    <div class="modal config hidden">
-      <div class="modal-title"><i class="icon-gear"></i> Configure model</div>
-      <div class="modal-content">
-        <div class="group">
-          <button id="add-preset" class="icon-plus" title="Save preset..."></button>
-          <select id="select-preset" class="focus">
-            <option value="">[ Select preset ]</option>
-          </select>
-          <button id="save-preset" class="icon-download" title="Download preset..."></button>
-          <button id="load-preset" class="icon-upload" title="Upload preset..."></button>
-        </div>
-        <div class="group">
-          <input type="range" id="num-states" min="2" max="12" step="1"
-            value="2" list="num-states-ticks" title="Number of States (2-12)"/>
-          <datalist id="num-states-ticks">
-            <option>2</option>
-            <option>4</option>
-            <option>6</option>
-            <option>8</option>
-            <option>10</option>
-            <option>12</option>
-          </datalist>
-        </div>
-        <div class="group rule-group">
-          <div class="rule-menu">
-            <button id="check-all" class="icon-check-all" title="Check all"></button>
-            <select id="set-all" title="Set selected">
-              <option value="">[ Set selected ]</option>
+  <div class="modal-container-wrapper">
+    <div class="modal-container">
+      <div class="modal theme hidden">
+        <div class="modal-title"><i class="icon-rainbow"></i> Theme</div>
+        <div class="modal-content">
+          <div class="group">
+            <label>Theme:</label>
+            <select id="select-theme" class="focus" title="Select theme">
+              <option selected value="">[ Select theme ]</option>
+            </select>
+            <button id="add-theme" class="icon-plus" title="Save theme..."></button>
+          </div>
+          <div class="group color">
+              <input type="text" id="page-bg" class="jscolor wide" title="Page background color"/>
+              <input type="text" id="model-bg" class="jscolor wide" title="Model background color"/>
+          </div>
+          <div id="color-controllers" class="group color group-scroll"></div>
+          <div class="group color">
+              <input type="text" id="default-color" class="jscolor wide" title="Default state color"/>
+          </div>
+          <div class="group">
+            <label>Blend:</label>
+            <select id="select-blend">
+              <option>color-burn</option>
+              <option>color-dodge</option>
+              <option>color</option>
+              <option>darken</option>
+              <option>difference</option>
+              <option>exclusion</option>
+              <option>hard-light</option>
+              <option>hue</option>
+              <option>lighten</option>
+              <option>lighter</option>
+              <option>luminosity</option>
+              <option>multiply</option>
+              <option>overlay</option>
+              <option>saturation</option>
+              <option>screen</option>
+              <option>soft-light</option>
+              <option>source-out</option>
+              <option selected>source-over</option>
+              <option>xor</option>
             </select>
           </div>
-          <div class="rule-menu" id="default-rule-menu" title="Default rule">
-            <button class="checkable" icon="icon-infinity"></button>
-            <select></select>
+          <div class="group">
+            <label>Gap:</label>
+            <input type="number" id="cell-gap" step="0.1"/>
+            <label>Border:</label>
+            <input type="number" id="cell-border-width" min="0" step="0.1"/>
           </div>
         </div>
-        <div class="group rule-group" id="rule-group"></div>
-        <div class="group">
-          <select id="select-neighborhood" title="Default neighborhood for cell helper functions">
-            <option value="6" selected>N6: 6 immediate neighbors</option>
-            <option value="12">N12: 12 closest neighbors</option>
-            <option value="18">N18: 18 closest neighbors</option>
-            <option value="7">N7: 6 neighbors + self</option>
-            <option value="13">N13: 12 neighbors + self</option>
-            <option value="19">N19: 18 neighbors + self</option>
-          </select>
+      </div>
+      <div class="modal draw hidden">
+        <div class="modal-title"><i class="icon-rainbow"></i> Draw Configuration</div>
+        <div class="modal-content">
+          <div class="group buttons">
+            <button id="autopause" class="icon-pause" title="Autopause"></button>
+            <div class="divider"></div>
+            <button id="draw-model-background" class="icon-hexception" title="Draw model background"></button>
+            <button id="sort-cells-asc" class="icon-sort-ascending" title="Draw in ascending order (may cause performance issues)"></button>
+            <button id="sort-cells-desc" class="icon-sort-descending" title="Draw in descending order (may cause performance issues)"></button>
+          </div>
+          <div class="group buttons">
+            <button id="draw-filled-pointy-hex" class="icon-hexagon" title="Filled pointy hex"></button>
+            <button id="draw-outline-pointy-hex" class="icon-hexagon-outline" title="Outline pointy hex"></button>
+            <button id="draw-filled-flat-hex" class="icon-hexagon rotate" title="Filled flat hex"></button>
+            <button id="draw-outline-flat-hex" class="icon-hexagon-outline rotate" title="Outline flat hex"></button>
+            <button id="draw-filled-circle" class="icon-circle" title="Filled circle"></button>
+            <button id="draw-outline-circle" class="icon-circle-outline" title="Outline circle"></button>
+          </div>
+          <div class="group">
+            <label class="third">Interval:</label>
+            <input type="range" id="interval-slider" min="0" max="1000" step="5"
+              value="60" list="interval-ticks" title="Timer interval (ms)"/>
+            <datalist id="interval-ticks">
+              <option>0</option>
+              <option>100</option>
+              <option>200</option>
+              <option>300</option>
+              <option>400</option>
+              <option>500</option>
+              <option>600</option>
+              <option>700</option>
+              <option>800</option>
+              <option>900</option>
+              <option>1000</option>
+            </datalist>
+            <label id="interval-indicator" class="indicator"></label>
+          </div>
+          <div class="group">
+            <label class="third">Draw steps:</label>
+            <input type="range" id="draw-step-slider" min="1" max="60" step="1"
+              value="1" list="draw-step-ticks" title="Intermediate draw steps between model steps"/>
+            <datalist id="draw-step-ticks">
+              <option>1</option>
+              <option>4</option>
+              <option>8</option>
+              <option>15</option>
+              <option>30</option>
+              <option>60</option>
+            </datalist>
+            <label id="draw-step-indicator" class="indicator"></label>
+          </div>
+          <div class="group">
+            <label class="third">Base scale:</label>
+            <input type="range" id="scale-slider" min="0" max="4" step="0.1"
+              value="60" list="scale-ticks"-ticks" title="Default scale"/>
+            <datalist id="scale-ticks">
+              <option>0.1</option>
+              <option>0.2</option>
+              <option>0.3</option>
+              <option>0.4</option>
+              <option>0.5</option>
+              <option>0.6</option>
+              <option>0.7</option>
+              <option>0.8</option>
+              <option>0.9</option>
+              <option>1</option>
+              <option>1.5</option>
+              <option>2</option>
+              <option>2.5</option>
+              <option>3</option>
+            </datalist>
+            <label id="scale-indicator" class="indicator"></label>
+          </div>
+          <div class="group">
+            <label class="third">Plugins:</label>
+            <select id="select-plugin">
+              <option value="" selected>[ Select plugin ]</option>
+            </select>
+            <button id="add-plugin" class="icon-plus"></button>
+          </div>
+          <div id="plugin-list" class="group wrap"></div>
+          <div id="plugin-editor" class="group"></div>
         </div>
-        <div class="group buttons">
-          <button id="filter-binary" class="icon-power" title="Binary filter"></button>
-          <button id="filter-delta" class="icon-delta" title="Delta filter"></button>
-          <button id="filter-clip-bottom" class="icon-arrow-collapse-down" title="Clip bottom"></button>
-          <button id="filter-clip-top" class="icon-arrow-collapse-up" title="Clip top"></button>
-          <button id="filter-mod" class="icon-percent" title="Modulo filter"></button>
-          <button id="filter-edge" class="icon-hexagon-outline rotate" title="Edge filter"></button>
+      </div>
+      <div class="modal resize hidden">
+        <div class="modal-title"><i class="icon-arrow-top-right-bottom-left"></i> Resize Model</div>
+        <div class="modal-content">
+          <div class="group">
+            <div class="text">Warning: Resizing model will remove any custom drawing functions.</div>
+          </div>
+          <div class="group">
+            <label>Resize:</label>
+            <input type="range" id="resize-slider" min="0" max="360" step="1"
+              value="60" list="resize-ticks"-ticks" title="Board radius"/>
+            <datalist id="resize-ticks">
+              <option>0</option>
+              <option>30</option>
+              <option>60</option>
+              <option>90</option>
+              <option>120</option>
+              <option>150</option>
+              <option>180</option>
+              <option>210</option>
+              <option>240</option>
+              <option>270</option>
+              <option>300</option>
+              <option>330</option>
+              <option>360</option>
+            </datalist>
+            <label id="resize-indicator" class="indicator"></label>
+          </div>
+          <div class="group buttons">
+            <button id="resize-set"><i class="icon-arrow-top-right-bottom-left"></i> Resize to 10,621 cells</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal confirm hidden">
+        <div class="modal-content">
+          <div class="group">
+            <div id="confirmation-text" class="text center"></div>
+          </div>
+         <div class="group buttons">
+            <button id="confirmation-no" class="focus">No</button>
+            <button id="confirmation-yes">Yes</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal rb hidden">
+        <div class="modal-title"><i class="icon-function"></i> Rulebuilder</div>
+        <div class="modal-content">
+          <div class="group">
+            <input class="focus" type="text" id="rule-name" placeholder="Rule name" title="Rule name"/>
+            <select id="select-available" title="Existing elementary rules">
+              <option value="" selected>[ Elementary rules ]</option>
+            </select>
+          </div>
+          <div class="group">
+            <button id="rule-select-all" class="icon-check-all"></button>
+            <label>Miss:</label>
+            <select id="rule-miss" title="Rule miss behavior">
+              <option value="" disabled>Other</option>
+              <option selected value="0:0">0</option>
+              <option value="1:0">1</option>
+              <option value="-1:0">-1</option>
+              <option value="0:1">Identity</option>
+              <option value="1:1">State + 1</option>
+              <option value="-1:1">State - 1</option>
+            </select>
+            <label>Match:</label>
+            <select id="rule-match" title="Rule match behavior">
+              <option value="" disabled>Other</option>
+              <option value="0:0">0</option>
+              <option selected value="1:0">1</option>
+              <option value="-1:0">-1</option>
+              <option value="0:1">Identity</option>
+              <option value="1:1">State + 1</option>
+              <option value="-1:1">State -1</option>
+            </select>
+          </div>
+          <div id="state-grid">
+          </div>
+          <div class="group">
+            <textarea type="text" id="rule-string" title="Hexular.util.ruleBuilder(...arguments)"></textarea>
+          </div>
+          <div class="group buttons">
+            <button id="reset-rule">Reset</button>
+            <button id="add-rule">Save rule</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal custom hidden">
+        <div class="modal-title"><i class="icon-code"></i> Custom Code</div>
+        <div class="modal-content">
+          <div class="group">
+            <select id="select-example">
+              <option value="">[ Select example ]</option>
+            </select>
+          </div>
+          <div class="group">
+            <textarea id="custom-input" class="focus" placeholder="// See global Examples object for more"></textarea>
+          </div>
+          <div class="group">
+            <input type="text" id="custom-output" readonly/>
+          </div>
+          <div class="group buttons">
+            <button id="import" title="Import custom JavaScript...">Import...</button>
+            <button id="add-custom-code" title="Run custom code">Run</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal config hidden">
+        <div class="modal-title"><i class="icon-gear"></i> Model Configuration</div>
+        <div class="modal-content">
+          <div class="group">
+            <button id="add-preset" class="icon-plus" title="Save preset..."></button>
+            <select id="select-preset" class="focus">
+              <option value="">[ Select preset ]</option>
+            </select>
+            <button id="save-preset" class="icon-download" title="Download preset..."></button>
+            <button id="load-preset" class="icon-upload" title="Upload preset..."></button>
+          </div>
+          <div class="group">
+            <label>States:</label>
+            <input type="range" id="num-states" min="2" max="12" step="1"
+              value="2" list="num-states-ticks" title="Number of States"/>
+            <label id="num-states-indicator" class="indicator"></label>
+            <datalist id="num-states-ticks">
+              <option>2</option>
+              <option>4</option>
+              <option>6</option>
+              <option>8</option>
+              <option>10</option>
+              <option>12</option>
+              <option>14</option>
+              <option>16</option>
+              <option>24</option>
+              <option>32</option>
+              <option>40</option>
+              <option>48</option>
+              <option>56</option>
+              <option>64</option>
+            </datalist>
+          </div>
+          <div class="group rule-group">
+            <div class="rule-menu">
+              <button id="check-all" class="icon-check-all" title="Check all"></button>
+              <select id="set-all" title="Set selected">
+                <option value="">[ Set selected ]</option>
+              </select>
+            </div>
+            <div class="rule-menu" id="default-rule-menu" title="Default rule">
+              <button class="checkable" icon="icon-infinity"></button>
+              <select></select>
+            </div>
+          </div>
+          <div class="group rule-group group-scroll" id="rule-group"></div>
+          <div class="group">
+            <label>Neighborhood:</label>
+            <select id="select-neighborhood" title="Default neighborhood for cell helper functions">
+              <option value="6" selected>N6: 6 immediate neighbors</option>
+              <option value="12">N12: 12 closest neighbors</option>
+              <option value="18">N18: 18 closest neighbors</option>
+              <option value="7">N7: 6 neighbors + self</option>
+              <option value="13">N13: 12 neighbors + self</option>
+              <option value="19">N19: 18 neighbors + self</option>
+            </select>
+          </div>
+          <div class="group buttons">
+            <button id="filter-binary" class="icon-power" title="Binary filter"></button>
+            <button id="filter-delta" class="icon-delta" title="Delta filter"></button>
+            <button id="filter-clip-bottom" class="icon-arrow-collapse-down" title="Clip bottom"></button>
+            <button id="filter-clip-top" class="icon-arrow-collapse-up" title="Clip top"></button>
+            <button id="filter-mod" class="icon-percent" title="Modulo filter"></button>
+            <button id="filter-edge" class="icon-hexagon-outline rotate" title="Edge filter"></button>
+          </div>
         </div>
       </div>
     </div>
@@ -382,9 +417,27 @@
     </svg>
   </div>
   <div class="assets" style="display: none;">
+    <button class="paint-button"></button>
+    <input type="text" class="color-controller jscolor"></input>
     <div class="rule-menu">
       <button class="checkable"></button>
       <select></select>
+    </div>
+    <div class="group plugin-control" draggable="true">
+      <button class="plugin-enabled icon-eye-off"></button>
+      <input class="plugin-name"/>
+      <button class="plugin-edit icon-dots-horizontal"></button>
+      <button class="plugin-delete icon-trash"></button>
+    </div>
+    <div class="group wrap plugin-editor">
+      <div class="group">
+        <textarea class="plugin-editor-field"></textarea>
+      </div>
+      <div class="group buttons">
+        <button class="plugin-reset"><i class="icon-restore"></i> Reset</button>
+        <button class="plugin-revert"><i class="icon-undo"></i> Revert</button>
+        <button class="plugin-save"><i class="icon-save"></i> Save</button>
+      </div>
     </div>
     <button class="statemask">
       <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
