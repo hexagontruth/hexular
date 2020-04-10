@@ -84,6 +84,10 @@ canvas[data-tool='hexoutline'] {
   cursor: crosshair;
 }
 
+body.modal-state canvas {
+  cursor: default;
+}
+
 button {
   display: block;
   color: #fff;
@@ -115,7 +119,7 @@ button:disabled {
 
 .toolbar {
   position: fixed;
-  z-index: 10;
+  z-index: 50;
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
@@ -131,7 +135,7 @@ button:disabled {
 }
 
 .toolbar.menu {
-  z-index: 40;
+  z-index: 75;
 }
 
 .toolbar.menu .group {
@@ -260,7 +264,8 @@ button:disabled {
 }
 
 .toolbar.colors .group {
-
+  max-height: 100%;
+  flex-wrap: wrap-reverse;
 }
 
 .toolbar.colors .group button {
@@ -281,6 +286,10 @@ button:disabled {
   border-color: #66ddee;
 }
 
+input.hidden, button.hidden {
+  display: none;
+}
+
 .tool-hidden .toolbar.top {
   transform: translateY(calc(-100% - 0.2em));
 }
@@ -295,6 +304,7 @@ button:disabled {
 
 .tool-hidden .toolbar.right, .toolbar.right.hidden {
   transform: translateX(calc(100% + 0.2em));
+  overflow: hidden;
 }
 
 .tool-hidden .toolbar.tool-hider {
@@ -396,25 +406,24 @@ button:disabled {
   background: #c33;
 }
 
-.overlay {
+.modal-container-wrapper {
+  z-index: 100;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+}
+
+.modal-container {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  position: fixed;
-  z-index: 20;
-  height: 100%;
-  width: 100%;
-  top: 0;
-  left: 0;
-  opacity: 1;
+  height: 100vh;
+  width: 100vw;
   padding: 30px;
-  /*background: #0000003f;*/
-}
-
-.overlay.hidden {
-  opacity: 0;
-  visibility: hidden;
+  pointer-events: none;
 }
 
 .modal.hidden {
@@ -434,14 +443,15 @@ button:disabled {
   overflow: auto;
   border-radius: 1em;
   box-shadow: 0 1px 2px #0000001f;
+  pointer-events: auto;
 }
 
-.modal div:first-child {
+.modal > div:first-child {
   border-top-left-radius: 1em;
   border-top-right-radius: 1em;
 }
 
-.modal div:last-child {
+.modal > div:last-child {
   border-bottom-left-radius: 1em;
   border-bottom-right-radius: 1em;
 }
@@ -484,6 +494,15 @@ button:disabled {
   align-items: stretch;
   flex: 0 1 100%;
   overflow: hidden;
+}
+
+.modal .group.group-scroll {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.modal .wrap {
+  flex-wrap: wrap;
 }
 
 .modal .group.sub-buttons {
@@ -544,11 +563,19 @@ select {
   height: 5em;
 }
 
+.modal textarea.plugin-editor-field {
+  height: 8em;
+}
+
 .modal .text {
   line-height: 1.5;
   margin-top: 0;
   margin-bottom: 0.5em;
   width: 100%;
+  text-align: left;
+}
+
+.modal .text.center {
   text-align: center;
 }
 
@@ -566,11 +593,15 @@ select {
   white-space: nowrap;
 }
 
-.modal label.left {
+.modal .group .quarter {
   min-width: 25%;
 }
 
-.modal label.half {
+.modal .group .third {
+  min-width: calc(100% / 3);
+}
+
+.modal .group .half {
   width: 50%;
 }
 
@@ -630,16 +661,13 @@ select {
 }
 
 .modal .group.rule-group {
-  display: block;
-  column-count: 2;
-  column-gap: 0;
-}
-
-.modal .group.rule-group.default {
-  column-count: 1;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
 }
 
 .modal .rule-menu {
+  flex: 0 1 50%;
   display: flex;
   flex-direction: row;
   justify-content: space-between;

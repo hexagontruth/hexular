@@ -15,6 +15,21 @@ const Themes = (() => {
     '#aa55bb',
   ]);
 
+  let fruitcake = Object.assign([], Hexular.DEFAULTS.colors, [
+    null,
+    '#b7bb95',
+    '#8e996d',
+    '#796d53',
+    '#68873b',
+    '#8a3731',
+    '#d4872e',
+    '#ddc734',
+    '#89c828',
+    '#64a8ab',
+    '#4973bb',
+    '#aa5ebb',
+  ]);
+
   let rainbow = Object.assign([], Hexular.DEFAULTS.colors, [
     'transparent',
     '#ff0000',
@@ -59,9 +74,6 @@ const Themes = (() => {
       modelBackground: '#efefe7',
       cellGap: -12.75,
     },
-    classic: {
-      colors: classicColors,
-    },
     white: {
       pageBackground: '#ffffff',
       colors: Hexular.DEFAULTS.colors.slice(),
@@ -74,7 +86,7 @@ const Themes = (() => {
       cellGap: -0.5,
       pageBackground: '#ffffff',
       modelBackground: '#fffff7',
-      colors: Config.merge(classicColors, [
+      colors: Config.merge([], classicColors, [
         null,
         '#f7f7ef33',
         '#efefe766',
@@ -213,7 +225,59 @@ const Themes = (() => {
       pageBackground: '#cce5e2',
       modelBackground: '#eeeedd',
       cellGap: 1.33,
-      colors: Config.merge(new Array(12).fill('#33332f'), ['#eed']),
+      colors: Config.merge(new Array(64).fill('#33332f'), ['#eed']),
+    },
+    sovietFruitcake: {
+      pageBackground: '#f8f8f8',
+      modelBackground: '#edf0e7',
+      cellGap: 5,
+      cellBorder: 1,
+      colors: [
+        null,
+        '#b7bb95',
+        '#8e996d',
+        '#796d53',
+        '#68873b',
+        '#8a3731',
+        '#d4872e',
+        '#ddc734',
+        '#89c828',
+        '#64a8ab',
+        '#4973bb',
+        '#aa5ebb',
+      ],
+    },
+    extendedDarkFruitcake: {
+      pageBackground: '#4e4e47',
+      modelBackground: '#3e413a',
+      cellGap: 0,
+      cellBorder: 1,
+      colors: [
+        null,
+        '#9b8c65',
+        '#8e996d',
+        '#796d53',
+        '#68873b',
+        '#8a3731',
+        '#d4872e',
+        '#ddc734',
+        '#89c828',
+        '#64a8ab',
+        '#4973bb',
+        '#aa5ebb',
+        '#374a65',
+        '#5d5b70',
+        '#3a2e2e',
+        '#342d0a',
+      ],
+    },
+
+    spectral64: {
+      pageBackground: '#223030',
+      modelBackground: '#182b2e',
+      defaultColor: '#e7e7e7',
+      cellGap: 4.33,
+      colors: [null].concat(Array(63).fill(null).map((_, i) => Util.vcolorToHex(Util.hslToRgb(i * 360 / 63, 50, 50)))),
     },
   };
   return themes;

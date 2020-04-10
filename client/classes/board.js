@@ -1,17 +1,23 @@
 class Board {
+  static registerPlugin(PluginClass) {
+    Board.plugins[PluginClass.name] = PluginClass;
+    Board.instance && Board.instance.modals.draw.update();
+  }
+
   static resize(opts={}) {
     return new Promise((resolve, reject) => {
       document.body.classList.add('splash');
       let oldBoard = Board.instance;
       oldBoard && oldBoard.stop();
-     setTimeout(async () => {
+      setTimeout(async () => {
         let board = new Board(opts);
         Board.instance = board;
         if (oldBoard) {
+          oldBoard.pluginControls.forEach((pluginControl) => {
+            pluginControl.to(board);
+          });
           board.undoStack = oldBoard.undoStack;
           board.redoStack = oldBoard.redoStack;
-          board.bgAdapter.onDraw.replace(oldBoard.bgAdapter.onDraw);
-          board.bgAdapter.onDrawCell.replace(oldBoard.bgAdapter.onDrawCell);
           board.hooks = Config.merge(oldBoard.hooks);
           board.refreshHistoryButtons();
         }
@@ -20,7 +26,7 @@ class Board {
         Board.bgAdapter = board.bgAdapter;
         Board.fgAdapter = board.fgAdapter;
         Board.modals = board.modals;
-        board.hooks.resize.forEach((e) => e.run())
+        board.runHook('resize');
         await board.draw();
         document.body.classList.remove('splash');
         resolve();
@@ -41,6 +47,7 @@ class Board {
       timer: null,
       drawStep: 0,
       drawStepQ: 0,
+      drawStepQInc: 0,
       playStart: null,
       playSteps: 0,
       playLast: null,
@@ -62,7 +69,12 @@ class Board {
         debugStep: [],
         clear: [],
         paint: [],
+        updatePreset: [],
+        updateTheme: [],
       },
+      hookQueue: new Set(),
+      plugins: [],
+      pluginControls: [],
       scaling: false,
       scaleQueue: [],
       toolClasses: {
@@ -85,7 +97,7 @@ class Board {
       modal: null,
       modalTranslate: null,
       container: document.querySelector('.container'),
-      overlay: document.querySelector('.overlay'),
+      overlay: document.querySelector('.modal-container'),
       message: document.querySelector('.message'),
       menus: {
         color: document.querySelector('#color-menu'),
@@ -107,8 +119,10 @@ class Board {
         redo: document.querySelector('#redo'),
         toggleMenu: document.querySelector('#toggle-menu'),
         showConfig: document.querySelector('#show-config'),
-        showRb: document.querySelector('#show-rb'),
+        showDraw: document.querySelector('#show-draw'),
+        showTheme: document.querySelector('#show-theme'),
         showResize: document.querySelector('#show-resize'),
+        showRb: document.querySelector('#show-rb'),
         showCustom: document.querySelector('#show-custom'),
         showClear: document.querySelector('#show-clear'),
         saveSnapshot: document.querySelector('#snapshot-save'),
@@ -139,7 +153,8 @@ class Board {
         center: document.querySelector('#center'),
         color: document.querySelector('#tool-color'),
       },
-      colorButtons: Array.from(document.querySelectorAll('.toolbar.colors button')),
+      allColorButtons: Array.from(document.querySelectorAll('.toolbar.colors button')),
+      colorButtons: [],
     };
     props.disableWhenRecording = [
       props.buttons.step,
@@ -173,7 +188,7 @@ class Board {
     window.onkeyup = (ev) => this.handleKey(ev);
     window.oncontextmenu = (ev) => this.handleContextmenu(ev);
     window.onresize = (ev) => this.resize();
-    window.onwheel = (ev) => this.handleScale(ev);
+    window.onwheel = (ev) => this.handleWheel(ev);
     OnMouseEvent(this, this.handleMouse);
     OnTouchEvent(this, this.handleTouch);
 
@@ -186,6 +201,8 @@ class Board {
     this.buttons.toggleRecord.onclick = this.click(this.toggleRecord);
     this.buttons.toggleMenu.onclick = this.click(this.toggleMenu);
     this.buttons.showConfig.onmousedown = () => this.toggleModal('config');
+    this.buttons.showDraw.onmousedown = () => this.toggleModal('draw');
+    this.buttons.showTheme.onmousedown = () => this.toggleModal('theme');
     this.buttons.showResize.onmousedown = () => this.toggleModal('resize');
     this.buttons.showRb.onmousedown = () => this.toggleModal('rb');
     this.buttons.showCustom.onmousedown = () => this.toggleModal('custom');
@@ -213,7 +230,7 @@ class Board {
     this.toolSizes.forEach((button, i) => {
       button.onclick = this.click(() => this.config.setToolSize(i + 1), this.config);
     });
-    this.colorButtons.forEach((button, i) => {
+    this.allColorButtons.forEach((button, i) => {
       button.onmousedown = (ev) => this.handleSetColor(ev, i);
     });
 
@@ -229,6 +246,8 @@ class Board {
       custom: new CustomModal(this, 'custom'),
       rb: new RbModal(this, 'rb'),
       resize: new ResizeModal(this, 'resize'),
+      theme: new ThemeModal(this, 'theme'),
+      draw: new DrawModal(this, 'draw'),
     }
     this.toggleModal();
     this.config.restoreModel();
@@ -380,7 +399,13 @@ class Board {
   async step() {
     try {
       this.drawStep = (this.drawStep + 1) % this.config.drawStepInterval;
-      this.drawStepQ = this.drawStep / (this.config.drawStepInterval - 1 || 1);
+      if (this.config.drawStepInterval > 1) {
+        this.drawStepQ = this.drawStep / this.config.drawStepInterval;
+        this.drawStepQInc = this.drawStep / (this.config.drawStepInterval - 1 || 1);
+      }
+      else {
+        this.drawStepQ = this.drawStepQInc = 1;
+      }
       if (!this.drawStep) {
         this.newHistoryState();
         this.model.step();
@@ -392,13 +417,13 @@ class Board {
         else {
           this.config.setSteps(this.config.steps + 1);
           this.running
-            ? this.hooks.playStep.forEach((e) => e.run())
-            : this.hooks.incrementStep.forEach((e) => e.run());
-          this.hooks.step.forEach((e) => e.run());
-          this.debugSelected && this.hooks.debugStep.forEach((e) => e.run(this.debugSelected));
+            ? this.runHook('playStep')
+            : this.runHook('incrementStep');
+          this.runHook('step');
+          this.debugSelected && this.runHook('debugStep', this.debugSelected);
         }
       }
-      this.hooks.drawStep.forEach((e) => e.run());
+      this.runHook('drawStep');
       this.drawSync();
     }
     catch (e) {
@@ -417,7 +442,7 @@ class Board {
     this.draw();
     this.storeModelState();
     this.config.setSteps(0);
-    this.hooks.clear.forEach((e) => e.run());
+    this.runHook('clear');
   }
 
   addHook(...args) {
@@ -428,9 +453,29 @@ class Board {
     }
   }
 
+  removeHook(hook, fn) {
+    let idx = this.hooks[hook].findIndex((e) => e.run == fn);
+    if (idx != -1)
+      this.hooks[hook].splice(idx, 1);
+  }
+
   clearHooks(key) {
     if (this.hooks[key])
       this.hooks[key] = [];
+  }
+
+  runHook(hook, ...args) {
+    this.hooks[hook].forEach((e) => e.run(...args));
+  }
+
+  runHookAsync(hook, ...args) {
+    if (!this.hookQueue.has(hook)) {
+      this.hookQueue.add(hook);
+      window.requestAnimationFrame(() => {
+        this.hookQueue.delete(hook);
+        this.hooks[hook].forEach((e) => e.run(...args));
+      });
+    }
   }
 
   toggleMenu(state=!this.configMenu) {
@@ -452,9 +497,11 @@ class Board {
     if (selected && current != selected) {
       this.toggleMenu(false);
       this.modals[modal].open();
+      document.body.classList.add('modal-state');
     }
     else if (!selected) {
       this.fg.focus();
+      document.body.classList.remove('modal-state');
     }
   }
 
@@ -648,12 +695,9 @@ class Board {
       try {
         let config = JSON.parse(result);
         this.config.restoreState(config);
-        this.config.initialize();
-        this.config.storeLocalConfigAsync();
-        this.config.storeSessionConfigAsync();
-        this.config.setTheme();
-        this.config.setCellGap();
-        this.config.setCellBorderWidth();
+        this.config.storeLocalConfig();
+        this.config.storeSessionConfig();
+        Board.resize();
         this.setMessage('Settings restored!');
       }
       catch (e) {
@@ -746,6 +790,7 @@ class Board {
   resetDrawStep() {
     this.drawStep = 0;
     this.drawStepQ = 0;
+    this.drawStepQInc = 0;
   }
 
   resize() {
@@ -855,6 +900,20 @@ class Board {
     this.draw();
   }
 
+  updateColorButtons() {
+    this.colorButtons = [];
+    for (let i = 0; i < this.allColorButtons.length; i++) {
+      let colorButton = this.allColorButtons[i];
+      if (i < this.config.maxNumStates) {
+        this.colorButtons.push(colorButton);
+        colorButton.classList.remove('hidden');
+      }
+      else {
+        colorButton.classList.add('hidden');
+      }
+    }
+  }
+
   // Page/canvas listeners
 
   handleClearStorage() {
@@ -880,10 +939,24 @@ class Board {
     this.config.setTool('move');
   }
 
-  handleScale(ev) {
-    let scale = 1 - Math.sign(ev.deltaY) * 0.1;
-    this.scaleRelative(scale);
-    this.draw();
+  handleWheel(ev) {
+    let textTags = ['textarea', 'input'];
+    let focus = document.activeElement;
+    if (focus && textTags.indexOf(focus.tagName.toLowerCase()) != -1) {
+      if (focus.type =='range' && focus == ev.target) {
+        let min = focus.min || -Infinity;
+        let max = focus.max || Infinity;
+        let step = focus.step || 1;
+        let dir = -Math.sign(ev.deltaY);
+        focus.value = Math.max(min, Math.min(max, parseFloat(focus.value) + step * dir));
+        focus.dispatchEvent(new Event('input'));
+      }
+    }
+    else if (ev.target == this.fg) {
+      let scale = 1 - Math.sign(ev.deltaY) * 0.1;
+      this.scaleRelative(scale);
+      this.draw();
+    }
   }
 
   handleContextmenu(ev) {
@@ -967,7 +1040,7 @@ class Board {
             this.clear();
           }
           else if (key == 'e') {
-            this.toggleModal('resize');
+            this.toggleModal('theme');
           }
           else if (key == 'f') {
             this.toggleModal('custom');
@@ -977,6 +1050,12 @@ class Board {
           }
           else if (key == 'g') {
             this.toggleModal('config');
+          }
+          else if (key == 'r') {
+            this.toggleModal('resize');
+          }
+          else if (key == 'y') {
+            this.toggleModal('draw');
           }
           else if (key == 'x') {
             this.handleClearStorage();
@@ -1116,16 +1195,21 @@ class Board {
           this.toggleMenu(false);
         }
       }
-      if (ev.target == this.fg && this.selected && !this.action) {
-        if (ev.buttons & 1) {
-          this.startAction(ev);
+      if (ev.target == this.fg) {
+        if (this.modal) {
+          this.toggleModal();
         }
-        else if (ev.buttons & 2) {
-          let setState = this.config.getPaintColor(1);
-          this.startAction(ev, {setState});
-        }
-        else if ((ev.buttons & 4) && this.selected) {
-          this.debugSelect();
+        if (this.selected && !this.action) {
+          if (ev.buttons & 1) {
+            this.startAction(ev);
+          }
+          else if (ev.buttons & 2) {
+            let setState = this.config.getPaintColor(1);
+            this.startAction(ev, {setState});
+          }
+          else if ((ev.buttons & 4) && this.selected) {
+            this.debugSelect();
+          }
         }
       }
       this.clickTarget = ev.target;
@@ -1137,10 +1221,7 @@ class Board {
         this.translateModal();
       }
       else if (this.clickTarget == ev.target) {
-        if (ev.target == this.overlay) {
-          this.toggleModal();
-        }
-        else if (ev.target == this.message) {
+        if (ev.target == this.message) {
           this.clearMessage()
         }
         this.clickTarget = null;
@@ -1148,7 +1229,7 @@ class Board {
     }
     else if (ev.type == 'mousemove') {
       let cell;
-      if (ev.target == this.fg) {
+      if (ev.target == this.fg && !this.modal) {
         this.selectCell([ev.pageX, ev.pageY]);
         this.moveAction(ev);
       }
@@ -1174,6 +1255,9 @@ class Board {
     }
 
     if (ev.target == this.fg) {
+      if (this.modal) {
+        this.toggleModal();
+      }
       if (ev.touches.length == 1) {
         let [x, y] = [ev.touches[0].pageX, ev.touches[0].pageY];
         if (ev.type == 'touchstart') {
@@ -1265,7 +1349,7 @@ class Board {
       this.debugSelected = window.cell = cell;
     if (cell) {
       this.setMessage(`Cell at ${cell}: ${cell.state}`);
-      this.hooks.debugSelect.forEach((e) => e.run(cell));
+      this.runHook('debugSelect', cell);
     }
   }
 
@@ -1316,3 +1400,4 @@ class Board {
     clearTimeout(this.messageTimer);
   }
 }
+Board.plugins = {};

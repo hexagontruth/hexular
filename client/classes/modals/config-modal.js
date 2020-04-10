@@ -15,6 +15,7 @@ class ConfigModal extends Modal {
     this.checkState = null;
     this.ruleGroup = document.querySelector('#rule-group');
     this.numStates = document.querySelector('#num-states');
+    this.numStatesIndicator = document.querySelector('#num-states-indicator');
     this.addPreset = document.querySelector('#add-preset');
     this.savePreset = document.querySelector('#save-preset');
     this.loadPreset = document.querySelector('#load-preset');
@@ -26,7 +27,7 @@ class ConfigModal extends Modal {
     this.modal.onmouseup = (ev) => this._handleCheckState(ev);
     this.modal.onmousemove = (ev) => this._handleCheckState(ev);
     this.modal.onmouseleave = (ev) => this._handleCheckState(ev);
-    this.numStates.onchange = (ev) => this._handleNumStates();
+    this.numStates.oninput = (ev) => this._handleNumStates();
     this.addPreset.onclick = (ev) => this._handleAddPreset();
     this.savePreset.onclick = (ev) => this._handleSavePreset();
     this.loadPreset.onclick = (ev) => this._handleLoadPreset();
@@ -41,6 +42,7 @@ class ConfigModal extends Modal {
 
   update() {
     this._updateMenus();
+    this.numStates.max = this.config.maxNumStates;
   }
 
   _handleNumStates() {
@@ -183,7 +185,7 @@ class RuleMenu {
     select.onchange = (ev) => this.config.setRule(idx, select.value);
     if (idx != null) {
       container.title = `State ${idx}`;
-      button.style.backgroundColor = this.board.bgAdapter.colors[idx];
+      button.style.backgroundColor = this.config.colors[idx];
       select.replace(this.modal.availableRuleNames, this.config.rules[idx]);
     }
     else {

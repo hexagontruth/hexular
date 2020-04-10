@@ -42,6 +42,82 @@ const Rules = (() => {
 
     max: (cell) => cell.max,
 
+    diurnal: (cell) => {
+      let t = cell.total;
+      if (cell.state) {
+        if (t == 3 || t == 6)
+          return 1;
+        else
+          return 0;
+      }
+      else {
+        if (t == 3 || t == 0)
+          return 0;
+        else
+          return 1;
+      }
+    },
+
+    bicameral: Hexular.util.ruleBuilder([
+      0b000011,
+      0b000110,
+      0b001011,
+      0b001100,
+      0b001110,
+      0b010010,
+      0b010011,
+      0b010110,
+      0b011000,
+      0b011001,
+      0b011010,
+      0b011011,
+      0b011100,
+      0b011101,
+      0b011110,
+      0b011111,
+      0b100001,
+      0b100011,
+      0b100110,
+      0b101011,
+      0b101101,
+      0b101110,
+      0b110000,
+      0b110001,
+      0b110010,
+      0b110011,
+      0b110100,
+      0b110101,
+      0b110110,
+      0b110111,
+      0b111011,
+      0b111110,
+      0b111111,
+    ], {matchRel: true, rel: true}),
+
+    bicameralite: Hexular.util.ruleBuilder([
+      0b000011,
+      0b000110,
+      0b001100,
+      0b001110,
+      0b010010,
+      0b011000,
+      0b011011,
+      0b011100,
+      0b011110,
+      0b011111,
+      0b100001,
+      0b100011,
+      0b101101,
+      0b110000,
+      0b110001,
+      0b110011,
+      0b110110,
+      0b110111,
+      0b111011,
+      0b111110,
+      0b111111,
+    ], {matchRel: true, rel: true}),
+
     ennead: Hexular.util.ruleBuilder([
       0b001001,
       0b010010,
@@ -64,7 +140,16 @@ const Rules = (() => {
       0b011000,
       0b110000,
       0b100001,
-    ], {miss: -1, match: 1, missRel: true, matchRel: true, rel: true}),
+    ], {miss: -1, missRel: true, matchRel: true, rel: true}),
+
+    hexad: Hexular.util.ruleBuilder([
+      0b000011,
+      0b000110,
+      0b001100,
+      0b011000,
+      0b110000,
+      0b100001,
+    ], {miss: -1, missRel: true, matchRel: true}),
 
     expander: Hexular.util.ruleBuilder([
       0b000001,
@@ -92,7 +177,66 @@ const Rules = (() => {
       0b111001,
       0b111100,
       0b111111,
-    ], {"miss":-1,"match":1,"missRel":1,"matchRel":1,"rel":0}),
+    ], {miss: -1, match: 1, missRel: true, matchRel: true}),
+
+    probe: Hexular.util.ruleBuilder([
+      0b000011,
+      0b000110,
+      0b001001,
+      0b001100,
+      0b001111,
+      0b010010,
+      0b011000,
+      0b011011,
+      0b011110,
+      0b100001,
+      0b100100,
+      0b100111,
+      0b101101,
+      0b110000,
+      0b110011,
+      0b110110,
+      0b111001,
+      0b111100,
+      0b111111,
+    ]),
+
+    triforce: Hexular.util.ruleBuilder([
+      0b000101,
+      0b000110,
+      0b001001,
+      0b001010,
+      0b001011,
+      0b001101,
+      0b001111,
+      0b010001,
+      0b010010,
+      0b010011,
+      0b010100,
+      0b010110,
+      0b011000,
+      0b011001,
+      0b011010,
+      0b011011,
+      0b011110,
+      0b100001,
+      0b100010,
+      0b100100,
+      0b100101,
+      0b100110,
+      0b100111,
+      0b101000,
+      0b101001,
+      0b101100,
+      0b101101,
+      0b110010,
+      0b110011,
+      0b110100,
+      0b110110,
+      0b111001,
+      0b111100,
+      0b111111,
+    ]),
 
     fractalLeft: Hexular.util.ruleBuilder([
       0b010000,
@@ -126,7 +270,7 @@ const Rules = (() => {
       0b111100,
       0b111001,
       0b110011,
-    ], {"miss":0,"match":-1,"missRel":1,"matchRel":1,"rel":0}),
+    ], {match: -1, missRel: true, matchRel: true}),
 
     uncial: Hexular.util.ruleBuilder([
       0b000011,
@@ -141,7 +285,7 @@ const Rules = (() => {
       0b110000,
       0b110001,
       0b111000,
-    ], {"miss":-1,"match":1,"missRel":1,"matchRel":1,"rel":1}),
+    ], {miss: -1, missRel: true, matchRel: true, rel: true}),
 
     fancytown: (cell) => {
       const tot = cell.total;

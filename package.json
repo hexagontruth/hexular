@@ -1,6 +1,6 @@
 {
   "name": "hexular",
-  "version": "0.2.0",
+  "version": "0.3.0-alpha",
   "description": "An extensible platform for hexagonal cellular automata",
   "main": "index.js",
   "scripts": {
@@ -36,6 +36,7 @@
   "homepage": "https://hexagrahamaton.github.io/hexular/",
   "devDependencies": {
     "chokidar": "^3.3.1",
+    "glob": "^7.1.6",
     "jsdoc": "^3.6.3",
     "static-server": "^2.2.1",
     "yaml": "^1.7.2"

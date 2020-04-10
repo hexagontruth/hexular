@@ -1,3 +1,4 @@
+// In light of the plugin system these are now mostly obsolete but should still work
 const Examples = (() => {
   let fnCount = 0;
 
@@ -11,6 +12,8 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
     drawBackgroundImage: `Examples.drawBackgroundImage(null, {scale: 1})`,
     remove: `Examples.remove(/* index of example callback to remove */)`,
     scaleTo: `Board.instance.scaleTo(Board.instance.scale * 2, 5000)`,
+    maxNumStates: `Board.config.setMaxNumStates(64)`,
+    setSpectrumColors: `Examples.setSpectrumColors({range: [1, 16], dir: 1, hue: 0, delta: 360})`,
   };
 
   Object.entries(customCodeDemos).forEach(([k, v]) => {
@@ -450,7 +453,25 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
       Board.instance.hooks.step = Board.instance.hooks.step.filter((e) => !e.run.duplicateMapper);
       Board.instance.addHook('step', fn);
       return [map, dups];
-    }
+    },
+
+    setSpectrumColors: (opts={}) => {
+      let [min, max] = opts.range || [0, Board.config.maxNumStates];
+      let range = max - min;
+      let baseHue = opts.hue || 0;
+      let delta = opts.delta || 360;
+      let saturation = opts.saturation || 50;
+      let lightness = opts.lightness || 50;
+      let dir = opts.dir || 1;
+      let colors = Board.config.colors.slice();
+      for (let i = min; i < max; i++) {
+        let q = i - min;
+        let hue = (baseHue + dir * q * delta / range) % 360;
+        let vcolor = Util.hslToRgb(hue, saturation, lightness);
+        colors[i] = Util.vcolorToHex(vcolor);
+      }
+      Board.config.setColors(colors);
+    },
   }
 
   return examples;
