@@ -58,6 +58,11 @@ const Rules = (() => {
       }
     },
 
+    rhombicLife: (cell) => {
+      let t = cell.with[6].total + cell.nbrs[7].state + cell.nbrs[10].state;
+      return cell.state && (t == 2 || t == 3) || t == 3 ? 1 : 0;
+    },
+
     bicameral: Hexular.util.ruleBuilder([
       0b000011,
       0b000110,
