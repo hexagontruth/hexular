@@ -135,5 +135,54 @@ const Util = (() => {
     return vector;
   };
 
+  Util.rotateColors = (offset=1) => {
+    let colors = [];
+    let len = Math.min(Board.config.maxNumStates, Board.config.colors.length);
+    for (let i = 0; i < len; i++) {
+      let color = Board.config.colors[(i - offset + len) % len];
+      colors.push(color);
+    }
+    Board.config.setColors(colors);
+  };
+
+  Util.findDuplicateSteps = (radius=7, cell=Board.instance.debugSelected) => {
+    let cells = Hexular.util.hexWrap(cell, radius);
+    let map = window.stateMap = new Map();
+    let dups = window.duplicates = [];
+    let getStateKey = () => cells.map((e) => ('0' + e.state.toString(8)).slice(-2)).join('');
+    let fn = () => {
+      let stateKey = getStateKey();
+      let cur = map.get(stateKey);
+      if (cur != null) {
+        dups.push([cur, Board.config.steps, stateKey]);
+        Board.instance.setMessage(`Duplicate at ${cur}, ${Board.config.steps}!`);
+        console.log(`Duplicate at ${cur}, ${Board.config.steps}: ${stateKey}`);
+      }
+      map.set(stateKey, Board.config.steps);
+    }
+    fn.duplicateMapper = true;
+    Board.instance.hooks.step = Board.instance.hooks.step.filter((e) => !e.run.duplicateMapper);
+    Board.instance.addHook('step', fn);
+    return [map, dups];
+  };
+
+  Util.setSpectrumColors = (opts={}) => {
+    let [min, max] = opts.range || [0, Board.config.maxNumStates];
+    let range = max - min;
+    let baseHue = opts.hue || 0;
+    let delta = opts.delta || 360;
+    let saturation = opts.saturation || 50;
+    let lightness = opts.lightness || 50;
+    let dir = opts.dir || 1;
+    let colors = Board.config.colors.slice();
+    for (let i = min; i < max; i++) {
+      let q = i - min;
+      let hue = (baseHue + dir * q * delta / range) % 360;
+      let vcolor = Util.hslToRgb(hue, saturation, lightness);
+      colors[i] = Util.vcolorToHex(vcolor);
+    }
+    Board.config.setColors(colors);
+  };
+
   return Util;
 })();

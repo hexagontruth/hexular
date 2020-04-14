@@ -8,6 +8,7 @@ class ExpanderContractor extends Plugin {
         maxRadius: 1,
         fill: true,
         stroke: false,
+        color: null,
         lineWidth: null,
         pivot: 0.5,
         blendMode: null,
@@ -19,7 +20,7 @@ class ExpanderContractor extends Plugin {
 
   _activate() {
     const tau = Math.PI * 2;
-    let deltaRadius, startR, contR, endR, opts;
+    let deltaRadius, startR, contR, endR, opts, fillColors, strokeColors;
     this.drawFn = (adapter) => {
       let min = this.settings.minRadius;
       let base = this.settings.baseRadius;
@@ -37,25 +38,31 @@ class ExpanderContractor extends Plugin {
         stroke: this.settings.stroke,
         lineWidth: this.settings.lineWidth != null ? this.settings.lineWidth : adapter.cellBorderWidth,
       };
+      fillColors = adapter.fillColors.slice();
+      strokeColors = adapter.strokeColors.slice();
+      if (this.settings.color) {
+        fillColors.fill(this.settings.color);
+        strokeColors.fill(this.settings.color);
+      }
     };
     this.drawCellFn = (cell, adapter) => {
       if (!this._isAllowedState(cell.state)) return;
       this.setStateLists();
-      let color, r;
+      let r;
       let ctx = adapter.context;
       if (cell.state) {
-        color = adapter.fillColors[cell.state];
+        opts.fillStyle = fillColors[cell.state];
+        opts.strokeStyle = strokeColors[cell.state];
         r = cell.lastState ? contR : startR;
       }
       else if (cell.lastState) {
-        color = adapter.fillColors[cell.lastState];
+        opts.fillStyle = fillColors[cell.lastState];
+        opts.strokeStyle = strokeColors[cell.lastState];
         r = endR;
       }
       else {
         return;
       }
-      opts.fillStyle = color;
-      opts.strokeStyle = color;
       ctx.save();
       ctx.globalCompositeOperation = this.settings.blendMode;
       adapter.drawHexagon(cell, r, opts);

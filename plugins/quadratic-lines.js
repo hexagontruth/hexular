@@ -11,6 +11,7 @@ class QuadraticLines extends Plugin {
         minCircleRadius: 0,
         maxCircleRadius: 0.25,
         pivot: 0.5,
+        color: null,
         blendMode: null,
         stateWhitelist: null,
         stateBlacklist: null,
@@ -44,7 +45,7 @@ class QuadraticLines extends Plugin {
       ctx.save();
       ctx.globalAlpha = alpha;
       ctx.globalCompositeOperation = this.settings.blendMode;
-      ctx.fillStyle = adapter.strokeColors[cell.state];
+      ctx.fillStyle = this.settings.color || adapter.strokeColors[cell.state];
       let [x, y] = model.cellMap.get(cell);
       if (this.settings.drawLines) {
         for (let i = 0; i < 6; i++) {

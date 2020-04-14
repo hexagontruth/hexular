@@ -220,7 +220,7 @@ class Board {
 
     this.tools.move.onclick = this.click((ev) => this.config.setTool('move'), this.config);
     this.tools.brush.onclick = this.click((ev) => this.config.setTool('brush'), this.config);
-    this.tools.brush.onclick = this.click((ev) => this.config.setTool('brush'), this.config);
+    this.tools.fill.onclick = this.click((ev) => this.config.setTool('fill'), this.config);
     this.tools.line.onclick = this.click((ev) => this.config.setTool('line'), this.config);
     this.tools.lockline.onclick = this.click((ev) => this.config.setTool('lockline'), this.config);
     this.tools.hexfilled.onclick = this.click((ev) => this.config.setTool('hexfilled'), this.config);

@@ -10,6 +10,7 @@ class RotatorExpander extends Plugin {
         fill: true,
         stroke: false,
         lineWidth: null,
+        color: null,
         pivotUp: 1,
         pivotDown: 1,
         blendMode: null,
@@ -21,7 +22,7 @@ class RotatorExpander extends Plugin {
 
   _activate() {
     const tau = Math.PI * 2;
-    let angle, upRadius, downRadius, lineWidth;
+    let angle, upRadius, downRadius, lineWidth, fillColors, strokeColors;
     this.drawFn = (adapter) => {
       this.setStateLists();
       let min = this.settings.minRadius;
@@ -33,6 +34,12 @@ class RotatorExpander extends Plugin {
       upRadius = adapter.innerRadius * ((max - base) * pivotUp + base);
       downRadius = adapter.innerRadius * ((base - min) * (1 - pivotDown) + min);
       lineWidth = this.settings.lineWidth != null ? this.settings.lineWidth : this.config.cellBorderWidth;
+      fillColors = adapter.fillColors.slice();
+      strokeColors = adapter.strokeColors.slice();
+      if (this.settings.color) {
+        fillColors.fill(this.settings.color);
+        strokeColors.fill(this.settings.color);
+      }
     };
     this.drawCellFn = (cell, adapter) => {
       if (!cell.state || !this._isAllowedState(cell.state)) return;
@@ -48,11 +55,11 @@ class RotatorExpander extends Plugin {
       }
       adapter.drawPath(cell, p);
       if (this.settings.fill) {
-        adapter.context.fillStyle = adapter.fillColors[cell.state];
+        adapter.context.fillStyle = fillColors[cell.state];
         this.settings.fill && adapter.context.fill();
       }
       if (this.settings.stroke) {
-        adapter.context.strokeStyle = adapter.strokeColors[cell.state];
+        adapter.context.strokeStyle = strokeColors[cell.state];
         adapter.context.lineWidth = lineWidth;
         this.settings.stroke && adapter.context.stroke();
       }

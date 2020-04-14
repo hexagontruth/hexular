@@ -10,6 +10,7 @@ class SimpleExpander extends Plugin {
         fill: true,
         stroke: false,
         lineWidth: null,
+        color: null,
         blendMode: null,
         stateWhitelist: null,
         stateBlacklist: null,
@@ -23,7 +24,7 @@ class SimpleExpander extends Plugin {
     let board = this.board;
     let adapter = this.bgAdapter;
     let ctx = adapter.context;
-    let radius, invRadius, q, opts;
+    let radius, invRadius, q, opts, fillColors, strokeColors;
     this.drawFn = (adapter) => {
       this.setStateLists();
       let min = this.settings.minRadius;
@@ -38,6 +39,12 @@ class SimpleExpander extends Plugin {
         stroke: this.settings.stroke,
         lineWidth: this.settings.lineWidth != null ? this.settings.lineWidth : adapter.cellBorderWidth,
       };
+      fillColors = adapter.fillColors.slice();
+      strokeColors = adapter.strokeColors.slice();
+      if (this.settings.color) {
+        fillColors.fill(this.settings.color);
+        strokeColors.fill(this.settings.color);
+      }
     };
     this.drawCellFn = (cell, adapter) => {
       if (!this._isAllowedState(cell.state)) return;
@@ -45,8 +52,8 @@ class SimpleExpander extends Plugin {
       ctx.save();
       ctx.globalCompositeOperation = this.settings.blendMode;
       if (cell.lastState) {
-        opts.fillStyle = adapter.fillColors[cell.lastState];
-        opts.strokeStyle = adapter.strokeColors[cell.lastState];
+        opts.fillStyle = fillColors[cell.lastState];
+        opts.strokeStyle = strokeColors[cell.lastState];
         if (cell.state && this.settings.drawLast) {
           adapter.drawHexagon(cell,  adapter.innerRadius, opts);
         }
@@ -56,8 +63,8 @@ class SimpleExpander extends Plugin {
         
       }
       if (cell.state) {
-        opts.fillStyle = adapter.fillColors[cell.state];
-        opts.strokeStyle = adapter.strokeColors[cell.state];
+        opts.fillStyle = fillColors[cell.state];
+        opts.strokeStyle = strokeColors[cell.state];
         adapter.drawHexagon(cell, radius, opts);
       }
       ctx.restore();
