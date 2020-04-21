@@ -116,6 +116,7 @@
     if (typeof settingsObj == 'object') {
       this.settingsString = this._trim(settingsString);
       this.settings = settingsObj;
+      this._onSaveSettings && this._onSaveSettings();
     }
     else {
       throw new Hexular.classes.HexError('Settings string does not evaluate to an object');
