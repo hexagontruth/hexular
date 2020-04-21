@@ -38,6 +38,7 @@ class Config {
       rules: Array(this.maxNumStates).fill(this.defaultRule),
       themes: Config.merge(Themes),
       presets: Config.merge({}, Presets),
+      plugins: [],
       arrayType: 'Uint8Array',
       imageFormat: 'png',
       defaultImageFilenameBase: 'hex',
@@ -254,6 +255,9 @@ class Config {
 
       // Custom code modal
       this.setCustomInput(this.customInput);
+
+      // Restore plugins
+      this.restorePlugins();
     }
     catch (error) {
       console.error(error);
@@ -308,6 +312,16 @@ class Config {
       if (radioGroup.includes(buttonName))
         return radioGroup.filter((e) => e != buttonName);
     return [];
+  }
+
+  restorePlugins() {
+    if (this.pluginData) {
+      let existingStates = this.plugins.map((e) => e.toString());
+      this.pluginData.filter((e) => !existingStates.includes(e)).forEach((pluginState) => {
+        PluginControl.restoreFromPluginState(this.board, pluginState);
+      });
+      delete this.pluginData;
+    }
   }
 
   // --- SETTERS ---
@@ -544,6 +558,12 @@ class Config {
       this.board.menus.color.classList.add('hidden');
       this.board.toolMisc.color.classList.remove('active');
     }
+    this.storeSessionConfigAsync();
+  }
+
+  setPlugins(plugins) {
+    if (plugins)
+      this.plugins = plugins;
     this.storeSessionConfigAsync();
   }
 
@@ -828,6 +848,7 @@ class Config {
       'tool',
       'toolSize'
     ]);
+    sessionConfig.pluginData = this.plugins.map((e) => e.toString());
     return sessionConfig;
   };
 

@@ -1,6 +1,12 @@
 class PluginControl {
+  static restoreFromPluginState(board, pluginState) {
+    let [pluginName, settings, name, enabled] = JSON.parse(pluginState);
+    let plugin = new Board.plugins[pluginName](board, settings, name);
+    new PluginControl(board, plugin, enabled);
+  }
   constructor(board, plugin, enable=null) {
     this.board = board;
+    this.config = board.config;
     let modal = this.modal = board.modals.draw;
     if (typeof plugin == 'string') {
       let PluginClass = Board.plugins[plugin];
@@ -12,7 +18,7 @@ class PluginControl {
     this.policy = plugin.getPolicy();
     this.name = plugin.name;
     board.pluginControls.push(this);
-    this.board.plugins.push(plugin);
+    this.config.plugins.push(plugin);
 
     let controllerPrototype = document.querySelector('.assets .plugin-control');
     let editorPrototype = document.querySelector('.assets .plugin-editor');
@@ -85,7 +91,7 @@ class PluginControl {
         this.modal.pluginList.appendChild(pluginControl.controller);
         pluginControl.deactivate() && pluginControl.enable();
       });
-      this.board.plugins = this.board.pluginControls.map((e) => e.plugin);
+      this.config.setPlugins(this.config.pluginControls.map((e) => e.plugin));
     }
   }
 
@@ -171,7 +177,7 @@ class PluginControl {
     this.closeEditor();
     this.disable();
     this.plugin.deactivate();
-    this.board.plugins = this.board.plugins.filter((e) => e != this.plugin);
+    this.config.plugins = this.config.plugins.filter((e) => e != this.plugin);
     this.board.pluginControls = this.board.pluginControls.filter((e) => e != this);
     this.controller.remove();
     this.editor.remove();

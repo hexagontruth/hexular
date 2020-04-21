@@ -14,7 +14,7 @@ class Board {
         Board.instance = board;
         if (oldBoard) {
           oldBoard.pluginControls.forEach((pluginControl) => {
-            pluginControl.to(board);
+            pluginControl.delete();
           });
           board.undoStack = oldBoard.undoStack;
           board.redoStack = oldBoard.redoStack;
@@ -67,13 +67,13 @@ class Board {
         resize: [],
         debugSelect: [],
         debugStep: [],
+        drawFg: [],
         clear: [],
         paint: [],
         updatePreset: [],
         updateTheme: [],
       },
       hookQueue: new Set(),
-      plugins: [],
       pluginControls: [],
       scaling: false,
       scaleQueue: [],
@@ -695,6 +695,7 @@ class Board {
       try {
         let config = JSON.parse(result);
         this.config.restoreState(config);
+        this.config.restorePlugins();
         this.config.storeLocalConfig();
         this.config.storeSessionConfig();
         Board.resize();
@@ -1320,6 +1321,7 @@ class Board {
     let cell = this.selected;
     if (!this.action) {
       this.fgAdapter.clear();
+      this.runHook('drawFg');
       if (cell) {
         let color = this.config.selectColor;
         let width = this.config.selectWidth;
