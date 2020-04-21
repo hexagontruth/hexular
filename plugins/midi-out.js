@@ -25,7 +25,7 @@ class MidiOut extends Plugin {
       next = cur + 1;
     else {
       let note = this.notemap.get(cell);
-      this.device.send(0x90 + parseInt(channel), note, this.settings.velocity);
+      this.device.send([0x90 + parseInt(channel), note, this.settings.velocity]);
     }
     this.playlists[channel].set(cell, cur ? cur + 1 : 1);
   }
@@ -33,14 +33,26 @@ class MidiOut extends Plugin {
   deactivateCell(cell, channel=0) {
     let cur = this.playlists[channel].get(cell);
     if (!cur || cur <= 1) {
-      this.playlist.delete(cell);
+      this.playlists[channel].delete(cell);
       let note = this.notemap.get(cell);
-      this.device.send(0x80 + parseInt(channel), note, this.settings.velocity);
+      this.device.send([0x80 + parseInt(channel), note, this.settings.velocity]);
     }
     else {
       this.playlists[channel].set(cell, cur - 1);
     }
     return cur;
+  }
+
+  setCells(cells) {
+    let players = {};
+    this.channels.forEach((e) => players[e] = new MidiStepPlayer(this, e));
+    // Add cell to channels - each state can activate more than one channel
+    this.cells.forEach((cell) => {
+      let channels = this.stateChannelMap[cell.state];
+      channels.forEach((e) => players[e].add(cell));
+    });
+    // Start new players
+    Object.values(players).forEach((e) => e.start());
   }
 
   _onSaveSettings() {
@@ -50,7 +62,7 @@ class MidiOut extends Plugin {
     this.channels = Object.keys(this.settings.channelStateMap);
     this.stateChannelMap = Array(this.config.maxNumStates).fill().map(() => []);
     Object.entries(this.settings.channelStateMap).forEach(([channel, states]) => {
-      this.playlists[channel] = new Set();
+      this.playlists[channel] = new Map();
       states.forEach((e) => {
         this.stateChannelMap[e].push(channel);
       });
@@ -65,7 +77,6 @@ class MidiOut extends Plugin {
     let vRange = Math.abs(Math.floor(minDist / vStride));
     let radius = Math.min(uRange, vRange);
     let cells = Hexular.util.hexWrap(this.model.cells[0], radius);
-    console.log(uRange, vRange, cells.length);
     for (let cell of cells) {
       let [u, v, w] = cell.coord;
       let note = origin + u * uStride + v * vStride;
@@ -85,30 +96,30 @@ class MidiOut extends Plugin {
       this.midiAccess = e;
       this.inputs = e.inputs;
       this.outputs = e.outputs;
-      this.device = Array.from(e.outputs.entries())[this.settings.deviceIndex];
-      if (!this.device)
+      let deviceEntry = Array.from(e.outputs.entries())[this.settings.deviceIndex];
+      if (!deviceEntry)
         throw new Hexular.classes.HexError(`No device at index ${this.settings.deviceIndex}!`);
+      this.device = deviceEntry[1];
     });
-    this.drawFn = (adapter) => {
+    this.stepFn = (adapter) => {
+      if (!this.device)
+        return;
       // Stop existing notes if stopOnStep enabled
       this.settings.stopOnStep && this.players.forEach((e) => e.stop());
       // Create new step players
-      let players = {};
-      this.channels.forEach((e) => players[e] = new MidiStepPlayer(this, e));
-      // Add cell to channels - each state can activate more than one channel
-      this.cells.forEach((cell) => {
-        let channels = this.stateChannelMap[cell.state];
-        channels.forEach((e) => players[e].add(cell));
-      });
-      // Start new players
-      Object.values(players).forEach((e) => e.start());
+      this.setCells(this.cells);
     };
     this.paintFn = (cells) => {
+      this.setCells(cells);
       cells.forEach((e) => console.log(e.coord, this.notemap.get(e)));
     };
     this._onSaveSettings();
-    this.registerAdapterHook(this.bgAdapter.onDraw, this.drawFn);
+    this.registerBoardHook('step', this.stepFn);
     this.registerBoardHook('paint', this.paintFn);
+  }
+
+  _deactivate() {
+    this.device && this.device.close();
   }
 };
 Board.registerPlugin(MidiOut);

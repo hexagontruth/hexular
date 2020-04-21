@@ -111,8 +111,16 @@
   }
 
   saveSettings(settingsString) {
-    let fn = new Function('Board', 'Hexular', 'settings', `return eval('(' + settings + ')');`);
-    let settingsObj = fn(Board, Hexular, settingsString);
+    let fn;
+    let settingsObj;
+    try {
+      fn = new Function('Board', 'Hexular', 'settings', `return eval('(' + settings + ')');`);
+      settingsObj = fn(Board, Hexular, settingsString);
+    }
+    catch (e) {
+      this.board.setMessage(e, 'error');
+      throw e;
+    }
     if (typeof settingsObj == 'object') {
       this.settingsString = this._trim(settingsString);
       this.settings = settingsObj;
@@ -142,7 +150,7 @@
     let lines = string.split('\n');
     let min = Infinity;
     for (let line of lines) {
-      let indent = line.match(/^( +?)[^ ]+$/)
+      let indent = line.match(/^( *?)[^ ]+$/)
       if (indent) {
         min = Math.min(indent[1].length, min);
       }
