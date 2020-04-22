@@ -67,13 +67,13 @@ class Board {
         resize: [],
         debugSelect: [],
         debugStep: [],
+        drawFg: [],
         clear: [],
         paint: [],
         updatePreset: [],
         updateTheme: [],
       },
       hookQueue: new Set(),
-      plugins: [],
       pluginControls: [],
       scaling: false,
       scaleQueue: [],
@@ -1320,6 +1320,7 @@ class Board {
     let cell = this.selected;
     if (!this.action) {
       this.fgAdapter.clear();
+      this.runHook('drawFg');
       if (cell) {
         let color = this.config.selectColor;
         let width = this.config.selectWidth;

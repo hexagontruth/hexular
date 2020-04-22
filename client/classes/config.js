@@ -38,6 +38,7 @@ class Config {
       rules: Array(this.maxNumStates).fill(this.defaultRule),
       themes: Config.merge(Themes),
       presets: Config.merge({}, Presets),
+      plugins: [],
       arrayType: 'Uint8Array',
       imageFormat: 'png',
       defaultImageFilenameBase: 'hex',

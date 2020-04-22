@@ -6,6 +6,7 @@ class Action {
     this.model = board.model;
     this.coords = [];
     this.board.fgAdapter.clear();
+    this.board.runHook('drawFg');
   }
 
   start() {}
@@ -36,6 +37,7 @@ class Action {
       });
       this.board.fgAdapter.stateBuffer.clear();
       this.board.fgAdapter.clear();
+      this.board.runHook('drawFg');
       this.board.hooks.paint.forEach((e) => e.run(cells));
       this.board.draw();
     }

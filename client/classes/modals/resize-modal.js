@@ -19,6 +19,7 @@ class ResizeModal extends Modal {
       this.radius = parseInt(value) || this.defaultRadius;
     else
       this.radius = this.config.radius;
+    this.resize.value = this.radius;
     this.resizeIndicator.innerHTML = this.radius;
     let labelMatch = this.resizeButton.innerHTML.match(/^(.+?)([\d\,\.]+)(.+?)$/);
     if (labelMatch) {

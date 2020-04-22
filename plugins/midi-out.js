@@ -12,7 +12,6 @@ class MidiOut extends Plugin {
           0: [1],
         },
         showGuides: true,
-        showLabels: true,
         deviceIndex: 0,
       }
     `;
@@ -47,7 +46,7 @@ class MidiOut extends Plugin {
     let players = {};
     this.channels.forEach((e) => players[e] = new MidiStepPlayer(this, e));
     // Add cell to channels - each state can activate more than one channel
-    this.cells.forEach((cell) => {
+    cells.forEach((cell) => {
       let channels = this.stateChannelMap[cell.state];
       channels.forEach((e) => players[e].add(cell));
     });
@@ -75,7 +74,7 @@ class MidiOut extends Plugin {
     let vStride = this.settings.vStride;
     let uRange = Math.abs(Math.floor(minDist / uStride));
     let vRange = Math.abs(Math.floor(minDist / vStride));
-    let radius = Math.min(uRange, vRange);
+    let radius = this.radius = Math.min(uRange, vRange);
     let cells = Hexular.util.hexWrap(this.model.cells[0], radius);
     for (let cell of cells) {
       let [u, v, w] = cell.coord;
@@ -111,11 +110,28 @@ class MidiOut extends Plugin {
     };
     this.paintFn = (cells) => {
       this.setCells(cells);
-      cells.forEach((e) => console.log(e.coord, this.notemap.get(e)));
     };
+    this.guideFn = () => {
+      if (this.settings.showGuides) {
+        let opts = {
+          type: Hexular.enums.TYPE_FLAT,
+          stroke: true,
+          strokeStyle: this.config.selectColor,
+          lineWidth: this.config.selectWidth,
+        }
+        let radius = this.radius * this.config.cellRadius * Hexular.math.apothem * 2;
+        this.board.fgAdapter.drawHexagon([0, 0], radius, opts);
+      }
+    }
+    this.debugFn = (cell) => {
+      if (this.cells.includes(cell))
+        console.log(`Cell ${cell}: ${this.notemap.get(cell)}`);
+    }
     this._onSaveSettings();
     this.registerBoardHook('step', this.stepFn);
     this.registerBoardHook('paint', this.paintFn);
+    this.registerBoardHook('drawFg', this.guideFn);
+    this.registerBoardHook('debugSelect', this.debugFn);
   }
 
   _deactivate() {
