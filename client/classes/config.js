@@ -255,6 +255,12 @@ class Config {
 
       // Custom code modal
       this.setCustomInput(this.customInput);
+
+      // Restore plugins
+      if (this.pluginData)
+        this.pluginData.forEach((pluginState) => {
+          PluginControl.restoreFromPluginState(this.board, pluginState);
+        });
     }
     catch (error) {
       console.error(error);
@@ -548,6 +554,12 @@ class Config {
     this.storeSessionConfigAsync();
   }
 
+  setPlugins(plugins) {
+    if (plugins)
+      this.plugins = plugins;
+    this.storeSessionConfigAsync();
+  }
+
   setPreset(presetName) {
     const preset = this.presets[presetName];
     if (!preset) {
@@ -829,6 +841,7 @@ class Config {
       'tool',
       'toolSize'
     ]);
+    sessionConfig.pluginData = this.plugins.map((e) => e.toString());
     return sessionConfig;
   };
 

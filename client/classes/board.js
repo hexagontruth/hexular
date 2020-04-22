@@ -14,7 +14,7 @@ class Board {
         Board.instance = board;
         if (oldBoard) {
           oldBoard.pluginControls.forEach((pluginControl) => {
-            pluginControl.to(board);
+            pluginControl.delete();
           });
           board.undoStack = oldBoard.undoStack;
           board.redoStack = oldBoard.redoStack;

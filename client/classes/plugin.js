@@ -129,6 +129,7 @@
     else {
       throw new Hexular.classes.HexError('Settings string does not evaluate to an object');
     }
+    this.config.setPlugins();
   }
 
   setStateLists() {
@@ -143,7 +144,7 @@
   }
 
   toString() {
-    return JSON.stringify([this.constructor.name, this.getSettings(), this.name]);
+    return JSON.stringify([this.constructor.name, this.getSettings(), this.name, this.enabled]);
   }
 
   _trim(string) {

@@ -1,4 +1,9 @@
 class PluginControl {
+  static restoreFromPluginState(board, pluginState) {
+    let [pluginName, settings, name, enabled] = JSON.parse(pluginState);
+    let plugin = new Board.plugins[pluginName](board, settings, name);
+    new PluginControl(board, plugin, enabled);
+  }
   constructor(board, plugin, enable=null) {
     this.board = board;
     this.config = board.config;
@@ -86,7 +91,7 @@ class PluginControl {
         this.modal.pluginList.appendChild(pluginControl.controller);
         pluginControl.deactivate() && pluginControl.enable();
       });
-      this.config.plugins = this.config.pluginControls.map((e) => e.plugin);
+      this.config.setPlugins(this.config.pluginControls.map((e) => e.plugin));
     }
   }
 
