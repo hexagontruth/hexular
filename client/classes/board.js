@@ -28,6 +28,7 @@ class Board {
         Board.modals = board.modals;
         board.runHook('resize');
         await board.draw();
+        board.clearFg();
         document.body.classList.remove('splash');
         resolve();
       }, 50);
@@ -65,6 +66,7 @@ class Board {
         step: [],
         timer: [],
         resize: [],
+        select: [],
         debugSelect: [],
         debugStep: [],
         drawFg: [],
@@ -443,6 +445,11 @@ class Board {
     this.storeModelState();
     this.config.setSteps(0);
     this.runHook('clear');
+  }
+
+  clearFg() {
+    this.fgAdapter.clear();
+    this.runHook('drawFg');
   }
 
   addHook(...args) {
@@ -826,6 +833,7 @@ class Board {
     // Translate to center
     this.translate([this.canvasWidth / this.scaleX / 2, this.canvasHeight / this.scaleY / 2]);
     this.draw();
+    this.clearFg();
   }
 
   resizeMenu() {
@@ -1121,46 +1129,46 @@ class Board {
         this.showDoc();
       }
       // Tool and lesser keys
-      else if (ev.key == 'g') {
+      else if (key == 'g') {
         this.config.setTool('fill');
       }
-      else if (ev.key == 'b') {
+      else if (key == 'b') {
         this.config.setTool('brush');
       }
-      else if (ev.key == 'f') {
+      else if (key == 'f') {
         this.config.setTool('hexfilled');
       }
-      else if (ev.key == 'h') {
+      else if (key == 'h') {
         this.config.setTool('hexoutline');
       }
-      else if (ev.key == 'l') {
+      else if (key == 'l') {
         this.config.setTool('line');
       }
-      else if (ev.key == '/') {
+      else if (key == '/') {
         this.config.setTool('lockline');
       }
-      else if (ev.key == 'm') {
+      else if (key == 'm') {
         this.config.setTool('move');
       }
-      else if (ev.key == '1') {
+      else if (key == '1') {
         this.config.setToolSize(1);
       }
-      else if (ev.key == '2') {
+      else if (key == '2') {
         this.config.setToolSize(2);
       }
-      else if (ev.key == '3') {
+      else if (key == '3') {
         this.config.setToolSize(3);
       }
       else if (key == 'r') {
         this.resize();
       }
-      else if (ev.key == 'c') {
+      else if (key == 'c') {
         this.config.setPaintColorMode();
       }
-      else if (ev.key == 'q') {
+      else if (key == 'q') {
         this.saveSnapshot();
       }
-      else if (ev.key == 'a') {
+      else if (key == 'a') {
         this.loadSnapshot();
       }
       else if (ev.shiftKey && this.config.colorMode && ev.key == 'ArrowUp') {
@@ -1313,15 +1321,17 @@ class Board {
   // Cell selection and setting
 
   selectCell(coord) {
+    let lastCell = this.selected;
     this.selected = coord && this.cellAt(coord);
     this.drawSelectedCell();
+    if (lastCell != this.selected)
+      this.runHook('select', this.selected);
   }
 
   drawSelectedCell() {
     let cell = this.selected;
     if (!this.action) {
-      this.fgAdapter.clear();
-      this.runHook('drawFg');
+      this.clearFg();
       if (cell) {
         let color = this.config.selectColor;
         let width = this.config.selectWidth;

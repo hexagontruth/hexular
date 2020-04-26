@@ -1,17 +1,30 @@
 class MidiOut extends Plugin {
+  static getNoteLabels() {
+    let labels = {};
+    let scale = 'C#D#EF#G#A#B'.split('').map((e, i, a) => (e == '#' ? a[i - 1] : '') + e);
+    return Array(128).fill().map((_, i) => {
+      let note = scale[i % 12];
+      let octave = Math.floor(i / 12);
+      return note + octave;
+    });
+  }
+
   defaultSettings() {
     return `
       {
-        origin: 0x3c,
         velocity: 0x3f,
         interval: 250,
-        stopOnStep: true,
-        uStride: 4,
-        vStride: 7,
+        stopPrevious: true,
+        origin: 0x3c,
         channelStateMap: {
           0: [1],
         },
-        showGuides: true,
+        uStride: 4,
+        vStride: 7,
+        range: [0, 128],
+        isotropicFrame: true,
+        showNoteInfo: true,
+        showFrames: true,
         deviceIndex: 0,
       }
     `;
@@ -25,7 +38,7 @@ class MidiOut extends Plugin {
     if (cur) 
       next = cur + 1;
     else {
-      let note = this.notemap.get(cell);
+      let note = this.cellNoteMap.get(cell);
       this.device.send([0x90 + parseInt(channel), note, this.settings.velocity]);
     }
     this.playlists[channel].set(cell, cur ? cur + 1 : 1);
@@ -37,7 +50,7 @@ class MidiOut extends Plugin {
     let cur = this.playlists[channel].get(cell);
     if (!cur || cur <= 1) {
       this.playlists[channel].delete(cell);
-      let note = this.notemap.get(cell);
+      let note = this.cellNoteMap.get(cell);
       this.device.send([0x80 + parseInt(channel), note, this.settings.velocity]);
     }
     else {
@@ -50,7 +63,7 @@ class MidiOut extends Plugin {
     if (!this.device)
       return;
     for (let channel of this.channels) {
-      this.notemap.forEach((note) => this.device.send([0x80 + parseInt(channel), note, this.settings.velocity]));
+      this.cellNoteMap.forEach((note) => this.device.send([0x80 + parseInt(channel), note, this.settings.velocity]));
     }
   }
 
@@ -67,7 +80,7 @@ class MidiOut extends Plugin {
   }
 
   _onSaveSettings() {
-    this.notemap = new Map();
+    this.cellNoteMap = new Map();
     this.playlists = {};
     this.players = new Set();
     this.channels = Object.keys(this.settings.channelStateMap);
@@ -80,25 +93,44 @@ class MidiOut extends Plugin {
     });
     this.channelSteps = new Set();
     let origin = this.settings.origin;
-    let maxDist = origin > 127 ? 127 - origin : origin;
-    let minDist = 127 - maxDist;
+    let [floor, ceil] = this.settings.range;
+    let relOrigin = origin - floor;
+    let relRange = ceil - floor;
+    let relMid = Math.floor(relRange / 2);
+    let minDist = relOrigin > relMid ? ceil - origin : relOrigin;
+    let maxDist = relRange - minDist;
+    let dist, minmaxFn;
+    if (this.settings.isotropicFrame) {
+      dist = minDist;
+      minmaxFn = Math.min;
+    }
+    else {
+      dist = maxDist;
+      minmaxFn = Math.max;
+    }
     let uStride = this.settings.uStride;
     let vStride = this.settings.vStride;
-    let uRange = Math.abs(Math.floor(minDist / uStride));
-    let vRange = Math.abs(Math.floor(minDist / vStride));
-    let radius = this.radius = Math.min(uRange, vRange);
+    let uwRange = Math.abs(Math.floor(dist / uStride));
+    let vwRange = Math.abs(Math.floor(dist / vStride));
+    let uvRange = Math.abs(Math.floor(dist / (uStride - vStride)));
+    let radius = this.radius = minmaxFn(uwRange, vwRange, uvRange) + 1;
     let cells = Hexular.util.hexWrap(this.model.cells[0], radius);
+    this.originCell = cells[0];
+    // Assign cells from outside in so overflow cells keep innermost assignment
+    cells.reverse();
     for (let cell of cells) {
       let [u, v, w] = cell.coord;
       let note = origin + u * uStride + v * vStride;
-      if (note >= 0 && note <= 127) {
-        this.notemap.set(cell, note);
+      if (note >= floor && note < ceil) {
+        this.cellNoteMap.set(cell, note);
       }
     }
-    this.cells = Array.from(this.notemap.keys());
+    this.cells = Array.from(this.cellNoteMap.keys());
+    this.board.clearFg();
   }
 
   _activate() {
+    this.noteLabels = MidiOut.getNoteLabels();
     if (!navigator.requestMIDIAccess)
       throw new Hexular.classes.HexError('No MIDI support! Lame!');
     if (!(this.model instanceof Hexular.classes.models.CubicModel))
@@ -115,39 +147,56 @@ class MidiOut extends Plugin {
     this.stepFn = (adapter) => {
       if (!this.device)
         return;
-      // Stop existing notes if stopOnStep enabled
-      this.settings.stopOnStep && this.players.forEach((e) => e.stop());
+      // Stop existing notes if stopPrevious enabled
+      this.settings.stopPrevious && this.players.forEach((e) => e.stop());
       // Create new step players
       this.setCells(this.cells);
     };
     this.paintFn = (cells) => {
       this.setCells(cells);
     };
-    this.guideFn = () => {
-      if (this.settings.showGuides) {
+    this.frameFn = () => {
+      if (this.settings.showFrames) {
         let opts = {
-          type: Hexular.enums.TYPE_FLAT,
           stroke: true,
           strokeStyle: this.config.selectColor,
           lineWidth: this.config.selectWidth,
+        };
+        if (this.settings.isotropicFrame) {
+          opts.type = Hexular.enums.TYPE_FLAT;
+          let radius = this.radius * this.config.cellRadius * Hexular.math.apothem * 2;
+          this.board.fgAdapter.drawHexagon([0, 0], radius, opts);
         }
-        let radius = this.radius * this.config.cellRadius * Hexular.math.apothem * 2;
-        this.board.fgAdapter.drawHexagon([0, 0], radius, opts);
+        else {
+          opts.type = Hexular.enums.TYPE_POINTY;
+          this.cells.forEach((cell) => {
+            this.board.fgAdapter.drawHexagon(cell, this.config.cellRadius, opts);
+          });
+        }
       }
+    }
+    this.infoFn = (cell) => {
+      if (this.board.action || !this.settings.showNoteInfo)
+        return;
+      let note = this.cellNoteMap.get(cell);
+      this.board.setInfoBox('tool', note ? this.noteLabels[note] : '');
     }
     this.debugFn = (cell) => {
       if (this.cells.includes(cell))
-        console.log(`Cell ${cell}: ${this.notemap.get(cell)}`);
+        console.log(`Cell ${cell}: ${this.cellNoteMap.get(cell)}`);
     }
     this._onSaveSettings();
     this.registerBoardHook('step', this.stepFn);
     this.registerBoardHook('paint', this.paintFn);
-    this.registerBoardHook('drawFg', this.guideFn);
+    this.registerBoardHook('drawFg', this.frameFn);
+    this.registerBoardHook('select', this.infoFn);
     this.registerBoardHook('debugSelect', this.debugFn);
   }
 
   _deactivate() {
     this.device && this.device.close();
+    if (!this.board.action)
+      this.board.setInfoBox('tool', '');
   }
 };
 Board.registerPlugin(MidiOut);

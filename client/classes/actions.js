@@ -5,8 +5,7 @@ class Action {
     Object.assign(this, {board, config, model}, ...args);
     this.model = board.model;
     this.coords = [];
-    this.board.fgAdapter.clear();
-    this.board.runHook('drawFg');
+    this.board.clearFg();
   }
 
   start() {}
@@ -36,8 +35,7 @@ class Action {
         cell.setState(state);
       });
       this.board.fgAdapter.stateBuffer.clear();
-      this.board.fgAdapter.clear();
-      this.board.runHook('drawFg');
+      this.board.clearFg();
       this.board.hooks.paint.forEach((e) => e.run(cells));
       this.board.draw();
     }
@@ -84,6 +82,9 @@ class MoveAction extends Action {
     let diffX = cur[0] - last[0];
     let diffY = cur[1] - last[1];
     this.board.translate([diffX, diffY]);
+  }
+  end() {
+    this.board.clearFg();
   }
 }
 
@@ -179,8 +180,7 @@ class LineAction extends PaintAction {
   }
 
   _bufferCells(cells) {
-    this.board.fgAdapter.clear();
-    this.board.runHook('drawFg');
+    this.board.clearFg();
     this.board.fgAdapter.stateBuffer.clear();
     cells.forEach((cell) => {
       this._setCells(cell);

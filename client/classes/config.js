@@ -47,9 +47,10 @@ class Config {
       defaultVideoFilename: 'hexular.webm',
       defaultSettingsFilename: 'hexular.json',
       recordingMode: false,
-      codec: 'vp9',
-      frameRate: 30,
-      videoBitsPerSecond: 120e6,
+      videoMimeType: 'video/webm',
+      videoCodec: 'vp9',
+      videoFrameRate: 30,
+      videoBitsPerSecond: 2 ** 28,
       scaleFactor: 1,
       tool: 'brush',
       shiftTool: 'move',
@@ -809,7 +810,6 @@ class Config {
       'blendMode',
       'cellBorderWidth',
       'cellGap',
-      'codec',
       'colors',
       'colorMode',
       'customInput',
@@ -820,7 +820,6 @@ class Config {
       'drawStepInterval',
       'fallbackTool',
       'filters',
-      'frameRate',
       'groundState',
       'imageFormat',
       'interval',
@@ -846,7 +845,11 @@ class Config {
       'steps',
       'theme',
       'tool',
-      'toolSize'
+      'toolSize',
+      'videoBitsPerSecond',
+      'videoCodec',
+      'videoFrameRate',
+      'videoMimeType',
     ]);
     sessionConfig.pluginData = this.plugins.map((e) => e.toString());
     return sessionConfig;

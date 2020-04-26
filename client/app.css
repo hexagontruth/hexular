@@ -78,7 +78,7 @@ canvas[data-tool='move'] {
 canvas[data-tool='fill'],
 canvas[data-tool='brush'],
 canvas[data-tool='line'],
-canvas[data-tool='linelocked'],
+canvas[data-tool='lockline'],
 canvas[data-tool='hexfilled'],
 canvas[data-tool='hexoutline'] {
   cursor: crosshair;

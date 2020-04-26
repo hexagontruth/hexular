@@ -12,12 +12,12 @@ class Recorder {
   start() {
     this.stream = this.transferCanvas.canvas.captureStream();
     let constraints = {
-      frameRate: this.config.frameRate,
+      frameRate: this.config.videoFrameRate,
     };
     let opts = {
       videoBitsPerSecond: this.config.videoBitsPerSecond,
     };
-    let customCodec = `video/webm;codecs=${this.config.codec || 'vp9'}`;
+    let customCodec = `${this.config.videoMimeType};codecs=${this.config.videoCodec || 'vp9'}`;
     if (MediaRecorder.isTypeSupported(customCodec))
       opts.mimeType = customCodec;
     else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9'))
