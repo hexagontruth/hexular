@@ -1815,6 +1815,10 @@ var Hexular = (function () {
     return rule;
   }
 
+  function advancedRulebuilder(rules, opts) {
+    
+  }
+
   // --- MATH STUFF ---
 
   /**
