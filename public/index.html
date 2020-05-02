@@ -52,7 +52,8 @@
       <button id="show-draw" title="Draw Configuration (Ctrl+Y)" class="icon-lead-pencil"></button>
       <button id="show-theme" title="Theme (Ctrl+E)" class="icon-rainbow"></button>
       <button id="show-resize" title="Resize Model (Ctrl+R)" class="icon-arrow-top-right-bottom-left"></button>
-      <button id="show-rb" title="Rulebuilder (Ctrl+B)" class="icon-function"></button>
+      <button id="show-srb" title="Simple Rulebuilder (Ctrl+B)" class="icon-function"></button>
+      <button id="show-trb" title="Template Rulebuilder (Ctrl+Shift+B)" class="icon-lambda"></button>
       <button id="show-custom" title="Custom Code (Ctrl+F)" class="icon-code"></button>
       <button id="show-clear" title="Clear local data (Ctrl+X)" class="icon-refresh"></button>
     </div>
@@ -272,8 +273,8 @@
           </div>
         </div>
       </div>
-      <div class="modal rb hidden">
-        <div class="modal-title"><i class="icon-function"></i> Rulebuilder</div>
+      <div class="modal srb hidden">
+        <div class="modal-title"><i class="icon-function"></i> Simple Rulebuilder</div>
         <div class="modal-content">
           <div class="group">
             <input class="focus" type="text" id="rule-name" placeholder="Rule name" title="Rule name"/>
@@ -313,6 +314,11 @@
             <button id="reset-rule">Reset</button>
             <button id="add-rule">Save rule</button>
           </div>
+        </div>
+      </div>
+      <div class="modal trb hidden">
+        <div class="modal-title"><i class="icon-code"></i> Template Rulebuilder</div>
+        <div class="modal-content">
         </div>
       </div>
       <div class="modal custom hidden">

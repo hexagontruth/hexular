@@ -188,7 +188,8 @@ class Config {
       this.configModal = this.board.modals.config;
       this.customModal = this.board.modals.custom;
       this.drawModal = this.board.modals.draw;
-      this.rbModal = this.board.modals.rb;
+      this.srbModal = this.board.modals.srb;
+      this.trbModal = this.board.modals.trb;
       this.themeModal = this.board.modals.theme;
       this.configModal.update();
 
@@ -237,14 +238,14 @@ class Config {
       }
 
       // Rule builder modal
-      this.rbModal.ruleName.value = this.rbName || Config.defaults.rbName;
+      this.srbModal.ruleName.value = this.rbName || Config.defaults.rbName;
       this.setRbMiss([this.rbMiss, this.rbMissRel]);
       this.setRbMatch([this.rbMatch, this.rbMatchRel]);
-      this.rbModal.stateElements.forEach((e, i) => {
+      this.srbModal.stateElements.forEach((e, i) => {
         this.rbStates[i] && e.classList.add('active');
       });
-      this.rbModal.updateRuleString();
-      this.rbModal.update();
+      this.srbModal.updateRuleString();
+      this.srbModal.update();
 
       // Draw modal
       this.drawModal.update();
@@ -274,7 +275,7 @@ class Config {
   addRule(ruleName, fn) {
     this.availableRules[ruleName] = fn;
     this.configModal.update();
-    this.rbModal.update();
+    this.srbModal.update();
     this.setRules();
     this.storeLocalConfig();
   }
@@ -635,29 +636,29 @@ class Config {
   }
 
   setRbName(ruleName) {
-    ruleName = ruleName || this.rbModal.ruleName.value || this.rbName;
+    ruleName = ruleName || this.srbModal.ruleName.value || this.rbName;
     ruleName = ruleName.length != 0 ? ruleName : null;
     this.rbName = ruleName;
     if (ruleName)
-      this.rbModal.ruleName.value = this.rbName;
+      this.srbModal.ruleName.value = this.rbName;
     this.storeSessionConfigAsync();
   }
 
   setRbMiss(tuple) {
-    let [miss, missRel] = tuple || this._strToTuple(this.rbModal.ruleMiss.value);
+    let [miss, missRel] = tuple || this._strToTuple(this.srbModal.ruleMiss.value);
     this.rbMiss = miss;
     this.rbMissRel = missRel;
-    this.rbModal.ruleMiss.value = this._tupleToStr([miss, missRel]);
-    this.rbModal.updateRuleString();
+    this.srbModal.ruleMiss.value = this._tupleToStr([miss, missRel]);
+    this.srbModal.updateRuleString();
     this.storeSessionConfigAsync();
   }
 
   setRbMatch(tuple) {
-    let [match, matchRel] = tuple || this._strToTuple(this.rbModal.ruleMatch.value);
+    let [match, matchRel] = tuple || this._strToTuple(this.srbModal.ruleMatch.value);
     this.rbMatch = match;
     this.rbMatchRel = matchRel;
-    this.rbModal.ruleMatch.value = this._tupleToStr([match, matchRel]);
-    this.rbModal.updateRuleString();
+    this.srbModal.ruleMatch.value = this._tupleToStr([match, matchRel]);
+    this.srbModal.updateRuleString();
     this.storeSessionConfigAsync();
   }
 

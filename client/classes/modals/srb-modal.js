@@ -1,4 +1,4 @@
-class RbModal extends Modal {
+class SrbModal extends Modal {
   constructor(...args) {
     super(...args);
     this.ruleName = document.querySelector('#rule-name');

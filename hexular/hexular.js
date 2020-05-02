@@ -1707,6 +1707,32 @@ var Hexular = (function () {
     return !cell.edge ? value : this.groundState;
   }
 
+  function merge(...objs) {
+    let base = objs.shift();
+    let next;
+    let mergeWhitelist = [Object, Array];
+    while (next = objs.shift()) {
+      for (let [key, val] of Object.entries(next)) {
+        if (val == null) continue;
+        let defaultBaseVal = Array.isArray(val) ? [] : typeof val == 'object' ? {} : null;
+        let baseVal = base[key] || defaultBaseVal;
+        if (typeof val == 'object' && !mergeWhitelist.includes(val.constructor)) {
+          base[key] = val;
+        }
+        else if (Array.isArray(val) && Array.isArray(baseVal)) {
+          base[key] = Config.merge([], baseVal, val);
+        }
+        else if (typeof baseVal =='object' && typeof val == 'object') {
+          base[key] = Config.merge({}, baseVal, val);
+        }
+        else {
+          base[key] = val;
+        }
+      }
+    }
+    return base;
+  }
+
   // --- UTILITY FUNCTIONS ---
 
   /**
@@ -1815,8 +1841,29 @@ var Hexular = (function () {
     return rule;
   }
 
-  function advancedRulebuilder(rules, opts) {
-    
+  function templateRuleBuilder(templates) {
+    let templateDefaults = {
+      nbrMap: Array(19).fill(-1),
+      match: 1,
+      miss: -1,
+      matchRel: true,
+      missRel: true,
+      matchFn: () => true,
+    };
+    templates = templates.map((e) => merge({}, templateDefaults, e));
+
+    let rule = (cell) => {
+      let nbrStates = cell.with[19].map;
+      let cellState = cell.state;
+      for (let template of templates) {
+        
+      }
+      return cellState;
+    };
+
+    rule.toObject = () => [templates];
+    rule.toString = () => JSON.stringify(rule.toObject());
+    return rule;
   }
 
   // --- MATH STUFF ---
@@ -1961,8 +2008,10 @@ var Hexular = (function () {
       edgeFilter,
     },
     util: {
+      merge,
       hexWrap,
       ruleBuilder,
+      templateRuleBuilder,
     },
     math: Object.assign(math, {
       mod,
