@@ -34,10 +34,10 @@ class Config {
       cellGap: 1,
       cellBorderWidth: 1,
       colors: Hexular.DEFAULTS.colors,
-      availableRules: Config.merge({}, Rules),
+      availableRules: Hexular.util.merge({}, Rules),
       rules: Array(this.maxNumStates).fill(this.defaultRule),
-      themes: Config.merge(Themes),
-      presets: Config.merge({}, Presets),
+      themes: Hexular.util.merge(Themes),
+      presets: Hexular.util.merge({}, Presets),
       plugins: [],
       arrayType: 'Uint8Array',
       imageFormat: 'png',
@@ -107,32 +107,6 @@ class Config {
     };
   }
 
-  static merge(...objs) {
-    let base = objs.shift();
-    let next;
-    let mergeWhitelist = [Object, Array];
-    while (next = objs.shift()) {
-      for (let [key, val] of Object.entries(next)) {
-        if (val == null) continue;
-        let defaultBaseVal = Array.isArray(val) ? [] : typeof val == 'object' ? {} : null;
-        let baseVal = base[key] || defaultBaseVal;
-        if (typeof val == 'object' && !mergeWhitelist.includes(val.constructor)) {
-          base[key] = val;
-        }
-        else if (Array.isArray(val) && Array.isArray(baseVal)) {
-          base[key] = Config.merge([], baseVal, val);
-        }
-        else if (typeof baseVal =='object' && typeof val == 'object') {
-          base[key] = Config.merge({}, baseVal, val);
-        }
-        else {
-          base[key] = val;
-        }
-      }
-    }
-    return base;
-  }
-
   static toObject(kvArray) {
     let obj = {};
     for (let [key, value] of kvArray)
@@ -142,7 +116,7 @@ class Config {
 
   constructor(board, ...args) {
     this.board = board;
-    Config.merge(this, Config.defaults);
+    Hexular.util.merge(this, Config.defaults);
     Object.entries(this).forEach(([key, value]) => {
       if (Array.isArray(value)) {
         this[key] = value.slice();
@@ -157,7 +131,7 @@ class Config {
     this.restoreState();
 
     // Finally, merge in URL parameter and constructor args
-    Config.merge(this, new OptParser(this), ...args);
+    Hexular.util.merge(this, new OptParser(this), ...args);
 
     // Set logical size and scale small boards
     let width = this.radius * this.cellRadius * Hexular.math.apothem * 4;
@@ -391,7 +365,7 @@ class Config {
   }
 
   setColors(colors=[]) {
-    this.colors = Config.merge(this.colors, colors);
+    this.colors = Hexular.util.merge(this.colors, colors);
     this.bgAdapter.fillColors = this.colors.slice();
     this.bgAdapter.strokeColors = this.colors.slice();
     this.bgAdapter.fillColors = this.colors.slice();
@@ -688,7 +662,7 @@ class Config {
       this.themeModal.selectTheme.value = themeName;
       this.themeModal.addTheme.disabled = true;
       let theme = this.getThemeFromObject(this.themes[themeName]);
-      Config.merge(this, theme);
+      Hexular.util.merge(this, theme);
       this.setThemable();
     }
     else {
@@ -793,7 +767,7 @@ class Config {
       let {blendMode, cellGap, cellBorderWidth, pageBackground, modelBackground, defaultColor, colors} = e;
       return {blendMode, cellGap, cellBorderWidth, pageBackground, modelBackground, defaultColor, colors};
     });
-    return Config.merge(...args);
+    return Hexular.util.merge(...args);
   }
 
   // --- STORAGE ---
@@ -802,7 +776,7 @@ class Config {
     let obj = {};
     for (let key of keys)
       obj[key] = this[key];
-    return Config.merge({}, obj);
+    return Hexular.util.merge({}, obj);
   }
 
   getSessionConfig() {
@@ -915,7 +889,7 @@ class Config {
       });
     }
 
-    Config.merge(this, localConfig, sessionConfig);
+    Hexular.util.merge(this, localConfig, sessionConfig);
     if (sessionConfig.preset !== undefined)
       this.preset = sessionConfig.preset;
   }

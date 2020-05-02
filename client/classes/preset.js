@@ -18,14 +18,14 @@ class Preset {
       },
       rules: [],
     };
-    Config.merge(this, defaults);
+    Hexular.util.merge(this, defaults);
     for (let arg of args)
       if (!arg)
         continue;
       else if (arg.length)
         this.rules = arg.slice();
       else
-        Config.merge(this, arg);
+        Hexular.util.merge(this, arg);
     this.numStates = this.numStates || this.rules.length;
   }
 

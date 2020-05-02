@@ -107,7 +107,7 @@
   }
 
   getPolicy() {
-    return Config.merge({}, Plugin.policy, this.constructor.policy());
+    return Hexular.util.merge({}, Plugin.policy, this.constructor.policy());
   }
 
   saveSettings(settingsString) {

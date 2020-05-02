@@ -1720,10 +1720,10 @@ var Hexular = (function () {
           base[key] = val;
         }
         else if (Array.isArray(val) && Array.isArray(baseVal)) {
-          base[key] = Config.merge([], baseVal, val);
+          base[key] = merge([], baseVal, val);
         }
         else if (typeof baseVal =='object' && typeof val == 'object') {
-          base[key] = Config.merge({}, baseVal, val);
+          base[key] = merge({}, baseVal, val);
         }
         else {
           base[key] = val;
@@ -1856,7 +1856,7 @@ var Hexular = (function () {
       let nbrStates = cell.with[19].map;
       let cellState = cell.state;
       for (let template of templates) {
-        
+
       }
       return cellState;
     };

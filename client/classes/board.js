@@ -18,7 +18,7 @@ class Board {
           });
           board.undoStack = oldBoard.undoStack;
           board.redoStack = oldBoard.redoStack;
-          board.hooks = Config.merge(oldBoard.hooks);
+          board.hooks = Hexular.util.merge(oldBoard.hooks);
           board.refreshHistoryButtons();
         }
         Board.config = board.config;
