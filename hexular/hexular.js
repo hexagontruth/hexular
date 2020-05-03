@@ -1843,12 +1843,12 @@ var Hexular = (function () {
 
   function templateRuleBuilder(templates) {
     let templateDefaults = {
-      nbrMap: Array(19).fill(-1),
+      states: Array(19).fill(-1),
       match: 1,
       miss: -1,
       matchRel: true,
       missRel: true,
-      matchFn: () => true,
+      matchFn: (e) => e,
     };
     templates = templates.map((e) => merge({}, templateDefaults, e));
 
@@ -1856,7 +1856,18 @@ var Hexular = (function () {
       let nbrStates = cell.with[19].map;
       let cellState = cell.state;
       for (let template of templates) {
-
+        let match = template.states.every((state, i) => {
+          let matchState = template.matchFn(nbrStates[i]);
+          return matchState && state || !matchState && state != 1;
+        });
+        if (match) {
+          if (template.matchRel) cellState += template.match;
+          else cellState = template.match;
+        }
+        else {
+          if (template.missRel) cellState += template.miss;
+          else cellState = template.miss;
+        }
       }
       return cellState;
     };
