@@ -868,7 +868,14 @@ class Config {
       let fn;
       try {
         val = eval(val);
-        fn = Array.isArray(val) ? Hexular.util.ruleBuilder(...val) : val;
+        fn = val;
+        if (Array.isArray(val)) {
+          let ruleBuilder = val.length > 1 ? Hexular.util.ruleBuilder : Hexular.util.templateRuleBuilder;
+          fn = ruleBuilder(...val);
+        }
+        else {
+          fn = val;
+        }
       }
       catch (e) {
         this.board.setMessage(`Error while loading rule "${rule}"`);

@@ -1707,6 +1707,22 @@ var Hexular = (function () {
     return !cell.edge ? value : this.groundState;
   }
 
+  /**
+   * Utility function for recursively merging arrays and objects.
+   *
+   * Works similarly to `Object.assign`, with the first argument taking the merged properties of the remaining ones,
+   * applied from left to right so that e.g. later arguments overwrite earlier ones.
+   *
+   * In addition to recursively merging objects (by creating new objects for all but the base object), `null` values in
+   * arrays are ignored when merging. So, e.g., `merge([1, 2], [null, 3])` will return `[1, 3]`.
+   *
+   * Additionally, one may use a non-array object to merge sparse keys with an array. So for instance
+   * `merge([1, 2], {2: 3})` will return `[1, 2, 3]`.
+   *
+   * @param  {object} ...objs One or more objects or arrays to be recursively merged
+   * @return {type}           The updated first argument passed to the function
+   * @memberof Hexular.util
+   */
   function merge(...objs) {
     let base = objs.shift();
     let next;
@@ -1766,7 +1782,7 @@ var Hexular = (function () {
   }
 
   /**
-  * Generates an elementary rule based on the state of a cell's neighbors plus optionally itself.
+  * Generates an elementary rule based on the state of a cell's six immediate neighbors plus optionally itself.
   *
   * The most significant (left-most) bit represents the lowest neighbor number in the selected range, while the least
   * significant bit represents the highest. Thus, the same rule masks can be used with `opts.range` set to either
@@ -1788,7 +1804,7 @@ var Hexular = (function () {
   *                                           nonzero and difference is >= 0
   * @return {function}                        A rule function taking a {@link Cell} instance and returning an integer
   * @memberof Hexular.util
-  * @see {@link Cell#nbrs}
+  * @see {@link Hexular.util.templateRuleBuilder}
   **/
   function ruleBuilder(ruleDef, opts={}) {
     let defaults = {
@@ -1841,6 +1857,19 @@ var Hexular = (function () {
     return rule;
   }
 
+  /**
+   * Generates a rule consisting of one or more templates that are matched in turn to the cell's eighteen neighboring
+   * states, successively updating the cell's state.
+   *
+   * This allows a superset of rules including but not limited to those generated with
+   * {@link Hexular.util.ruleBuilder}, allowing ternary conditions for neighbor cells (on, off, and indifferent), plus
+   * the ability to only consider certain activated states.
+   *
+   * @param  {object[]} templates An array of template objects
+   * @return {function}           A rule function taking a {@link Cell} instance and returning an integer
+   * @memberof Hexular.util
+   * @see {@link Hexular.util.ruleBuilder}
+   */
   function templateRuleBuilder(templates) {
     let templateDefaults = {
       states: Array(19).fill(-1),
