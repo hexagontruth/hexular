@@ -1083,7 +1083,7 @@ class Board {
           if (key == 'b') {
             this.toggleModal('trb');
           }
-          if (key == 's') {
+          else if (key == 's') {
             this.promptSaveImage();
           }
           else {

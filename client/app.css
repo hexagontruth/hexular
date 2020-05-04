@@ -605,6 +605,10 @@ select {
   width: 50%;
 }
 
+.modal .group.halved * {
+  width: 50%;
+}
+
 .modal label.indicator {
   width: 4.5em;
 }
@@ -781,6 +785,30 @@ button.statemask.active, button.statemask:hover {
 
 .statemask:hover svg polygon.off:not(.home-cell) {
   fill: #ffbb3399;
+}
+
+#template-mask {
+  display: block;
+  width: 100%;
+  height: 10rem;
+}
+
+#template-mask polygon {
+  cursor: pointer;
+  fill: #999;
+}
+
+#template-mask polygon.active {
+  fill: #666;
+}
+
+#template-mask polygon.inactive {
+  fill: #fff;
+}
+
+#template-mask polygon:hover {
+  stroke: #fb3;
+  stroke-width: 2;
 }
 
 @media screen and (max-width: 600px) {

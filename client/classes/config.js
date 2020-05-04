@@ -68,6 +68,9 @@ class Config {
       rbMatchRel: 0,
       rbRel: 0,
       rbStates: Array(64).fill(false),
+      trb: {
+        maskCells: Array(19).fill(-1),
+      },
       drawFunctions: {
         // onDraw
         drawModelBackground: true,
@@ -636,6 +639,11 @@ class Config {
     this.storeSessionConfigAsync();
   }
 
+  setTrbMaskCells(states) {
+    Hexular.util.merge(this.trb.maskCells, states);
+    this.storeSessionConfigAsync();
+  }
+
   setRecordingMode(value) {
     let drawSolidBackground = this.bgAdapter.constructor.drawSolidBackground;
     let hookList = this.bgAdapter.onDraw;
@@ -821,6 +829,7 @@ class Config {
       'theme',
       'tool',
       'toolSize',
+      'trb',
       'videoBitsPerSecond',
       'videoCodec',
       'videoFrameRate',
