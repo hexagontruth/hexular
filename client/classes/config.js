@@ -61,7 +61,7 @@ class Config {
       steps: 0,
       drawStepInterval: 1,
       blendMode: 'source-over',
-      rbName: 'newElementaryRule',
+      rbName: 'newSimpleRule',
       rbMiss: 0,
       rbMatch: 1,
       rbMissRel: 0,
@@ -69,6 +69,9 @@ class Config {
       rbRel: 0,
       rbStates: Array(64).fill(false),
       trb: {
+        ruleName: 'newTemplateRule',
+        selectedName: null,
+        selectedObject: [[]],
         maskCells: Array(19).fill(-1),
       },
       drawFunctions: {
@@ -214,7 +217,7 @@ class Config {
         this.setFilters();
       }
 
-      // Rule builder modal
+      // Rule builder modals
       this.srbModal.ruleName.value = this.rbName || Config.defaults.rbName;
       this.setRbMiss([this.rbMiss, this.rbMissRel]);
       this.setRbMatch([this.rbMatch, this.rbMatchRel]);
@@ -223,6 +226,9 @@ class Config {
       });
       this.srbModal.updateRuleString();
       this.srbModal.update();
+
+      this.trbModal.update();
+      this.trbModal.reset();
 
       // Draw modal
       this.drawModal.update();
@@ -253,14 +259,15 @@ class Config {
     this.availableRules[ruleName] = fn;
     this.configModal.update();
     this.srbModal.update();
+    this.trbModal.update();
     this.setRules();
-    this.storeLocalConfig();
+    this.storeLocalConfigAsync();
   }
 
   addPreset(presetName, preset) {
     this.presets[presetName] = preset
     this.configModal.update();
-    this.storeLocalConfig();
+    this.storeLocalConfigAsync();
   }
 
   addTheme(themeName, themeObj) {
@@ -639,8 +646,9 @@ class Config {
     this.storeSessionConfigAsync();
   }
 
-  setTrbMaskCells(states) {
-    Hexular.util.merge(this.trb.maskCells, states);
+  setTrb(trbState) {
+    this.trb = Hexular.util.merge({}, trbState);
+    this.trbModal.reset();
     this.storeSessionConfigAsync();
   }
 

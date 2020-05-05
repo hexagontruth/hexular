@@ -1775,6 +1775,26 @@ var Hexular = (function () {
     return base;
   }
 
+  function extract(obj, keys) {
+    let newObj = {};
+    for (let key of keys) {
+      newObj[key] = obj[key];
+    }
+    return newObj;
+  }
+
+  /**
+  * Convenience method for returning an argument unchanged.
+  *
+  * Used as placeholder where e.g. mutual equivalence of such placeholders is important.
+  *
+  * @param {*} arg Any value
+  * @return {*}    The same value
+  */
+  function identity(arg) {
+    return arg;
+  }
+
   // --- UTILITY FUNCTIONS ---
 
   /**
@@ -1896,25 +1916,83 @@ var Hexular = (function () {
    * @memberof Hexular.util
    * @see {@link Hexular.util.ruleBuilder}
    */
-  function templateRuleBuilder(templates) {
+  function templateRuleBuilder(templateDefs) {
     let templateDefaults = {
       states: Array(19).fill(-1),
+      sym: 0,
       match: 1,
       miss: -1,
       matchRel: true,
       missRel: true,
-      matchFn: (e) => e,
+      matchFn: identity,
     };
-    templates = templates.map((e) => merge({}, templateDefaults, e));
+    // Merge defaults and re-instantiate lambda strings
+    let templates = templateDefs.map((template) => {
+      if (typeof template.matchFn == 'string') {
+        let evalFn = new Function('fnString', 'return eval(fnString)');
+        template.matchFn = evalFn(template.matchFn);
+      }
+      return merge({}, templateDefaults, template);
+    });
+    // Copy back to exportable defs
+    let exportDefs = merge([], templates);
+    // Re-stringify matchFn, drop placeholders for export
+    exportDefs.forEach((template) => {
+      if (template.matchFn == identity)
+        delete template.matchFn;
+      else
+        template.matchFn = template.matchFn.toString();
+    });
+    // Create mirror template state maps based on symmetry setting
+    templates.forEach((template, idx) => {
+      let states = template.states.slice();
+      let alts = [states];
+      for (let i = 1; i &lt; 6; i++) {
+        let sym6 = states.slice(1, 7);
+        let sym12 = states.slice(7, 13);
+        let sym18 = states.slice(13, 19);
+        sym6.push(sym6.shift());
+        sym12.push(sym12.shift());
+        sym18.push(sym18.shift());
+        states = states.slice(0, 1).concat(sym6, sym12, sym18);
+        if (i % template.sym == 0) {
+          alts.push(states);
+        }
+      }
+      for (let i = 0; i &lt; alts.length; i++) {
+        let alt = alts[i];
+        let remaining = alts.slice(i + 1);
+        let dups = [];
+        for (let j = 0; j &lt; remaining.length; j++) {
+          let isDup = remaining[j].reduce((a, e, k) => a &amp;&amp; alt[k] == e, true);
+          isDup &amp;&amp; dups.unshift(i + j + 1);
+        }
+        dups.forEach((idx) => alts.splice(idx, 1));
+      }
+      template.stateMaps = alts;
+    });
 
     let rule = (cell) => {
       let nbrStates = cell.with[19].map;
       let cellState = cell.state;
       for (let template of templates) {
-        let match = template.states.every((state, i) => {
-          let matchState = template.matchFn(nbrStates[i]);
-          return matchState &amp;&amp; state || !matchState &amp;&amp; state != 1;
-        });
+        let match = false;
+        for (let stateMap of template.stateMaps) {
+          let matchMap = true;
+          for (let i = 0; i &lt; 19; i++) {
+            let mapCellState = stateMap[i];
+            let matchState = template.matchFn(nbrStates[i]);
+            let matchCell = matchState &amp;&amp; mapCellState || !matchState &amp;&amp; mapCellState != 1;
+            if (!matchCell) {
+              matchMap = false;
+              break;
+            }
+          }
+          if (matchMap) {
+            match = true;
+            break;
+          }
+        }
         if (match) {
           if (template.matchRel) cellState += template.match;
           else cellState = template.match;
@@ -1926,8 +2004,9 @@ var Hexular = (function () {
       }
       return cellState;
     };
-
-    rule.toObject = () => [templates];
+    rule.templates = templates;
+    rule.defs = exportDefs;
+    rule.toObject = () => [rule.defs];
     rule.toString = () => JSON.stringify(rule.toObject());
     return rule;
   }
@@ -2075,6 +2154,8 @@ var Hexular = (function () {
     },
     util: {
       merge,
+      extract,
+      identity,
       hexWrap,
       ruleBuilder,
       templateRuleBuilder,
