@@ -178,8 +178,10 @@ class TemplateController {
   }
 
   updateThumb() {
-    this.thumb.querySelectorAll('polygon').forEach((polygon, idx) => {
+    this.thumb.querySelectorAll('polygon').forEach((polygon, elemIdx) => {
+      let idx = 18 - elemIdx;
       polygon.setAttribute('id', null);
+      polygon.setAttribute('class', null);
       let state = this.def.states[idx];
       if (state == 1)
         polygon.classList.add('active');
