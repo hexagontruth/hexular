@@ -1895,8 +1895,8 @@ var Hexular = (function () {
       sym: 0,
       match: 1,
       miss: -1,
-      matchRel: true,
-      missRel: true,
+      matchRel: 1,
+      missRel: 1,
       matchFn: identity,
     };
     // Merge defaults and re-instantiate lambda strings

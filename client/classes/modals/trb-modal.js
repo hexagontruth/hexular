@@ -208,17 +208,18 @@ class TrbModal extends Modal {
   updateTemplateString() {
     let def = this.getTemplateDef();
     def = Hexular.util.merge({}, def, this.templateDef);
-    this.setTemplateString(def);
+    this.setTemplateDef(def);
   }
 
   parseTemplateString(newDef={}) {
     let def = this.getTemplateDef(newDef);
-    this.setTemplateString(def);
+    this.setTemplateDef(def);
     this.setTemplateCells(def.states);
     this.symRadioGroup.set(def.sym);
   }
 
-  setTemplateString(def) {
+  setTemplateDef(def) {
+    this.templateDef = def;
     this.templateString = this.templateStringField.value = JSON.stringify(def);
   }
 
@@ -268,9 +269,9 @@ class TrbModal extends Modal {
       if (ev.type == 'mousedown' && this.buttonMode == null) {
         let inc;
         if (ev.buttons & 1)
-          inc = 1;
-        else if (ev.buttons & 2)
           inc = -1;
+        else if (ev.buttons & 2)
+          inc = 1;
         else
           return;
         this._startButtonModeFrom(button, inc);
@@ -291,7 +292,7 @@ class TrbModal extends Modal {
     this.buttonMode = mode;
   }
 
-  _startButtonModeFrom(button, inc = 1) {
+  _startButtonModeFrom(button, inc = -1) {
     let cur = this.config.trb.templateDef.states[button.idx];
     let mode = Hexular.math.mod(cur + 1 + inc, 3) - 1;
     this.buttonMode = mode;
@@ -313,8 +314,8 @@ class TemplateControl {
     this.controller.appendChild(this.thumb);
     this.controller.onclick = () => {
       this.modal.loadTemplate(this.modal.selectedControl != this && this);
+      this.modal.saveConfig();
     };
-    this.controller.ondblclick = () => this.delete();
     modal.templateList.appendChild(this.controller);
     this.controller.ondragstart = (ev) => this.handleDrag(ev);
     this.controller.ondragover = (ev) => this.handleDragOver(ev);
