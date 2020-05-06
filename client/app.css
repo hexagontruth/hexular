@@ -806,6 +806,7 @@ button.statemask.active, button.statemask:hover {
   flex: 0 1 auto;
   border: 0.2em solid transparent;
   border-radius: 0.5em;
+  cursor: pointer;
 }
 
 .template-control.active {

@@ -70,8 +70,11 @@ class Config {
       rbStates: Array(64).fill(false),
       trb: {
         ruleName: 'newTemplateRule',
-        selectedName: null,
-        selectedObject: [[]],
+        selectedName: '',
+        selectedDef: [],
+        selectedControllerIdx: -1,
+        templateString: '',
+        symButton: 0,
         maskCells: Array(19).fill(-1),
       },
       drawFunctions: {
@@ -648,7 +651,6 @@ class Config {
 
   setTrb(trbState) {
     this.trb = Hexular.util.merge({}, trbState);
-    this.trbModal.reset();
     this.storeSessionConfigAsync();
   }
 

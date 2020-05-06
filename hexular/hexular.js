@@ -1764,10 +1764,9 @@ var Hexular = (function () {
   *
   * @param {*} arg Any value
   * @return {*}    The same value
+  * @memberof Hexular.util
   */
-  function identity(arg) {
-    return arg;
-  }
+  let identity = (e) => e;
 
   // --- UTILITY FUNCTIONS ---
 
@@ -1890,7 +1889,7 @@ var Hexular = (function () {
    * @memberof Hexular.util
    * @see {@link Hexular.util.ruleBuilder}
    */
-  function templateRuleBuilder(templateDefs) {
+  function templateRuleBuilder(templateDefs=[{}]) {
     let templateDefaults = {
       states: Array(19).fill(-1),
       sym: 0,
@@ -1910,13 +1909,8 @@ var Hexular = (function () {
     });
     // Copy back to exportable defs
     let exportDefs = merge([], templates);
-    // Re-stringify matchFn, drop placeholders for export
-    exportDefs.forEach((template) => {
-      if (template.matchFn == identity)
-        delete template.matchFn;
-      else
-        template.matchFn = template.matchFn.toString();
-    });
+    // Re-stringify matchFn
+    exportDefs.forEach((template) => template.matchFn = template.matchFn.toString());
     // Create mirror template state maps based on symmetry setting
     templates.forEach((template, idx) => {
       let states = template.states.slice();
