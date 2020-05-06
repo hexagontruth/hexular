@@ -13,6 +13,12 @@ class TrbModal extends Modal {
       button.idx = i;
       return button;
     });
+    this.syms = [0, 1, 2, 3];
+    this.symButtons = this.syms.map((e) => {
+      let button = document.querySelector(`#trb-sym-${e}`)
+      button.sym = e;
+      return button;
+    });
     this.clearTemplateButton = document.querySelector('#trb-clear-template');
     this.saveTemplateButton = document.querySelector('#trb-save-template');
     this.resetRuleButton = document.querySelector('#trb-reset-rule');
@@ -25,8 +31,8 @@ class TrbModal extends Modal {
     this.selectedControllerIdx = null;
     this.templateControllers = [];
     this.templateString = '';
-    this.symButton = 0;
-    this.maskCells = this.config.trb.maskCells.slice();
+    this.templateSym = 0;
+    this.templateStates = this.config.trb.templateStates.slice();
     this.buttonMode = null;
 
     this.ruleNameField.onchange = () => {
@@ -46,6 +52,17 @@ class TrbModal extends Modal {
       this.parseTemplateString();
       this.saveConfig();
     }
+
+    // Radio symmetry buttons
+    let symButtonCb = (active, alts) => {
+      for (let alt of alts)
+        this.symButtons[alt].classList.remove('active');
+      this.symButtons[active].classList.add('active');
+      this.templateSym = active;
+      this.updateTemplateString();
+    };
+    this.symRadioGroup = new RadioGroup(this.syms, symButtonCb);
+    this.symButtons.forEach((e) => e.onclick = () => this.symRadioGroup.set(e.sym));
 
     this.templateMask.onmousedown =
       this.templateMask.onmouseup =
@@ -90,7 +107,7 @@ class TrbModal extends Modal {
     this.ruleNameField.value = this.ruleName;
     this.selectAvailable.value = this.config.trb.selectedName;
     this.loadRule(this.config.trb.selectedName);
-    this.maskCells = this.config.trb.maskCells.slice();
+    this.templateStates = this.config.trb.templateStates.slice();
     this.templateStringField.value = this.config.trb.templateString;
     if (this.config.trb.selectedControllerIdx != this.selectedControllerIdx)
       this.loadTemplate(this.templateControllers[this.config.trb.selectedControllerIdx]);
@@ -104,8 +121,8 @@ class TrbModal extends Modal {
       'selectedName',
       'selectedDef',
       'templateString',
-      'symButton',
-      'maskCells',
+      'templateSym',
+      'templateStates',
     ];
     this.config.setTrb(Hexular.util.extract(this, keys));
   }
@@ -140,7 +157,7 @@ class TrbModal extends Modal {
   }
 
   clearTemplate() {
-    this.setTemplateCells(Config.defaults.trb.maskCells);
+    this.setTemplateCells(Config.defaults.trb.templateStates);
   }
 
   saveTemplate() {
@@ -157,33 +174,38 @@ class TrbModal extends Modal {
     this.selectedControllerIdx = this.templateControllers.indexOf(controller);
     if (controller) {
       controller.control.classList.add('active');
-      this.setTemplateFields(controller.def);
+      this.parseTemplateString(controller.def);
     }
   }
 
-  getTemplateDef() {
+  getTemplateDef(newDef={}) {
     let def = {};
     try {
       def = JSON.parse(this.templateStringField.value);
     }
     catch {}
-    return Hexular.util.merge({}, this.defaultTemplate, def);
+    let mergedDef = Hexular.util.merge({}, this.defaultTemplate, def, newDef);
+    if (!this.syms.includes(mergedDef.sym))
+      mergedDef.sym = this.templateSym
+    return mergedDef;
   }
 
   updateTemplateString() {
     let def = this.getTemplateDef();
-    def.states = this.maskCells.slice();
-    this.templateString = this.templateStringField.value = JSON.stringify(def);
+    def.states = this.templateStates.slice();
+    def.sym = this.templateSym;
+    this.setTemplateString(def);
   }
 
-  parseTemplateString() {
-    let def = this.getTemplateDef();
-    this.setTemplateFields(def);
-  }
-
-  setTemplateFields(def) {
+  parseTemplateString(newDef={}) {
+    let def = this.getTemplateDef(newDef);
+    this.setTemplateString(def);
     this.setTemplateCells(def.states);
-    this.updateTemplateString();
+    this.symRadioGroup.set(def.sym);
+  }
+
+  setTemplateString(def) {
+    this.templateString = this.templateStringField.value = JSON.stringify(def);
   }
 
   updateTemplates() {
@@ -195,21 +217,21 @@ class TrbModal extends Modal {
   setTemplateCell(idx) {
     if (this.buttonMode == null)
       return;
-    this.maskCells[idx] = this.buttonMode;
+    this.templateStates[idx] = this.buttonMode;
     this.setTemplateButton(idx);
     this.updateTemplateString();
   }
 
-  setTemplateCells(maskCells) {
-    if (maskCells)
-      this.maskCells = maskCells;
+  setTemplateCells(templateStates) {
+    if (templateStates)
+      this.templateStates = templateStates;
     this.templateButtons.forEach((e) => this.setTemplateButton(e.idx));
     this.updateTemplateString();
   }
 
   setTemplateButton(idx) {
     let button = this.templateButtons[idx];
-    let state = this.maskCells[idx];
+    let state = this.templateStates[idx];
     button.setAttribute('class', null);
     if (state == 0)
       button.classList.add('inactive');
@@ -224,6 +246,9 @@ class TrbModal extends Modal {
     if (ev.type == 'mouseleave' && this.buttonMode != null) {
       this._endButtonMode();
     }
+    else if (ev.type == 'mouseup') {
+      this._endButtonMode();
+    }
     else if (this.templateButtons.includes(ev.target)) {
       let button = ev.target;
       if (ev.type == 'mousedown' && this.buttonMode == null) {
@@ -235,9 +260,6 @@ class TrbModal extends Modal {
         else
           return;
         this._startButtonModeFrom(button, inc);
-      }
-      else if (ev.type == 'mouseup') {
-        this._endButtonMode();
       }
       this.setTemplateCell(button.idx);
       ev.preventDefault();
@@ -256,7 +278,7 @@ class TrbModal extends Modal {
   }
 
   _startButtonModeFrom(button, inc = 1) {
-    let cur = this.config.trb.maskCells[button.idx];
+    let cur = this.config.trb.templateStates[button.idx];
     let mode = Hexular.math.mod(cur + 1 + inc, 3) - 1;
     this.buttonMode = mode;
   }

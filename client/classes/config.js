@@ -74,8 +74,8 @@ class Config {
         selectedDef: [],
         selectedControllerIdx: -1,
         templateString: '',
-        symButton: 0,
-        maskCells: Array(19).fill(-1),
+        templateSym: 0,
+        templateStates: Array(19).fill(-1),
       },
       drawFunctions: {
         // onDraw

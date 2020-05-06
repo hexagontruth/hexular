@@ -55,6 +55,10 @@ a {
   color: inherit;
 }
 
+.rel {
+  position: relative;
+}
+
 .container {
   position: fixed;
   top: 0;
@@ -792,11 +796,17 @@ button.statemask.active, button.statemask:hover {
 }
 
 #template-list {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: stretch;
   margin: 0.25em;
+  padding: 0.2em;
   background: #fff;
   border-radius: 0.5em;
   overflow-y: scroll;
@@ -805,8 +815,14 @@ button.statemask.active, button.statemask:hover {
 .template-control {
   flex: 0 1 auto;
   border: 0.2em solid transparent;
+  padding: 0.2em;
   border-radius: 0.5em;
   cursor: pointer;
+}
+
+.template-control svg {
+  width: 100%;
+  height: auto;
 }
 
 .template-control.active {
