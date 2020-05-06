@@ -1897,20 +1897,26 @@ var Hexular = (function () {
       miss: -1,
       matchRel: 1,
       missRel: 1,
-      matchFn: identity,
+      applyFn: (a, b) => 1,
+      matchFn: (c, a, b) => c,
     };
     // Merge defaults and re-instantiate lambda strings
     let templates = templateDefs.map((template) => {
-      if (typeof template.matchFn == 'string') {
-        let evalFn = new Function('fnString', 'return eval(fnString)');
-        template.matchFn = evalFn(template.matchFn);
+      for (let fnKey of ['applyFn', 'matchFn']) {
+        if (typeof template[fnKey] == 'string') {
+          let evalFn = new Function('fnString', 'return eval(fnString)');
+          template[fnKey] = evalFn(template[fnKey]);
+        }
       }
       return merge({}, templateDefaults, template);
     });
     // Copy back to exportable defs
     let exportDefs = merge([], templates);
     // Re-stringify matchFn
-    exportDefs.forEach((template) => template.matchFn = template.matchFn.toString());
+    exportDefs.forEach((template) => {
+      template.applyFn = template.applyFn.toString();
+      template.matchFn = template.matchFn.toString();
+    });
     // Create mirror template state maps based on symmetry setting
     templates.forEach((template, idx) => {
       let states = template.states.slice();
@@ -1944,12 +1950,14 @@ var Hexular = (function () {
       let nbrStates = cell.with[19].map;
       let cellState = cell.state;
       for (let template of templates) {
+        if (!template.applyFn(cell.state, cellState))
+          continue;
         let match = false;
         for (let stateMap of template.stateMaps) {
           let matchMap = true;
           for (let i = 0; i < 19; i++) {
             let mapCellState = stateMap[i];
-            let matchState = template.matchFn(nbrStates[i]);
+            let matchState = template.matchFn(nbrStates[i], cell.state, cellState);
             let matchCell = matchState && mapCellState || !matchState && mapCellState != 1;
             if (!matchCell) {
               matchMap = false;

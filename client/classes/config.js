@@ -269,6 +269,13 @@ class Config {
     }
   }
 
+  mergeRules(newRuleName, ...ruleNames) {
+    let rules = ruleNames.map((e) => this.availableRules[e]).filter((e) => e && e.defs);
+    let defs = rules.reduce((a, e) => a.concat(e.defs), []);
+    let newRule = Hexular.util.templateRuleBuilder(defs);
+    this.addRule(newRuleName, newRule);
+  }
+
   updateRules() {
     this.configModal.update();
     this.srbModal.update();

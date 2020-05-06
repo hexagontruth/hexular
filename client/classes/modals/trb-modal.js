@@ -174,10 +174,14 @@ class TrbModal extends Modal {
 
   saveTemplate() {
     let templateDef = this.getTemplateDef();
-    if (this.selectedControl)
+    if (this.selectedControl) {
       this.selectedControl.update(templateDef);
-    else
-      this.templateControls.push(new TemplateControl(this, templateDef))
+    }
+    else {
+      let templateControl = new TemplateControl(this, templateDef)
+      this.templateControls.push(templateControl);
+      this.loadTemplate(templateControl);
+    }
     this.checkRuleDirty();
   }
 

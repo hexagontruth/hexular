@@ -825,6 +825,7 @@ button.statemask.active, button.statemask:hover {
 }
 
 .template-controller svg {
+  display: block;
   width: 100%;
   height: auto;
 }
@@ -864,6 +865,10 @@ button.statemask.active, button.statemask:hover {
 #template-mask polygon:hover {
   stroke: #fb3;
   stroke-width: 2;
+}
+
+.modal .group textarea.template-string {
+  height: 8em;
 }
 
 @media screen and (max-width: 600px) {

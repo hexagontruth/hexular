@@ -326,16 +326,13 @@
             </select>
           </div>
           <div class="group">
-            <div class="rel quarter"><div id="template-list"></div></div>
-            <div id="template-editor" class="group wrap three-quarters">
-              <div class="group">
-                <textarea id="template-string" class="rule-string"></textarea>
-              </div>
+            <div class="rel" style="width: 6em;"><div id="template-list"></div></div>
+            <div id="template-editor" class="group wrap">
               <div class="group buttons">
-                <button id="trb-sym-0" class="icon-hexagon-outline rotate active"></button>
-                <button id="trb-sym-1" class="icon-hexagon-slice-1 rotate"></button>
-                <button id="trb-sym-2" class="icon-hexagon-slice-2 rotate"></button>
-                <button id="trb-sym-3" class="icon-hexagon-slice-3 rotate"></button>
+                <button id="trb-sym-0" class="icon-hexagon-outline rotate active" title="No symmetry"></button>
+                <button id="trb-sym-1" class="icon-hexagon-slice-1 rotate" title="60&deg; symmetry"></button>
+                <button id="trb-sym-2" class="icon-hexagon-slice-2 rotate" title="120&deg; symmetry"></button>
+                <button id="trb-sym-3" class="icon-hexagon-slice-3 rotate" title="180&deg; symmetry"></button>
               </div>
               <div class="group">
                 <svg id="template-mask" class="template-mask" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="100px" height="100px" viewBox="0 0 100 100" enable-background="new 0 0 100 100" xml:space="preserve">
@@ -360,15 +357,18 @@
                   <polygon id="cell-00" points="49.999,60.361 41.025,55.18 41.025,44.817 49.999,39.637 58.974,44.817 58.974,55.18"/>
                 </svg>
               </div>
+             <div class="group">
+                <textarea id="template-string" class="template-string"></textarea>
+              </div>
               <div class="group buttons">
-                <button id="trb-delete-template" disabled class="icon-trash"></button>
-                <button id="trb-clear-template">Clear</button>
-                <button id="trb-save-template">Save</button>
+                <button id="trb-delete-template" disabled class="icon-trash" title="Delete template"></button>
+                <button id="trb-clear-template" title="Clear template">Clear</button>
+                <button id="trb-save-template" title="Save template">Save</button>
               </div>
             </div>
           </div>
           <div class="group buttons halved">
-            <button id="trb-reset-rule">Reset</button>
+            <button id="trb-reset-rule">New rule</button>
             <button id="trb-save-rule">Save rule</button>
           </div>
         </div>
