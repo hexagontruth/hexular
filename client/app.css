@@ -636,6 +636,10 @@ select {
   padding-right: 0;
 }
 
+.modal .group.buttons button.icon {
+  flex: 0 0 2em;
+}
+
 .modal .group.buttons.sub-buttons button {
   min-height: 2.5em;
   background-color: #ddd;
@@ -812,7 +816,7 @@ button.statemask.active, button.statemask:hover {
   overflow-y: scroll;
 }
 
-.template-control {
+.template-controller {
   flex: 0 1 auto;
   border: 0.2em solid transparent;
   padding: 0.2em;
@@ -820,12 +824,12 @@ button.statemask.active, button.statemask:hover {
   cursor: pointer;
 }
 
-.template-control svg {
+.template-controller svg {
   width: 100%;
   height: auto;
 }
 
-.template-control.active {
+.template-controller.active {
   border-color: #6de;
 }
 

@@ -71,8 +71,9 @@ class Config {
       trb: {
         ruleName: 'newTemplateRule',
         selectedName: '',
-        selectedDef: [],
+        selectedRuleDef: [],
         selectedControllerIdx: -1,
+        templateDefs: [],
         templateString: '',
         templateSym: 0,
         templateStates: Array(19).fill(-1),

@@ -6,6 +6,7 @@ class TrbModal extends Modal {
     this.ruleNameField = document.querySelector('#trb-rule-name');
     this.selectAvailable = document.querySelector('#trb-select-available').select;
     this.templateList = document.querySelector('#template-list');
+    this.templateControls = [];
     this.templateStringField = document.querySelector('#template-string');
     this.templateMask = document.querySelector('#template-mask');
     this.templateButtons = Array(19).fill().map((_, i) => {
@@ -19,6 +20,7 @@ class TrbModal extends Modal {
       button.sym = e;
       return button;
     });
+    this.deleteTemplateButton = document.querySelector('#trb-delete-template');
     this.clearTemplateButton = document.querySelector('#trb-clear-template');
     this.saveTemplateButton = document.querySelector('#trb-save-template');
     this.resetRuleButton = document.querySelector('#trb-reset-rule');
@@ -26,10 +28,9 @@ class TrbModal extends Modal {
 
     this.ruleName = null;
     this.selectedName = null;
-    this.selectedDef = null;
-    this.selectedController = null;
-    this.selectedControllerIdx = null;
-    this.templateControllers = [];
+    this.selectedRuleDef = null;
+    this.selectedControl = null;
+    this.selectedControlIdx = null;
     this.templateString = '';
     this.templateSym = 0;
     this.templateStates = this.config.trb.templateStates.slice();
@@ -70,20 +71,24 @@ class TrbModal extends Modal {
       this.templateMask.onmouseleave = (ev) => this.handleTemplateMouse(ev);
     this.templateMask.oncontextmenu = (ev) => ev.preventDefault();
 
+    this.deleteTemplateButton.onclick = () => {
+      this.selectedControl && this.selectedControl.delete();
+    };
     this.clearTemplateButton.onclick = () => {
       this.clearTemplate();
       this.saveConfig();
-    }
+    };
     this.saveTemplateButton.onclick = () => {
       this.saveTemplate();
-    }
+      this.saveConfig();
+    };
     this.resetRuleButton.onclick = () => {
       this.clear();
       this.saveConfig();
-    }
+    };
     this.saveRuleButton.onclick = () => {
       this.saveRule();
-    }
+    };
   }
 
   clear() {
@@ -94,7 +99,7 @@ class TrbModal extends Modal {
 
   update() {
     let rbRules = Object.entries(this.config.availableRules).filter(([rule, fn]) => fn.templates).map(([rule, fn]) => rule);
-    this.selectAvailable.replace(rbRules, this.ruleNameField.value, 1);
+    this.selectAvailable.replace(rbRules, this.ruleName, 1);
     this.loadConfig();
   }
 
@@ -106,25 +111,29 @@ class TrbModal extends Modal {
     this.ruleName = this.config.trb.ruleName;
     this.ruleNameField.value = this.ruleName;
     this.selectAvailable.value = this.config.trb.selectedName;
-    this.loadRule(this.config.trb.selectedName);
+    this.loadRule(this.ruleName);
+    this.updateTemplates(this.config.trb.templateDefs);
     this.templateStates = this.config.trb.templateStates.slice();
     this.templateStringField.value = this.config.trb.templateString;
-    if (this.config.trb.selectedControllerIdx != this.selectedControllerIdx)
-      this.loadTemplate(this.templateControllers[this.config.trb.selectedControllerIdx]);
+    if (this.config.trb.selectedControlIdx != this.selectedControlIdx)
+      this.loadTemplate(this.templateControls[this.config.trb.selectedControlIdx]);
     this.setTemplateCells();
   }
 
   saveConfig() {
     let keys = [
       'ruleName',
-      'selectedControllerIdx',
+      'selectedControlIdx',
       'selectedName',
-      'selectedDef',
+      'selectedRuleDef',
+      'templateDefs',
       'templateString',
       'templateSym',
       'templateStates',
     ];
-    this.config.setTrb(Hexular.util.extract(this, keys));
+    let obj = Hexular.util.extract(this, keys);
+    obj.templateDefs = this.templateControls.map((e) => e.def);
+    this.config.setTrb(obj);
   }
 
   setRuleName(name) {
@@ -134,26 +143,28 @@ class TrbModal extends Modal {
   }
 
   loadRule(rule) {
+    this.ruleNameField.value = rule;
     let fn = this.config.availableRules[rule];
     if (fn) {
-      this.selectedDef = fn.toObject()[0];
+      this.selectedRuleDef = fn.toObject()[0];
       this.selectedName = rule;
       this.setRuleName(rule);
       this.selectAvailable.value = rule;
-      this.updateTemplates();
+      this.updateTemplates(this.selectedRuleDef);
     }
     else {
-      this.selectedDef = null;
+      this.selectedRuleDef = null;
       this.selectedName = null;
       this.setRuleName(null);
     }
   }
 
   saveRule() {
-    let ruleDef = this.templateControllers.map((e) => e.def);
+    let ruleName = this.ruleName;
+    let ruleDef = this.templateControls.map((e) => e.def);
     let ruleFn = Hexular.util.templateRuleBuilder(ruleDef);
-    this.config.addRule(this.ruleName, ruleFn);
-    this.board.setMessage(`Rule "${this.ruleName}" saved!`)
+    this.config.addRule(ruleName, ruleFn);
+    this.board.setMessage(`Rule "${ruleName}" saved!`)
   }
 
   clearTemplate() {
@@ -162,19 +173,21 @@ class TrbModal extends Modal {
 
   saveTemplate() {
     let templateDef = this.getTemplateDef();
-    if (this.selectedController)
-      this.selectedController.update(templateDef);
+    if (this.selectedControl)
+      this.selectedControl.update(templateDef);
     else
-      this.templateControllers.push(new TemplateController(this, templateDef))
+      this.templateControls.push(new TemplateControl(this, templateDef))
   }
 
-  loadTemplate(controller) {
-    this.templateControllers.forEach((e) => e.control.classList.remove('active'));
-    this.selectedController = controller;
-    this.selectedControllerIdx = this.templateControllers.indexOf(controller);
-    if (controller) {
-      controller.control.classList.add('active');
-      this.parseTemplateString(controller.def);
+  loadTemplate(control) {
+    this.templateControls.forEach((e) => e.controller.classList.remove('active'));
+    this.deleteTemplateButton.disabled = true;
+    this.selectedControl = control;
+    this.selectedControlIdx = this.templateControls.indexOf(control);
+    if (control) {
+      control.controller.classList.add('active');
+      this.parseTemplateString(control.def);
+      this.deleteTemplateButton.disabled = false;
     }
   }
 
@@ -208,10 +221,9 @@ class TrbModal extends Modal {
     this.templateString = this.templateStringField.value = JSON.stringify(def);
   }
 
-  updateTemplates() {
-    this.templateList.querySelectorAll('.template-control').forEach((e) => e.remove());
-    let templateDefs = this.selectedDef || [];
-    this.templateControllers = templateDefs.map((e) => new TemplateController(this, e));
+  updateTemplates(defs) {
+    this.templateList.querySelectorAll('.template-controller').forEach((e) => e.remove());
+    this.templateControls = defs.map((e) => new TemplateControl(this, e));
   }
 
   setTemplateCell(idx) {
@@ -284,35 +296,38 @@ class TrbModal extends Modal {
   }
 }
 
-class TemplateController {
+class TemplateControl {
 
   constructor(modal, def) {
     this.modal = modal;
     this.def = def;
-    this.control = document.createElement('div');
-    this.control.classList.add('template-control');
-    this.control.draggable = true;
-    this.control.controller = this;
+    this.controller = document.createElement('div');
+    this.controller.classList.add('template-controller');
+    this.controller.draggable = true;
+    this.controller.control = this;
     this.thumb = modal.templateMask.cloneNode(true);
     this.thumb.setAttribute('id', '');
     this.updateThumb();
-    this.control.appendChild(this.thumb);
-    this.control.onclick = () => {
-      this.modal.loadTemplate(this.modal.selectedController != this && this);
+    this.controller.appendChild(this.thumb);
+    this.controller.onclick = () => {
+      this.modal.loadTemplate(this.modal.selectedControl != this && this);
     };
-    this.control.ondblclick = () => this.delete();
-    modal.templateList.appendChild(this.control);
+    this.controller.ondblclick = () => this.delete();
+    modal.templateList.appendChild(this.controller);
+    this.controller.ondragstart = (ev) => this.handleDrag(ev);
+    this.controller.ondragover = (ev) => this.handleDragOver(ev);
+    this.controller.ondrop = (ev) => this.handleDrop(ev);
   }
 
   delete() {
-    this.modal.selectedController == this && this.modal.loadTemplate();
-    this.control.remove();
-    this.modal.templateControllers = this.modal.templateControllers.filter((e) => e != this);
+    this.modal.selectedControl == this && this.modal.loadTemplate();
+    this.controller.remove();
+    this.modal.templateControls = this.modal.templateControls.filter((e) => e != this);
     this.modal.saveConfig();
   }
 
-  update(def) {
-    this.def = Hexular.util.merge({}, def);
+  update(def={}) {
+    this.def = Hexular.util.merge({}, this.def, def);
     this.updateThumb();
   }
 
@@ -327,5 +342,37 @@ class TemplateController {
       else if (state == 0)
         polygon.classList.add('inactive');
     })
+  }
+
+  handleDrag(ev) {
+    ev.dataTransfer.setData('text/plain', this.modal.templateControls.indexOf(this));
+    ev.dataTransfer.dropEffect = 'move';
+  }
+
+  handleDragOver(ev) {
+    ev.preventDefault();
+    ev.dataTransfer.dropEffect = 'move';
+  }
+
+  handleDrop(ev) {
+    let sourceIdx = parseInt(ev.dataTransfer.getData('text/plain'));
+    let targetIdx = this.modal.templateControls.indexOf(this);
+    if (!isNaN(sourceIdx)) {
+      let {y, height} = this.controller.getBoundingClientRect();
+      y = ev.pageY - y;
+      let newIdx = y < height / 2 ? targetIdx : targetIdx + 1;
+      if (newIdx == sourceIdx || newIdx == sourceIdx + 1)
+        return;
+      if (newIdx > sourceIdx)
+        newIdx --;
+      let [droppedControl] = this.modal.templateControls.splice(sourceIdx, 1);
+      this.modal.templateControls.splice(newIdx, 0, droppedControl);
+      while (this.modal.templateList.firstChild)
+        this.modal.templateList.firstChild.remove();
+      this.modal.templateControls.forEach((control) => {
+        this.modal.templateList.appendChild(control.controller);
+      });
+      this.modal.saveConfig();
+    }
   }
 }
