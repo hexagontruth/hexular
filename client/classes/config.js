@@ -72,11 +72,9 @@ class Config {
         ruleName: 'newTemplateRule',
         selectedName: '',
         selectedRuleDef: [],
-        selectedControllerIdx: -1,
+        selectedControlIdx: -1,
         templateDefs: [],
-        templateString: '',
-        templateSym: 0,
-        templateStates: Array(19).fill(-1),
+        templateDef: Hexular.util.templateRuleBuilder().defs[0],
       },
       drawFunctions: {
         // onDraw
@@ -261,6 +259,17 @@ class Config {
 
   addRule(ruleName, fn) {
     this.availableRules[ruleName] = fn;
+    this.updateRules();
+  }
+
+  deleteRule(ruleName) {
+    if (this.availableRules[ruleName]) {
+      delete this.availableRules[ruleName];
+      this.updateRules();
+    }
+  }
+
+  updateRules() {
     this.configModal.update();
     this.srbModal.update();
     this.trbModal.update();

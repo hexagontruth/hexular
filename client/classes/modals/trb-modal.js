@@ -1,8 +1,6 @@
 class TrbModal extends Modal {
   constructor(...args) {
     super(...args);
-    this.defaultRule = Hexular.util.templateRuleBuilder();
-    this.defaultTemplate = this.defaultRule.defs[0];
     this.ruleNameField = document.querySelector('#trb-rule-name');
     this.selectAvailable = document.querySelector('#trb-select-available').select;
     this.templateList = document.querySelector('#template-list');
@@ -31,9 +29,7 @@ class TrbModal extends Modal {
     this.selectedRuleDef = null;
     this.selectedControl = null;
     this.selectedControlIdx = null;
-    this.templateString = '';
-    this.templateSym = 0;
-    this.templateStates = this.config.trb.templateStates.slice();
+    this.templateDef = Hexular.util.merge({}, Config.defaults.trb.templateDef);
     this.buttonMode = null;
 
     this.ruleNameField.onchange = () => {
@@ -59,7 +55,7 @@ class TrbModal extends Modal {
       for (let alt of alts)
         this.symButtons[alt].classList.remove('active');
       this.symButtons[active].classList.add('active');
-      this.templateSym = active;
+      this.templateDef.sym = active;
       this.updateTemplateString();
     };
     this.symRadioGroup = new RadioGroup(this.syms, symButtonCb);
@@ -108,16 +104,12 @@ class TrbModal extends Modal {
   }
 
   loadConfig() {
-    this.ruleName = this.config.trb.ruleName;
-    this.ruleNameField.value = this.ruleName;
-    this.selectAvailable.value = this.config.trb.selectedName;
-    this.loadRule(this.ruleName);
-    this.updateTemplates(this.config.trb.templateDefs);
-    this.templateStates = this.config.trb.templateStates.slice();
-    this.templateStringField.value = this.config.trb.templateString;
-    if (this.config.trb.selectedControlIdx != this.selectedControlIdx)
-      this.loadTemplate(this.templateControls[this.config.trb.selectedControlIdx]);
-    this.setTemplateCells();
+    let obj = this.config.trb;
+    this.setRuleName(obj.ruleName);
+    this.loadRule(obj.ruleName);
+    this.updateTemplates(obj.templateDefs);
+    this.loadTemplate(this.templateControls[obj.selectedControlIdx]);
+    this.parseTemplateString(obj.templateDef);
   }
 
   saveConfig() {
@@ -127,9 +119,7 @@ class TrbModal extends Modal {
       'selectedName',
       'selectedRuleDef',
       'templateDefs',
-      'templateString',
-      'templateSym',
-      'templateStates',
+      'templateDef',
     ];
     let obj = Hexular.util.extract(this, keys);
     obj.templateDefs = this.templateControls.map((e) => e.def);
@@ -144,6 +134,7 @@ class TrbModal extends Modal {
 
   loadRule(rule) {
     this.ruleNameField.value = rule;
+    this.selectAvailable.value = rule;
     let fn = this.config.availableRules[rule];
     if (fn) {
       this.selectedRuleDef = fn.toObject()[0];
@@ -167,8 +158,18 @@ class TrbModal extends Modal {
     this.board.setMessage(`Rule "${ruleName}" saved!`)
   }
 
+  checkRuleDirty() {
+    if (!this.selectedRuleDef)
+      return;
+    let curString = JSON.stringify(this.templateControls.map((e) => e.def));
+    let ruleString = JSON.stringify(this.selectedRuleDef);
+    if (curString != ruleString) {
+      this.loadRule();
+    }
+  }
+
   clearTemplate() {
-    this.setTemplateCells(Config.defaults.trb.templateStates);
+    this.parseTemplateString(Config.defaults.trb.templateDef);
   }
 
   saveTemplate() {
@@ -177,6 +178,7 @@ class TrbModal extends Modal {
       this.selectedControl.update(templateDef);
     else
       this.templateControls.push(new TemplateControl(this, templateDef))
+    this.checkRuleDirty();
   }
 
   loadTemplate(control) {
@@ -197,16 +199,15 @@ class TrbModal extends Modal {
       def = JSON.parse(this.templateStringField.value);
     }
     catch {}
-    let mergedDef = Hexular.util.merge({}, this.defaultTemplate, def, newDef);
+    let mergedDef = Hexular.util.merge({}, Config.defaults.trb.templateDef, def, newDef);
     if (!this.syms.includes(mergedDef.sym))
-      mergedDef.sym = this.templateSym
+      mergedDef.sym = this.templateDef.sym
     return mergedDef;
   }
 
   updateTemplateString() {
     let def = this.getTemplateDef();
-    def.states = this.templateStates.slice();
-    def.sym = this.templateSym;
+    def = Hexular.util.merge({}, def, this.templateDef);
     this.setTemplateString(def);
   }
 
@@ -221,29 +222,30 @@ class TrbModal extends Modal {
     this.templateString = this.templateStringField.value = JSON.stringify(def);
   }
 
-  updateTemplates(defs) {
+  updateTemplates(defs=[]) {
     this.templateList.querySelectorAll('.template-controller').forEach((e) => e.remove());
     this.templateControls = defs.map((e) => new TemplateControl(this, e));
+    this.checkRuleDirty();
   }
 
   setTemplateCell(idx) {
     if (this.buttonMode == null)
       return;
-    this.templateStates[idx] = this.buttonMode;
+    this.templateDef.states[idx] = this.buttonMode;
     this.setTemplateButton(idx);
     this.updateTemplateString();
   }
 
   setTemplateCells(templateStates) {
     if (templateStates)
-      this.templateStates = templateStates;
+      this.templateDef.states = templateStates;
     this.templateButtons.forEach((e) => this.setTemplateButton(e.idx));
     this.updateTemplateString();
   }
 
   setTemplateButton(idx) {
     let button = this.templateButtons[idx];
-    let state = this.templateStates[idx];
+    let state = this.templateDef.states[idx];
     button.setAttribute('class', null);
     if (state == 0)
       button.classList.add('inactive');
@@ -290,7 +292,7 @@ class TrbModal extends Modal {
   }
 
   _startButtonModeFrom(button, inc = 1) {
-    let cur = this.config.trb.templateStates[button.idx];
+    let cur = this.config.trb.templateDef.states[button.idx];
     let mode = Hexular.math.mod(cur + 1 + inc, 3) - 1;
     this.buttonMode = mode;
   }
@@ -372,6 +374,7 @@ class TemplateControl {
       this.modal.templateControls.forEach((control) => {
         this.modal.templateList.appendChild(control.controller);
       });
+      this.modal.checkRuleDirty();
       this.modal.saveConfig();
     }
   }

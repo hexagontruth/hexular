@@ -1915,7 +1915,7 @@ var Hexular = (function () {
    * @memberof Hexular.util
    * @see {@link Hexular.util.ruleBuilder}
    */
-  function templateRuleBuilder(templateDefs) {
+  function templateRuleBuilder(templateDefs=[{}]) {
     let templateDefaults = {
       states: Array(19).fill(-1),
       sym: 0,
