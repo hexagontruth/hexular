@@ -1891,14 +1891,14 @@ var Hexular = (function () {
    */
   function templateRuleBuilder(templateDefs=[{}]) {
     let templateDefaults = {
-      states: Array(19).fill(-1),
-      sym: 0,
+      applyFn: (a, b) => 1,
+      matchFn: (c, a, b) => c,
       match: 1,
       miss: -1,
       matchRel: 1,
       missRel: 1,
-      applyFn: (a, b) => 1,
-      matchFn: (c, a, b) => c,
+      sym: 0,
+      states: Array(19).fill(-1),
     };
     // Merge defaults and re-instantiate lambda strings
     let templates = templateDefs.map((template) => {

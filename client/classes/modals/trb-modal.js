@@ -224,7 +224,7 @@ class TrbModal extends Modal {
 
   setTemplateDef(def) {
     this.templateDef = def;
-    this.templateString = this.templateStringField.value = JSON.stringify(def);
+    this.templateString = this.templateStringField.value = Util.shallowPrettyJson(def, 1);
   }
 
   updateTemplates(defs=[]) {

@@ -184,5 +184,49 @@ const Util = (() => {
     Board.config.setColors(colors);
   };
 
+  Util.shallowPrettyJson = (data, maxLevels=2, indentText='  ') => {
+    // TODO: Clean up
+    let json = JSON.stringify(data);
+    let level = 0;
+    let str = '';
+    let openers = ['[', '{'];
+    let closers = [']', '}'];
+    let quote = false;
+    for (let i = 0; i < json.length; i++) {
+      let char = json[i];
+      let next = json[i + 1];
+      if (char == '"' && json[i - 1] != '\\') {
+        quote = !quote;
+      }
+      str += char;
+      if (quote) {
+        continue;
+      }
+      if (openers.includes(char) && ++level <= maxLevels && !closers.includes(next)) {
+        str += '\n' + indentText.repeat(level);
+      }
+      else if (closers.includes(char) && --level <= maxLevels) {
+        if (next == ',') {
+          i ++;
+          str += ',';
+        }
+        str += '\n' + indentText.repeat(closers.includes(next) ? level - 1 : level);
+      }
+      else if (char == ',') {
+        if (level <= maxLevels)
+          str += '\n' + indentText.repeat(closers.includes(next) ? level - 1 : level);
+        else
+          str += ' ';
+      }
+      else if (char == ':') {
+        str += ' ';
+      }
+      else if (closers.includes(next) && level <= maxLevels) {
+        str += '\n' + indentText.repeat(level - 1);
+      }
+    }
+    return str;
+  }
+
   return Util;
 })();
