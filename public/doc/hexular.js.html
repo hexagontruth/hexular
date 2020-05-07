@@ -1775,6 +1775,15 @@ var Hexular = (function () {
     return base;
   }
 
+  /**
+  * Convenience method for extracting specific keys from an object into a new object.
+  *
+  * @param {object} obj    An object
+  * @param {string[]} keys An array of keys to extract from said object
+  * @return {object}       An new object containing the given keys and values from the original object
+  * @memberof Hexular.util
+  **/
+
   function extract(obj, keys) {
     let newObj = {};
     for (let key of keys) {
@@ -1910,6 +1919,8 @@ var Hexular = (function () {
    * {@link Hexular.util.ruleBuilder}, allowing ternary conditions for neighbor cells (on, off, and indifferent), plus
    * the ability to only consider certain activated states.
    *
+   * For details on the constitution of template objects, please consult the source code.
+   *
    * @param  {object[]} templates An array of template objects
    * @return {function}           A rule function taking a {@link Cell} instance and returning an integer
    * @memberof Hexular.util
@@ -1917,26 +1928,32 @@ var Hexular = (function () {
    */
   function templateRuleBuilder(templateDefs=[{}]) {
     let templateDefaults = {
-      states: Array(19).fill(-1),
-      sym: 0,
+      applyFn: (a, b) => 1,
+      matchFn: (c, a, b) => c,
       match: 1,
       miss: -1,
-      matchRel: true,
-      missRel: true,
-      matchFn: identity,
+      matchRel: 1,
+      missRel: 1,
+      sym: 0,
+      states: Array(19).fill(-1),
     };
     // Merge defaults and re-instantiate lambda strings
     let templates = templateDefs.map((template) => {
-      if (typeof template.matchFn == 'string') {
-        let evalFn = new Function('fnString', 'return eval(fnString)');
-        template.matchFn = evalFn(template.matchFn);
+      for (let fnKey of ['applyFn', 'matchFn']) {
+        if (typeof template[fnKey] == 'string') {
+          let evalFn = new Function('fnString', 'return eval(fnString)');
+          template[fnKey] = evalFn(template[fnKey]);
+        }
       }
       return merge({}, templateDefaults, template);
     });
     // Copy back to exportable defs
     let exportDefs = merge([], templates);
     // Re-stringify matchFn
-    exportDefs.forEach((template) => template.matchFn = template.matchFn.toString());
+    exportDefs.forEach((template) => {
+      template.applyFn = template.applyFn.toString();
+      template.matchFn = template.matchFn.toString();
+    });
     // Create mirror template state maps based on symmetry setting
     templates.forEach((template, idx) => {
       let states = template.states.slice();
@@ -1970,12 +1987,14 @@ var Hexular = (function () {
       let nbrStates = cell.with[19].map;
       let cellState = cell.state;
       for (let template of templates) {
+        if (!template.applyFn(cell.state, cellState))
+          continue;
         let match = false;
         for (let stateMap of template.stateMaps) {
           let matchMap = true;
           for (let i = 0; i &lt; 19; i++) {
             let mapCellState = stateMap[i];
-            let matchState = template.matchFn(nbrStates[i]);
+            let matchState = template.matchFn(nbrStates[i], cell.state, cellState);
             let matchCell = matchState &amp;&amp; mapCellState || !matchState &amp;&amp; mapCellState != 1;
             if (!matchCell) {
               matchMap = false;

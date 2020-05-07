@@ -57,6 +57,7 @@ class TrbModal extends Modal {
       this.symButtons[active].classList.add('active');
       this.templateDef.sym = active;
       this.updateTemplateString();
+      this.saveConfig();
     };
     this.symRadioGroup = new RadioGroup(this.syms, symButtonCb);
     this.symButtons.forEach((e) => e.onclick = () => this.symRadioGroup.set(e.sym));

@@ -1063,6 +1063,9 @@ class Board {
           else if (key == 'g') {
             this.toggleModal('config');
           }
+          if (key == 'h') {
+            this.toggleModal('trb');
+          }
           else if (key == 'r') {
             this.toggleModal('resize');
           }
@@ -1080,10 +1083,7 @@ class Board {
           }
         }
         else if (ev.shiftKey) {
-          if (key == 'b') {
-            this.toggleModal('trb');
-          }
-          else if (key == 's') {
+          if (key == 's') {
             this.promptSaveImage();
           }
           else {

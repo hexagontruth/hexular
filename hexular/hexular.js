@@ -1749,6 +1749,15 @@ var Hexular = (function () {
     return base;
   }
 
+  /**
+  * Convenience method for extracting specific keys from an object into a new object.
+  *
+  * @param {object} obj    An object
+  * @param {string[]} keys An array of keys to extract from said object
+  * @return {object}       An new object containing the given keys and values from the original object
+  * @memberof Hexular.util
+  **/
+
   function extract(obj, keys) {
     let newObj = {};
     for (let key of keys) {
@@ -1883,6 +1892,8 @@ var Hexular = (function () {
    * This allows a superset of rules including but not limited to those generated with
    * {@link Hexular.util.ruleBuilder}, allowing ternary conditions for neighbor cells (on, off, and indifferent), plus
    * the ability to only consider certain activated states.
+   *
+   * For details on the constitution of template objects, please consult the source code.
    *
    * @param  {object[]} templates An array of template objects
    * @return {function}           A rule function taking a {@link Cell} instance and returning an integer
