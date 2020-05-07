@@ -1707,6 +1707,76 @@ var Hexular = (function () {
     return !cell.edge ? value : this.groundState;
   }
 
+  /**
+   * Utility function for recursively merging arrays and objects.
+   *
+   * Works similarly to `Object.assign`, with the first argument taking the merged properties of the remaining ones,
+   * applied from left to right so that e.g. later arguments overwrite earlier ones.
+   *
+   * In addition to recursively merging objects (by creating new objects for all but the base object), `null` values in
+   * arrays are ignored when merging. So, e.g., `merge([1, 2], [null, 3])` will return `[1, 3]`.
+   *
+   * Additionally, one may use a non-array object to merge sparse keys with an array. So for instance
+   * `merge([1, 2], {2: 3})` will return `[1, 2, 3]`.
+   *
+   * @param  {object} ...objs One or more objects or arrays to be recursively merged
+   * @return {type}           The updated first argument passed to the function
+   * @memberof Hexular.util
+   */
+  function merge(...objs) {
+    let base = objs.shift();
+    let next;
+    let mergeWhitelist = [Object, Array];
+    while (next = objs.shift()) {
+      for (let [key, val] of Object.entries(next)) {
+        if (val == null) continue;
+        let defaultBaseVal = Array.isArray(val) ? [] : typeof val == 'object' ? {} : null;
+        let baseVal = base[key] || defaultBaseVal;
+        if (typeof val == 'object' && !mergeWhitelist.includes(val.constructor)) {
+          base[key] = val;
+        }
+        else if (Array.isArray(val) && Array.isArray(baseVal)) {
+          base[key] = merge([], baseVal, val);
+        }
+        else if (typeof baseVal =='object' && typeof val == 'object') {
+          base[key] = merge({}, baseVal, val);
+        }
+        else {
+          base[key] = val;
+        }
+      }
+    }
+    return base;
+  }
+
+  /**
+  * Convenience method for extracting specific keys from an object into a new object.
+  *
+  * @param {object} obj    An object
+  * @param {string[]} keys An array of keys to extract from said object
+  * @return {object}       An new object containing the given keys and values from the original object
+  * @memberof Hexular.util
+  **/
+
+  function extract(obj, keys) {
+    let newObj = {};
+    for (let key of keys) {
+      newObj[key] = obj[key];
+    }
+    return newObj;
+  }
+
+  /**
+  * Convenience method for returning an argument unchanged.
+  *
+  * Used as placeholder where e.g. mutual equivalence of such placeholders is important.
+  *
+  * @param {*} arg Any value
+  * @return {*}    The same value
+  * @memberof Hexular.util
+  */
+  let identity = (e) => e;
+
   // --- UTILITY FUNCTIONS ---
 
   /**
@@ -1740,7 +1810,7 @@ var Hexular = (function () {
   }
 
   /**
-  * Generates an elementary rule based on the state of a cell's neighbors plus optionally itself.
+  * Generates an elementary rule based on the state of a cell's six immediate neighbors plus optionally itself.
   *
   * The most significant (left-most) bit represents the lowest neighbor number in the selected range, while the least
   * significant bit represents the highest. Thus, the same rule masks can be used with `opts.range` set to either
@@ -1762,7 +1832,7 @@ var Hexular = (function () {
   *                                           nonzero and difference is >= 0
   * @return {function}                        A rule function taking a {@link Cell} instance and returning an integer
   * @memberof Hexular.util
-  * @see {@link Cell#nbrs}
+  * @see {@link Hexular.util.templateRuleBuilder}
   **/
   function ruleBuilder(ruleDef, opts={}) {
     let defaults = {
@@ -1811,6 +1881,119 @@ var Hexular = (function () {
     rule.n = n;
     rule.range = range;
     rule.toObject = () => [ruleDef, {range, miss, match, missRel, matchRel, rel}];
+    rule.toString = () => JSON.stringify(rule.toObject());
+    return rule;
+  }
+
+  /**
+   * Generates a rule consisting of one or more templates that are matched in turn to the cell's eighteen neighboring
+   * states, successively updating the cell's state.
+   *
+   * This allows a superset of rules including but not limited to those generated with
+   * {@link Hexular.util.ruleBuilder}, allowing ternary conditions for neighbor cells (on, off, and indifferent), plus
+   * the ability to only consider certain activated states.
+   *
+   * For details on the constitution of template objects, please consult the source code.
+   *
+   * @param  {object[]} templates An array of template objects
+   * @return {function}           A rule function taking a {@link Cell} instance and returning an integer
+   * @memberof Hexular.util
+   * @see {@link Hexular.util.ruleBuilder}
+   */
+  function templateRuleBuilder(templateDefs=[{}]) {
+    let templateDefaults = {
+      applyFn: (a, b) => 1,
+      matchFn: (c, a, b) => c,
+      match: 1,
+      miss: -1,
+      matchRel: 1,
+      missRel: 1,
+      sym: 0,
+      states: Array(19).fill(-1),
+    };
+    // Merge defaults and re-instantiate lambda strings
+    let templates = templateDefs.map((template) => {
+      for (let fnKey of ['applyFn', 'matchFn']) {
+        if (typeof template[fnKey] == 'string') {
+          let evalFn = new Function('fnString', 'return eval(fnString)');
+          template[fnKey] = evalFn(template[fnKey]);
+        }
+      }
+      return merge({}, templateDefaults, template);
+    });
+    // Copy back to exportable defs
+    let exportDefs = merge([], templates);
+    // Re-stringify matchFn
+    exportDefs.forEach((template) => {
+      template.applyFn = template.applyFn.toString();
+      template.matchFn = template.matchFn.toString();
+    });
+    // Create mirror template state maps based on symmetry setting
+    templates.forEach((template, idx) => {
+      let states = template.states.slice();
+      let alts = [states];
+      for (let i = 1; i < 6; i++) {
+        let sym6 = states.slice(1, 7);
+        let sym12 = states.slice(7, 13);
+        let sym18 = states.slice(13, 19);
+        sym6.push(sym6.shift());
+        sym12.push(sym12.shift());
+        sym18.push(sym18.shift());
+        states = states.slice(0, 1).concat(sym6, sym12, sym18);
+        if (i % template.sym == 0) {
+          alts.push(states);
+        }
+      }
+      for (let i = 0; i < alts.length; i++) {
+        let alt = alts[i];
+        let remaining = alts.slice(i + 1);
+        let dups = [];
+        for (let j = 0; j < remaining.length; j++) {
+          let isDup = remaining[j].reduce((a, e, k) => a && alt[k] == e, true);
+          isDup && dups.unshift(i + j + 1);
+        }
+        dups.forEach((idx) => alts.splice(idx, 1));
+      }
+      template.stateMaps = alts;
+    });
+
+    let rule = (cell) => {
+      let nbrStates = cell.with[19].map;
+      let cellState = cell.state;
+      for (let template of templates) {
+        if (!template.applyFn(cell.state, cellState))
+          continue;
+        let match = false;
+        for (let stateMap of template.stateMaps) {
+          let matchMap = true;
+          for (let i = 0; i < 19; i++) {
+            let mapCellState = stateMap[i];
+            let matchState = template.matchFn(nbrStates[i], cell.state, cellState);
+            let matchCell = matchState && mapCellState || !matchState && mapCellState != 1;
+            if (!matchCell) {
+              matchMap = false;
+              break;
+            }
+          }
+          if (matchMap) {
+            match = true;
+            break;
+          }
+        }
+        if (match) {
+          if (template.matchRel) cellState += template.match;
+          else cellState = template.match;
+        }
+        else {
+          if (template.missRel) cellState += template.miss;
+          else cellState = template.miss;
+        }
+      }
+      return cellState;
+    };
+    rule.templates = templates;
+    rule.defs = exportDefs;
+    rule.toObject = () => [rule.defs];
     rule.toString = () => JSON.stringify(rule.toObject());
     return rule;
   }
@@ -1957,8 +2140,12 @@ var Hexular = (function () {
       edgeFilter,
     },
     util: {
+      merge,
+      extract,
+      identity,
       hexWrap,
       ruleBuilder,
+      templateRuleBuilder,
     },
     math: Object.assign(math, {
       mod,

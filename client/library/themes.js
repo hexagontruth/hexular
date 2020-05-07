@@ -86,7 +86,7 @@ const Themes = (() => {
       cellGap: -0.5,
       pageBackground: '#ffffff',
       modelBackground: '#fffff7',
-      colors: Config.merge([], classicColors, [
+      colors: Hexular.util.merge([], classicColors, [
         null,
         '#f7f7ef33',
         '#efefe766',
@@ -123,7 +123,7 @@ const Themes = (() => {
       pageBackground: '#111111',
       modelBackground: '#000000',
       cellGap: -0.5,
-      colors: Config.merge([], classicColors, [
+      colors: Hexular.util.merge([], classicColors, [
         null,
         '#888888',
         '#aaaaaa',
@@ -159,7 +159,7 @@ const Themes = (() => {
     darkLight: {
       pageBackground: '#24222d',
       modelBackground: '#3a3545',
-      colors: Config.merge(Hexular.DEFAULTS.colors.slice(), [
+      colors: Hexular.util.merge(Hexular.DEFAULTS.colors.slice(), [
         null,
         '#5d524b',
         '#666655',
@@ -225,7 +225,7 @@ const Themes = (() => {
       pageBackground: '#cce5e2',
       modelBackground: '#eeeedd',
       cellGap: 1.33,
-      colors: Config.merge(new Array(64).fill('#33332f'), ['#eed']),
+      colors: Hexular.util.merge(new Array(64).fill('#33332f'), ['#eed']),
     },
     sovietFruitcake: {
       pageBackground: '#f8f8f8',

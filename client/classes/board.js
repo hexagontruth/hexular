@@ -18,7 +18,7 @@ class Board {
           });
           board.undoStack = oldBoard.undoStack;
           board.redoStack = oldBoard.redoStack;
-          board.hooks = Config.merge(oldBoard.hooks);
+          board.hooks = Hexular.util.merge(oldBoard.hooks);
           board.refreshHistoryButtons();
         }
         Board.config = board.config;
@@ -124,7 +124,8 @@ class Board {
         showDraw: document.querySelector('#show-draw'),
         showTheme: document.querySelector('#show-theme'),
         showResize: document.querySelector('#show-resize'),
-        showRb: document.querySelector('#show-rb'),
+        showSrb: document.querySelector('#show-srb'),
+        showTrb: document.querySelector('#show-trb'),
         showCustom: document.querySelector('#show-custom'),
         showClear: document.querySelector('#show-clear'),
         saveSnapshot: document.querySelector('#snapshot-save'),
@@ -206,7 +207,8 @@ class Board {
     this.buttons.showDraw.onmousedown = () => this.toggleModal('draw');
     this.buttons.showTheme.onmousedown = () => this.toggleModal('theme');
     this.buttons.showResize.onmousedown = () => this.toggleModal('resize');
-    this.buttons.showRb.onmousedown = () => this.toggleModal('rb');
+    this.buttons.showSrb.onmousedown = () => this.toggleModal('srb');
+    this.buttons.showTrb.onmousedown = () => this.toggleModal('trb');
     this.buttons.showCustom.onmousedown = () => this.toggleModal('custom');
     this.buttons.showClear.onmousedown = () => this.handleClearStorage();
 
@@ -246,7 +248,8 @@ class Board {
       confirm: new ConfirmModal(this, 'confirm'),
       config: new ConfigModal(this, 'config'),
       custom: new CustomModal(this, 'custom'),
-      rb: new RbModal(this, 'rb'),
+      srb: new SrbModal(this, 'srb'),
+      trb: new TrbModal(this, 'trb'),
       resize: new ResizeModal(this, 'resize'),
       theme: new ThemeModal(this, 'theme'),
       draw: new DrawModal(this, 'draw'),
@@ -993,8 +996,8 @@ class Board {
             if (this.modal == this.modals.config) {
               this.modals.config._handleCheckAll();
             }
-            else if (this.modal == this.modals.rb) {
-              this.modals.rb._handleCheckAll();
+            else if (this.modal == this.modals.srb || this.modal == this.modals.trb) {
+              this.modals.srb._handleCheckAll();
             }
             else if (this.modal == this.modals.custom && document.activeElement == this.modals.custom.input) {
               this.modals.custom.input.select();
@@ -1043,7 +1046,7 @@ class Board {
             this.load();
           }
           else if (key == 'b') {
-            this.toggleModal('rb');
+            this.toggleModal('srb');
           }
           else if (key == 'c') {
             this.clear();
@@ -1059,6 +1062,9 @@ class Board {
           }
           else if (key == 'g') {
             this.toggleModal('config');
+          }
+          else if (key == 'h') {
+            this.toggleModal('trb');
           }
           else if (key == 'r') {
             this.toggleModal('resize');

@@ -1,4 +1,4 @@
-class RbModal extends Modal {
+class SrbModal extends Modal {
   constructor(...args) {
     super(...args);
     this.ruleName = document.querySelector('#rule-name');
@@ -167,7 +167,7 @@ class RbModal extends Modal {
         let [match, matchRel] = [this.config.rbMatch, this.config.rbMatchRel];
         let rel = this.config.rbRel;
         let rule = configRule ? configRule : strRule;
-        let opts = Config.merge({}, strOpts, {miss, match, missRel, matchRel, rel});
+        let opts = Hexular.util.merge({}, strOpts, {miss, match, missRel, matchRel, rel});
         let ruleString  = JSON.stringify([rule, opts]);
         if (this.ruleString.value != ruleString) {
           this.ruleString.value = ruleString;

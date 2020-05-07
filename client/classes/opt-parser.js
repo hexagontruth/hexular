@@ -34,7 +34,7 @@ class OptParser {
         defaults[key] = result;
     });
 
-    Config.merge(this, defaults);
+    Hexular.util.merge(this, defaults);
   }
 
   splitFilter(str, split) {

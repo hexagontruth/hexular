@@ -34,10 +34,10 @@ class Config {
       cellGap: 1,
       cellBorderWidth: 1,
       colors: Hexular.DEFAULTS.colors,
-      availableRules: Config.merge({}, Rules),
+      availableRules: Hexular.util.merge({}, Rules),
       rules: Array(this.maxNumStates).fill(this.defaultRule),
-      themes: Config.merge(Themes),
-      presets: Config.merge({}, Presets),
+      themes: Hexular.util.merge(Themes),
+      presets: Hexular.util.merge({}, Presets),
       plugins: [],
       arrayType: 'Uint8Array',
       imageFormat: 'png',
@@ -61,13 +61,21 @@ class Config {
       steps: 0,
       drawStepInterval: 1,
       blendMode: 'source-over',
-      rbName: 'newElementaryRule',
+      rbName: 'newSimpleRule',
       rbMiss: 0,
       rbMatch: 1,
       rbMissRel: 0,
       rbMatchRel: 0,
       rbRel: 0,
       rbStates: Array(64).fill(false),
+      trb: {
+        ruleName: 'newTemplateRule',
+        selectedName: '',
+        selectedRuleDef: [],
+        selectedControlIdx: -1,
+        templateDefs: [],
+        templateDef: Hexular.util.templateRuleBuilder().defs[0],
+      },
       drawFunctions: {
         // onDraw
         drawModelBackground: true,
@@ -107,32 +115,6 @@ class Config {
     };
   }
 
-  static merge(...objs) {
-    let base = objs.shift();
-    let next;
-    let mergeWhitelist = [Object, Array];
-    while (next = objs.shift()) {
-      for (let [key, val] of Object.entries(next)) {
-        if (val == null) continue;
-        let defaultBaseVal = Array.isArray(val) ? [] : typeof val == 'object' ? {} : null;
-        let baseVal = base[key] || defaultBaseVal;
-        if (typeof val == 'object' && !mergeWhitelist.includes(val.constructor)) {
-          base[key] = val;
-        }
-        else if (Array.isArray(val) && Array.isArray(baseVal)) {
-          base[key] = Config.merge([], baseVal, val);
-        }
-        else if (typeof baseVal =='object' && typeof val == 'object') {
-          base[key] = Config.merge({}, baseVal, val);
-        }
-        else {
-          base[key] = val;
-        }
-      }
-    }
-    return base;
-  }
-
   static toObject(kvArray) {
     let obj = {};
     for (let [key, value] of kvArray)
@@ -142,7 +124,7 @@ class Config {
 
   constructor(board, ...args) {
     this.board = board;
-    Config.merge(this, Config.defaults);
+    Hexular.util.merge(this, Config.defaults);
     Object.entries(this).forEach(([key, value]) => {
       if (Array.isArray(value)) {
         this[key] = value.slice();
@@ -157,7 +139,7 @@ class Config {
     this.restoreState();
 
     // Finally, merge in URL parameter and constructor args
-    Config.merge(this, new OptParser(this), ...args);
+    Hexular.util.merge(this, new OptParser(this), ...args);
 
     // Set logical size and scale small boards
     let width = this.radius * this.cellRadius * Hexular.math.apothem * 4;
@@ -188,7 +170,8 @@ class Config {
       this.configModal = this.board.modals.config;
       this.customModal = this.board.modals.custom;
       this.drawModal = this.board.modals.draw;
-      this.rbModal = this.board.modals.rb;
+      this.srbModal = this.board.modals.srb;
+      this.trbModal = this.board.modals.trb;
       this.themeModal = this.board.modals.theme;
       this.configModal.update();
 
@@ -236,15 +219,18 @@ class Config {
         this.setFilters();
       }
 
-      // Rule builder modal
-      this.rbModal.ruleName.value = this.rbName || Config.defaults.rbName;
+      // Rule builder modals
+      this.srbModal.ruleName.value = this.rbName || Config.defaults.rbName;
       this.setRbMiss([this.rbMiss, this.rbMissRel]);
       this.setRbMatch([this.rbMatch, this.rbMatchRel]);
-      this.rbModal.stateElements.forEach((e, i) => {
+      this.srbModal.stateElements.forEach((e, i) => {
         this.rbStates[i] && e.classList.add('active');
       });
-      this.rbModal.updateRuleString();
-      this.rbModal.update();
+      this.srbModal.updateRuleString();
+      this.srbModal.update();
+
+      this.trbModal.update();
+      this.trbModal.reset();
 
       // Draw modal
       this.drawModal.update();
@@ -273,16 +259,35 @@ class Config {
 
   addRule(ruleName, fn) {
     this.availableRules[ruleName] = fn;
+    this.updateRules();
+  }
+
+  deleteRule(ruleName) {
+    if (this.availableRules[ruleName]) {
+      delete this.availableRules[ruleName];
+      this.updateRules();
+    }
+  }
+
+  mergeRules(newRuleName, ...ruleNames) {
+    let rules = ruleNames.map((e) => this.availableRules[e]).filter((e) => e && e.defs);
+    let defs = rules.reduce((a, e) => a.concat(e.defs), []);
+    let newRule = Hexular.util.templateRuleBuilder(defs);
+    this.addRule(newRuleName, newRule);
+  }
+
+  updateRules() {
     this.configModal.update();
-    this.rbModal.update();
+    this.srbModal.update();
+    this.trbModal.update();
     this.setRules();
-    this.storeLocalConfig();
+    this.storeLocalConfigAsync();
   }
 
   addPreset(presetName, preset) {
     this.presets[presetName] = preset
     this.configModal.update();
-    this.storeLocalConfig();
+    this.storeLocalConfigAsync();
   }
 
   addTheme(themeName, themeObj) {
@@ -390,7 +395,7 @@ class Config {
   }
 
   setColors(colors=[]) {
-    this.colors = Config.merge(this.colors, colors);
+    this.colors = Hexular.util.merge(this.colors, colors);
     this.bgAdapter.fillColors = this.colors.slice();
     this.bgAdapter.strokeColors = this.colors.slice();
     this.bgAdapter.fillColors = this.colors.slice();
@@ -635,29 +640,34 @@ class Config {
   }
 
   setRbName(ruleName) {
-    ruleName = ruleName || this.rbModal.ruleName.value || this.rbName;
+    ruleName = ruleName || this.srbModal.ruleName.value || this.rbName;
     ruleName = ruleName.length != 0 ? ruleName : null;
     this.rbName = ruleName;
     if (ruleName)
-      this.rbModal.ruleName.value = this.rbName;
+      this.srbModal.ruleName.value = this.rbName;
     this.storeSessionConfigAsync();
   }
 
   setRbMiss(tuple) {
-    let [miss, missRel] = tuple || this._strToTuple(this.rbModal.ruleMiss.value);
+    let [miss, missRel] = tuple || this._strToTuple(this.srbModal.ruleMiss.value);
     this.rbMiss = miss;
     this.rbMissRel = missRel;
-    this.rbModal.ruleMiss.value = this._tupleToStr([miss, missRel]);
-    this.rbModal.updateRuleString();
+    this.srbModal.ruleMiss.value = this._tupleToStr([miss, missRel]);
+    this.srbModal.updateRuleString();
     this.storeSessionConfigAsync();
   }
 
   setRbMatch(tuple) {
-    let [match, matchRel] = tuple || this._strToTuple(this.rbModal.ruleMatch.value);
+    let [match, matchRel] = tuple || this._strToTuple(this.srbModal.ruleMatch.value);
     this.rbMatch = match;
     this.rbMatchRel = matchRel;
-    this.rbModal.ruleMatch.value = this._tupleToStr([match, matchRel]);
-    this.rbModal.updateRuleString();
+    this.srbModal.ruleMatch.value = this._tupleToStr([match, matchRel]);
+    this.srbModal.updateRuleString();
+    this.storeSessionConfigAsync();
+  }
+
+  setTrb(trbState) {
+    this.trb = Hexular.util.merge({}, trbState);
     this.storeSessionConfigAsync();
   }
 
@@ -687,7 +697,7 @@ class Config {
       this.themeModal.selectTheme.value = themeName;
       this.themeModal.addTheme.disabled = true;
       let theme = this.getThemeFromObject(this.themes[themeName]);
-      Config.merge(this, theme);
+      Hexular.util.merge(this, theme);
       this.setThemable();
     }
     else {
@@ -792,7 +802,7 @@ class Config {
       let {blendMode, cellGap, cellBorderWidth, pageBackground, modelBackground, defaultColor, colors} = e;
       return {blendMode, cellGap, cellBorderWidth, pageBackground, modelBackground, defaultColor, colors};
     });
-    return Config.merge(...args);
+    return Hexular.util.merge(...args);
   }
 
   // --- STORAGE ---
@@ -801,7 +811,7 @@ class Config {
     let obj = {};
     for (let key of keys)
       obj[key] = this[key];
-    return Config.merge({}, obj);
+    return Hexular.util.merge({}, obj);
   }
 
   getSessionConfig() {
@@ -846,6 +856,7 @@ class Config {
       'theme',
       'tool',
       'toolSize',
+      'trb',
       'videoBitsPerSecond',
       'videoCodec',
       'videoFrameRate',
@@ -893,7 +904,14 @@ class Config {
       let fn;
       try {
         val = eval(val);
-        fn = Array.isArray(val) ? Hexular.util.ruleBuilder(...val) : val;
+        fn = val;
+        if (Array.isArray(val)) {
+          let ruleBuilder = val.length > 1 ? Hexular.util.ruleBuilder : Hexular.util.templateRuleBuilder;
+          fn = ruleBuilder(...val);
+        }
+        else {
+          fn = val;
+        }
       }
       catch (e) {
         this.board.setMessage(`Error while loading rule "${rule}"`);
@@ -914,7 +932,7 @@ class Config {
       });
     }
 
-    Config.merge(this, localConfig, sessionConfig);
+    Hexular.util.merge(this, localConfig, sessionConfig);
     if (sessionConfig.preset !== undefined)
       this.preset = sessionConfig.preset;
   }

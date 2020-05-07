@@ -4,6 +4,7 @@ const Examples = (() => {
 
   let customCodeDemos = {
     addRule: `Board.config.addRule('newRule', (cell) => cell.max > 2 ? cell.state + 1 : 0)`,
+    deleteRule: `Board.config.deleteRule('ruleName')`,
     maxFilledTriangle: `Examples.maxFilledTriangle()`,
     minOutlineCircle: `Examples.minOutlineCircle(3)`,
     drawCellImage: `

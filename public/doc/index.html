@@ -217,8 +217,9 @@ end user to implement her own extensions via the Hexular API:</p>
 <li>Draw Configuration modal (Ctrl+Y)</li>
 <li>Theme modal (Ctrl+E)</li>
 <li>Resize modal (Ctrl+R)</li>
-<li>Open rulebuilder modal (Ctrl+B)</li>
-<li>Open custom code modal (Ctrl+F)</li>
+<li>Simple Rulebuilder modal (Ctrl+B)</li>
+<li>Template Rulebuilder modal (Ctrl+H)</li>
+<li>Custom Code modal (Ctrl+F)</li>
 <li>Clear local settings (Ctrl+X)</li>
 </ul>
 </li>
@@ -253,13 +254,13 @@ end user to implement her own extensions via the Hexular API:</p>
 <li>Toggle color mode (C) — Override the default color assignment on paint actions with specific state colors</li>
 </ul>
 <p>Holding <code>&lt;Shift&gt;</code> will temporarily select the move tool by default, or whatever tool is given in the <code>shiftTool</code> parameter. Holding <code>&lt;Alt&gt;</code> temporarily expands the configuration menu.</p>
-<p>Additionally, <code>&lt;Escape&gt;</code> toggles button and coordinate indicator visibility, or conversely closes the configuration modal if it is open. Scrolling a central mouse wheel or equivalent will zoom the canvas.</p>
+<p>Additionally, <code>&lt;Escape&gt;</code> toggles button and coordinate indicator visibility, or conversely closes any open modal. Scrolling a central mouse wheel or equivalent will zoom the canvas.</p>
 <p>Cell states are changed by clicking and dragging with a paint tool selected. By default, the painting state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo <code>Board.instance.model.numStates</code>. Right clicking, conversely, decrements the cell state by one, and ctrl+clicking clears to the ground state. Setting a specific state color can be effected by toggling the color mode button on the bottom right.</p>
 <p>The basic flow of the program is to set one's preferred state using either the mouse or by importing a saved file, setting desired rules, &amp;c. in the configuration modal, and then either starting the timer (tab) or incrementing the state one step at a time (space).</p>
 <h3 id="prepopulated-rules">Prepopulated rules</h3>
-<p>Several predefined rules are given in <code>client/library/rules.js</code>. These are largely provided for convenience and aren't meant to be exhaustive. A number of built-in presets, or groups of rules and filters, are defined <code>client/library/presets.js</code> and can be selected from the model configuration modal in lieu of individual rules.</p>
+<p>Several predefined rules are given in <code>client/library/rules.js</code>. These are largely provided for convenience and aren't meant to be exhaustive. A number of built-in presets, or groups of rules and filters, are defined <code>client/library/presets.js</code> and can be selected from the Model Configuration modal in lieu of individual rules.</p>
 <h3 id="studio-configuration-and-customization">Studio configuration and customization</h3>
-<p>The model configuration modal consists of the following fields:</p>
+<p>The Model Configuration modal consists of the following fields:</p>
 <ul>
 <li>Slider input to set the number of available states, from 2-12</li>
 <li>Preset dropdown menu</li>
@@ -269,13 +270,13 @@ end user to implement her own extensions via the Hexular API:</p>
 <li>Cell neighborhood dropdown — Not all rules use the default neighborhood (those constructed using the <code>ruleBuilder</code> function do not for instance), but most built-in rules involving totals, counts, &amp;c. will</li>
 <li>A series of buttons to activate and deactivate particular built-in filters</li>
 </ul>
-<p>In the configuration modal, rule assignment select menus are populated with the contents of the <code>rules</code> object loaded from <code>demo/rules.js</code>, merged with those already available in Hexular core. Custom rules may be added via the console, e.g.:</p>
+<p>Rule assignment select menus are populated with the contents of the <code>rules</code> object loaded from <code>demo/rules.js</code>, merged with those already available in Hexular core. Custom rules may be added via the console, e.g.:</p>
 <pre><code>    Board.config.addRule(name, (cell) =&gt; cell.state == 3 ? 1 : 0)
 </code></pre>
 <p>We can also add our own rule presets via the console, e.g.:</p>
 <pre><code>    Board.config.addPreset('fancyPreset', new Preset(['binary23', 'binary34', 'stepUp'], {filters: {deltaFilter: true, modFilter: true}}))
 </code></pre>
-<p>Such modifications can also be effected via the custom code modal (Ctrl+F) using the same global objects, &amp;c. Specifically, every board instance attaches the following to the global <code>Board</code> object:</p>
+<p>Such modifications can also be effected via the Custom Code modal (Ctrl+F) using the same global objects, &amp;c. Specifically, every board instance attaches the following to the global <code>Board</code> object:</p>
 <ul>
 <li><code>Board.instance</code> - The board itself</li>
 <li><code>Board.config</code> - Alias for <code>Board.instance.config</code></li>
@@ -284,18 +285,52 @@ end user to implement her own extensions via the Hexular API:</p>
 <li><code>Board.fgAdapter</code> - Alias for <code>Board.instance.fgAdapter</code></li>
 </ul>
 <p>Customization of the global <code>Board.model</code> model can be performed as described above and in the documentation.</p>
-<h4 id="rulebuilder">Rulebuilder</h4>
-<p>The rulebuilder modal (Ctrl+B) exposes a somewhat-simplified interface for calling the <a href="Hexular.util.html#.ruleBuilder"><code>ruleBuilder</code></a> function discussed above, limited to the <code>N6</code> neighborhood, and six possible miss and match states, with the default being to set cell state to 0 on misses, and 1 on matches.</p>
+<h4 id="simple-rulebuilder">Simple Rulebuilder</h4>
+<p>The Simple Rulebuilder or SRB (Ctrl+B) exposes a somewhat-simplified interface for calling the <a href="Hexular.util.html#.ruleBuilder"><code>ruleBuilder</code></a> function discussed above, limited to the <code>N6</code> neighborhood, and six possible miss and match states, with the default being to set cell state to 0 on misses, and 1 on matches.</p>
 <p>Note that the miss and match rules can interact with <a href="Hexular.filters.html#.deltaFilter"><code>deltaFilter</code></a> in strange ways. For instance, a rule built using the default settings in this modal, coupled with <code>deltaFilter</code>, will have the same effect as one without the filter, but with the match rule set to &quot;State + 1.&quot; Likewise, if we then add the filter back in, we will add the state twice on matches — which may or may not be desirable, but is sort of weird.</p>
 <p>The rule is copied to a text field at the bottom of the modal, where it can be further edited before instantiation by e.g. adding custom <code>miss</code> and <code>match</code> values, or saved as part of a larger scripted customization. The JSON array generated in this field can be fed directly to the<code>ruleBuilder</code> function using ES6 spread syntax (<code>...</code>).</p>
 <p>Elementary rules constructed through the rulebuilder interface are only a small subset of possible rules using the core cell API, and they do not, by default, differentiate between nonzero cell states. Thus they are not suited for &quot;noisy&quot; rulesets where all or most cells are in a nonzero state (e.g., what one sees with the built-in preset &quot;grayGoo&quot;). There is however an optional attribute <code>rel</code>, exposed in the generated JSON field, which causes the rule to compare neighbor states relative to the current state, matching where a neighbor has an equal or greater nonzero value to the current state.</p>
 <p>Note that, as with most persistent attributes in the demo interface, previous values will simply be overwritten — this allows one to e.g. iterate quickly when developing an experimental rule.</p>
-<h4 id="timer-hooks">Timer hooks</h4>
-<p>We can add functions to be called at a given time index during play or recording via the <code>board.addHook()</code> method. For example, to turn cells with state 4 cyan after five seconds, we could run the following from the console or the custom code modal:</p>
+<h4 id="template-rulebuilder">Template Rulebuilder</h4>
+<p>The Template Rulebuilder or TRB (Ctrl+H) follows the same general design metaphor of the SRB, but exposes a more complex if less intuitive interface for composing and editing rules. The backend, likewise, works differently and less efficiently than the Simple Rulebuilder, and may not be appropriate for larger models.</p>
+<p>In the TRB, we consider a &quot;full&quot; neighborhood of 19 cells, including the home cell, and define rules according to a ternary scheme, where each cell in a neighborhood is defined as either active, inactive, or either. Since the 1,162,261,467 possible neighborhood states cannot be as ergonomically represented on-screen as the 64 states considered by the SRB, we adopt a different approach: We create rules by composing &quot;templates,&quot; each of which corresponds to one 19-cell ternary neighborhood map, along with various template rules regarding miss and match values, and how to apply the map with respect to specific home and neighbor cell values.</p>
+<p>The TRB modal includes a list of templates attached to the current rule, a 19-cell map for composing and editing these templates, a set of four radio buttons related to symmetry transformations to perform when matching the template to a neighborhood, and — as with the SRB — a freeform text field for editing the raw template JSON.</p>
+<p>The JSON field object includes miss and match values, as well as two lambda functions, <code>applyFn</code> and <code>matchFn</code>, which can be given as strings or functions, but which will be reformatted as strings due to storage format limitations:</p>
+<ul>
+<li><code>applyFn(originalState, currentState)</code> returns a boolean based on the original and current state of the home cell that determines whether the template is applied or skipped. The default is to always return true.</li>
+<li><code>matchFn(cellState, originalState, currentState)</code> returns a boolean for each individual cell in a neighborhood that determines whether to treat that cell as active for the purposes of matching the template in question. The default returns the cell's state — i.e., treats all non-zero cell states as active.</li>
+</ul>
+<p>The Template Rulebuilder may in general be a bit more difficult to work with than the Simple Rulebuilder.</p>
+<h4 id="hooks">Hooks</h4>
+<p>We can add callback functions to be run on the advent of particular events with the <code>board.addHook</code> method, e.g.:</p>
+<pre><code>    Board.instance.addHook('debugSelect', (cell) =&gt; console.log(cell.state));
+</code></pre>
+<p>The following hooks are currently supported</p>
+<ul>
+<li>incrementStep</li>
+<li>drawStep</li>
+<li>playStep</li>
+<li>step</li>
+<li>timer *</li>
+<li>resize</li>
+<li>select</li>
+<li>debugSelect **</li>
+<li>debugStep **</li>
+<li>drawFg</li>
+<li>clear</li>
+<li>paint **</li>
+<li>updatePreset</li>
+<li>updateTheme</li>
+</ul>
+<p>* Requires trigger argument.</p>
+<p>** Callback function accepts one or more arguments — consult source code for details.</p>
+<p>We can add functions to be called at a given time index during play or recording via the timer hook. For example, to turn cells with state 4 cyan after five seconds, we could run the following from the console or the Custom Code modal:</p>
 <pre><code>    Board.instance.addHook('timer', 5000, () =&gt; Board.config.setColor(3, '#33cccc'));
 </code></pre>
 <p>Timer hooks will be rerun at their appropriate time index after every stop/start event, but changes they make to e.g. the configuration object will persist until explicitly reset.</p>
-<p>Other hooks include <code>incrementStep</code>, <code>playStep</code>, and <code>step</code>.</p>
+<h4 id="plugins">Plugins</h4>
+<p>A plugin framework is available for adding modular, configurable components, e.g. custom drawing animations. Plugins can be added, removed, and reordered from the Draw Configuration modal.</p>
+<p>Of particular note (so to speak) is the MidiOut plugin, which maps a customizable range of cells around the origin to an available MIDI output. Particular cell states can be mapped to individual MIDI channels. Music can be synthesized and recorded using one's programs of choice. (On Linux I am presently using LMMS and Audacity, respectively.) Notes are assigned to cells isomorphically, with the specific stride between cells configurable in the associated JSON field.</p>
 <h2 id="more-information">More information</h2>
 <ul>
 <li>
@@ -311,7 +346,7 @@ end user to implement her own extensions via the Hexular API:</p>
 <p>Many of the icons used in the Hexular Studio interface are taken from the <a href="https://materialdesignicons.com/">Material Design Icons</a> project, and distributed under the Open Font License. The font itself was compiled using <a href="http://fontello.com/">Fontello</a>.</p>
 </li>
 <li>
-<p>At the moment I am also using <a href="http://jscolor.com/">jscolor</a> for the appearance modal color selectors.</p>
+<p>At the moment I am also using <a href="http://jscolor.com/">jscolor</a> for the Theme modal color selectors.</p>
 </li>
 <li>
 <p>For more information on HEXAGONAL AWARENESS, please check out:</p>

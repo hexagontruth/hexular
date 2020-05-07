@@ -52,7 +52,8 @@
       <button id="show-draw" title="Draw Configuration (Ctrl+Y)" class="icon-lead-pencil"></button>
       <button id="show-theme" title="Theme (Ctrl+E)" class="icon-rainbow"></button>
       <button id="show-resize" title="Resize Model (Ctrl+R)" class="icon-arrow-top-right-bottom-left"></button>
-      <button id="show-rb" title="Rulebuilder (Ctrl+B)" class="icon-function"></button>
+      <button id="show-srb" title="Simple Rulebuilder (Ctrl+B)" class="icon-function"></button>
+      <button id="show-trb" title="Template Rulebuilder (Ctrl+H)" class="icon-lambda"></button>
       <button id="show-custom" title="Custom Code (Ctrl+F)" class="icon-code"></button>
       <button id="show-clear" title="Clear local data (Ctrl+X)" class="icon-refresh"></button>
     </div>
@@ -199,7 +200,7 @@
           <div class="group">
             <label class="third">Base scale:</label>
             <input type="range" id="scale-slider" min="0" max="4" step="0.1"
-              value="60" list="scale-ticks"-ticks" title="Default scale"/>
+              value="60" list="scale-ticks" title="Default scale"/>
             <datalist id="scale-ticks">
               <option>0.1</option>
               <option>0.2</option>
@@ -238,7 +239,7 @@
           <div class="group">
             <label>Resize:</label>
             <input type="range" id="resize-slider" min="0" max="360" step="1"
-              value="60" list="resize-ticks"-ticks" title="Board radius"/>
+              value="60" list="resize-ticks" title="Board radius"/>
             <datalist id="resize-ticks">
               <option>0</option>
               <option>30</option>
@@ -272,13 +273,13 @@
           </div>
         </div>
       </div>
-      <div class="modal rb hidden">
-        <div class="modal-title"><i class="icon-function"></i> Rulebuilder</div>
+      <div class="modal srb hidden">
+        <div class="modal-title"><i class="icon-function"></i> Simple Rulebuilder</div>
         <div class="modal-content">
           <div class="group">
-            <input class="focus" type="text" id="rule-name" placeholder="Rule name" title="Rule name"/>
+            <input class="focus" type="text" id="rule-name" placeholder="ruleName" title="Rule name"/>
             <select id="select-available" title="Existing elementary rules">
-              <option value="" selected>[ Elementary rules ]</option>
+              <option value="" selected>[ Simple rules ]</option>
             </select>
           </div>
           <div class="group">
@@ -307,11 +308,68 @@
           <div id="state-grid">
           </div>
           <div class="group">
-            <textarea type="text" id="rule-string" title="Hexular.util.ruleBuilder(...arguments)"></textarea>
+            <textarea type="text" id="rule-string" class="rule-string" title="Hexular.util.ruleBuilder(...arguments)"></textarea>
           </div>
           <div class="group buttons">
             <button id="reset-rule">Reset</button>
             <button id="add-rule">Save rule</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal trb hidden">
+        <div class="modal-title"><i class="icon-lambda"></i> Template Rulebuilder</div>
+        <div class="modal-content">
+          <div class="group halved">
+            <input class="focus" type="text" id="trb-rule-name" placeholder="ruleName" title="Rule name"/>
+            <select id="trb-select-available" title="Existing template rules">
+              <option value="" selected>[ Template rules ]</option>
+            </select>
+          </div>
+          <div class="group">
+            <div class="rel" style="width: 6em;"><div id="template-list"></div></div>
+            <div id="template-editor" class="group wrap">
+              <div class="group buttons">
+                <button id="trb-sym-0" class="icon-hexagon-outline rotate active" title="No symmetry"></button>
+                <button id="trb-sym-1" class="icon-hexagon-slice-1 rotate" title="60&deg; symmetry"></button>
+                <button id="trb-sym-2" class="icon-hexagon-slice-2 rotate" title="120&deg; symmetry"></button>
+                <button id="trb-sym-3" class="icon-hexagon-slice-3 rotate" title="180&deg; symmetry"></button>
+              </div>
+              <div class="group">
+                <svg id="template-mask" class="template-mask" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="100px" height="100px" viewBox="0 0 100 100" enable-background="new 0 0 100 100" xml:space="preserve">
+                  <polygon id="cell-18" points="29.484,95.889 20.509,90.708 20.509,80.346 29.484,75.164 38.458,80.346 38.458,90.708"/>
+                  <polygon id="cell-17" points="17.948,44.815 17.949,55.18 8.975,60.361 0,55.179 0,44.817 8.975,39.635"/>
+                  <polygon id="cell-16" points="20.513,9.29 29.487,4.107 38.461,9.289 38.46,19.652 29.487,24.833 20.513,19.652"/>
+                  <polygon id="cell-15" points="70.514,24.833 61.537,19.651 61.537,9.288 70.514,4.107 79.486,9.288 79.486,19.651"/>
+                  <polygon id="cell-14" points="100,44.819 100,55.182 91.026,60.363 82.053,55.182 82.051,44.819 91.026,39.638"/>
+                  <polygon id="cell-13" points="61.536,80.35 70.51,75.167 79.485,80.349 79.482,90.712 70.51,95.893 61.536,90.711"/>
+                  <polygon id="cell-12" points="28.205,62.582 28.206,72.944 19.231,78.126 10.257,72.943 10.257,62.582 19.231,57.4"/>
+                  <polygon id="cell-11" points="10.256,27.055 19.23,21.873 28.205,27.054 28.204,37.417 19.231,42.598 10.256,37.417"/>
+                  <polygon id="cell-10" points="49.999,24.833 41.024,19.651 41.024,9.288 49.999,4.107 58.974,9.288 58.974,19.651"/>
+                  <polygon id="cell-09" points="89.743,27.054 89.744,37.417 80.77,42.599 71.795,37.417 71.795,27.055 80.771,21.874"/>
+                  <polygon id="cell-08" points="71.793,62.584 80.767,57.401 89.74,62.584 89.74,72.947 80.767,78.129 71.792,72.946"/>
+                  <polygon id="cell-07" points="49.998,95.889 41.022,90.708 41.022,80.346 49.998,75.164 58.971,80.346 58.971,90.708"/>
+                  <polygon id="cell-06" points="39.743,78.126 30.768,72.943 30.768,62.582 39.743,57.4 48.717,62.582 48.717,72.943"/>
+                  <polygon id="cell-05" points="29.485,60.361 20.512,55.18 20.512,44.817 29.485,39.637 38.46,44.817 38.46,55.18"/>
+                  <polygon id="cell-04" points="39.743,42.597 30.768,37.416 30.768,27.053 39.743,21.872 48.717,27.053 48.717,37.416"/>
+                  <polygon id="cell-03" points="60.257,42.597 51.281,37.416 51.281,27.053 60.257,21.872 69.229,27.053 69.229,37.416"/>
+                  <polygon id="cell-02" points="70.514,60.361 61.537,55.18 61.537,44.817 70.514,39.637 79.487,44.817 79.487,55.18"/>
+                  <polygon id="cell-01" points="60.255,78.126 51.279,72.943 51.279,62.582 60.255,57.4 69.228,62.582 69.228,72.943"/>
+                  <polygon id="cell-00" points="49.999,60.361 41.025,55.18 41.025,44.817 49.999,39.637 58.974,44.817 58.974,55.18"/>
+                </svg>
+              </div>
+             <div class="group">
+                <textarea id="template-string" class="template-string"></textarea>
+              </div>
+              <div class="group buttons">
+                <button id="trb-delete-template" disabled class="icon-trash" title="Delete template"></button>
+                <button id="trb-clear-template" title="Clear template">Clear</button>
+                <button id="trb-save-template" title="Save template">Save</button>
+              </div>
+            </div>
+          </div>
+          <div class="group buttons halved">
+            <button id="trb-reset-rule">New rule</button>
+            <button id="trb-save-rule">Save rule</button>
           </div>
         </div>
       </div>

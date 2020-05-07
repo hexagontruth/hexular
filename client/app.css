@@ -55,6 +55,10 @@ a {
   color: inherit;
 }
 
+.rel {
+  position: relative;
+}
+
 .container {
   position: fixed;
   top: 0;
@@ -559,7 +563,7 @@ select {
   outline: 0;
 }
 
-.modal .group textarea#rule-string {
+.modal .group textarea.rule-string {
   height: 5em;
 }
 
@@ -605,6 +609,14 @@ select {
   width: 50%;
 }
 
+.modal .group .three-quarters {
+  width: 75%;
+}
+
+.modal .group.halved > * {
+  width: 50%;
+}
+
 .modal label.indicator {
   width: 4.5em;
 }
@@ -622,6 +634,10 @@ select {
   padding: 0 1em;
   padding-left: 0;
   padding-right: 0;
+}
+
+.modal .group.buttons button.icon {
+  flex: 0 0 2em;
 }
 
 .modal .group.buttons.sub-buttons button {
@@ -781,6 +797,78 @@ button.statemask.active, button.statemask:hover {
 
 .statemask:hover svg polygon.off:not(.home-cell) {
   fill: #ffbb3399;
+}
+
+#template-list {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  margin: 0.25em;
+  padding: 0.2em;
+  background: #fff;
+  border-radius: 0.5em;
+  overflow-y: scroll;
+}
+
+.template-controller {
+  flex: 0 1 auto;
+  border: 0.2em solid transparent;
+  padding: 0.2em;
+  border-radius: 0.5em;
+  cursor: pointer;
+}
+
+.template-controller svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.template-controller.active {
+  border-color: #6de;
+}
+
+#template-list-trash {
+  margin-top: auto;
+  font-size: 2em;
+  color: #ccc;
+}
+
+#template-mask {
+  display: block;
+  margin: 0.25em;
+  width: 100%;
+  height: 10rem;
+  background: #fff;
+  border-radius: 0.5em;
+}
+
+.template-mask polygon {
+  cursor: pointer;
+  fill: #999;
+}
+
+.template-mask polygon.active {
+  fill: #333;
+}
+
+.template-mask polygon.inactive {
+  fill: #eee;
+}
+
+#template-mask polygon:hover {
+  stroke: #fb3;
+  stroke-width: 2;
+}
+
+.modal .group textarea.template-string {
+  height: 8em;
 }
 
 @media screen and (max-width: 600px) {
