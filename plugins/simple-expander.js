@@ -13,64 +13,59 @@ class SimpleExpander extends Plugin {
         color: null,
         blendMode: null,
         stateWhitelist: null,
-        stateBlacklist: null,
+        stateBlacklist: [0],
       }
     `;
   }
 
   _activate() {
-    const tau = Math.PI * 2;
-    let model = this.model;
-    let board = this.board;
-    let adapter = this.bgAdapter;
-    let ctx = adapter.context;
-    let radius, invRadius, q, opts, fillColors, strokeColors;
     this.drawFn = (adapter) => {
-      this.setStateLists();
+      // Setup
+      let ctx = adapter.context;
       let min = this.settings.minRadius;
       let max = this.settings.maxRadius;
       let r = adapter.innerRadius;
       let q = this.board.drawStepQInc;
-      radius = r * ((max - min) * q + min);
-      invRadius = r * ((max - min) * (1 - q) + min);
-      opts = {
+      let radius = r * ((max - min) * q + min);
+      let maxRadius = r * max;
+      let invRadius = r * ((max - min) * (1 - q) + min);
+      let opts = {
         type: this.settings.hexType,
         fill: this.settings.fill,
         stroke: this.settings.stroke,
         lineWidth: this.settings.lineWidth != null ? this.settings.lineWidth : adapter.cellBorderWidth,
       };
-      fillColors = adapter.fillColors.slice();
-      strokeColors = adapter.strokeColors.slice();
+      let fillColors = adapter.fillColors.slice();
+      let strokeColors = adapter.strokeColors.slice();
       if (this.settings.color) {
         fillColors.fill(this.settings.color);
         strokeColors.fill(this.settings.color);
       }
-    };
-    this.drawCellFn = (cell, adapter) => {
-      if (!this._isAllowedState(cell.state)) return;
-      let fill, stroke;
-      ctx.save();
-      ctx.globalCompositeOperation = this.settings.blendMode;
-      if (cell.lastState) {
-        opts.fillStyle = fillColors[cell.lastState];
-        opts.strokeStyle = strokeColors[cell.lastState];
-        if (cell.state && this.settings.drawLast) {
-          adapter.drawHexagon(cell,  adapter.innerRadius, opts);
+
+      // Draw
+      this.drawEachCell((cell) => {
+        let allowed =this._isAllowedState(cell.state);
+        let lastAllowed = this._isAllowedState(cell.lastState);
+        let fill, stroke;
+        if (lastAllowed) {
+          opts.fillStyle = fillColors[cell.lastState];
+          opts.strokeStyle = strokeColors[cell.lastState];
+          if (allowed && this.settings.drawLast) {
+            adapter.drawHexagon(cell,  maxRadius, opts);
+          }
+          else if (this.settings.drawTerminal) {
+            adapter.drawHexagon(cell, invRadius, opts);
+          }
+
         }
-        else if (this.settings.drawTerminal) {
-          adapter.drawHexagon(cell, invRadius, opts);
+        if (allowed) {
+          opts.fillStyle = fillColors[cell.state];
+          opts.strokeStyle = strokeColors[cell.state];
+          adapter.drawHexagon(cell, radius, opts);
         }
-        
-      }
-      if (cell.state) {
-        opts.fillStyle = fillColors[cell.state];
-        opts.strokeStyle = strokeColors[cell.state];
-        adapter.drawHexagon(cell, radius, opts);
-      }
-      ctx.restore();
+      });
     };
     this.registerAdapterHook(this.bgAdapter.onDraw, this.drawFn);
-    this.registerAdapterHook(this.bgAdapter.onDrawCell, this.drawCellFn);
   }
 };
 Board.registerPlugin(SimpleExpander);

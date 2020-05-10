@@ -15,58 +15,55 @@ class RotatorExpander extends Plugin {
         pivotDown: 1,
         blendMode: null,
         stateWhitelist: null,
-        stateBlacklist: null,
+        stateBlacklist: [0],
       }
     `;
   }
 
   _activate() {
-    const tau = Math.PI * 2;
-    let angle, upRadius, downRadius, lineWidth, fillColors, strokeColors;
     this.drawFn = (adapter) => {
-      this.setStateLists();
-      let min = this.settings.minRadius;
-      let base = this.settings.baseRadius;
-      let max = this.settings.maxRadius;
-      let pivotUp = this._getPivot(this.board.drawStepQInc, this.settings.pivotUp);
-      let pivotDown = this._getPivot(this.board.drawStepQInc, this.settings.pivotDown);
-      angle = this.settings.angleOffset + this.settings.angleDelta * this.board.drawStepQInc;
-      upRadius = adapter.innerRadius * ((max - base) * pivotUp + base);
-      downRadius = adapter.innerRadius * ((base - min) * (1 - pivotDown) + min);
-      lineWidth = this.settings.lineWidth != null ? this.settings.lineWidth : this.config.cellBorderWidth;
-      fillColors = adapter.fillColors.slice();
-      strokeColors = adapter.strokeColors.slice();
+      // Setup
+      let {
+        angleOffset, angleDelta, minRadius, baseRadius, maxRadius, fill,
+        stroke, lineWidth, color, pivotUp, pivotDown
+      } = this.settings;
+      let ctx = adapter.context;
+      pivotUp = this._getPivot(this.board.drawStepQInc, pivotUp);
+      pivotDown = this._getPivot(this.board.drawStepQInc, pivotDown);
+      let angle = angleOffset + angleDelta * this.board.drawStepQInc;
+      let upRadius = adapter.innerRadius * ((maxRadius - baseRadius) * pivotUp + baseRadius);
+      let downRadius = adapter.innerRadius * ((baseRadius - minRadius) * (1 - pivotDown) + minRadius);
+      lineWidth = lineWidth != null ? lineWidth : this.config.cellBorderWidth;
+      let fillColors = adapter.fillColors.slice();
+      let strokeColors = adapter.strokeColors.slice();
       if (this.settings.color) {
         fillColors.fill(this.settings.color);
         strokeColors.fill(this.settings.color);
       }
-    };
-    this.drawCellFn = (cell, adapter) => {
-      if (!cell.state || !this._isAllowedState(cell.state)) return;
-      let ctx = adapter.context;
-      ctx.save();
-      ctx.globalCompositeOperation = this.settings.blendMode;
-      let r = cell.state - cell.lastState > 0 ? upRadius : downRadius;
-      let p = [];
-      for (let i = 0; i < 6; i++) {
-        let x = r * Math.cos(angle + tau / 6 * i);
-        let y = r * Math.sin(angle + tau / 6 * i);
-        p.push([x, y]);
-      }
-      adapter.drawPath(cell, p);
-      if (this.settings.fill) {
-        adapter.context.fillStyle = fillColors[cell.state];
-        this.settings.fill && adapter.context.fill();
-      }
-      if (this.settings.stroke) {
-        adapter.context.strokeStyle = strokeColors[cell.state];
-        adapter.context.lineWidth = lineWidth;
-        this.settings.stroke && adapter.context.stroke();
-      }
-      ctx.restore();
+
+      // Draw
+      this.drawEachCell((cell) => {
+        if (!this._isAllowedState(cell.state)) return;
+        let r = cell.state - cell.lastState > 0 ? upRadius : downRadius;
+        let p = [];
+        for (let i = 0; i < 6; i++) {
+          let x = r * Math.cos(angle + Hexular.math.tau / 6 * i);
+          let y = r * Math.sin(angle + Hexular.math.tau / 6 * i);
+          p.push([x, y]);
+        }
+        adapter.drawPath(cell, p);
+        if (this.settings.fill) {
+          adapter.context.fillStyle = fillColors[cell.state];
+          this.settings.fill && adapter.context.fill();
+        }
+        if (this.settings.stroke) {
+          adapter.context.strokeStyle = strokeColors[cell.state];
+          adapter.context.lineWidth = lineWidth;
+          this.settings.stroke && adapter.context.stroke();
+        }
+      });
     };
     this.registerAdapterHook(this.bgAdapter.onDraw, this.drawFn);
-    this.registerAdapterHook(this.bgAdapter.onDrawCell, this.drawCellFn);
   }
 };
 Board.registerPlugin(RotatorExpander);

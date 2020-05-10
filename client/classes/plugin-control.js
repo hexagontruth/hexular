@@ -91,7 +91,7 @@ class PluginControl {
         this.modal.pluginList.appendChild(pluginControl.controller);
         pluginControl.deactivate() && pluginControl.enable();
       });
-      this.config.setPlugins(this.config.pluginControls.map((e) => e.plugin));
+      this.config.setPlugins(this.board.pluginControls.map((e) => e.plugin));
     }
   }
 

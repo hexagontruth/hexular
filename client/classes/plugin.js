@@ -23,12 +23,13 @@
     this.bgAdapter = board.bgAdapter;
     this.fgAdapter = board.fgAdapter;
     this.config = board.config;
-    this.saveSettings(settings || this.defaultSettings());
     this.stateWhitelist = null;
     this.stateBlacklist = null;
     this.activated = false;
     this.enabled = false;
     this.fns = [];
+    this.globalAlpha = 1;
+    this.saveSettings(settings || this.defaultSettings());
   }
 
   defaultSettings() {
@@ -124,6 +125,7 @@
     if (typeof settingsObj == 'object') {
       this.settingsString = this._trim(settingsString);
       this.settings = settingsObj;
+      this.setStateLists();
       this._onSaveSettings && this._onSaveSettings();
     }
     else {
@@ -137,6 +139,16 @@
     let isBlacklist = this.settings.stateBlacklist && this.settings.stateBlacklist.length > 0;
     this.stateWhitelist = isWhitelist ? new Set(this.settings.stateWhitelist) : null;
     this.stateBlacklist = isBlacklist ? new Set(this.settings.stateBlacklist) : null;
+  }
+
+  drawEachCell(...args) {
+    let fn = args.pop();
+    let ctx = args.pop() || this.bgAdapter.context;
+    ctx.save();
+    ctx.globalAlpha = this.globalAlpha;
+    ctx.globalCompositeOperation = this.settings.blendMode;
+    this.model.eachCell(fn);
+    ctx.restore();
   }
 
   to(board) {

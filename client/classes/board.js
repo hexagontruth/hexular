@@ -4,21 +4,23 @@ class Board {
     Board.instance && Board.instance.modals.draw.update();
   }
 
-  static resize(opts={}) {
+  static resize(configOpts={}, boardOpts={}) {
     return new Promise((resolve, reject) => {
       document.body.classList.add('splash');
       let oldBoard = Board.instance;
-      oldBoard && oldBoard.stop();
+      if (oldBoard) {
+        oldBoard.stop();
+        boardOpts.undoStack = oldBoard.undoStack;
+        boardOpts.redoStack = oldBoard.redoStack;
+        boardOpts.hooks = Hexular.util.merge({}, oldBoard.hooks, boardOpts.hooks);
+      }
       setTimeout(async () => {
-        let board = new Board(opts);
+        let board = new Board(configOpts, boardOpts);
         Board.instance = board;
         if (oldBoard) {
           oldBoard.pluginControls.forEach((pluginControl) => {
             pluginControl.delete();
           });
-          board.undoStack = oldBoard.undoStack;
-          board.redoStack = oldBoard.redoStack;
-          board.hooks = Hexular.util.merge(oldBoard.hooks);
           board.refreshHistoryButtons();
         }
         Board.config = board.config;
@@ -39,7 +41,7 @@ class Board {
     return window.innerWidth / window.innerHeight;
   }
 
-  constructor(...args) {
+  constructor(configOpts={}, boardOpts={}) {
     let props = {
       selected: null,
       debugSelected: null,
@@ -170,8 +172,8 @@ class Board {
       props.buttons.save,
       props.buttons.load,
     ];
-    Object.assign(this, props);
-    this.config = new Config(this, ...args);
+    Object.assign(this, props, boardOpts);
+    this.config = new Config(this, configOpts);
 
     // Initialize canvases
     this.bg = document.createElement('canvas');

@@ -78,6 +78,8 @@ var Hexular = (function () {
      * Enumerator representing flat-topped, the greatest of all hexagons.
      *
      * @name TYPE_FLAT
+     * @default 0
+     * @constant
      * @memberof Hexular.enums
      */
   const TYPE_FLAT = 0;
@@ -86,9 +88,21 @@ var Hexular = (function () {
      * Enumerator representing pointy-topped hexagons.
      *
      * @name TYPE_POINTY
+     * @default 1
+     * @constant
      * @memberof Hexular.enums
      */
   const TYPE_POINTY = 1;
+
+    /**
+     * Enumerator representing circles &mdash; the most degenerate form of hexagon.
+     *
+     * @name TYPE_CIRCLE
+     * @default 2
+     * @constant
+     * @memberof Hexular.enums
+     */
+  const TYPE_CIRCLE = 2;
 
   /**
    * A collection of mathematical properties and functions used internally, which may be of interest when extending
@@ -1574,7 +1588,7 @@ var Hexular = (function () {
     }
 
     /**
-     * Utility function for drawing arbitrary hexagon
+     * Utility function for drawing arbitrary hexagon or hexagon-related shape.
      *
      * @param {Cell|number[]} locator           The cell at the position to be drawn, or an [x, y] coordinate tuple
      * @param {number} radius                   The hexagon's radius
@@ -1583,6 +1597,7 @@ var Hexular = (function () {
      * @param {boolean} [opts.fill=false]       Whether to draw fill
      * @param {boolean} [opts.strokeStyle=null] Stroke style
      * @param {boolean} [opts.fillStyle=null]   Fill style
+     * @param {number}  [opts.type=1]...........Shape type (see {@link Hexular.enums})
      */
     drawHexagon(locator, radius, opts={}) {
       let defaults = {
@@ -1596,18 +1611,25 @@ var Hexular = (function () {
       opts = Object.assign(defaults, opts);
       const [x, y] = locator instanceof Cell ? this.model.cellMap.get(locator) : locator;
       let ctx = this.context;
-      let path = opts.type == TYPE_POINTY ? math.pointyVertices : math.flatVertices;
-      path = scalarOp(path, radius);
-      ctx.beginPath();
-      ctx.moveTo(x + path[0][0], y + path[0][1]);
-      for (let i = 1; i < path.length; i++)
-        ctx.lineTo(x + path[i][0], y + path[i][1]);
-      ctx.closePath();
+      if (opts.type == 2) {
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, math.tau);
+        ctx.fill();
+      }
+      else {
+        let path = opts.type == TYPE_POINTY ? math.pointyVertices : math.flatVertices;
+        path = scalarOp(path, radius);
+        ctx.beginPath();
+        ctx.moveTo(x + path[0][0], y + path[0][1]);
+        for (let i = 1; i < path.length; i++)
+          ctx.lineTo(x + path[i][0], y + path[i][1]);
+        ctx.closePath();
+      }
       if (opts.fill) {
         ctx.fillStyle = opts.fillStyle;
         ctx.fill();
       }
-      if (opts.stroke) {
+      if (opts.stroke && opts.lineWidth > 0) {
         ctx.strokeStyle = opts.strokeStyle;
         ctx.lineWidth = opts.lineWidth;
         ctx.stroke();

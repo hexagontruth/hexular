@@ -2,26 +2,23 @@ class CubicExpander extends Plugin {
   defaultSettings() {
     return `
       {
-        drawCubes: true,
-        drawLastCubes: true,
-        drawTerminalCubes: true,
+        drawCurrent: true,
+        drawLast: true,
+        drawTerminal: true,
         minRadius: 0,
         maxRadius: 1,
         flip: false,
         blendMode: null,
         stateWhitelist: null,
-        stateBlacklist: null,
+        stateBlacklist: [0],
       }
     `;
   }
 
   _activate() {
-    const tau = Math.PI * 2;
-    let model = this.model;
-    let board = this.board;
     let adapter = this.bgAdapter;
     let ctx = adapter.context;
-    let radius, invRadius, q, flipOffset;
+    let flipOffset = 1;
     let fillColors, strokeColors;
     let t = [127, 127, 127, 0];
     let verts = Hexular.math.pointyVertices;
@@ -47,39 +44,39 @@ class CubicExpander extends Plugin {
     this.updateColors = () => {
       fillColors = adapter.fillColors.map((e) => Util.styleToVcolor(e));
       strokeColors = adapter.strokeColors.map((e) => Util.styleToVcolor(e));
+      this.board.draw();
     };
     this.drawFn = (adapter) => {
-      this.setStateLists();
+      // Setup
       let min = this.settings.minRadius;
       let max = this.settings.maxRadius;
       let r = adapter.innerRadius;  
       let q = this.board.drawStepQInc;
-      radius = r * ((max - min) * q + min);
-      invRadius = r * ((max - min) * (1 - q) + min);
-      flipOffset = 1 + this.settings.flip;
-    };
-    this.drawCellFn = (cell, adapter) => {
-      if (!this._isAllowedState(cell.state)) return;
-      ctx.save();
-      ctx.globalCompositeOperation = this.settings.blendMode;
-      if (cell.lastState) {
-        if (cell.state && this.settings.drawLastCubes) {
-          drawCube(cell,  adapter.innerRadius, 'lastState');
+      let radius = r * ((max - min) * q + min);
+      let invRadius = r * ((max - min) * (1 - q) + min);
+      let flipOffset = 1 + this.settings.flip;
+
+      // Draw
+      this.drawEachCell((cell) => {
+        let allowed = this._isAllowedState(cell.state);
+        let lastAllowed = this._isAllowedState(cell.lastState);
+        if (lastAllowed) {
+          if (!allowed && this.settings.drawTerminal) {
+            drawCube(cell, invRadius, 'lastState');
+          }
+          else if (allowed && this.settings.drawLast) {
+            drawCube(cell,  adapter.innerRadius, 'lastState');
+          }
         }
-        else if (this.settings.drawTerminalCubes) {
-          drawCube(cell, invRadius, 'lastState');
+        if (allowed && this.settings.drawCurrent) {
+          drawCube(cell, radius);
         }
-        
-      }
-      if (cell.state && this.settings.drawCubes) {
-        drawCube(cell, radius);
-      }
-      ctx.restore();
+      });
     };
+
     this.updateColors();
     this.registerBoardHook('updateTheme', this.updateColors);
     this.registerAdapterHook(this.bgAdapter.onDraw, this.drawFn);
-    this.registerAdapterHook(this.bgAdapter.onDrawCell, this.drawCellFn);
   }
 };
 Board.registerPlugin(CubicExpander);

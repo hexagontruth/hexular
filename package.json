@@ -1,6 +1,6 @@
 {
   "name": "hexular",
-  "version": "0.3.0-alpha",
+  "version": "0.2.1-alpha",
   "description": "An extensible platform for hexagonal cellular automata",
   "main": "index.js",
   "scripts": {

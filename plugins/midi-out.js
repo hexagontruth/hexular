@@ -1,4 +1,4 @@
-class MidiOut extends Plugin {
+ class MidiOut extends Plugin {
   static getNoteLabels() {
     let labels = {};
     let scale = 'C#D#EF#G#A#B'.split('').map((e, i, a) => (e == '#' ? a[i - 1] : '') + e);
@@ -13,9 +13,10 @@ class MidiOut extends Plugin {
     return `
       {
         velocity: 0x3f,
-        interval: 250,
-        stopPrevious: true,
-        origin: 0x3c,
+        interval: 500,
+        stopPrevious: false,
+        homeCell: [0, 0, 0],
+        homeNote: 0x3c,
         channelStateMap: {
           0: [1],
         },
@@ -92,12 +93,12 @@ class MidiOut extends Plugin {
       });
     });
     this.channelSteps = new Set();
-    let origin = this.settings.origin;
+    let home = this.settings.homeNote;
     let [floor, ceil] = this.settings.range;
-    let relOrigin = origin - floor;
+    let relHome = home - floor;
     let relRange = ceil - floor;
     let relMid = Math.floor(relRange / 2);
-    let minDist = relOrigin > relMid ? ceil - origin : relOrigin;
+    let minDist = relHome > relMid ? ceil - home : relHome;
     let maxDist = relRange - minDist;
     let dist, minmaxFn;
     if (this.settings.isotropicFrame) {
@@ -114,13 +115,13 @@ class MidiOut extends Plugin {
     let vwRange = Math.abs(Math.floor(dist / vStride));
     let uvRange = Math.abs(Math.floor(dist / (uStride - vStride)));
     let radius = this.radius = minmaxFn(uwRange, vwRange, uvRange) + 1;
-    let cells = Hexular.util.hexWrap(this.model.cells[0], radius);
-    this.originCell = cells[0];
+    this.homeCell = this.model.cellAtCubic(this.settings.homeCell) || this.model.cells[0];
+    let cells = Hexular.util.hexWrap(this.homeCell, radius);
     // Assign cells from outside in so overflow cells keep innermost assignment
     cells.reverse();
     for (let cell of cells) {
-      let [u, v, w] = cell.coord;
-      let note = origin + u * uStride + v * vStride;
+      let [u, v, w] = cell.coord.map((e, i) => e - this.homeCell.coord[i]);
+      let note = home + u * uStride + v * vStride;
       if (note >= floor && note < ceil) {
         this.cellNoteMap.set(cell, note);
       }
@@ -165,7 +166,7 @@ class MidiOut extends Plugin {
         if (this.settings.isotropicFrame) {
           opts.type = Hexular.enums.TYPE_FLAT;
           let radius = this.radius * this.config.cellRadius * Hexular.math.apothem * 2;
-          this.board.fgAdapter.drawHexagon([0, 0], radius, opts);
+          this.board.fgAdapter.drawHexagon(this.homeCell, radius, opts);
         }
         else {
           opts.type = Hexular.enums.TYPE_POINTY;

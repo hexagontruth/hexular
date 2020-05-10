@@ -14,7 +14,7 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
     remove: `Examples.remove(/* index of example callback to remove */)`,
     scaleTo: `Board.instance.scaleTo(Board.instance.scale * 2, 5000)`,
     maxNumStates: `Board.config.setMaxNumStates(64)`,
-    setSpectrumColors: `Util.setSpectrumColors({range: [1, 16], dir: 1, hue: 0, delta: 360})`,
+    setColorRange: `Util.setColorRange({range: [1, 12], dir: 1, h: 0, hDelta: 360})`,
   };
 
   Object.entries(customCodeDemos).forEach(([k, v]) => {

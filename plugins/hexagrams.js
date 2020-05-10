@@ -42,46 +42,45 @@ class Hexagrams extends Plugin {
       if (!this.enabled) return;
       cells.forEach(setLines);
     };
-    let drawFn = () => {
+    let drawFn = (adapter) => {
+      // Setup
+      let ctx = adapter.context;
+        let q = this.board.drawStepQInc;
       if (board.drawStep == 0)
         initializeLines();
-    };
-    let drawCellFn = (cell, adapter) => {
-      if (!this.settings.drawRings)
-        return;
-      let ctx = adapter.context;
-      let r = adapter.innerRadius;
-      let q = this.board.drawStepQ;
-      let step = board.drawStep;
-      let color, cur, next = 1;
-      ctx.save();
-      ctx.globalCompositeOperation = this.settings.blendMode;
-      for (let i = 5; i >= 0; i--) {
-        cur = next;
-        next = i / 6;
-        if (config.drawStepInterval == 1) {
-          color = cell.lines[i] ? adapter.fillColors[i + 1] : adapter.fillColors[0];
-          adapter.drawHexagon(cell, r * cur, {fill: true, fillStyle: color});
-        }
-        else {
-          if (q <= cur) {
-            color = cell.lastLines[i] ? adapter.fillColors[i + 1] : adapter.fillColors[0];
-            adapter.drawHexagon(cell, r * cur, {fill: true, fillStyle: color});
+
+      // Draw
+      if (this.settings.drawRings) {
+        this.drawEachCell((cell) => {
+          if (!this._isAllowedState(cell.state)) return;
+          let r = adapter.innerRadius;
+          let color, cur, next = 1;
+          for (let i = 5; i >= 0; i--) {
+            cur = next;
+            next = i / 6;
+            if (config.drawStepInterval == 1) {
+              color = cell.lines[i] ? adapter.fillColors[i + 1] : adapter.fillColors[0];
+              adapter.drawHexagon(cell, r * cur, {fill: true, fillStyle: color});
+            }
+            else {
+              if (q <= cur) {
+                color = cell.lastLines[i] ? adapter.fillColors[i + 1] : adapter.fillColors[0];
+                adapter.drawHexagon(cell, r * cur, {fill: true, fillStyle: color});
+              }
+              if (q > next) {
+                color = cell.lines[i] ? adapter.fillColors[i + 1] : adapter.fillColors[0];
+                adapter.drawHexagon(cell, Math.min(r * q, r * cur), {fill: true, fillStyle: color});
+              }
+            }
           }
-          if (q > next) {
-            color = cell.lines[i] ? adapter.fillColors[i + 1] : adapter.fillColors[0];
-            adapter.drawHexagon(cell, Math.min(r * q, r * cur), {fill: true, fillStyle: color});
-          }
-        }
+        });
       }
-      ctx.restore();
     };
+
     initializeLines();
     this.registerBoardHook('clear', clearLines);
     this.registerBoardHook('paint', paintLines);
     this.registerAdapterHook(this.bgAdapter.onDraw, drawFn);
-    this.registerAdapterHook(this.bgAdapter.onDrawCell, drawCellFn);
-
   }
 
   _enable() {
@@ -90,7 +89,9 @@ class Hexagrams extends Plugin {
   }
 
   _disable() {
-    this.oldNumStates && this.config.setMaxNumStates(this.oldNumStates);
+    // This is problematic for obvious reasons and was only included when changing maxNumStates was still, to my mind,
+    // sort of esoteric functionality. But it's now become more "mainstreamed" in my usage so whatever.
+    // this.oldNumStates && this.config.setMaxNumStates(this.oldNumStates);
   }
 };
 Board.registerPlugin(Hexagrams);
