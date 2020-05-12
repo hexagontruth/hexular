@@ -23,7 +23,7 @@ class Config {
       undoStackSize: 64,
       mobileRadius: 30,
       mobileDefaultScale: 1.5,
-      mobileUndoStackSize: 16,
+      mobileUndoStackSize: 32,
       interval: 125,
       autopause: true,
       pageBackground: '#f8f8f8',
@@ -51,7 +51,7 @@ class Config {
       videoCodec: 'vp9',
       videoFrameRate: 30,
       videoBitsPerSecond: 2 ** 28,
-      scaleFactor: 1,
+      scaleFactor: 2,
       tool: 'brush',
       shiftTool: 'move',
       toolSize: 1,
@@ -126,14 +126,21 @@ class Config {
     this.board = board;
     Hexular.util.merge(this, Config.defaults);
     Object.entries(this).forEach(([key, value]) => {
-      if (Array.isArray(value)) {
-        this[key] = value.slice();
-      }
+      // Leftover from a simpler time when filters were set via URL params
       if (this.filters[key]) {
         this.filters[key] = value;
         delete this[key];
       }
     });
+
+    // Let us infer if this is a mobile browser and make some tweaks
+    if (window.devicePixelRatio > 1 && screen.width < 640) {
+      this.scaleFactor *= window.devicePixelRatio;
+      this.mobile = true;
+      this.radius = Config.defaults.mobileRadius;
+      this.defaultScale = Config.defaults.mobileDefaultScale;
+      this.undoStackSize = Config.defaults.mobileUndoStackSize;
+    }
 
     // Restore state from local/session storage
     this.restoreState();
@@ -142,20 +149,21 @@ class Config {
     Hexular.util.merge(this, new OptParser(this), ...args);
 
     // Set logical size and scale small boards
+    // (Suspended as part of antialias precision reform efforts)
     let width = this.radius * this.cellRadius * Hexular.math.apothem * 4;
     let height = this.radius * this.cellRadius * 3;
-    let scaleThreshold = 10 / 12;
-    let scaleRatio = 1;
-    if (width < window.innerWidth * scaleThreshold) {
-      scaleRatio = window.innerWidth * scaleThreshold / width;
-    }
-    if (height < window.innerHeight * scaleThreshold) {
-      scaleRatio = window.innerWidth * scaleThreshold / width;
-    }
-    this.scaleRatio = scaleRatio;
-    this.cellRadius *= scaleRatio;
-    width *= scaleRatio;
-    height *= scaleRatio;
+    // let scaleThreshold = 10 / 12;
+    // let scaleRatio = 1;
+    // if (width < window.innerWidth * scaleThreshold) {
+    //   scaleRatio = window.innerWidth * scaleThreshold / width;
+    // }
+    // if (height < window.innerHeight * scaleThreshold) {
+    //   scaleRatio = window.innerWidth * scaleThreshold / width;
+    // }
+    // this.scaleRatio = scaleRatio;
+    // this.cellRadius *= scaleRatio;
+    // width *= scaleRatio;
+    // height *= scaleRatio;
     this.logicalWidth = width;
     this.logicalHeight = height;
 
@@ -360,10 +368,10 @@ class Config {
   }
 
   updateAdapter() {
-    this.bgAdapter.cellGap = this.cellGap * this.scaleRatio;
-    this.fgAdapter.cellGap = this.cellGap * this.scaleRatio;
-    this.bgAdapter.cellBorderWidth = this.cellBorderWidth * this.scaleRatio;
-    this.fgAdapter.cellBorderWidth = this.cellBorderWidth * this.scaleRatio;
+    this.bgAdapter.cellGap = this.cellGap; // * this.scaleRatio;
+    this.fgAdapter.cellGap = this.cellGap; // * this.scaleRatio;
+    this.bgAdapter.cellBorderWidth = this.cellBorderWidth; // * this.scaleRatio;
+    this.fgAdapter.cellBorderWidth = this.cellBorderWidth; // * this.scaleRatio;
     this.bgAdapter.updateMathPresets();
     this.fgAdapter.updateMathPresets();
     this.checkTheme();

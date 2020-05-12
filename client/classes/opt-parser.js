@@ -1,15 +1,5 @@
 class OptParser {
   constructor(defaults) {
-
-    // Let us infer if this is a mobile browser and make some tweaks
-    if (window.devicePixelRatio > 1 && screen.width < 640) {
-      defaults.scaleFactor = window.devicePixelRatio;
-      defaults.mobile = true;
-      defaults.radius = defaults.mobileRadius;
-      defaults.defaultScale = defaults.mobileDefaultScale;
-      defaults.undoStackSize = defaults.mobileUndoStackSize;
-    }
-
     this.splitFilter(location.href.split('?')[1] || '', '&').map((e) => e.split('='))
     .forEach(([key, value]) => {
       if (!value)

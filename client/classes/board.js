@@ -810,8 +810,10 @@ class Board {
     this.resizeMenu();
 
     // Canvas stuff
-    this.canvasWidth = this.config.logicalWidth / this.config.scaleFactor;
-    this.canvasHeight = this.config.logicalHeight / this.config.scaleFactor;
+    let logicalWidth = this.config.logicalWidth;
+    let logicalHeight = this.config.logicalHeight;
+    this.canvasWidth = window.innerWidth * this.config.scaleFactor;
+    this.canvasHeight = window.innerHeight * this.config.scaleFactor;
     this.translateX = 0;
     this.translateY = 0;
     this.scaleX = 1;
