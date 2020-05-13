@@ -188,6 +188,14 @@ const Util = (() => {
     Board.config.setColors(colors);
   };
 
+  Util.binaryRuleFactory = (...args) => {
+    args = args.filter((e) => typeof e == 'number' && e >= 0 && Math.floor(e) == e);
+    if (args.length)
+      return eval(`(cell) => ${args.map((e) => `cell.state == ${e}`).join(' || ')} ? 1 : 0`); // lol
+    else
+      return () => false;
+  }
+
   Util.shallowPrettyJson = (data, maxLevels=2, indentText='  ') => {
     let json = JSON.stringify(data);
     let str = '';

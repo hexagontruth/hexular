@@ -67,6 +67,8 @@ class Board {
         playStep: [],
         step: [],
         timer: [],
+        playStart: [],
+        playStop: [],
         resize: [],
         select: [],
         debugSelect: [],
@@ -295,6 +297,8 @@ class Board {
   }
 
   drawSync() {
+    this.bgAdapter.context.lineCap = this.config.defaultCap;
+    this.bgAdapter.context.lineJoin = this.config.defaultJoin;
     this.bgAdapter.draw();
     this.recorder && this.recorder.draw();
     this.drawPromise = null;
@@ -356,6 +360,7 @@ class Board {
       this.buttons.step.disabled = true;
       this.buttons.togglePlay.className = 'icon-pause';
       this.setButtonTitle(this.buttons.togglePlay, 'Pause');
+      this.runHook('playStart');
     }
   }
 
@@ -372,6 +377,7 @@ class Board {
       this.buttons.step.disabled = false;
       this.buttons.togglePlay.className = 'icon-play';
       this.setButtonTitle(this.buttons.togglePlay, 'Play');
+      this.runHook('playStop');
     }
   }
 
@@ -392,7 +398,7 @@ class Board {
         let hook = hooks.shift();
         hook.run();
       }
-    }, 50);
+    }, 25);
   }
 
   stopMeta() {
@@ -432,6 +438,8 @@ class Board {
       }
       this.runHook('drawStep');
       this.drawSync();
+      // Reset cell order in case sorting has been applied
+      this.model.sortCells();
     }
     catch (e) {
       console.error(e);

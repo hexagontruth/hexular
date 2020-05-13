@@ -271,6 +271,14 @@ var Hexular = (function () {
          */
         cells: [],
         /**
+         * Optional array for cells sorted via the {@link Model#sortCells} method.
+         *
+         * @name Model#sortedCells
+         * @default null
+         * @type Cell[]
+         */
+        sortedCells: null,
+        /**
          * Mapping of cells to [x, y] coordinates computed using {@link Model#cellRadius} and (implementation
          *-dependent) {@link Model#getCoord}.
          *
@@ -409,17 +417,39 @@ var Hexular = (function () {
     /**
      * Call a given function for each cell in a model, and return an array of that function's return values.
      *
-     * This is essentially `forEach` on {@link Model#cells} but with array comprehension behavior.
+     * We iterate over {@link Model#sortedCells|this.sortedCells} if it is defined, otherwise
+     * {@link Model#cells|this.cells}.
      *
      * @param {function} fn Function to call for each {@link Cell|cell}, taking the cell as an argument
      * @return {number[]}    Array of return values with same size as {@link Model#cells|this.cells}
      */
     eachCell(fn) {
-     let a = new Array(this.cells.length);
-     for (let i = 0; i < this.cells.length; i++) {
-       a[0] = fn(this.cells[i]);
-     }
-     return a;
+      let cells = this.sortedCells || this.cells;
+      let a = new Array(cells.length);
+      for (let i = 0; i < cells.length; i++) {
+        a[0] = fn(cells[i]);
+      }
+      return a;
+    }
+
+    /**
+     * Sort cells by given sort function and store in {@link Model#sortedCells|this.sortedCells}.
+     */
+    sortCells(fn) {
+      if (!fn) {
+        this.sortedCells = null;
+      }
+      else {
+        this.sortedCells = this.cells.slice();
+        this.sortedCells.sort(fn);
+      }
+    }
+
+    /**
+     * Get sorted or topologically-ordered cells as array.
+     */
+    getCells() {
+      return this.sortedCells || this.cells;
     }
 
     /**
@@ -1336,30 +1366,6 @@ var Hexular = (function () {
     }
 
     /**
-     * Optional {@link CanvasAdapter#onDraw} callback that sorts model cells from lowest to highest state.
-     *
-     * This allows e.g. overlapping drawing functions to be executed in some sensible order, rather than the top-left
-     * to-bottom-right order they would normally be drawn in. This has the potential to slow down larger models quite
-     * a bit.
-     *
-     * @param {CanvasAdapter} adapter The target adapter
-     */
-    static sortCellsAsc(adapter) {
-      adapter.cells = adapter.cells || adapter.model.cells.slice();
-      adapter.cells.sort((a, b) => a.state - b.state);
-    }
-
-    /**
-     * Optional {@link CanvasAdapter#onDraw} callback that sorts model cells from highest to lowest state.
-     *
-     * @param {CanvasAdapter} adapter The target adapter
-     */
-    static sortCellsDesc(adapter) {
-      adapter.cells = adapter.cells || adapter.model.cells.slice();
-      adapter.cells.sort((a, b) => b.state - a.state);
-    }
-
-    /**
      * Optional {@link CanvasAdapter#onDraw} callback that draws a solid background in the style given by
      *  {@link CanvasAdapter#backgroundColor|this.backgroundColor}.
      *
@@ -1500,10 +1506,9 @@ var Hexular = (function () {
      * Calls all functions in {@link CanvasAdapter#onDraw|this.onDraw} after clearing canvas but before drawing cells.
      */
     draw() {
-      this.cells = null;
       this.clear();
       this.onDraw.call(this);
-      this.onDrawCell.callParallel(this.cells || this.model.cells, this);
+      this.onDrawCell.callParallel(this.model.getCells(), this);
     }
 
     /**
@@ -1559,7 +1564,7 @@ var Hexular = (function () {
     }
 
     /**
-     * Internal method used to draw circle at cell's position using {#link Model#cellRadius}.
+     * Internal method used to draw circle at cell's position using {@link Model#cellRadius}.
      *
      * Convenience method for use by optional or custom drawing callbacks.
      *
@@ -1606,6 +1611,7 @@ var Hexular = (function () {
         fill: false,
         strokeStyle: null,
         lineWidth: 0,
+        lineJoin: 'miter',
         fillStyle: null,
       };
       opts = Object.assign(defaults, opts);
@@ -1632,6 +1638,7 @@ var Hexular = (function () {
       if (opts.stroke && opts.lineWidth > 0) {
         ctx.strokeStyle = opts.strokeStyle;
         ctx.lineWidth = opts.lineWidth;
+        ctx.lineJoin = opts.lineJoin;
         ctx.stroke();
       }
     }

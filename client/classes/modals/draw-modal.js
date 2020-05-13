@@ -14,6 +14,7 @@ class DrawModal extends Modal {
       drawFilledCircle: document.querySelector('#draw-filled-circle'),
       drawOutlineCircle: document.querySelector('#draw-outline-circle'),
     };
+    this.sortFunctions = ['sortCellsAsc', 'sortCellsDesc'];
     this.autopause = document.querySelector('#autopause');
     this.drawSteps = document.querySelector('#draw-step-slider');
     this.drawStepIndicator = document.querySelector('#draw-step-indicator');
@@ -28,7 +29,7 @@ class DrawModal extends Modal {
     this.pluginList = document.querySelector('#plugin-list');
     this.pluginEditor = document.querySelector('#plugin-editor');
 
-    Object.entries(this.drawButtons).forEach(([fnName, button]) => button.onclick = () => this._setDraw(fnName));
+    Object.entries(this.drawButtons).forEach(([fnName, button]) => button.onclick = () => this._setOnDraw(fnName));
     this.drawSteps.oninput = (ev) => this._setDrawSteps(this.drawSteps.value);
     this.autopause.onclick = (ev) => this._setAutopause(!this.config.autopause);
     this.interval.oninput = (ev) => this._updateInterval(this.interval.value);
@@ -40,7 +41,7 @@ class DrawModal extends Modal {
   reset() {
     this._setDrawSteps(this.config.drawStepInterval);
     this._setAutopause();
-    this._setDraw();
+    this._setOnDraw();
     this.interval.value = this.config.interval;
     this._updateInterval();
     this._updateScale(this.config.defaultScale);
@@ -60,8 +61,12 @@ class DrawModal extends Modal {
     this.config.setAutopause(value != null ? value : this.config.autopause);
   }
 
-  _setDraw(fnName) {
-    this.config.setDraw(fnName, !this.config.drawFunctions[fnName]);
+  _setOnDraw(fnName) {
+    let lastState = this.config.drawFunctions[fnName];
+    this.config.setOnDraw(fnName, !lastState);
+    // TODO: This is still hacky but somewhat less so than alternative
+    if (this.sortFunctions.includes(fnName) && lastState)
+      this.model.sortCells();
     this.board.draw();
   }
 

@@ -29,8 +29,19 @@
     this.enabled = false;
     this.fns = [];
     this.globalAlpha = 1;
+    this._init();
     this.saveSettings(settings || this.defaultSettings());
   }
+
+  _init() {}
+
+  _activate() {}
+
+  _deactivate() {}
+
+  _enable() {}
+
+  _disable() {}
 
   defaultSettings() {
     return `{}`;
@@ -63,14 +74,6 @@
       this._deactivate();
     }
   }
-
-  _activate() {}
-
-  _deactivate() {}
-
-  _enable() {}
-
-  _disable() {}
 
   registerFunction(fn) {
     let wrapper = (...args) => (this.enabled || undefined) && fn(...args);
@@ -123,7 +126,7 @@
       throw e;
     }
     if (typeof settingsObj == 'object') {
-      this.settingsString = this._trim(settingsString);
+      this.settingsString = this.trim(settingsString);
       this.settings = settingsObj;
       this.setStateLists();
       this._onSaveSettings && this._onSaveSettings();
@@ -151,15 +154,7 @@
     ctx.restore();
   }
 
-  to(board) {
-    return new this.constructor(board, this.getSettings(), this.name);
-  }
-
-  toString() {
-    return JSON.stringify([this.constructor.name, this.getSettings(), this.name, this.enabled]);
-  }
-
-  _trim(string) {
+  trim(string) {
     let lines = string.split('\n');
     let min = Infinity;
     for (let line of lines) {
@@ -172,27 +167,43 @@
     return lines.map((e) => e.substring(min)).filter((e) => e.length > 0).join('\n');
   }
 
-  _getPivot(q, p=0.5) {
-    if (this.config.drawStepInterval == 1)
+  getPivot(q, p=0.5) {
+    // Always draw specific step (default 1) when drawStepInterval == 1
+    if (this.config.drawStepInterval == this.config.drawDefaultQ)
       return 1;
+    // Return q or inverse for 0 or 1 values
     else if (p == 0)
       return (1 - q);
     else if (p == 1)
       return q;
-    let [a, b] = typeof p == 'number' ? [p, p] : p;
-    if (q < a)
-      return q / a;
-    else if (q > b)
-      return (1 - q) / (1 - b);
-    return 1;
-
+    // Easing functions
+    if (typeof p == 'function') {
+      return p(q);
+    }
+    // Single number (original form) or two-element array
+    else {
+      let [a, b] = typeof p == 'number' ? [p, p] : p;
+      if (q < a)
+        return q / a;
+      else if (q > b)
+        return (1 - q) / (1 - b);
+      return 1;
+    }
   }
 
-  _isAllowedState(state) {
+  isAllowedState(state) {
     if (this.stateBlacklist)
       return !this.stateBlacklist.has(state);
     else if (this.stateWhitelist)
       return this.stateWhitelist.has(state);
     else return true;
+  }
+
+  to(board) {
+    return new this.constructor(board, this.getSettings(), this.name);
+  }
+
+  toString() {
+    return JSON.stringify([this.constructor.name, this.getSettings(), this.name, this.enabled]);
   }
 }

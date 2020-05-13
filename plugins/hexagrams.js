@@ -9,78 +9,20 @@ class Hexagrams extends Plugin {
   }
 
   _activate() {
-    let board = this.board;
-    let model = board.model;
-    let config = board.config;
-
-    let toLines = (state) => {
-      return [
-        state % 2,
-        (state >> 1) % 2,
-        (state >> 2) % 2,
-        (state >> 3) % 2,
-        (state >> 4) % 2,
-        (state >> 5) % 2,
-      ];
-    };
-    let fromLines = (lines) => {
-      return lines[0] + lines[1] * 2 + lines[2] * 4 + lines[3] * 8 + lines[4] * 16 + lines[5] * 32;
-    };
-    let setLines = (cell) => cell.lines = cell.newLines = toLines(cell.state);
-    let initializeLines = () => {
-      model.eachCell((cell) => {
-        let lastLines = cell.lines;
-        cell.lines = toLines(cell.state);
-        cell.lastLines = lastLines || cell.lines;
-      });
-    };
+    let setLines = (cell) => cell.lines = cell.newLines = this.toLines(cell.state);
     let clearLines = () => {
       if (!this.enabled) return;
-      Board.model.eachCell(setLines);
+      this.model.eachCell(setLines);
     };
     let paintLines = (cells) => {
       if (!this.enabled) return;
       cells.forEach(setLines);
     };
-    let drawFn = (adapter) => {
-      // Setup
-      let ctx = adapter.context;
-        let q = this.board.drawStepQInc;
-      if (board.drawStep == 0)
-        initializeLines();
 
-      // Draw
-      if (this.settings.drawRings) {
-        this.drawEachCell((cell) => {
-          if (!this._isAllowedState(cell.state)) return;
-          let r = adapter.innerRadius;
-          let color, cur, next = 1;
-          for (let i = 5; i >= 0; i--) {
-            cur = next;
-            next = i / 6;
-            if (config.drawStepInterval == 1) {
-              color = cell.lines[i] ? adapter.fillColors[i + 1] : adapter.fillColors[0];
-              adapter.drawHexagon(cell, r * cur, {fill: true, fillStyle: color});
-            }
-            else {
-              if (q <= cur) {
-                color = cell.lastLines[i] ? adapter.fillColors[i + 1] : adapter.fillColors[0];
-                adapter.drawHexagon(cell, r * cur, {fill: true, fillStyle: color});
-              }
-              if (q > next) {
-                color = cell.lines[i] ? adapter.fillColors[i + 1] : adapter.fillColors[0];
-                adapter.drawHexagon(cell, Math.min(r * q, r * cur), {fill: true, fillStyle: color});
-              }
-            }
-          }
-        });
-      }
-    };
-
-    initializeLines();
+    this.initializeLines();
     this.registerBoardHook('clear', clearLines);
     this.registerBoardHook('paint', paintLines);
-    this.registerAdapterHook(this.bgAdapter.onDraw, drawFn);
+    this.registerAdapterHook(this.bgAdapter.onDraw, (adapter) => this.onDraw(adapter));
   }
 
   _enable() {
@@ -93,5 +35,59 @@ class Hexagrams extends Plugin {
     // sort of esoteric functionality. But it's now become more "mainstreamed" in my usage so whatever.
     // this.oldNumStates && this.config.setMaxNumStates(this.oldNumStates);
   }
-};
+
+  initializeLines() {
+    this.model.eachCell((cell) => {
+      let lastLines = cell.lines;
+      cell.lines = this.toLines(cell.state);
+      cell.lastLines = lastLines || cell.lines;
+    });
+  }
+
+  toLines(state) {
+    return [
+      state % 2,
+      (state >> 1) % 2,
+      (state >> 2) % 2,
+      (state >> 3) % 2,
+      (state >> 4) % 2,
+      (state >> 5) % 2,
+    ];
+  }
+
+  onDraw(adapter) {
+    // Setup
+    let ctx = adapter.context;
+      let q = this.board.drawStepQInc;
+    if (this.board.drawStep == 0)
+      this.initializeLines();
+
+    // Draw
+    if (this.settings.drawRings) {
+      this.drawEachCell((cell) => {
+        if (!this.isAllowedState(cell.state)) return;
+        let r = adapter.innerRadius;
+        let color, cur, next = 1;
+        for (let i = 5; i >= 0; i--) {
+          cur = next;
+          next = i / 6;
+          if (this.config.drawStepInterval == 1) {
+            color = cell.lines[i] ? adapter.fillColors[i + 1] : adapter.fillColors[0];
+            adapter.drawHexagon(cell, r * cur, {fill: true, fillStyle: color});
+          }
+          else {
+            if (q <= cur) {
+              color = cell.lastLines[i] ? adapter.fillColors[i + 1] : adapter.fillColors[0];
+              adapter.drawHexagon(cell, r * cur, {fill: true, fillStyle: color});
+            }
+            if (q > next) {
+              color = cell.lines[i] ? adapter.fillColors[i + 1] : adapter.fillColors[0];
+              adapter.drawHexagon(cell, Math.min(r * q, r * cur), {fill: true, fillStyle: color});
+            }
+          }
+        }
+      });
+    }
+  }
+}
 Board.registerPlugin(Hexagrams);

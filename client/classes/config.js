@@ -59,8 +59,11 @@ class Config {
       paintColors: [1, 0],
       customPaintMap: null,
       steps: 0,
+      drawDefaultQ: 1,
       drawStepInterval: 1,
       blendMode: 'source-over',
+      defaultCap: 'butt', // lol
+      defaultJoin: 'miter',
       rbName: 'newSimpleRule',
       rbMiss: 0,
       rbMatch: 1,
@@ -77,11 +80,9 @@ class Config {
         templateDef: Hexular.util.templateRuleBuilder().defs[0],
       },
       drawFunctions: {
-        // onDraw
-        drawModelBackground: true,
         sortCellsAsc: false,
         sortCellsDesc: false,
-        // onDrawCell
+        drawModelBackground: true,
         drawFilledPointyHex: true,
         drawOutlinePointyHex: false,
         drawFilledFlatHex: false,
@@ -193,7 +194,7 @@ class Config {
           this.drawFunctions[active] = true;
           this.drawModal.drawButtons[active].classList.add('active');
         }
-        return this.bgAdapter.constructor[active];
+        return this.getDefaultDrawingCallback(active);
       };
       for (let hook of Object.keys(this.radioGroups)) {
         for (let group of this.radioGroups[hook]) {
@@ -203,7 +204,7 @@ class Config {
           this.bgAdapter[hook].unshift(radioGroup.fn);
         }
       }
-      this.setDraw();
+      this.setOnDraw();
       this.setMaxNumStates();
 
       // Board
@@ -336,6 +337,26 @@ class Config {
       });
       delete this.pluginData;
     }
+  }
+
+  getDefaultDrawingCallback(fnKey) {
+    let map = {
+      sortCellsAsc: () => this.model.sortCells((a, b) => a.state - b.state),
+      sortCellsDesc: () => this.model.sortCells((a, b) => b.state - a.state),
+    };
+    let bgAdapterCallbacks = [
+        'drawModelBackground',
+        'drawFilledPointyHex',
+        'drawOutlinePointyHex',
+        'drawFilledFlatHex',
+        'drawOutlineFlatHex',
+        'drawFilledCircle',
+        'drawOutlineCircle',
+    ];
+    for (let cb of bgAdapterCallbacks) {
+      map[cb] = this.bgAdapter.constructor[cb];
+    }
+    return map[fnKey];
   }
 
   // --- SETTERS ---
@@ -530,11 +551,11 @@ class Config {
     this.storeSessionConfigAsync();
   }
 
-  setDraw(fnName, value, radio=true) {
+  setOnDraw(fnName, value, radio=true) {
     if (!fnName) {
       let activeFns = Object.entries(this.drawFunctions).filter(([k, v]) => v).map(([k, v]) => k);
       for (let name of activeFns)
-        this.setDraw(name, true);
+        this.setOnDraw(name, true);
     }
     else {
       if (value == null)
@@ -831,10 +852,13 @@ class Config {
       'colors',
       'colorMode',
       'customInput',
+      'defaultCap',
       'defaultColor',
+      'defaultJoin',
       'defaultRule',
       'defaultScale',
       'drawFunctions',
+      'drawDefaultQ',
       'drawStepInterval',
       'fallbackTool',
       'filters',
