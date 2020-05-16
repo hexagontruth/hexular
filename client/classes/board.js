@@ -28,6 +28,7 @@ class Board {
         Board.bgAdapter = board.bgAdapter;
         Board.fgAdapter = board.fgAdapter;
         Board.modals = board.modals;
+        Board.shared = board.shared;
         board.runHook('resize');
         await board.draw();
         board.clearFg();
@@ -54,6 +55,7 @@ class Board {
       playStart: null,
       playSteps: 0,
       playLast: null,
+      shared: new SharedStore(),
       messageTimer: null,
       undoStack: [],
       redoStack: [],
@@ -244,8 +246,8 @@ class Board {
 
     let {radius, numStates, groundState, cellRadius, cellGap, colors} = this.config;
     this.model = Hexular({radius, numStates, groundState, cellRadius});
-    this.bgAdapter = this.model.CanvasAdapter({context: this.bgCtx, cellGap, colors});
-    this.fgAdapter = this.model.CanvasAdapter({context: this.fgCtx, cellGap, colors});
+    this.bgAdapter = new CanvasAdapter(this.model, {board: this, context: this.bgCtx, cellGap, colors});
+    this.fgAdapter = new CanvasAdapter(this.model, {board: this, context: this.fgCtx, cellGap, colors});
     this.resize();
 
     this.modals = {
@@ -436,8 +438,8 @@ class Board {
           this.debugSelected && this.runHook('debugStep', this.debugSelected);
         }
       }
-      this.runHook('drawStep');
       this.drawSync();
+      this.runHook('drawStep');
       // Reset cell order in case sorting has been applied
       this.model.sortCells();
     }

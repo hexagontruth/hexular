@@ -20,30 +20,21 @@ class FaderExpander extends Plugin {
     `;
   }
 
-  _init() {
-    this.t = [127, 127, 127, 0];
-  }
-
   _activate() {
-    this.updateColors();
-    this.registerBoardHook('updateTheme', () => this.updateColors());
     this.registerAdapterHook(this.bgAdapter.onDraw, (adapter) => this.onDraw(adapter));
-  }
-
-  updateColors() {
-    this.fillColors = this.bgAdapter.fillColors.map((e) => Util.styleToVcolor(e));
-    this.strokeColors = this.bgAdapter.strokeColors.map((e) => Util.styleToVcolor(e));
   }
 
   onDraw(adapter) {
     // Setup
     let ctx = adapter.context;
+    let fillColors = this.config.fillColors;
+    let strokeColors = this.config.strokeColors;
     let {
-      hexType, fadeIndex, fill, stroke, lineWidth, minRadius,
+      hexType, fill, stroke, lineWidth, minRadius,
       maxRadius, minAlpha, maxAlpha, pivot
     } = this.settings;
     let q = this.board.drawStepQInc;
-    let fadeQ = q >= fadeIndex ? 1 : q / fadeIndex;
+    let fadeQ = this.getFade(q);
     let pivotQ = this.getPivot(q, pivot);
     let radius = adapter.innerRadius * ((maxRadius - minRadius) * pivotQ + minRadius);
     this.globalAlpha = (maxAlpha - minAlpha) * pivotQ + minAlpha;
@@ -58,15 +49,14 @@ class FaderExpander extends Plugin {
     // Draw
     this.drawEachCell((cell) => {
       if (!this.isAllowedState(cell.state)) return;
+      let fade = fadeQ < 1;
       if (opts.fill) {
-        let cur = this.fillColors[cell.state] || this.t;
-        let last = this.fillColors[cell.lastState] || this.t;
-        opts.fillStyle = Util.vcolorToHex(Util.mergeVcolors(cur, last, fadeQ));
+        opts.fillStyle = fillColors[cell.state] || Color.t;
+        if (fade) opts.fillStyle = opts.fillStyle.blend(fillColors[cell.lastState], fadeQ)
       }
       if (opts.stroke) {
-        let cur = this.strokeColors[cell.state] || this.t;
-        let last = this.strokeColors[cell.lastState] || this.t;
-        opts.strokeStyle = Util.vcolorToHex(Util.mergeVcolors(cur, last, fadeQ));
+        opts.strokeStyle = strokeColors[cell.state] || Color.t;
+        if (fade) opts.strokeStyle = opts.strokeStyle.blend(strokeColors[cell.lastState], fadeQ);
       }
       adapter.drawHexagon(cell, radius, opts);
     });

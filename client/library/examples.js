@@ -5,13 +5,11 @@ const Examples = (() => {
   let customCodeDemos = {
     addRule: `Board.config.addRule('newRule', (cell) => cell.max > 2 ? cell.state + 1 : 0)`,
     deleteRule: `Board.config.deleteRule('ruleName')`,
-    maxFilledTriangle: `Examples.maxFilledTriangle()`,
-    minOutlineCircle: `Examples.minOutlineCircle(3)`,
     drawCellImage: `
 Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [1, 2], clip: true})
 `,
     drawBackgroundImage: `Examples.drawBackgroundImage(null, {scale: 1})`,
-    remove: `Examples.remove(/* index of example callback to remove */)`,
+    rotateColors: `Examples.rotateColors()`,
     scaleTo: `Board.instance.scaleTo(Board.instance.scale * 2, 5000)`,
     maxNumStates: `Board.config.setMaxNumStates(64)`,
     setColorRange: `Util.setColorRange({range: [1, 12], dir: 1, h: 0, hDelta: 360})`,
@@ -20,192 +18,6 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
   Object.entries(customCodeDemos).forEach(([k, v]) => {
     customCodeDemos[k] = v.trim();
   });
-
-  // Yes this is very inconsistent with the other two
-  function hexagonFactory(defaultOpts, cb) {
-    let defaults = {
-      type: Hexular.enums.TYPE_POINTY,
-      stroke: false,
-      fill: false,
-      fillStyle: null,
-      strokeStyle: null,
-    };
-    if (!cb)
-      cb = (a, b, c) => Math.max(a.state, b.state, c.state);
-    defaultOpts = Object.assign({}, defaults, defaultOpts);
-    return (radius, optOverrides) => {
-      let opts = Object.assign({}, defaultOpts, optOverrides);
-      let fn = function(cell) {
-        let adapter = Board.bgAdapter;
-        let model = Board.model;
-        let fillStyle = opts.fillstyle;
-        let strokeStyle = opts.strokeStyle;
-        if (!cell.state)
-          return;
-        let slice = cell.with[6].nbrSlice;
-        for (let i = 0; i < 5; i++) {
-          let n1 = slice[i];
-          let n2 = slice[(i + 1) % 6];
-          if (n1.state && n2.state && !n1.edge && !n2.edge) {
-            let state = cb(cell, n1, n2);
-            let [x0, y0] = model.cellMap.get(cell);
-            let [x1, y1] = model.cellMap.get(n1);
-            let [x2, y2] = model.cellMap.get(n2);
-            let x = (x0 + x1 + x2) / 3;
-            let y = (y0 + y1 + y2) / 3;
-            let r = radius || adapter.innerRadius;
-            if (opts.stroke)
-              opts.strokeStyle = strokeStyle || adapter.strokeColors[state];
-            if (opts.fill)
-              opts.fillStyle = fillStyle || adapter.fillColors[state];
-            adapter.drawHexagon([x, y], r, opts);
-          }
-        }
-      }
-      fn.idx = ++fnCount;
-      Board.bgAdapter.onDrawCell.push(fn);
-      Board.instance.draw();
-      return fn.idx;
-    };
-  }
-
-  function circleFactory(cb) {
-    return (radius) => {
-      let fn = function(cell) {
-        let adapter = Board.bgAdapter;
-        let model = Board.model;
-        if (!cell.state)
-          return;
-        let slice = cell.with[6].nbrSlice;
-        for (let i = 0; i < 5; i++) {
-          let n1 = slice[i];
-          let n2 = slice[(i + 1) % 6];
-          if (n1.state && n2.state && !n1.edge && !n2.edge) {
-            let [x0, y0] = model.cellMap.get(cell);
-            let [x1, y1] = model.cellMap.get(n1);
-            let [x2, y2] = model.cellMap.get(n2);
-            let x = (x0 + x1 + x2) / 3;
-            let y = (y0 + y1 + y2) / 3;
-            let r = radius || adapter.innerRadius;
-            adapter.context.beginPath();
-            adapter.context.arc(x, y, r, 0, Math.PI * 2);
-            cb(adapter.context, cell, n1, n2);
-          }
-        }
-      }
-      fn.idx = ++fnCount;
-      Board.bgAdapter.onDrawCell.push(fn);
-      Board.instance.draw();
-      return fn.idx;
-    };
-  }
-
-  function triangleFactory(cb) {
-    return (radius, opts) => {
-      opts = Object.assign({
-        center: true,
-        vertex: false,
-      }, opts);
-      let vertices = Hexular.math.vertices.map(([x, y]) => [y, x]);
-      let fn = function(cell) {
-        let adapter = Board.bgAdapter;
-        let model = Board.model;
-        if (!cell.state)
-          return;
-        let slice = cell.with[6].nbrSlice;
-        for (let i = 0; i < 5; i++) {
-          let n1 = slice[i];
-          let n2 = slice[(i + 1) % 6];
-          if (n1.state && n2.state && !n1.edge && !n2.edge) {
-            let [x0, y0] = model.cellMap.get(cell);
-            let [x1, y1] = model.cellMap.get(n1);
-            let [x2, y2] = model.cellMap.get(n2);
-            let x = (x0 + x1 + x2) / 3;
-            let y = (y0 + y1 + y2) / 3;
-            let r = radius || adapter.innerRadius;
-            let o = i % 2;
-            for (let e of [opts.center, opts.vertex]) {
-              o = o ^1;
-              if (!e) continue;
-              adapter.context.beginPath();
-              adapter.context.moveTo(x + vertices[o][0] * r, y + vertices[o][1] * r);
-              adapter.context.lineTo(x + vertices[o + 2][0] * r, y + vertices[o + 2][1] * r);
-              adapter.context.lineTo(x + vertices[o + 4][0] * r, y + vertices[o + 4][1] * r);
-              adapter.context.closePath();
-              cb(adapter.context, cell, n1, n2);
-            }
-          }
-        }
-      };
-      fn.idx = ++fnCount;
-      Board.bgAdapter.onDrawCell.push(fn);
-      Board.instance.draw();
-      return fn.idx;
-    };
-  }
-
-  function lineFactory(cb) {
-    return (radius) => {
-      let fn = function(cell) {
-        let adapter = Board.bgAdapter;
-        let model = Board.model;
-        if (cell.edge)
-          return;
-        let slice = cell.with[6].nbrSlice;
-        for (let i = 0; i < 5; i += 2) {
-          let nbr = slice[i];
-          if (!nbr.state || !cell.state || nbr.edge)
-            continue;
-          let [x0, y0] = model.cellMap.get(cell);
-          let [x1, y1] = model.cellMap.get(nbr);
-          adapter.context.beginPath();
-          adapter.context.moveTo(x0, y0);
-          adapter.context.lineTo(x1, y1);
-          cb(adapter.context, cell, nbr);
-        }
-      };
-      fn.idx = ++fnCount;
-      Board.bgAdapter.onDrawCell.unshift(fn);
-      Board.instance.draw();
-      return fn.idx;
-    };
-  }
-
-  function fillMax(ctx, ...cells) {
-    let state = Math.max(...cells.map((e) => e.state));
-    ctx.fillStyle = Board.bgAdapter.fillColors[state];
-    ctx.fill();
-  }
-
-  function fillMin(ctx, ...cells) {
-    let state = Math.min(...cells.map((e) => e.state));
-    ctx.fillStyle = Board.bgAdapter.fillColors[state];
-    ctx.fill();
-  }
-
-  function outlineMax(ctx, ...cells) {
-    let lineWidth = Board.config.cellBorderWidth;
-    if (lineWidth == 0)
-      return;
-    let state = Math.max(...cells.map((e) => e.state));
-    ctx.strokeStyle = Board.bgAdapter.strokeColors[state];
-    ctx.lineWidth = lineWidth;
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
-    ctx.stroke();
-  }
-
-  function outlineMin(ctx, ...cells) {
-    let lineWidth = Board.config.cellBorderWidth;
-    if (lineWidth == 0)
-      return;
-    let state = Math.min(...cells.map((e) => e.state));
-    ctx.strokeStyle = Board.bgAdapter.strokeColors[state];
-    ctx.lineWidth = lineWidth;
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
-    ctx.stroke();
-  }
 
   function loadImageAsUrl() {
     return new Promise((resolve, reject) => {
@@ -244,49 +56,9 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
 
   let examples = {
     customCodeDemos,
-    hexagonFactory,
-    circleFactory,
-    triangleFactory,
-    lineFactory,
-    fillMax,
-    fillMin,
-    outlineMax,
-    outlineMin,
     loadImageAsUrl,
     remove,
     removeAll,
-
-    maxFilledCircle: circleFactory(fillMax),
-    minFilledCircle: circleFactory(fillMin),
-    maxOutlineCircle: circleFactory(outlineMax),
-    minOutlineCircle: circleFactory(outlineMin),
-    maxFilledTriangle: triangleFactory(fillMax),
-    minFilledTriangle: triangleFactory(fillMin),
-    maxOutlineTriangle: triangleFactory(outlineMax),
-    minOutlineTriangle: triangleFactory(outlineMin),
-
-    maxLine: lineFactory(outlineMax),
-    minLine: lineFactory(outlineMin),
-
-    maxFilledHexagon: hexagonFactory({fill: true}, (a, b, c) => Math.max(a.state, b.state, c.state)),
-    minFilledHexagon: hexagonFactory({fill: true}, (a, b, c) => Math.min(a.state, b.state, c.state)),
-    maxOutlineHexagon: hexagonFactory({stroke: true}, (a, b, c) => Math.max(a.state, b.state, c.state)),
-    minOutlineHexagon: hexagonFactory({stroke: true}, (a, b, c) => Math.min(a.state, b.state, c.state)),
-
-    drawNoise: (styles=[], fnName='drawFilledPointyHex') => {
-      let model = Board.model;
-      let adapter = Board.bgAdapter;
-      let drawFn = adapter[fnName].bind(adapter);
-      let fn = () => {
-        model.cells.forEach((cell) => {
-          let style = styles[Math.floor(Math.random() * styles.length)];
-          drawFn(cell, style);
-        });
-      };
-      fn.idx = ++fnCount;
-      adapter.onDraw.push(fn);
-      return fn.idx;
-    },
 
     drawBackgroundImage: (url, opts={}) => {
       let fnIdx = ++fnCount;
@@ -334,49 +106,6 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
         };
       })();
       return fnIdx;
-    },
-
-    drawSubtriangles: (opts) => {
-      let defaults = {
-        stroke: false,
-        fill: false,
-        skipGround: true,
-        radius: null,
-        offset: null,
-      };
-      opts = Object.assign(defaults, opts);
-      let fn = function(cell) {
-        if (!cell.state && opts.skipGround)
-          return;
-        let slice = cell.with[6].nbrSlice;
-        let r = opts.radius || this.innerRadius;
-        let offset = opts.offset != null ? opts.offset : this.cellBorderWidth / 2;
-        for (let i = 0; i < 6; i++) {
-          let state = slice[i].state;
-          let j = (i + 1) % 6;
-          let x = !offset ? 0 : Math.cos(Math.PI * (1 - i) / 3) * offset;
-          let y = !offset ? 0 : Math.sin(Math.PI * (1 - i) / 3) * offset;
-          let path = [
-            [x, y],
-            [x + Math.sin(Math.PI * i / 3) * r, y + Math.cos(Math.PI * i / 3) * r],
-            [x + Math.sin(Math.PI * j / 3) * r, y + Math.cos(Math.PI * j / 3) * r],
-          ];
-          this.drawPath(cell, path);
-          if (opts.stroke) {
-            this.context.strokeStyle = this.strokeColors[state] || this.defaultColor;
-            this.context.lineJoin = "round";
-            this.context.stroke()
-          }
-          if (opts.fill) {
-            this.context.fillStyle = this.fillColors[state] || this.defaultColor;
-            this.context.fill()
-          }
-        }
-      };
-      fn.idx = ++fnCount;
-      Board.bgAdapter.onDrawCell.push(fn);
-      Board.instance.draw();
-      return fn.idx;
     },
 
     drawCellImage: (url, opts={}) => {

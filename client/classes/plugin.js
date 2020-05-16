@@ -132,7 +132,7 @@
       this._onSaveSettings && this._onSaveSettings();
     }
     else {
-      throw new Hexular.classes.HexError('Settings string does not evaluate to an object');
+      throw new Hexular.HexError('Settings string does not evaluate to an object');
     }
     this.config.setPlugins();
   }
@@ -189,6 +189,10 @@
         return (1 - q) / (1 - b);
       return 1;
     }
+  }
+
+  getFade(q, f=this.settings.fadeIndex) {
+    return q >= f ? 1 : q / f;
   }
 
   isAllowedState(state) {

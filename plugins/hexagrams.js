@@ -58,9 +58,10 @@ class Hexagrams extends Plugin {
   onDraw(adapter) {
     // Setup
     let ctx = adapter.context;
-      let q = this.board.drawStepQInc;
+    let q = this.board.drawStepQInc;
     if (this.board.drawStep == 0)
       this.initializeLines();
+    let colors = this.config.fillColors;
 
     // Draw
     if (this.settings.drawRings) {
@@ -72,16 +73,16 @@ class Hexagrams extends Plugin {
           cur = next;
           next = i / 6;
           if (this.config.drawStepInterval == 1) {
-            color = cell.lines[i] ? adapter.fillColors[i + 1] : adapter.fillColors[0];
+            color = cell.lines[i] ? colors[i + 1] : colors[0];
             adapter.drawHexagon(cell, r * cur, {fill: true, fillStyle: color});
           }
           else {
             if (q <= cur) {
-              color = cell.lastLines[i] ? adapter.fillColors[i + 1] : adapter.fillColors[0];
+              color = cell.lastLines[i] ? colors[i + 1] : colors[0];
               adapter.drawHexagon(cell, r * cur, {fill: true, fillStyle: color});
             }
             if (q > next) {
-              color = cell.lines[i] ? adapter.fillColors[i + 1] : adapter.fillColors[0];
+              color = cell.lines[i] ? colors[i + 1] : colors[0];
               adapter.drawHexagon(cell, Math.min(r * q, r * cur), {fill: true, fillStyle: color});
             }
           }

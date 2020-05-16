@@ -13,30 +13,12 @@ class ThemeModal extends Modal {
     this.cellBorderWidth = document.querySelector('#cell-border-width');
 
     this.colors.forEach((el, idx) => {
-      let pickerClosed = false;
       el.setAttribute('title', `Color ${idx}`);
       el.onchange = () => this.config.setColor(idx, el.value);
-      el.onfocus = el.onclick = () => pickerClosed = false;
-      el.onkeydown = (ev) => {
-        if (ev.key == 'Escape' && !pickerClosed) {
-          el.jscolor.hide();
-          pickerClosed = true;
-          ev.stopPropagation();
-        }
-      }
     });
     ['pageBackground', 'modelBackground', 'defaultColor'].forEach((key) => {
-      let pickerClosed = false;
       let el = this[key];
       el.onchange = () => this.config.setColorProperty(key, el.value);
-      el.onfocus = el.onclick = () => pickerClosed = false;
-      el.onkeydown = (ev) => {
-        if (ev.key == 'Escape' && !pickerClosed) {
-          el.jscolor.hide();
-          pickerClosed = true;
-          ev.stopPropagation();
-        }
-      }
     });
     this.selectBlendMode.onchange = (ev) => this._setBlendMode(this.selectBlendMode.value);
     this.cellGap.onchange = (ev) => this._setCellGap(this.cellGap.value);

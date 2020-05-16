@@ -34,13 +34,16 @@ class QuadraticLines extends Plugin {
     let curveDiff = settings.curveDiff;
     let curveDiffInv = 1 - settings.curveDiff;
     let drawOn = this.settings.drawOn || (() => true);
+    if (this.settings.color)
+      ctx.fillStyle = this.settings.color;
 
     // Draw
     this.drawEachCell((cell) => {
       let allowed = this.isAllowedState(cell.state);
       let allowedInclusive = allowed && this.settings.inclusive;
       if (cell.edge || (!allowed && !this.settings.inclusive)) return;
-      ctx.fillStyle = this.settings.color || adapter.strokeColors[cell.state];
+      if (!this.settings.color)
+        adapter.fillColor = this.config.strokeColors[cell.state];
       let [x, y] = model.cellMap.get(cell);
       for (let i = 0; i < 6; i++) {
         let n0 = cell.nbrs[i + 1];

@@ -28,31 +28,29 @@ class VertexShapes extends Plugin {
     `;
   }
 
-  _init() {
-    this.t = [127, 127, 127, 0];
-  }
-
   _onSaveSettings() {
     this.updateMaps();
   }
 
   _activate() {
-    this.updateColors();
     this.updateMaps();
-    this.registerBoardHook('updateTheme', () => this.updateColors());
     this.registerBoardHook('clear', () => this.updateMaps());
+    this.registerBoardHook('step', () => this.onStep)
     this.registerAdapterHook(this.bgAdapter.onDraw, (adapter) => this.onDraw(adapter));
+  }
+
+  onStep() {
+
   }
 
   onDraw(adapter) {
     // Setup
     let model = this.model;
     let ctx = adapter.context;
-    let fillColors = this.fillColors;
-    let strokeColors = this.strokeColors;
+    let fillColors = this.config.fillColors;
+    let strokeColors = this.config.strokeColors;
     let q = this.board.drawStepQInc;
     let {
-      fadeIndex,
       angleOffset,
       angleDelta,
       anglePivot,
@@ -69,7 +67,7 @@ class VertexShapes extends Plugin {
     } = this.settings;
     minWidth = minWidth != null ? minWidth : this.config.cellBorderWidth;
     maxWidth = maxWidth != null ? maxWidth : this.config.cellBorderWidth;
-    let fadeQ = q >= fadeIndex ? 1 : q / fadeIndex;
+    let fadeQ = this.getFade(q);
     let angleQ = this.getPivot(q, anglePivot);
     let opacityQ = this.getPivot(q, opacityPivot);
     let radiusQ = this.getPivot(q, radiusPivot);
@@ -137,14 +135,14 @@ class VertexShapes extends Plugin {
         }
         else if (this.settings.color == 'blend') {
           let c, c0, c1;
-          c = fillColors[cell.state] || this.t;
-          c0 = fillColors[n0.state] || this.t;
-          c1 = fillColors[n1.state] || this.t;
-          colorFill = Util.mergeVcolors(Util.mergeVcolors(c0, c1), c, 2 / 3);
-          c = strokeColors[cell.state] || this.t;
-          c0 = strokeColors[n0.state] || this.t;
-          c1 = strokeColors[n1.state] || this.t;
-          colorStroke = Util.mergeVcolors(Util.mergeVcolors(c0, c1), c, 2 / 3);
+          c = fillColors[cell.state];
+          c0 = fillColors[n0.state];
+          c1 = fillColors[n1.state];
+          colorFill = Color.blend(c, c0, c1);
+          c = strokeColors[cell.state];
+          c0 = strokeColors[n0.state];
+          c1 = strokeColors[n1.state];
+          colorStroke = Color.blend(c, c0, c1);
         }
         else {
           ctx.fillStyle = this.settings.color;
@@ -152,11 +150,11 @@ class VertexShapes extends Plugin {
         }
         if (colorFill) {
           if (fadeQ < 1) {
-            colorFill = Util.mergeVcolors(colorFill, lastFill[i], fadeQ);
-            colorStroke = Util.mergeVcolors(colorStroke, lastStroke[i], fadeQ);
+            colorFill = colorFill.blend(lastFill[i], fadeQ);
+            colorStroke = colorStroke.blend(lastStroke[i], fadeQ);
           }
-          ctx.fillStyle = Util.vcolorToHex(colorFill);
-          ctx.strokeStyle = Util.vcolorToHex(colorStroke)
+          adapter.fillColor = colorFill;
+          adapter.strokeColor = colorStroke;
         }
         this.settings.fill && ctx.fill();
         if (this.settings.stroke && lineWidth) {
@@ -175,16 +173,10 @@ class VertexShapes extends Plugin {
     this.lastStroke = new Map();
     this.model.eachCell((cell) => {
       this.lastFill.get(cell) ||
-        this.lastFill.set(cell, Array(3).fill().map(() => this.t.slice()));
+        this.lastFill.set(cell, Array(3).fill().map(() => Color.t));
       this.lastStroke.get(cell) ||
-        this.lastStroke.set(cell, Array(3).fill().map(() => this.t.slice()));
+        this.lastStroke.set(cell, Array(3).fill().map(() => Color.t));
     });
-  }
-
-  updateColors() {
-    this.fillColors = this.bgAdapter.fillColors.map((e) => Util.styleToVcolor(e));
-    this.strokeColors = this.bgAdapter.strokeColors.map((e) => Util.styleToVcolor(e));
-    this.board.draw();
   }
 }
 Board.registerPlugin(VertexShapes);

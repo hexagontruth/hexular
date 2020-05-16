@@ -1,6 +1,6 @@
 /**
  * @overview
- * @version 0.2-beta
+ * @version 0.3.0-alpha
  * @author graham
  * @copyright 2020
  * @license Hexagonal Awareness License (HAL)
@@ -31,42 +31,36 @@
    */
 
 var Hexular = (function () {
-  const DEFAULTS = {
-    // Default size for cubic (hexagonal) topology
-    radius: 30,
-    // Default size for offset (rectangular) topology
-    rows: 60,
-    cols: 60,
-    // Default rule is used whenever a cell state does not have an entry in model.rules
-    defaultRule: identityRule,
-    // Array type to use for import/export
-    arrayType: Uint8Array,
-    // This is only needed if one is using modFilter or certain cell/neighborhood helper functions
-    numStates: 2,
-    // Some functions depend on the ground state evaluating to false so changing this may be weird
-    groundState: 0,
-    // Used by CanvasAdapter
-    cellRadius: 10,
-    cellGap: 1,
-    cellBorderWidth: 0,
-    highlightLineWidth: 2,
-    colors: [
-      'transparent',
-      '#ccccbb',
-      '#99998f',
-      '#666655',
-      '#33332f',
-      '#cc4444',
-      '#ee7722',
-      '#eebb33',
-      '#66bb33',
-      '#66aaaa',
-      '#4455bb',
-      '#aa55bb',
-    ],
-    backgroundColor: '#ffffff',
-    defaultColor: '#ccccff',
-  };
+  const hexularAttributes = {
+    defaults: {
+      // Default size for cubic (hexagonal) topology
+      radius: 30,
+      // Default size for offset (rectangular) topology
+      rows: 60,
+      cols: 60,
+      // Default rule is used whenever a cell state does not have an entry in model.rules
+      defaultRule: identityRule,
+      // Array type to use for import/export
+      arrayType: Uint8Array,
+      // This is only needed if one is using modFilter or certain cell/neighborhood helper functions
+      numStates: 2,
+      // Some functions depend on the ground state evaluating to false so changing this may be weird
+      groundState: 0,
+      cellRadius: 10,
+    },
+  }
+  /**
+   * Principal function object assigned to global `Hexular` object or returned as module.
+   *
+   * @param {...object} ...args Arguments to pass to Model constructor
+   * @return {Model}             Model instance
+   * @global
+   */
+  const Hexular = (...args) => {
+    let Class = (args[0] && args[0].prototype instanceof Model) ? args.shift() : Hexular.defaults.model;
+    return new Class(...args);
+  }
+  merge(Hexular, hexularAttributes);
 
   /**
    * A collection of elements representing common hexagonal concepts for general semantic interoperability.
@@ -202,14 +196,14 @@ var Hexular = (function () {
          * @type function
          * @default {@link Hexular.rules.identityRule}
          */
-        defaultRule: DEFAULTS.defaultRule,
+        defaultRule: Hexular.defaults.defaultRule,
         /**
          * Default numeric type for binary import and export.
          *
          * @name Model#arrayType
          * @default Uint8Array
          */
-        arrayType: DEFAULTS.arrayType,
+        arrayType: Hexular.defaults.arrayType,
         /**
          * Total number of states.
          *
@@ -219,18 +213,17 @@ var Hexular = (function () {
          * @type number
          * @default 2
          */
-        numStates: DEFAULTS.numStates,
+        numStates: Hexular.defaults.numStates,
         /**
          * Default ground or "off" state for cells.
          *
-         * Used by cell initialization, {@link Model#import}, and {@link Model#clear}, and
-         * potentially by {@link Hexular.filters|filters}, {@link Adapter|adapters}, and other extensions.
+         * Used by cell initialization, {@link Model#import}, and {@link Model#clear}.
          *
          * @name Model#groundState
          * @type number
          * @default 0
          */
-        groundState: DEFAULTS.groundState,
+        groundState: Hexular.defaults.groundState,
         /**
          * Non-negative numberic value defining cell radius for spatial rendering.
          *
@@ -243,7 +236,7 @@ var Hexular = (function () {
          * @see {@link Model#basis}
          * @see {@link Model#getCoord}
          */
-        cellRadius: DEFAULTS.cellRadius,
+        cellRadius: Hexular.defaults.cellRadius,
         /**
          * Array of rule functions.
          *
@@ -302,7 +295,7 @@ var Hexular = (function () {
       };
       Object.assign(this, defaults, ...args);
       /**
-       * A 2*2 row-major transformation matrix for converting arbitrary adapter coordinates to cartesian [x, y] values.
+       * A 2*2 row-major transformation matrix for converting cubic coordinates to cartesian [x, y] values.
        *
        * Derived from {@link Hexular.math.basis} scaled by {@link Model#cellRadius}.
        *
@@ -320,10 +313,6 @@ var Hexular = (function () {
        *
        */
       this.cellApothem = this.cellRadius * math.apothem;
-      // Add available adapter constructors as direct attributes of this instance
-      Object.entries(attributes.classes.adapters).forEach(([className, Class]) => {
-        this[className] = (...args) => new Class(this, ...args);
-      });
     }
 
     /**
@@ -481,11 +470,10 @@ var Hexular = (function () {
     /**
      * Get coordinates of cell according to {@link Model#cellRadius}, relative to an origin defined by a subclass.
      *
-     * @param {Adapter} adapter An adapter instance with {@link Model#cellRadius} and {@link Model#basis} defined
      * @param {Cell} cell       The cell to position
-     * @return {number[]}       The cell's [x, y] position in the adapter's frame of reference
+     * @return {number[]}       The cell's [x, y] position according to the model topology
      */
-    getCoord(adapter, cell) {
+    getCoord(cell) {
       HexError.methodNotImplemented('getCoord');
     }
 
@@ -494,7 +482,7 @@ var Hexular = (function () {
      *
      * There is no "topologically agnostic" way to spatially locate a cell in any given model. Thus, we leave the
      * onus on specific `Model` subclasses to convert cubic coordinates to their internal coordinate system, and allow
-     * e.g. {@link Adapter} subclass instances to look up cells spatially using this convention.
+     * interested clients to look up cells spatially using this convention.
      *
      * @param {number[]} coord Array of [u, v, w] coordinates
      * @return {Cell}           Cell at coordinates, or null
@@ -592,13 +580,13 @@ var Hexular = (function () {
          * @type number
          * @default 60
          */
-        cols: DEFAULTS.cols,
+        cols: Hexular.defaults.cols,
         /**
          * @name OffsetModel#rows
          * @type number
          * @default 60
          */
-        rows: DEFAULTS.rows,
+        rows: Hexular.defaults.rows,
         cells: [],
       };
       Object.assign(this, defaults, args);
@@ -663,7 +651,7 @@ var Hexular = (function () {
    *
    * Implements a regularly-hexagonal grid of cells addressed by coordinates `[u, v, w]`. The cell at the origin is
    * designated `[0, 0, 0]`, with all cell coordinate tuples summing to zero. In the default display provided by
-   * {@link CanvasAdapter}, `u` points up, `v` points to the right, and `w` points to the left.
+   * Hexular Studio, `u` points down, `v` points to the right, and `w` points to the left.
    *
    * For more information on this system, and how it translates to other coordinate systems, please see the excellent
    * article [Hexagonal Grids]{@link https://www.redblobgames.com/grids/hexagons/} from Red Blob Games.
@@ -684,7 +672,7 @@ var Hexular = (function () {
          * @type number
          * @default 30
          */
-        radius: DEFAULTS.radius,
+        radius: Hexular.defaults.radius,
       };
       Object.assign(this, defaults, ...args);
       HexError.validateKeys(this, 'radius');
@@ -1171,8 +1159,7 @@ var Hexular = (function () {
      * explicit value, this method essentially iterates over these functions with identical
      * arguments.
      *
-     * The former mechanism is used by {@link Model#filters}, while the latter is used by
-     * {@link CanvasAdapter#onDrawSelector}, and, when drawing individual cells, by {@link CanvasAdapter#onDrawCell}.
+     * The former mechanism is used by {@link Model#filters}.
      *
      * @param {*} val        First argument to be passed to at least initial function
      * @param {...*} ...args Additional arguments to pass to each hook function
@@ -1190,9 +1177,6 @@ var Hexular = (function () {
      * Call each function entry for every value in the given array, completing each function for all elements in the
      * array before moving on to the next.
      *
-     * Used by {@link CanvasAdapter#draw} to finish each successive drawing function for all cells in turn, allowing
-     * more complex intercellular drawings.
-     *
      * @param {array} array       Array of values to pass to hook to functions
      * @param {...object} ...args Additional arguments to pass to each hook function
      */
@@ -1204,447 +1188,6 @@ var Hexular = (function () {
       }
     }
   }
-
-  /**
-   * Abstract class representing an adapter.
-   *
-   * This doesn't really do much. The minimal adapter interface may change in the future.
-   */
-  class Adapter {
-    /**
-     * Creates `Adapter` instance.
-     *
-     * @param {Model} model       Model to associate with this adapter
-     * @param {...object} ...args One or more settings objects to apply to adapter
-     */
-    constructor(model, ...args) {
-      /**
-       * `Model` instance to associate with this adapter.
-       *
-       * In the present implementation, this only needs to be a one-way relationship &mdash; models have no explicit
-       * knowledge of adapters accessing them, though they can be instantiated via `model.ClassName()`, omitting
-       * the `model` argument that would normally be passed to the constructor.
-       *
-       * @name Adapter#model
-       * @type Model
-       */
-       this.model = model;
-       Object.assign(this, ...args);
-       HexError.validateKeys(this, 'model');
-    }
-  }
-
-  /**
-   * Class connecting a user agent canvas context to a model instance.
-   *
-   * This class is closely tailored to the needs of the Hexular Studio client, and probably does not expose the ideal
-   * generalized interface for browser-based canvas rendering.
-   *
-   * Its functionality is tailored for multiple roles with respect to browser canvas drawing:
-   *   - Drawing all cell states, using a list of functions applied in parellel to all cells, one at a time
-   *   - Drawing one or more isolated selectors on a canvas to denote selected or otherwise highlighted cells
-   *   - Drawing one or more cell states given in a separate {@link CanvasAdapter#stateBuffer|stateBuffer}, which can
-   *     then be retrieved and written to underlying cell states
-   *
-   * All these modalities are employed by Hexular Studio using two such adapters &mdash; a foreground for selection and
-   * tool paint buffering, and a background for current, canonical cell state. (This is a change from the original 2017
-   * version, which used just a single canvas and a somewhat awkward raster buffer for storing the unselected drawn
-   * state of the cell and then redrawing it when the selection changed. This more or less worked but led to occasional
-   * platform-specific artifacts. At any rate, one can easily override the default selector-drawing behavior and use a
-   * single canvas if desired.
-   *
-   * Note that all static methods are intended to be called via {@link CanvasAdapter#onDraw} and
-   * {@link CanvasAdapter#onDrawCell}, and thus need their associated adapter to be passed explicitly as an argument.
-   *
-   * @augments Adapter
-   */
-  class CanvasAdapter extends Adapter {
-    /**
-     * Default cell drawing method.
-     *
-     * @param {Cell} cell             The cell being drawn
-     * @param {CanvasAdapter} adapter The target adapter
-     * @param {string} [style=null]   Optional argument when called directly specifying fill style
-     */
-    static drawFilledPointyHex(cell, adapter, style) {
-      adapter.context.fillStyle = style || adapter.fillColors[cell.state] || adapter.defaultColor;
-      adapter.drawPath(cell);
-      adapter.context.fill();
-    }
-
-    /**
-     * Draw cell outline.
-     *
-     * An alternative drawing method that uses {@link CanvasAdapter#cellBorderWidth} to draw an
-     * outline instead of a filled hex.
-     *
-     * @param {Cell} cell                                    The cell being drawn
-     * @param {CanvasAdapter} adapter                        The target adapter
-     * @param {string} [style=this.strokeColors[cell.state]] Optional stroke style
-     * @param {number} [lineWidth=adapter.cellBorderWidth]   Optional line width
-     */
-
-    static drawOutlinePointyHex(cell, adapter, style, lineWidth) {
-      lineWidth = lineWidth || adapter.cellBorderWidth;
-      if (lineWidth == 0)
-        return;
-      adapter.context.strokeStyle = style || adapter.strokeColors[cell.state] || adapter.defaultColor;
-      adapter.context.lineWidth = lineWidth;
-      adapter.drawPath(cell);
-      adapter.context.stroke();
-    }
-
-    /**
-     * Draw filled, flat-top cell.
-     *
-     * @param {Cell} cell                                  The cell being drawn
-     * @param {CanvasAdapter} adapter                      The target adapter
-     * @param {string} [style=this.fillColors[cell.state]] Optional stroke style
-     */
-    static drawFilledFlatHex(cell, adapter, style) {
-      adapter.context.fillStyle = style || adapter.fillColors[cell.state] || adapter.defaultColor;
-      adapter.drawPath(cell, adapter.flatVertices);
-      adapter.context.fill();
-    }
-
-    /**
-     * Draw flat-topped cell outline.
-     *
-     * @param {Cell} cell                                    The cell being drawn
-     * @param {CanvasAdapter} adapter                        The target adapter
-     * @param {string} [style=this.strokeColors[cell.state]] Optional stroke style
-     * @param {number} [lineWidth=adapter.cellBorderWidth]   Optional line width
-     */
-
-    static drawOutlineFlatHex(cell, adapter, style, lineWidth) {
-      lineWidth = lineWidth || adapter.cellBorderWidth;
-      if (lineWidth == 0)
-        return;
-      adapter.context.strokeStyle = style || adapter.strokeColors[cell.state] || adapter.defaultColor;
-      adapter.context.lineWidth = lineWidth;
-      adapter.drawPath(cell, adapter.flatVertices);
-      adapter.context.stroke();
-    }
-
-    /**
-     * Draw cell as filled cicle.
-     *
-     * An alternative drawing method that draws a filled circle instead of a hex. Must be manually added via
-     * {@link CanvasAdapter#onDrawCell}.
-     *
-     * @param {Cell} cell                                  The cell being drawn
-     * @param {CanvasAdapter} adapter                      The target adapter
-     * @param {string} [style=this.fillColors[cell.state]] Optional stroke style
-     */
-
-    static drawFilledCircle(cell, adapter, style) {
-      adapter.context.fillStyle = style || adapter.fillColors[cell.state] || adapter.defaultColor;
-      adapter.drawCircle(cell);
-      adapter.context.fill();
-    }
-
-    /**
-     * Draw cell as outline cicle.
-     *
-     * An alternative drawing method that uses {@link CanvasAdapter#cellBorderWidth} to draw an
-     * outlined circle instead of a filled hex. Must be manually added via {@link CanvasAdapter#onDrawCell}.
-     *
-     * @param {Cell} cell                                  The cell being drawn
-     * @param {CanvasAdapter} adapter                      The target adapter
-     * @param {string} [style=this.fillColors[cell.state]] Optional stroke style
-     * @param {number} [lineWidth=adapter.cellBorderWidth] Optional line width
-     */
-
-    static drawOutlineCircle(cell, adapter, style, lineWidth) {
-      lineWidth = lineWidth || adapter.cellBorderWidth;
-      if (lineWidth == 0)
-        return;
-      adapter.context.strokeStyle = style || adapter.fillColors[cell.state] || adapter.defaultColor;
-      adapter.context.lineWidth = lineWidth
-      adapter.drawCircle(cell);
-      adapter.context.stroke();
-    }
-
-    /**
-     * Optional {@link CanvasAdapter#onDraw} callback that draws a solid background in the style given by
-     *  {@link CanvasAdapter#backgroundColor|this.backgroundColor}.
-     *
-     * @param {CanvasAdapter} adapter The target adapter
-     */
-    static drawSolidBackground(adapter) {
-      adapter.context.save();
-      adapter.context.setTransform(1, 0, 0, 1, 0, 0);
-      adapter.context.fillStyle = adapter.backgroundColor;
-      adapter.context.fillRect(0, 0, adapter.context.canvas.width, adapter.context.canvas.height);
-      adapter.context.restore();
-    }
-
-    /**
-     * Optional {@link CanvasAdapter#onDraw} callback that draws a hexagonal background appropriate to the size if the
-     * model in the style given by {@link CanvasAdapter#backgroundColor|this.backgroundColor}.
-     *
-     * @param {CanvasAdapter} adapter The target adapter
-     */
-    static drawModelBackground(adapter) {
-      if (!adapter.model.radius) return;
-      let radius = adapter.model.radius * adapter.cellRadius * APOTHEM * 2;
-      adapter.context.beginPath();
-      adapter.context.moveTo(radius, 0);
-      for (let i = 0; i < 6; i++) {
-        let a = Math.PI / 3 * i;
-        adapter.context.lineTo(Math.cos(a) * radius, Math.sin(a) * radius);
-      }
-      adapter.context.closePath();
-      adapter.context.fillStyle = adapter.backgroundColor;
-      adapter.context.fill();
-    }
-
-    /**
-     * Creates `CanvasAdapter` instance.
-     *
-     * Requires at least {@link CanvasAdapter#context} to be given in `...args` settings.
-     *
-     * @param {Model} model       Model to associate with this adapter
-     * @param {...object} ...args One or more settings objects to apply to adapter
-     */
-    constructor(model, ...args) {
-      super(model);
-      let defaults = {
-        /**
-         * Array of CSS hex or RGB color codes for cell fill color.
-         *
-         * @name CanvasAdapter#fillColors
-         * @type string[]
-         * @default Hexular.DEFAULTS.colors
-         */
-        fillColors: DEFAULTS.colors,
-        /**
-         * Array of CSS hex or RGB color codes for cell line stroke color, if applicable.
-         *
-         * @name CanvasAdapter#strokeColors
-         * @type string[]
-         * @default Hexular.DEFAULTS.colors
-         */
-        strokeColors: DEFAULTS.colors,
-        /**
-         * @name CanvasAdapter#defaultColor
-         * @type string
-         * @default #ccccff
-         */
-        defaultColor: DEFAULTS.defaultColor,
-        /**
-         * @name CanvasAdapter#backgroundColor
-         * @type string
-         * @default #ffffff
-         */
-        backgroundColor: DEFAULTS.backgroundColor,
-        /**
-         * @name CanvasAdapter#cellRadius
-         * @type number
-         * @default 10
-         */
-        cellRadius: DEFAULTS.cellRadius,
-        /**
-         * @name CanvasAdapter#cellGap
-         * @type number
-         * @default 1
-         */
-        cellGap: DEFAULTS.cellGap,
-        /**
-         * @name CanvasAdapter#cellBorderWidth
-         * @type number
-         * @default 0
-         */
-        cellBorderWidth: DEFAULTS.cellBorderWidth,
-        /**
-        * @name CanvasAdapter#context
-        * @type 2DCanvasRenderingContext2D
-        */
-        context: null,
-
-        /**
-         * @name CanvasAdapter#stateBuffer
-         * @type Map
-         */
-        stateBuffer: new Map(),
-      };
-      Object.assign(this, defaults, ...args);
-      HexError.validateKeys(this, 'context');
-
-      // Build cell map if not already built
-      this.model.buildCellMap();
-      // Compute math stuff
-      this.updateMathPresets();
-
-      /**
-       * @name CanvasAdapter#onDraw
-       * @type HookList
-       * @default []
-       */
-      this.onDraw = new HookList(this);
-      /**
-       * @name CanvasAdapter#onDrawCell
-       * @type HookList
-       * @default []
-       */
-      this.onDrawCell = new HookList(this);
-    }
-
-    /**
-     * Precompute math parameters using principally {@link Model#cellRadius}.
-     */
-    updateMathPresets() {
-      this.cellRadius = this.model.cellRadius;
-      this.innerRadius = this.cellRadius - this.cellGap / (2 * math.apothem);
-      this.flatVertices = scalarOp(math.vertices, this.innerRadius);
-      this.pointyVertices = scalarOp(math.vertices.map(([x, y]) => [y, x]), this.innerRadius);
-    }
-
-    /**
-     * Draw all cells on {@link CanvasAdapter#context} context.
-     *
-     * Calls all functions in {@link CanvasAdapter#onDraw|this.onDraw} after clearing canvas but before drawing cells.
-     */
-    draw() {
-      this.clear();
-      this.onDraw.call(this);
-      this.onDrawCell.callParallel(this.model.getCells(), this);
-    }
-
-    /**
-     * Clear canvas context
-     *
-     * When used with {@link CubicModel}, which is centered on the origin, we assume the context has been translated
-     * to the center of its viewport. This is neither necessary nor assumed for other models though. Thus we simply
-     * save the current transformation state, clear the visible viewport, and then restore the original transform.
-     */
-    clear() {
-      this.context.save();
-      this.context.setTransform(1, 0, 0, 1, 0, 0);
-      this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
-      this.context.restore();
-    }
-
-    /**
-     * Draw individual cell.
-     *
-     * Calls every method of {@link CanvasAdapter#onDrawCell} with the given cell.
-     *
-     * This was originally called by {@link CanvasAdapter#draw}, but is now a standalone utility method.
-     *
-     * @param {Cell} cell The cell to draw
-     */
-    drawCell(cell) {
-      this.onDrawCell.call(cell);
-    }
-
-  /**
-   * Default method to draw cell based on state in {@link CanvasAdapter#stateBuffer|this.stateBuffer}.
-   *
-   * Used for drawing new cell state segments, and then applying the changes to the underlying model as an atomic,
-   * batch operation. This is used by e.g. painting tools in Hexular Studio.
-   *
-   * @param {Cell} cell The cell being drawn
-   */
-    defaultDrawBuffer(cell) {
-      let state = this.stateBuffer.get(cell);
-      let color = this.fillColors[state];
-      if (!color)
-        color = this.defaultColor;
-      else if (color == 'transparent'
-        || color.length == '9' && color.slice(-2) == '00'
-        || color.length == '5' && color.slice(-1) == '0'
-        || color.length && color.slice(-2) == '0)')
-        color = this.backgroundColor;
-      if (color) {
-        this.context.fillStyle = color;
-        this.drawPath(cell);
-        this.context.fill();
-      }
-    }
-
-    /**
-     * Internal method used to draw circle at cell's position using {@link Model#cellRadius}.
-     *
-     * Convenience method for use by optional or custom drawing callbacks.
-     *
-     * @param {Cell} cell The cell being drawn
-     */
-    drawCircle(cell, radius=this.innerRadius) {
-      const [x, y] = this.model.cellMap.get(cell);
-      let ctx = this.context;
-      ctx.beginPath();
-      ctx.arc(x, y, radius, 0, Math.PI * 2);
-    }
-
-    /**
-     * Internal method used to draw hexes for both selectors and cells.
-     *
-     * @param {Cell} cell The cell being drawn
-     */
-    drawPath(cell, path=this.pointyVertices) {
-      const [x, y] = this.model.cellMap.get(cell);
-      let ctx = this.context;
-      ctx.beginPath();
-      ctx.moveTo(x + path[0][0], y + path[0][1]);
-      for (let i = 1; i < path.length; i++)
-        ctx.lineTo(x + path[i][0], y + path[i][1]);
-      ctx.closePath();
-    }
-
-    /**
-     * Utility function for drawing arbitrary hexagon or hexagon-related shape.
-     *
-     * @param {Cell|number[]} locator           The cell at the position to be drawn, or an [x, y] coordinate tuple
-     * @param {number} radius                   The hexagon's radius
-     * @param {object} opts                     Optional arguments specifying e.g. stroke, fill, &c.
-     * @param {boolean} [opts.stroke=false]     Whether to draw stroke
-     * @param {boolean} [opts.fill=false]       Whether to draw fill
-     * @param {boolean} [opts.strokeStyle=null] Stroke style
-     * @param {boolean} [opts.fillStyle=null]   Fill style
-     * @param {number}  [opts.type=1]...........Shape type (see {@link Hexular.enums})
-     */
-    drawHexagon(locator, radius, opts={}) {
-      let defaults = {
-        type: TYPE_POINTY,
-        stroke: false,
-        fill: false,
-        strokeStyle: null,
-        lineWidth: 0,
-        lineJoin: 'miter',
-        fillStyle: null,
-      };
-      opts = Object.assign(defaults, opts);
-      const [x, y] = locator instanceof Cell ? this.model.cellMap.get(locator) : locator;
-      let ctx = this.context;
-      if (opts.type == 2) {
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, math.tau);
-        ctx.fill();
-      }
-      else {
-        let path = opts.type == TYPE_POINTY ? math.pointyVertices : math.flatVertices;
-        path = scalarOp(path, radius);
-        ctx.beginPath();
-        ctx.moveTo(x + path[0][0], y + path[0][1]);
-        for (let i = 1; i < path.length; i++)
-          ctx.lineTo(x + path[i][0], y + path[i][1]);
-        ctx.closePath();
-      }
-      if (opts.fill) {
-        ctx.fillStyle = opts.fillStyle;
-        ctx.fill();
-      }
-      if (opts.stroke && opts.lineWidth > 0) {
-        ctx.strokeStyle = opts.strokeStyle;
-        ctx.lineWidth = opts.lineWidth;
-        ctx.lineJoin = opts.lineJoin;
-        ctx.stroke();
-      }
-    }
-  }
-
-  // TODO: Add SVG adapter
 
   /**
    * A rule that returns the current state.
@@ -2150,8 +1693,8 @@ var Hexular = (function () {
 
   // ---
 
-  let attributes = {
-    DEFAULTS: Object.assign(DEFAULTS, {model: CubicModel}),
+  merge(Hexular, {
+    defaults: {model: CubicModel},
     enums: {
       TYPE_FLAT,
       TYPE_POINTY,
@@ -2187,35 +1730,13 @@ var Hexular = (function () {
       flatVertices: math.vertices,
       pointyVertices: math.vertices.map(([x, y]) => [y, x]),
     }),
-    classes: {
-      adapters: {
-        CanvasAdapter,
-      },
-      models: {
-        OffsetModel,
-        CubicModel,
-      },
-      HexError,
-      Model,
-      Cell,
-      HookList,
-      Adapter,
-    },
-  };
-
-  /**
-   * Principal function object assigned to global `Hexular` object or returned as module.
-   *
-   * @param {...object} ...args Arguments to pass to Model constructor
-   * @return {Model}             Model instance
-   * @global
-   */
-  const Hexular = (...args) => {
-    let Class = (args[0] && args[0].prototype instanceof Model) ? args.shift() : attributes.DEFAULTS.model;
-    return new Class(...args);
-  }
-
-  Object.assign(Hexular, attributes);
+    HexError,
+    Model,
+    Cell,
+    HookList,
+    OffsetModel,
+    CubicModel,
+  });
 
   return Hexular;
 })();

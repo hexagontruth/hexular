@@ -40,8 +40,8 @@ class SimpleExpander extends Plugin {
       lineWidth: this.settings.lineWidth != null ? this.settings.lineWidth : adapter.cellBorderWidth,
       lineJoin: this.settings.lineJoin || this.config.defaultJoin,
     };
-    let fillColors = adapter.fillColors.slice();
-    let strokeColors = adapter.strokeColors.slice();
+    let fillColors = this.config.fillColors.slice();
+    let strokeColors = this.config.strokeColors.slice();
     if (this.settings.color) {
       fillColors.fill(this.settings.color);
       strokeColors.fill(this.settings.color);

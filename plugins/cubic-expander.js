@@ -15,13 +15,7 @@ class CubicExpander extends Plugin {
     `;
   }
 
-  _init() {
-    this.t = [127, 127, 127, 0];
-  }
-
   _activate() {
-    this.updateColors();
-    this.registerBoardHook('updateTheme', () => this.updateColors());
     this.registerAdapterHook(this.bgAdapter.onDraw, (adapter) => this.onDraw(adapter));
   }
 
@@ -33,6 +27,7 @@ class CubicExpander extends Plugin {
   drawCube(cell, r, flipOffset=1, state='state') {
     let adapter = this.bgAdapter;
     let ctx = adapter.context;
+    let colors = this.config.fillColors;
     let verts = Hexular.math.pointyVertices;
     for (let i = 0; i < 6; i += 2) {
       let n0 = cell.nbrs[(i + flipOffset - 1) % 6 + 1];
@@ -41,13 +36,12 @@ class CubicExpander extends Plugin {
       let v2 = Hexular.math.scalarOp(verts[(i + 3 + flipOffset) % 6], r);
       let v3 = Hexular.math.scalarOp(verts[(i + 4 + flipOffset) % 6], r);
       adapter.drawPath(cell, [[0, 0], v1, v2, v3]);
-      let cols = [
-        this.fillColors[cell[state]] || this.t,
-        this.fillColors[n0[state]] || this.t,
-        this.fillColors[n1[state]] || this.t,
+      let stateColors = [
+        colors[cell[state]] || Color.t,
+        colors[n0[state]] || Color.t,
+        colors[n1[state]] || Color.t,
       ];
-      ctx.fillStyle =
-        Util.vcolorToHex(Util.mergeVcolors(Util.mergeVcolors(cols[0], cols[1]), cols[2], 0.67));
+      adapter.fillColor = Color.blend(...stateColors);
       ctx.fill();
     }
   }

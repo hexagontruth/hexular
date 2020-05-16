@@ -85,16 +85,16 @@
   _activate() {
     this.noteLabels = MidiOut.getNoteLabels();
     if (!navigator.requestMIDIAccess)
-      throw new Hexular.classes.HexError('No MIDI support! Lame!');
-    if (!(this.model instanceof Hexular.classes.models.CubicModel))
-      throw new Hexular.classes.HexError('MidiOut plugin requires cubic model!');
+      throw new Hexular.HexError('No MIDI support! Lame!');
+    if (!(this.model instanceof Hexular.CubicModel))
+      throw new Hexular.HexError('MidiOut plugin requires cubic model!');
     navigator.requestMIDIAccess().then((e) => {
       this.midiAccess = e;
       this.inputs = e.inputs;
       this.outputs = e.outputs;
       let deviceEntry = Array.from(e.outputs.entries())[this.settings.deviceIndex];
       if (!deviceEntry)
-        throw new Hexular.classes.HexError(`No device at index ${this.settings.deviceIndex}!`);
+        throw new Hexular.HexError(`No device at index ${this.settings.deviceIndex}!`);
       this.device = deviceEntry[1];
     });
     this._onSaveSettings();

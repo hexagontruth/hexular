@@ -1,6 +1,6 @@
 const Themes = (() => {
   // Original 2017 color palette
-  let classicColors = Object.assign([], Hexular.DEFAULTS.colors, [
+  let classicColors = Object.assign([], Config.defaults.colors, [
     'transparent',
     '#cccccc',
     '#999999',
@@ -15,7 +15,7 @@ const Themes = (() => {
     '#aa55bb',
   ]);
 
-  let fruitcake = Object.assign([], Hexular.DEFAULTS.colors, [
+  let fruitcake = Object.assign([], Config.defaults.colors, [
     null,
     '#b7bb95',
     '#8e996d',
@@ -30,7 +30,7 @@ const Themes = (() => {
     '#aa5ebb',
   ]);
 
-  let rainbow = Object.assign([], Hexular.DEFAULTS.colors, [
+  let rainbow = Object.assign([], Config.defaults.colors, [
     'transparent',
     '#ff0000',
     '#ffaa00',
@@ -76,7 +76,7 @@ const Themes = (() => {
     },
     white: {
       pageBackground: '#ffffff',
-      colors: Hexular.DEFAULTS.colors.slice(),
+      colors: Config.defaults.colors.slice(),
     },
     lightRainbow: {
       cellGap: -0.5,
@@ -159,7 +159,7 @@ const Themes = (() => {
     darkLight: {
       pageBackground: '#24222d',
       modelBackground: '#3a3545',
-      colors: Hexular.util.merge(Hexular.DEFAULTS.colors.slice(), [
+      colors: Hexular.util.merge(Config.defaults.colors.slice(), [
         null,
         '#5d524b',
         '#666655',
@@ -277,7 +277,7 @@ const Themes = (() => {
       modelBackground: '#182b2e',
       defaultColor: '#e7e7e7',
       cellGap: 4.33,
-      colors: [null].concat(Array(63).fill(null).map((_, i) => Util.vcolorToHex(Util.hslToRgb(i * 360 / 63, 50, 50)))),
+      colors: [null].concat(Color.from(Array(63).fill().map((_, i) => Color.hslToRgb(i * 360 / 63, 50, 50)))),
     },
   };
   return themes;

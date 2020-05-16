@@ -26,6 +26,27 @@ class Config {
       mobileUndoStackSize: 32,
       interval: 125,
       autopause: true,
+      colors: [
+        'transparent',
+        '#ccccbb',
+        '#99998f',
+        '#666655',
+        '#33332f',
+        '#cc4444',
+        '#ee7722',
+        '#eebb33',
+        '#66bb33',
+        '#66aaaa',
+        '#4455bb',
+        '#aa55bb',
+      ],
+      fillColors: Array(256).fill(),
+      strokeColors: Array(256).fill(),
+      colorMapping: {
+        fill: true,
+        stroke: true,
+      },
+      defaultColor: '#ccccff',
       pageBackground: '#f8f8f8',
       modelBackground: '#ffffff',
       defaultColor: '#77f0f0',
@@ -33,11 +54,7 @@ class Config {
       selectColor: '#ffbb33',
       cellGap: 1,
       cellBorderWidth: 1,
-      colors: Hexular.DEFAULTS.colors,
-      availableRules: Hexular.util.merge({}, Rules),
       rules: Array(this.maxNumStates).fill(this.defaultRule),
-      themes: Hexular.util.merge(Themes),
-      presets: Hexular.util.merge({}, Presets),
       plugins: [],
       arrayType: 'Uint8Array',
       imageFormat: 'png',
@@ -124,8 +141,15 @@ class Config {
   }
 
   constructor(board, ...args) {
+    // We load these after Config.defaults b/c it needs to be available for populating themes &c.
+    let library = {
+      availableRules: Hexular.util.merge({}, Rules),
+      themes: Hexular.util.merge(Themes),
+      presets: Hexular.util.merge({}, Presets)
+    };
     this.board = board;
-    Hexular.util.merge(this, Config.defaults);
+    Hexular.util.merge(this, Config.defaults, library);
+    this.colors = Color.from(this.colors);
     Object.entries(this).forEach(([key, value]) => {
       // Leftover from a simpler time when filters were set via URL params
       if (this.filters[key]) {
@@ -261,6 +285,9 @@ class Config {
         this.localStorageObj.clear();
         Board.resize({error});
       }
+      else {
+        console.error('If error persists, try clearing local storage.');
+      }
     }
   }
 
@@ -354,7 +381,7 @@ class Config {
         'drawOutlineCircle',
     ];
     for (let cb of bgAdapterCallbacks) {
-      map[cb] = this.bgAdapter.constructor[cb];
+      map[cb] = (...args) => this.bgAdapter[cb](...args);
     }
     return map[fnKey];
   }
@@ -410,55 +437,61 @@ class Config {
   }
 
   setColor(idx, color) {
+    color = Color(color);
     this.colors[idx] = color;
-    this.bgAdapter.fillColors[idx] = color;
-    this.bgAdapter.strokeColors[idx] = color;
-    this.bgAdapter.fillColors[idx] = color;
-    this.bgAdapter.strokeColors[idx] = color;
-    this.board.allColorButtons[idx].style.backgroundColor = color;
-    this.configModal.ruleMenus[idx].button.style.backgroundColor = color;
-    this.themeModal.colors[idx].jscolor.fromString(color);
-    this.themeModal.colors[idx].value = color;
+    if (this.colorMapping.fill)
+      this.fillColors[idx] = color;
+    if (this.colorMapping.stroke)
+      this.strokeColors[idx] = color;
+    this.setColorControls(idx);
     this.checkTheme();
     this.storeSessionConfigAsync();
   }
 
   setColors(colors=[]) {
-    this.colors = Hexular.util.merge(this.colors, colors);
-    this.bgAdapter.fillColors = this.colors.slice();
-    this.bgAdapter.strokeColors = this.colors.slice();
-    this.bgAdapter.fillColors = this.colors.slice();
-    this.bgAdapter.strokeColors = this.colors.slice();
-    for (let i = 0; i < this.colors.length; i++) {
-      if (this.board.allColorButtons[i])
-        this.board.allColorButtons[i].style.backgroundColor = this.colors[i];
-      if (this.configModal.ruleMenus[i])
-        this.configModal.ruleMenus[i].button.style.backgroundColor = this.colors[i];
-      if (this.themeModal.colors[i]) {
-        this.themeModal.colors[i].jscolor.fromString(this.colors[i]);
-        this.themeModal.colors[i].value = this.colors[i];
-      }
+    this.colors = Color.from(Hexular.util.merge(this.colors, colors));
+    if (this.colorMapping.fill) {
+      this.fillColors = this.colors.slice();
+    }
+    if (this.colorMapping.stroke) {
+      this.strokeColors = this.colors.slice();
+    }
+    for (let i = 0; i < this.colors.length; i++)
+      if (this.colors[i])
+        this.setColorControls(i);
+    this.checkTheme();
+    this.storeSessionConfigAsync();
+  }
+
+  setColorControls(idx) {
+    let color = this.colors[idx];
+    if (this.board.allColorButtons[idx])
+      this.board.allColorButtons[idx].style.backgroundColor = color.hex;
+    if (this.configModal.ruleMenus[idx])
+      this.configModal.ruleMenus[idx].button.style.backgroundColor = color.hex;
+    if (this.themeModal.colors[idx]) {
+      this.themeModal.colors[idx].jscolor.fromString(color.hex);
     }
     this.checkTheme();
     this.storeSessionConfigAsync();
   }
 
   setColorProperty(type, color) {
-    type = type ? [type] : ['pageBackground', 'modelBackground', 'defaultColor'];
-    type.forEach((key) => {
-      let thisColor = this[key] = color || this[key];
+    let types = type ? [type] : ['pageBackground', 'modelBackground', 'defaultColor'];
+    types.forEach((key) => {
+      let keyColor = this[key] = Color(color || this[key]);
       if (key == 'pageBackground'){
-        document.body.style.backgroundColor = thisColor;
+        document.body.style.backgroundColor = keyColor.hex;
       }
       else if (key == 'modelBackground') {
-        this.bgAdapter.backgroundColor = thisColor;
-        this.bgAdapter.backgroundColor = thisColor;
+        this.bgAdapter.backgroundColor = keyColor.hex;
+        this.bgAdapter.backgroundColor = keyColor.hex;
       }
       else if (key == 'defaultColor') {
-        this.bgAdapter.defaultColor = thisColor;
-        this.bgAdapter.defaultColor = thisColor;
+        this.bgAdapter.defaultColor = keyColor.hex;
+        this.bgAdapter.defaultColor = keyColor.hex;
       }
-      this.themeModal[key].jscolor.fromString(thisColor || 'transparent');
+      this.themeModal[key].jscolor.fromString(keyColor.hex);
     });
 
     this.checkTheme();
@@ -701,7 +734,7 @@ class Config {
   }
 
   setRecordingMode(value) {
-    let drawSolidBackground = this.bgAdapter.constructor.drawSolidBackground;
+    let drawSolidBackground = () => this.bgAdapter.drawSolidBackground();
     let hookList = this.bgAdapter.onDraw;
     if (value) {
       this.recordingMode = true;
@@ -808,15 +841,15 @@ class Config {
     let dirty = false;
     if (theme.colors)
     for (let i = 0; i < this.maxNumStates; i ++) {
-      if (theme.colors[i] != this.colors[i]) {
+      if (!Color.eq(theme.colors[i], this.colors[i])) {
         dirty = true;
         break;
       }
     }
     dirty = dirty
-      || theme.pageBackground != this.pageBackground
-      || theme.modelBackground != this.modelBackground
-      || theme.defaultColor != this.defaultColor
+      || !Color.eq(theme.pageBackground, this.pageBackground)
+      || !Color.eq(theme.modelBackground, this.modelBackground)
+      || !Color.eq(theme.defaultColor, this.defaultColor)
       || theme.blendMode != this.blendMode
       || theme.cellGap != this.cellGap
       || theme.cellBorderWidth != this.cellBorderWidth;
@@ -849,8 +882,9 @@ class Config {
       'blendMode',
       'cellBorderWidth',
       'cellGap',
-      'colors',
+      'colorMapping',
       'colorMode',
+      'colors',
       'customInput',
       'defaultCap',
       'defaultColor',

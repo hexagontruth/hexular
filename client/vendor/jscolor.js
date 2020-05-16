@@ -10,7 +10,7 @@
  * See usage examples at http://jscolor.com/examples/
  */
 
- /* Modified 2020 for use with Hexular for stylistic consistency by Graham Steele */
+ /* Modified 2020 for use with Hexular by Graham Steele */
 
 
 "use strict";
@@ -980,7 +980,7 @@ var jsc = {
 
     // General options
     //
-    this.value = null; // initial HEX color. To change it later, use methods fromString(), fromHSV() and fromRGB()
+    this.value = null; // initial HEX color. To change it later, use methods fromString(), fromHSV() and fromRGBA()
     this.valueElement = targetElement; // element that will be used to display and input the color code
     this.styleElement = targetElement; // element that will preview the picked color using CSS backgroundColor
     this.required = true; // whether the associated text <input> can be left empty
@@ -999,6 +999,7 @@ var jsc = {
     //
     this.hsv = [0, 0, 100]; // read-only  [0-360, 0-100, 0-100]
     this.rgb = [255, 255, 255]; // read-only  [0-255, 0-255, 0-255]
+    this.alpha = null;
 
     // Color Picker options
     //
@@ -1164,7 +1165,7 @@ var jsc = {
     // g: 0-255
     // b: 0-255
     //
-    this.fromRGB = function (r, g, b, flags) { // null = don't change
+    this.fromRGBA = function (r, g, b, a, flags) { // null = don't change
       if (r !== null) {
         if (isNaN(r)) { return false; }
         r = Math.max(0, Math.min(255, r));
@@ -1176,6 +1177,9 @@ var jsc = {
       if (b !== null) {
         if (isNaN(b)) { return false; }
         b = Math.max(0, Math.min(255, b));
+      }
+      if (a !== null) {
+        a = isNaN(a) ? null : Math.max(0, Math.min(255, a));
       }
 
       var hsv = RGB_HSV(
@@ -1196,6 +1200,7 @@ var jsc = {
       this.rgb[0] = rgb[0];
       this.rgb[1] = rgb[1];
       this.rgb[2] = rgb[2];
+      this.alpha = a;
 
       this.exportColor(flags);
     };
@@ -1203,24 +1208,24 @@ var jsc = {
 
     this.fromString = function (str, flags) {
       var m;
-      if (m = str.match(/^\W*([0-9A-F]{3}([0-9A-F]{3})?)\W*$/i)) {
+      if (m = str.match(/\#([abcdef0-9]{3,9})/i)) {
         // HEX notation
-        //
-
         if (m[1].length === 6 || m[1].length === 8) {
           // 6-char notation
-          this.fromRGB(
+          this.fromRGBA(
             parseInt(m[1].substr(0,2),16),
             parseInt(m[1].substr(2,2),16),
             parseInt(m[1].substr(4,2),16),
+            parseInt(m[1].substr(6,2),16),
             flags
           );
         } else {
           // 3-char notation
-          this.fromRGB(
+          this.fromRGBA(
             parseInt(m[1].charAt(0) + m[1].charAt(0),16),
             parseInt(m[1].charAt(1) + m[1].charAt(1),16),
             parseInt(m[1].charAt(2) + m[1].charAt(2),16),
+            parseInt(m[1].charAt(2) + m[1].charAt(3),16),
             flags
           );
         }
@@ -1239,7 +1244,7 @@ var jsc = {
           var r = parseFloat((mR[1] || '0') + (mR[2] || ''));
           var g = parseFloat((mG[1] || '0') + (mG[2] || ''));
           var b = parseFloat((mB[1] || '0') + (mB[2] || ''));
-          this.fromRGB(r, g, b, flags);
+          this.fromRGBA(r, g, b, flags);
           return true;
         }
       }
@@ -1248,11 +1253,13 @@ var jsc = {
 
 
     this.toString = function () {
-      return (
+      let str =
         (0x100 | Math.round(this.rgb[0])).toString(16).substr(1) +
         (0x100 | Math.round(this.rgb[1])).toString(16).substr(1) +
-        (0x100 | Math.round(this.rgb[2])).toString(16).substr(1)
-      );
+        (0x100 | Math.round(this.rgb[2])).toString(16).substr(1);
+      if (this.alpha != null && this.alpha != 255)
+        str += ('0' + this.alpha.toString(16)).slice(-2);
+      return str;
     };
 
 

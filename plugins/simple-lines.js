@@ -3,6 +3,7 @@ class SimpleLines extends Plugin {
     return `
       {
         color: 'max', // max|min|blend|[custom]
+        fadeIndex: 0, // 0-1
         minAlpha: 1,
         maxAlpha: 1,
         minWidth: null,
@@ -18,28 +19,19 @@ class SimpleLines extends Plugin {
     `;
   }
 
-  _init() {
-    this.t = [127, 127, 127, 0];
-  }
-
   _activate() {
-    this.updateColors();
-    this.registerBoardHook('updateTheme', () => this.updateColors());
     this.registerAdapterHook(this.bgAdapter.onDraw, (adapter) => this.onDraw(adapter));
-  }
-
-  updateColors() {
-    this.colors = this.bgAdapter.strokeColors.map((e) => Util.styleToVcolor(e));
-    this.board.draw();
   }
 
   onDraw(adapter) {
     // Setup
     let ctx = adapter.context;
+    let colors = this.config.strokeColors;
     let settings = this.settings;
     let minWidth = this.settings.minWidth != null ? this.settings.minWidth : this.config.cellBorderWidth;
     let maxWidth = this.settings.maxWidth != null ? this.settings.maxWidth : this.config.cellBorderWidth;
     let q = this.board.drawStepQInc;
+    let fadeQ = this.getFade(q);
     let alphaPivotQ = this.getPivot(q, this.settings.alphaPivot);
     let widthPivotQ = this.getPivot(q, this.settings.widthPivot);
     this.globalAlpha = settings.minAlpha + alphaPivotQ * (settings.maxAlpha - settings.minAlpha);
@@ -57,17 +49,27 @@ class SimpleLines extends Plugin {
           let nbr = cell.nbrs[i + 1];
           let nbrAllowed = this.isAllowedState(nbr.state);
           if (allowedInclusive || nbrAllowed) {
-            let vcolor;
+            let color;
             if (this.settings.color == 'max')
-              vcolor = this.colors[Math.max(cell.state, nbr.state)] || this.t;
+              color = colors[Math.max(cell.state, nbr.state)] || Color.t;
             else if (this.settings.color == 'min')
-              vcolor = this.colors[Math.min(cell.state, nbr.state)] || this.t;
+              color = colors[Math.min(cell.state, nbr.state)] || Color.t;
             else if (this.settings.color == 'blend')
-              vcolor = Util.mergeVcolors(this.colors[cell.state] || this.t, this.colors[nbr.state] || this.t);
-            if (!vcolor)
+              color = Color.blend(colors[cell.state], colors[nbr.state]);
+            if (!color)
               ctx.strokeStyle = this.settings.color;
+            else if (fadeQ < 1) {
+              let lastColor;
+              if (this.settings.color == 'max')
+                lastColor = colors[Math.max(cell.lastState, nbr.lastState)] || Color.t;
+              else if (this.settings.color == 'min')
+                lastColor = colors[Math.min(cell.lastState, nbr.lastState)] || Color.t;
+              else if (this.settings.color == 'blend')
+                lastColor = Color.blend(colors[cell.lastState], colors[nbr.lastState]);
+              adapter.strokeColor = color.blend(lastColor, fadeQ);
+            }
             else
-              ctx.strokeStyle = Util.vcolorToHex(vcolor);
+              adapter.strokeColor = color;
             ctx.lineWidth = width;
             ctx.lineCap = lineCap;
             let [xn, yn] = this.model.cellMap.get(nbr);
