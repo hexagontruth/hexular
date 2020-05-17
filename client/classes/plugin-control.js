@@ -43,7 +43,10 @@ class PluginControl {
     this.controller.ondrop = (ev) => this.handleDrop(ev);
     this.enabledButton.onclick = (ev) => this.toggleEnabled();
     this.editButton.onclick = (ev) => this.toggleEditor();
-    this.deleteButton.onclick = (ev) => this.delete();
+    this.deleteButton.onclick = (ev) => {
+      this.delete();
+      this.config.storeSessionConfigAsync();
+    }
     this.resetButton.onclick = (ev) => this.reset();
     this.revertButton.onclick = (ev) => this.revert();
     this.saveButton.onclick = (ev) => this.save();

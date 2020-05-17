@@ -65,6 +65,7 @@ class CanvasAdapter extends Adapter {
   defaultDrawBuffer(cell) {
     let state = this.stateBuffer.get(cell);
     let color = this.config.fillColors[state] || this.config.defaultColor;
+    color = color == Color.t ? this.config.modelBackground : Color([color[0], color[1], color[2], 0xff]);
     this.context.fillStyle = color;
     this.drawPath(cell);
     this.context.fill();

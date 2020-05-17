@@ -304,11 +304,13 @@ Basic colors, spacing, and blending options can be set in the theme modal (Ctrl+
 
 The draw configuration modal (Ctrl+H) allows us to set several parameters related to how cells are drawn on screen, including which if any simple shape to draw for each cell, as well as the default zoom, play step interval, and number of intermediate "drawing steps" to perform between each model step. This allows e.g. complex animations with fading colors, animated shapes, etc., to occupy our minds as we enjoy the procession of our automata.
 
-Animations themselves are principally configured via the plugin system also exposed in this modal. We can add and configure one or more of several available plugins. Most describe various types of animations, &.c, but e.g. the `MidiOut` plugin allows us to play music on a connected MIDI synthesizer when particular states are attained on a subset of cells.
+#### Plugins
 
-The plugin system evolved from one-off animation experiments I developed while composing videos using Hexular Studio. Many of them don't make a lot of sense, and there is some overlapping and nonsensically different behavior between them. The source code for these plugins &mdash; located sensibly in the "/plugins" directory &mdash; is a good place to start if you're interested in writing your own or extending the built-in ones.
+Animations and other auxiliary effects can be configured via the plugin system also exposed in the theme modal. Plugins are configurable via a JavaScript object that is edited and saved in a free-form text field. These settings are fully-evaluable objects, not JSON strings, and can thus contain functions, employ global `Math` functions, etc.
 
-Plugins are configurable via a JavaScript object that is edited and saved in a free-form text field. These settings are fully-evaluable objects, not JSON strings, and can thus contain functions, employ global `Math` functions, etc.
+Most plugins describe various types of animations, &c., but the `MidiMap` plugin also allows us to play music on a hardware or software MIDI synthesizer, or to set cell states via a MIDI controller (albeit somewhat weirdly): we can select MIDI input and output devices, map individual channels on each device to functions defining how a note should be played or interpreted, and configure the range, stride, and location of the note mapping.
+
+The plugin system evolved from one-off animation experiments I developed while composing videos using Hexular Studio. Many of them to be frank don't make a lot of sense at this point &mdash; there's a lot of overlapping-yet-slightly-different behavior between many of them. The source code for these plugins &mdash; located sensibly in the "/plugins" directory &mdash; is a good place to start if you're interested in writing your own or extending the built-in ones.
 
 Of particular note here are the increasingly-misnamed "pivot" attributes available in most animation plugins. These fields can take one of the following three forms:
 
@@ -396,6 +398,7 @@ The following hooks are currently supported
 - playStart
 - playStop
 - resize
+- center
 - select
 - debugSelect \*\*
 - debugStep \*\*

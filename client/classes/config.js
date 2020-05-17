@@ -209,6 +209,23 @@ class Config {
       this.configModal.update();
 
       // Drawing config initialization
+      this.drawingFunctions = {
+          sortCellsAsc: () => this.model.sortCells((a, b) => a.state - b.state),
+          sortCellsDesc: () => this.model.sortCells((a, b) => b.state - a.state),
+        };
+      let bgAdapterCallbacks = [
+          'drawSolidBackground',
+          'drawModelBackground',
+          'drawFilledPointyHex',
+          'drawOutlinePointyHex',
+          'drawFilledFlatHex',
+          'drawOutlineFlatHex',
+          'drawFilledCircle',
+          'drawOutlineCircle',
+      ];
+      for (let cb of bgAdapterCallbacks) {
+        this.drawingFunctions[cb] = (...args) => this.bgAdapter[cb](...args);
+      }
       let drawCb = (active, alts) => {
         for (let alt of alts) {
           this.drawModal.drawButtons[alt].classList.remove('active');
@@ -218,7 +235,7 @@ class Config {
           this.drawFunctions[active] = true;
           this.drawModal.drawButtons[active].classList.add('active');
         }
-        return this.getDefaultDrawingCallback(active);
+        return this.drawingFunctions[active];
       };
       for (let hook of Object.keys(this.radioGroups)) {
         for (let group of this.radioGroups[hook]) {
@@ -364,26 +381,6 @@ class Config {
       });
       delete this.pluginData;
     }
-  }
-
-  getDefaultDrawingCallback(fnKey) {
-    let map = {
-      sortCellsAsc: () => this.model.sortCells((a, b) => a.state - b.state),
-      sortCellsDesc: () => this.model.sortCells((a, b) => b.state - a.state),
-    };
-    let bgAdapterCallbacks = [
-        'drawModelBackground',
-        'drawFilledPointyHex',
-        'drawOutlinePointyHex',
-        'drawFilledFlatHex',
-        'drawOutlineFlatHex',
-        'drawFilledCircle',
-        'drawOutlineCircle',
-    ];
-    for (let cb of bgAdapterCallbacks) {
-      map[cb] = (...args) => this.bgAdapter[cb](...args);
-    }
-    return map[fnKey];
   }
 
   // --- SETTERS ---
@@ -734,15 +731,14 @@ class Config {
   }
 
   setRecordingMode(value) {
-    let drawSolidBackground = () => this.bgAdapter.drawSolidBackground();
     let hookList = this.bgAdapter.onDraw;
     if (value) {
       this.recordingMode = true;
-      hookList.unshift(drawSolidBackground);
+      hookList.unshift(this.drawingFunctions.drawSolidBackground);
     }
     else {
       this.recordingMode = false;
-      hookList.keep((e) => e != drawSolidBackground);
+      hookList.keep((e) => e != this.drawingFunctions.drawSolidBackground);
     }
   }
 

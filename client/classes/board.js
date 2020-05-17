@@ -72,6 +72,7 @@ class Board {
         playStart: [],
         playStop: [],
         resize: [],
+        center: [],
         select: [],
         debugSelect: [],
         debugStep: [],
@@ -196,7 +197,7 @@ class Board {
     window.onkeydown = (ev) => this.handleKey(ev);
     window.onkeyup = (ev) => this.handleKey(ev);
     window.oncontextmenu = (ev) => this.handleContextmenu(ev);
-    window.onresize = (ev) => this.resize();
+    window.onresize = (ev) => this.resetTransform();
     window.onwheel = (ev) => this.handleWheel(ev);
     OnMouseEvent(this, this.handleMouse);
     OnTouchEvent(this, this.handleTouch);
@@ -235,7 +236,7 @@ class Board {
     this.tools.lockline.onclick = this.click((ev) => this.config.setTool('lockline'), this.config);
     this.tools.hexfilled.onclick = this.click((ev) => this.config.setTool('hexfilled'), this.config);
     this.tools.hexoutline.onclick = this.click((ev) => this.config.setTool('hexoutline'), this.config);
-    this.toolMisc.center.onclick = this.click(this.resize);
+    this.toolMisc.center.onclick = this.click(this.resetTransform);
     this.toolMisc.color.onclick = this.click(this.config.setPaintColorMode, this.config);
     this.toolSizes.forEach((button, i) => {
       button.onclick = this.click(() => this.config.setToolSize(i + 1), this.config);
@@ -248,7 +249,7 @@ class Board {
     this.model = Hexular({radius, numStates, groundState, cellRadius});
     this.bgAdapter = new CanvasAdapter(this.model, {board: this, context: this.bgCtx, cellGap, colors});
     this.fgAdapter = new CanvasAdapter(this.model, {board: this, context: this.fgCtx, cellGap, colors});
-    this.resize();
+    this.resetTransform();
 
     this.modals = {
       confirm: new ConfirmModal(this, 'confirm'),
@@ -469,10 +470,9 @@ class Board {
 
   addHook(...args) {
     let [key, trigger, run] = args.length == 3 ? args : [args[0], null, args[1]];
-    if (this.hooks[key]) {
-      this.hooks[key].push({trigger, run});
-      this.hooks[key].sort((a, b) => a.trigger - b.trigger);
-    }
+    this.hooks[key] = this.hooks[key] || [];
+    this.hooks[key].push({trigger, run});
+    this.hooks[key].sort((a, b) => a.trigger - b.trigger);
   }
 
   removeHook(hook, fn) {
@@ -487,7 +487,8 @@ class Board {
   }
 
   runHook(hook, ...args) {
-    this.hooks[hook].forEach((e) => e.run(...args));
+    let fns = this.hooks[hook] || [];
+    fns.forEach((e) => e.run(...args));
   }
 
   runHookAsync(hook, ...args) {
@@ -495,7 +496,7 @@ class Board {
       this.hookQueue.add(hook);
       window.requestAnimationFrame(() => {
         this.hookQueue.delete(hook);
-        this.hooks[hook].forEach((e) => e.run(...args));
+        this.runHook(hook, ...args);
       });
     }
   }
@@ -816,7 +817,7 @@ class Board {
     this.drawStepQInc = 0;
   }
 
-  resize() {
+  resetTransform() {
     this.resizeMenu();
 
     // Canvas stuff
@@ -851,6 +852,7 @@ class Board {
     this.translate([this.canvasWidth / this.scaleX / 2, this.canvasHeight / this.scaleY / 2]);
     this.draw();
     this.clearFg();
+    this.runHook('center');
   }
 
   resizeMenu() {
@@ -1180,7 +1182,7 @@ class Board {
         this.config.setToolSize(3);
       }
       else if (key == 'r') {
-        this.resize();
+        this.resetTransform();
       }
       else if (key == 'c') {
         this.config.setPaintColorMode();
