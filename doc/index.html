@@ -292,9 +292,10 @@
 <h3 id="theming-and-drawing">Theming and drawing</h3>
 <p>Basic colors, spacing, and blending options can be set in the theme modal (Ctrl+E). Themes work generally the same as presets in the model configuration modal, and can be saved, etc. They are exported as part of the overall configuration export (Ctrl+Alt+S or Ctrl+Meta+S).</p>
 <p>The draw configuration modal (Ctrl+H) allows us to set several parameters related to how cells are drawn on screen, including which if any simple shape to draw for each cell, as well as the default zoom, play step interval, and number of intermediate &quot;drawing steps&quot; to perform between each model step. This allows e.g. complex animations with fading colors, animated shapes, etc., to occupy our minds as we enjoy the procession of our automata.</p>
-<p>Animations themselves are principally configured via the plugin system also exposed in this modal. We can add and configure one or more of several available plugins. Most describe various types of animations, &amp;.c, but e.g. the <code>MidiOut</code> plugin allows us to play music on a connected MIDI synthesizer when particular states are attained on a subset of cells.</p>
-<p>The plugin system evolved from one-off animation experiments I developed while composing videos using Hexular Studio. Many of them don't make a lot of sense, and there is some overlapping and nonsensically different behavior between them. The source code for these plugins — located sensibly in the &quot;/plugins&quot; directory — is a good place to start if you're interested in writing your own or extending the built-in ones.</p>
-<p>Plugins are configurable via a JavaScript object that is edited and saved in a free-form text field. These settings are fully-evaluable objects, not JSON strings, and can thus contain functions, employ global <code>Math</code> functions, etc.</p>
+<h4 id="plugins">Plugins</h4>
+<p>Animations and other auxiliary effects can be configured via the plugin system also exposed in the theme modal. Plugins are configurable via a JavaScript object that is edited and saved in a free-form text field. These settings are fully-evaluable objects, not JSON strings, and can thus contain functions, employ global <code>Math</code> functions, etc.</p>
+<p>Most plugins describe various types of animations, &amp;c., but the <code>MidiMap</code> plugin also allows us to play music on a hardware or software MIDI synthesizer, or to set cell states via a MIDI controller (albeit somewhat weirdly): we can select MIDI input and output devices, map individual channels on each device to functions defining how a note should be played or interpreted, and configure the range, stride, and location of the note mapping.</p>
+<p>The plugin system evolved from one-off animation experiments I developed while composing videos using Hexular Studio. Many of them to be frank don't make a lot of sense at this point — there's a lot of overlapping-yet-slightly-different behavior between many of them. The source code for these plugins — located sensibly in the &quot;/plugins&quot; directory — is a good place to start if you're interested in writing your own or extending the built-in ones.</p>
 <p>Of particular note here are the increasingly-misnamed &quot;pivot&quot; attributes available in most animation plugins. These fields can take one of the following three forms:</p>
 <ul>
 <li>A single real number n where <code>0 &lt;= n &lt;= 1</code>, e.g. <code>0.5</code></li>
@@ -359,6 +360,7 @@
 <li>playStart</li>
 <li>playStop</li>
 <li>resize</li>
+<li>center</li>
 <li>select</li>
 <li>debugSelect **</li>
 <li>debugStep **</li>
