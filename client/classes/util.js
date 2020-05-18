@@ -36,19 +36,25 @@ const Util = (() => {
     let [min, max] = opts.range || [0, Board.config.maxNumStates];
     let range = max - min;
     let hBase = opts.h || 0;
-    let sBase = opts.s != null ? opts.s : 50;
-    let lBase = opts.l != null ? opts.l : 50;
+    let sBase = opts.s != null ? opts.s : 0.5;
+    let lBase = opts.l != null ? opts.l : 0.5;
+    let aBase = opts.a != null ? opts.a : 1;
     let hDelta = opts.hDelta || 360;
     let sDelta = opts.sDelta || 0;
     let lDelta = opts.lDelta || 0;
+    let aDelta = opts.aDelta || 0;
     let dir = opts.dir || 1;
     let colors = Board.config.colors.slice();
+    let clamp = (n) => n; //(n, min=0, max=1) => Math.min(max, Math.max(min, n));
+    console.log(hBase, sBase, lBase, aBase, range);
     for (let i = min; i < max; i++) {
       let q = i - min;
       let h = (hBase + dir * q * hDelta / range) % 360;
-      let s = (sBase + dir * q * sDelta / range) % 100;
-      let l = (lBase + dir * q * lDelta / range) % 100;
-      colors[i] = Color.hslToRgb(h, s, l);
+      let s = clamp(sBase + dir * q * sDelta / range);
+      let l = clamp(lBase + dir * q * lDelta / range);
+      let a = clamp(aBase + dir * q * aDelta / range);
+      console.log(h,s,l,a);
+      colors[i] = Color.hslaToRgba(h, s, l, a);
     }
     Board.config.setColors(colors);
   };
