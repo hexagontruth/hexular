@@ -37,6 +37,8 @@
   }
 
   _onSaveSettings() {
+    if (!this.enabled)
+      return;
     this.noteCellMap = new Map();
     this.cellNoteMap = new Map();
     this.playlists = {};

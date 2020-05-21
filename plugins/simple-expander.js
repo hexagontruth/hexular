@@ -28,7 +28,7 @@ class SimpleExpander extends Plugin {
     let ctx = adapter.context;
     let min = this.settings.minRadius;
     let max = this.settings.maxRadius;
-    let r = adapter.innerRadius;
+    let r = this.config.innerRadius;
     let q = this.board.drawStepQInc;
     let radius = r * ((max - min) * q + min);
     let maxRadius = r * max;

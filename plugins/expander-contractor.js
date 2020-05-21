@@ -35,7 +35,7 @@ class ExpanderContractor extends Plugin {
     let q = this.board.drawStepQInc;
     let pivot = this.getPivot(q, this.settings.pivot);
     let fadeQ = this.getFade(q);
-    let r = adapter.innerRadius;
+    let r = this.config.innerRadius;
     let deltaRadius = this.settings.maxRadius - this.settings.minRadius;
     let contR = r * (base + (max - base) * pivot);
     let startR = r * (min + (base - min) * q);
@@ -69,12 +69,18 @@ class ExpanderContractor extends Plugin {
         }
       }
       else if (lastAllowed) {
-        opts.fillStyle = fillColors[cell.lastState];
-        opts.strokeStyle = strokeColors[cell.lastState];
         r = endR;
-        if (fadeQ < 1 && this.settings.fadeInclusive) {
-          opts.fillStyle = opts.fillStyle.blend(fillColors[cell.state], 1 - fadeQ);
-          opts.strokeStyle = opts.strokeStyle.blend(strokeColors[cell.state], 1 - fadeQ);
+        if (this.settings.fadeInclusive) {
+          opts.fillStyle = fillColors[cell.state] || Color.t;
+          opts.strokeStyle = strokeColors[cell.state] || Color.t;
+          if (fadeQ < 1) {
+            opts.fillStyle = opts.fillStyle.blend(fillColors[cell.lastState], fadeQ);
+            opts.strokeStyle = opts.strokeStyle.blend(strokeColors[cell.lastState], fadeQ);
+          }
+        }
+        else {
+          opts.fillStyle = fillColors[cell.lastState] || Color.t;
+          opts.strokeStyle = strokeColors[cell.lastState] || Color.t;
         }
       }
       else {

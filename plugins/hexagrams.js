@@ -18,14 +18,14 @@ class Hexagrams extends Plugin {
       if (!this.enabled) return;
       cells.forEach(setLines);
     };
-
-    this.initializeLines();
     this.registerHook('clear', clearLines);
     this.registerHook('paint', paintLines);
     this.registerHook('draw', (adapter) => this.onDraw(adapter));
   }
 
   _enable() {
+
+    this.initializeLines();
     this.oldNumStates = this.config.maxNumStates;
     this.config.setMaxNumStates(64);
   }
@@ -67,7 +67,7 @@ class Hexagrams extends Plugin {
     if (this.settings.drawRings) {
       this.drawEachCell((cell) => {
         if (!this.isAllowedState(cell.state)) return;
-        let r = adapter.innerRadius;
+        let r = this.config.innerRadius;
         let color, cur, next = 1;
         for (let i = 5; i >= 0; i--) {
           cur = next;

@@ -21,6 +21,7 @@
     this.board = board;
     this.model = board.model;
     this.bgAdapter = board.bgAdapter;
+    this.adapter = board.adapter;
     this.fgAdapter = board.fgAdapter;
     this.config = board.config;
     this.stateWhitelist = null;
@@ -29,11 +30,8 @@
     this.enabled = false;
     this.fns = [];
     this.globalAlpha = 1;
-    this._init();
     this.saveSettings(settings || this.defaultSettings());
   }
-
-  _init() {}
 
   _activate() {}
 
@@ -134,7 +132,7 @@
 
   drawEachCell(...args) {
     let fn = args.pop();
-    let ctx = args.pop() || this.bgAdapter.context;
+    let ctx = args.pop() || this.adapter.context;
     ctx.save();
     ctx.globalAlpha = this.globalAlpha;
     ctx.globalCompositeOperation = this.settings.blendMode;

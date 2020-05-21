@@ -68,14 +68,14 @@ const Themes = (() => {
       ],
     },
     beige: {
-      modelBackground: '#efefe7',
+      modelBackgroundColor: '#efefe7',
     },
     beigeBlobular: {
-      modelBackground: '#efefe7',
+      modelBackgroundColor: '#efefe7',
       cellGap: -12.75,
     },
     white: {
-      pageBackground: '#ffffff',
+      backgroundColor: '#ffffff',
       colors: Config.defaults.colors.slice(),
     },
     lightRainbow: {
@@ -84,8 +84,8 @@ const Themes = (() => {
     },
     vaporRainbow : {
       cellGap: -0.5,
-      pageBackground: '#ffffff',
-      modelBackground: '#fffff7',
+      backgroundColor: '#ffffff',
+      modelBackgroundColor: '#fffff7',
       colors: Hexular.util.merge([], classicColors, [
         null,
         '#f7f7ef33',
@@ -102,8 +102,8 @@ const Themes = (() => {
       ]),
     },
     beigeRainbow: {
-      pageBackground: '#ffffff',
-      modelBackground: '#fafafa',
+      backgroundColor: '#ffffff',
+      modelBackgroundColor: '#fafafa',
       colors: [
         null,
         '#ccccbb',
@@ -120,8 +120,8 @@ const Themes = (() => {
       ],
     },
     dark: {
-      pageBackground: '#111111',
-      modelBackground: '#000000',
+      backgroundColor: '#111111',
+      modelBackgroundColor: '#000000',
       cellGap: -0.5,
       colors: Hexular.util.merge([], classicColors, [
         null,
@@ -132,14 +132,14 @@ const Themes = (() => {
       ]),
     },
     darkRainbow: {
-      pageBackground: '#111111',
-      modelBackground: '#000000',
+      backgroundColor: '#111111',
+      modelBackgroundColor: '#000000',
       cellGap: -0.5,
       colors: rainbow,
     },
     darkRainbow2: {
-      pageBackground: '#111111',
-      modelBackground: '#000000',
+      backgroundColor: '#111111',
+      modelBackgroundColor: '#000000',
       cellGap: 8,
       colors: [
         null,
@@ -157,8 +157,8 @@ const Themes = (() => {
       ],
     },
     darkLight: {
-      pageBackground: '#24222d',
-      modelBackground: '#3a3545',
+      backgroundColor: '#24222d',
+      modelBackgroundColor: '#3a3545',
       colors: Hexular.util.merge(Config.defaults.colors.slice(), [
         null,
         '#5d524b',
@@ -168,8 +168,8 @@ const Themes = (() => {
       ]),
     },
     smoothChalkRainbow: {
-      pageBackground: '#111111',
-      modelBackground: '#001122',
+      backgroundColor: '#111111',
+      modelBackgroundColor: '#001122',
       cellGap: -13,
       cellBorderWidth: 2,
       colors: [
@@ -204,8 +204,8 @@ const Themes = (() => {
       ],
     },
     hardRainbow: {
-      pageBackground: '#111111',
-      modelBackground: '#000000',
+      backgroundColor: '#111111',
+      modelBackgroundColor: '#000000',
       colors: [
         null,
         '#ffffff',
@@ -222,14 +222,14 @@ const Themes = (() => {
       ],
     },
     monogram: {
-      pageBackground: '#cce5e2',
-      modelBackground: '#eeeedd',
+      backgroundColor: '#cce5e2',
+      modelBackgroundColor: '#eeeedd',
       cellGap: 1.33,
       colors: Hexular.util.merge(new Array(64).fill('#33332f'), ['#eed']),
     },
     sovietFruitcake: {
-      pageBackground: '#f8f8f8',
-      modelBackground: '#edf0e7',
+      backgroundColor: '#f8f8f8',
+      modelBackgroundColor: '#edf0e7',
       cellGap: 5,
       cellBorder: 1,
       colors: [
@@ -248,8 +248,8 @@ const Themes = (() => {
       ],
     },
     extendedDarkFruitcake: {
-      pageBackground: '#4e4e47',
-      modelBackground: '#3e413a',
+      backgroundColor: '#4e4e47',
+      modelBackgroundColor: '#3e413a',
       cellGap: 0,
       cellBorder: 1,
       colors: [
@@ -273,8 +273,8 @@ const Themes = (() => {
     },
 
     spectral64: {
-      pageBackground: '#223030',
-      modelBackground: '#182b2e',
+      backgroundColor: '#223030',
+      modelBackgroundColor: '#182b2e',
       defaultColor: '#e7e7e7',
       cellGap: 4.33,
       colors: [null].concat(Color.from(Array(63).fill().map((_, i) => Color.hslaToRgba(i * 360 / 63, 50, 50)))),

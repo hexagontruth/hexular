@@ -4,7 +4,6 @@ class DrawModal extends Modal {
     this.defaultInterval = Config.defaults.interval;
     this.radius = this.defaultRadius = Config.defaults.radius;
     this.drawButtons = {
-      drawModelBackground: document.querySelector('#draw-model-background'),
       sortCellsAsc: document.querySelector('#sort-cells-asc'),
       sortCellsDesc: document.querySelector('#sort-cells-desc'),
       drawFilledPointyHex: document.querySelector('#draw-filled-pointy-hex'),
@@ -16,49 +15,80 @@ class DrawModal extends Modal {
     };
     this.sortFunctions = ['sortCellsAsc', 'sortCellsDesc'];
     this.autopause = document.querySelector('#autopause');
-    this.drawSteps = document.querySelector('#draw-step-slider');
-    this.drawStepIndicator = document.querySelector('#draw-step-indicator');
+    this.clearOnDraw = document.querySelector('#clear-on-draw');
+    this.drawModelBackground = document.querySelector('#draw-model-background');
     this.interval = document.querySelector('#interval-slider');
     this.intervalIndicator = document.querySelector('#interval-indicator');
-    this.scale = document.querySelector('#scale-slider');
-    this.scaleIndicator = document.querySelector('#scale-indicator');
-    this.scaleMin = parseFloat(this.scale.min);
-    this.scaleMax = parseFloat(this.scale.max);
+    this.drawStepInterval = document.querySelector('#draw-step-slider');
+    this.drawStepIndicator = document.querySelector('#draw-step-indicator');
+    this.fadeIndex = document.querySelector('#fade-index-slider');
+    this.fadeIndicator = document.querySelector('#fade-indicator');
+    this.defaultScale = document.querySelector('#scale-slider');
+    this.defaultScaleIndicator = document.querySelector('#scale-indicator');
+    this.scaleMin = parseFloat(this.defaultScale.min);
+    this.scaleMax = parseFloat(this.defaultScale.max);
     this.selectPlugin = document.querySelector('#select-plugin').select;
     this.addPlugin = document.querySelector('#add-plugin');
     this.pluginList = document.querySelector('#plugin-list');
     this.pluginEditor = document.querySelector('#plugin-editor');
 
     Object.entries(this.drawButtons).forEach(([fnName, button]) => button.onclick = () => this._setOnDraw(fnName));
-    this.drawSteps.oninput = (ev) => this._setDrawSteps(this.drawSteps.value);
-    this.autopause.onclick = (ev) => this._setAutopause(!this.config.autopause);
-    this.interval.oninput = (ev) => this._updateInterval(this.interval.value);
-    this.scale.oninput = (ev) => this._updateScale(this.scale.value);
-    this.selectPlugin.onchange = (ev) => this._updatePlugins();
+    this.autopause.onclick = (ev) => this.config.setAutopause(!this.config.autopause);
+    this.clearOnDraw.onclick = (ev) => this.config.setClearOnDraw(!this.config.clearOnDraw);
+    this.drawModelBackground.onclick = (ev) => this.config.setDrawModelBackground(!this.config.drawModelBackground);
+    this.interval.oninput = (ev) => this.config.setInterval(this.interval.value);
+    this.drawStepInterval.oninput = (ev) => this.config.setDrawStepInterval(this.drawStepInterval.value);
+    this.fadeIndex.oninput = (ev) => this.config.setFadeIndex(this.fadeIndex.value);
+    this.defaultScale.oninput = (ev) => this.config.setDefaultScale(this.defaultScale.value);
+    this.selectPlugin.onchange = (ev) => this.updatePlugins();
     this.addPlugin.onclick = (ev) => this._addPlugin(this.selectPlugin.value);
   }
 
   reset() {
-    this._setDrawSteps(this.config.drawStepInterval);
-    this._setAutopause();
-    this._setOnDraw();
-    this.interval.value = this.config.interval;
-    this._updateInterval();
-    this._updateScale(this.config.defaultScale);
-    this._updatePlugins();
+    this.updateAutopause();
+    this.updateClearOnDraw();
+    this.updateDrawModelBackground();
+    this.updateInterval();
+    this.updateDrawStepInterval();
+    this.updateFadeIndex();
+    this.updateDefaultScale();
+    this.updatePlugins();
   }
 
   update() {
     this.selectPlugin.replace(Object.keys(Board.plugins), this.selectPlugin.value, 1);
   }
 
-  _setDrawSteps(value) {
-    this.config.setDrawStepInterval(parseFloat(value || this.config.drawStepInterval));
+  updateAutopause() {
+    this.autopause.classList.toggle('active', this.config.autopause);
+  }
+
+  updateClearOnDraw() {
+    this.clearOnDraw.classList.toggle('active', this.config.clearOnDraw);
+  }
+
+  updateDrawModelBackground() {
+    this.drawModelBackground.classList.toggle('active', this.config.drawModelBackground);
+  }
+
+  updateInterval() {
+    this.interval.value = this.config.interval;
+    this.intervalIndicator.innerHTML = this.config.interval;
+  }
+
+  updateDrawStepInterval() {
+    this.drawStepInterval.value = this.config.drawStepInterval;
     this.drawStepIndicator.innerHTML = this.config.drawStepInterval;
   }
 
-  _setAutopause(value) {
-    this.config.setAutopause(value != null ? value : this.config.autopause);
+  updateFadeIndex() {
+    this.fadeIndex.value = this.config.fadeIndex;
+    this.fadeIndicator.innerHTML = this.config.fadeIndex;
+  }
+
+  updateDefaultScale(value) {
+    this.defaultScale.value = this.config.defaultScale;
+    this.defaultScaleIndicator.innerHTML = this.config.defaultScale;
   }
 
   _setOnDraw(fnName) {
@@ -70,24 +100,14 @@ class DrawModal extends Modal {
     this.board.draw();
   }
 
-  _updateInterval(value) {
-    if (value != null)
-      this.config.interval = parseInt(value) || this.defaultInterval;
-    this.intervalIndicator.innerHTML = this.config.interval;
-  }
 
-  _updateScale(value) {
-    value = parseFloat(value);
-    if (value != this.config.defaultScale)
-      this.config.setDefaultScale(value || 1);
-  }
 
   _addPlugin(pluginName) {
     let plugin = new PluginControl(this.board, pluginName);
     plugin && this.board.setMessage(`Added ${pluginName} plugin!`);
   }
 
-  _updatePlugins() {
+  updatePlugins() {
     this.addPlugin.disabled = !this.selectPlugin.value;
   }
 }

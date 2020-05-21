@@ -364,7 +364,8 @@ Every board instance attaches the following to the global `Board` object (which 
 - `Board.instance` - The board itself
 - `Board.config` - Alias for `Board.instance.config`
 - `Board.model` - Alias for `Board.instance.model`
-- `Board.bgAdater` - Alias for `Board.instance.bgAdapter`
+- `Board.bgAdapter` - Alias for `Board.instance.bgAdapter`
+- `Board.adapter` - Alias for `Board.instance.adapter`
 - `Board.fgAdapter` - Alias for `Board.instance.fgAdapter`
 - `Board.shared` - Alias for `Board.instance.shared`
 

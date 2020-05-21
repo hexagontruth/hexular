@@ -36,7 +36,7 @@ class FaderExpander extends Plugin {
     let q = this.board.drawStepQInc;
     let fadeQ = this.getFade(q);
     let pivotQ = this.getPivot(q, pivot);
-    let radius = adapter.innerRadius * ((maxRadius - minRadius) * pivotQ + minRadius);
+    let radius = this.config.innerRadius * ((maxRadius - minRadius) * pivotQ + minRadius);
     this.globalAlpha = (maxAlpha - minAlpha) * pivotQ + minAlpha;
     let opts = {
       type: hexType,

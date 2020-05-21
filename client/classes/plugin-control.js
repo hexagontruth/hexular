@@ -53,6 +53,7 @@ class PluginControl {
     this.nameField.onchange = (ev) => this.setName(this.nameField.value);
 
     enable = enable != null ? enable : this.policy.autostart;
+    this.activate();
     enable && this.enable();
     this.revert();
   }

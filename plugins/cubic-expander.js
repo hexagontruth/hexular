@@ -19,13 +19,8 @@ class CubicExpander extends Plugin {
     this.registerHook('draw', (adapter) => this.onDraw(adapter));
   }
 
-  updateColors() {
-    this.fillColors = this.bgAdapter.fillColors.map((e) => Util.styleToVcolor(e));
-    this.board.draw();
-  }
-
   drawCube(cell, r, flipOffset=1, state='state') {
-    let adapter = this.bgAdapter;
+    let adapter = this.adapter;
     let ctx = adapter.context;
     let colors = this.config.fillColors;
     let verts = Hexular.math.pointyVertices;
@@ -50,7 +45,7 @@ class CubicExpander extends Plugin {
     // Setup
     let min = this.settings.minRadius;
     let max = this.settings.maxRadius;
-    let r = adapter.innerRadius;
+    let r = this.config.innerRadius;
     let q = this.board.drawStepQInc;
     let radius = r * ((max - min) * q + min);
     let invRadius = r * ((max - min) * (1 - q) + min);
@@ -65,7 +60,7 @@ class CubicExpander extends Plugin {
           this.drawCube(cell, invRadius, flipOffset, 'lastState');
         }
         else if (allowed && this.settings.drawLast) {
-          this.drawCube(cell,  adapter.innerRadius, flipOffset, 'lastState');
+          this.drawCube(cell,  this.config.innerRadius, flipOffset, 'lastState');
         }
       }
       if (allowed && this.settings.drawCurrent) {

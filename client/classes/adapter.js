@@ -14,16 +14,6 @@ class CanvasAdapter {
 
     // Build cell map if not already built
     this.model.buildCellMap();
-    // Compute math stuff
-    this.updateMathPresets();
-  }
-
-  updateMathPresets() {
-    this.cellRadius = this.model.cellRadius;
-    this.radius = this.config.radius;
-    this.innerRadius = this.config.cellRadius - this.config.cellGap / (2 * Hexular.math.apothem);
-    this.flatVertices = Hexular.math.scalarOp(Hexular.math.vertices, this.innerRadius);
-    this.pointyVertices = Hexular.math.scalarOp(Hexular.math.vertices.map(([x, y]) => [y, x]), this.innerRadius);
   }
 
   set fillColor(color=Color.t) {
@@ -35,7 +25,6 @@ class CanvasAdapter {
   }
 
   draw() {
-    this.clear();
     this.board.runHooks('draw', this);
     this.board.runHooksParallel('drawCell', this.model.getCells(), this);
   }
@@ -56,14 +45,14 @@ class CanvasAdapter {
     this.context.fill();
   }
 
-  drawCircle(cell, radius=this.innerRadius) {
+  drawCircle(cell, radius=this.config.innerRadius) {
     const [x, y] = this.model.cellMap.get(cell);
     let ctx = this.context;
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
   }
 
-  drawPath(cell, path=this.pointyVertices) {
+  drawPath(cell, path=this.config.pointyVertices) {
     const [x, y] = this.model.cellMap.get(cell);
     let ctx = this.context;
     ctx.beginPath();
@@ -112,73 +101,98 @@ class CanvasAdapter {
     }
   }
 
-  drawFilledPointyHex(cell, adapter, style) {
-    this.context.fillStyle = style || this.config.fillColors[cell.state] || this.config.defaultColor;
+  getFillFade(cell) {
+    let q = this.board.drawStepQ;
+    let fade = this.config.fadeIndex;
+    let cur = this.config.fillColors[cell.state] || this.config.defaultColor;
+    let last = this.config.fillColors[cell.lastState] || this.config.defaultColor;
+    if ( fade == 0 || q >= fade)
+      return cur;
+    else if (q == 0)
+      return last;
+    return cur.blend(last, q / fade);
+  }
+
+  getStrokeFade(cell) {
+    let q = this.board.drawStepQ;
+    let fade = this.config.fadeIndex;
+    let cur = this.config.strokeColors[cell.state] || this.config.defaultColor;
+    let last = this.config.strokeColors[cell.lastState] || this.config.defaultColor;
+    if ( fade == 0 || q >= fade)
+      return cur;
+    else if (q == 0)
+      return last;
+    return cur.blend(last, q / fade);
+  }
+
+  drawFilledPointyHex(cell, style) {
+    this.context.fillStyle = style || this.getFillFade(cell);
     this.drawPath(cell);
     this.context.fill();
   }
 
-  drawOutlinePointyHex(cell, adapter, style, lineWidth) {
+  drawOutlinePointyHex(cell, style, lineWidth) {
     lineWidth = lineWidth || this.cellBorderWidth;
     if (lineWidth == 0)
       return;
-    this.context.strokeStyle = style || this.config.strokeColors[cell.state] || this.config.defaultColor;
+    this.context.strokeStyle = style || this.getStrokeFade(cell);
+
     this.context.lineWidth = lineWidth;
     this.drawPath(cell);
     this.context.stroke();
   }
 
-  drawFilledFlatHex(cell, adapter, style) {
-    this.context.fillStyle = style || this.config.fillColors[cell.state] || this.config.defaultColor;
-    this.drawPath(cell, this.flatVertices);
+  drawFilledFlatHex(cell, style) {
+    this.context.fillStyle = style || this.getFillFade(cell);
+    this.drawPath(cell, this.config.flatVertices);
     this.context.fill();
   }
 
-  drawOutlineFlatHex(cell, adapter, style, lineWidth) {
+  drawOutlineFlatHex(cell, style, lineWidth) {
     lineWidth = lineWidth || this.cellBorderWidth;
     if (lineWidth == 0)
       return;
-    this.context.strokeStyle = style || this.config.strokeColors[cell.state] || this.config.defaultColor;
+    this.context.strokeStyle = style || this.getStrokeFade(cell);
     this.context.lineWidth = lineWidth;
     this.drawPath(cell, this.flatVertices);
     this.context.stroke();
   }
 
-  drawFilledCircle(cell, adapter, style) {
-    this.context.fillStyle = style || this.config.fillColors[cell.state] || this.config.defaultColor;
+  drawFilledCircle(cell, style) {
+    this.context.fillStyle = style || this.getFillFade(cell);
     this.drawCircle(cell);
     this.context.fill();
   }
 
-  drawOutlineCircle(cell, adapter, style, lineWidth) {
+  drawOutlineCircle(cell, style, lineWidth) {
     lineWidth = lineWidth || this.cellBorderWidth;
     if (lineWidth == 0)
       return;
-    this.context.strokeStyle = style || this.config.fillColors[cell.state] || this.config.defaultColor;
+    this.context.strokeStyle = style || this.getStrokeFade(cell);
     this.context.lineWidth = lineWidth
     this.drawCircle(cell);
     this.context.stroke();
   }
 
-  drawSolidBackground() {
+  drawBackground() {
+    if (!this.model.radius) return;
     this.context.save();
     this.context.setTransform(1, 0, 0, 1, 0, 0);
-    this.context.fillStyle = this.backgroundColor;
+    this.context.fillStyle =
+      this.config.recordingMode ? this.config.modelBackgroundColor : this.config.backgroundColor;
     this.context.fillRect(0, 0, this.context.canvas.width, this.context.canvas.height);
     this.context.restore();
-  }
-
-  drawModelBackground() {
-    if (!this.model.radius) return;
-    let radius = this.model.radius * this.cellRadius * Hexular.math.apothem * 2;
-    this.context.beginPath();
-    this.context.moveTo(radius, 0);
-    for (let i = 0; i < 6; i++) {
-      let a = Math.PI / 3 * i;
-      this.context.lineTo(Math.cos(a) * radius, Math.sin(a) * radius);
+    if (this.config.drawModelBackground && !this.config.recordingMode) {
+      let radius = this.model.radius * this.config.cellRadius * Hexular.math.apothem * 2;
+      this.context.beginPath();
+      this.context.moveTo(radius, 0);
+      for (let i = 0; i < 6; i++) {
+        let a = Math.PI / 3 * i;
+        this.context.lineTo(Math.cos(a) * radius, Math.sin(a) * radius);
+      }
+      this.context.closePath();
+      this.context.fillStyle = this.config.modelBackgroundColor;
+      this.context.fill();
     }
-    this.context.closePath();
-    this.context.fillStyle = this.backgroundColor;
-    this.context.fill();
   }
 }

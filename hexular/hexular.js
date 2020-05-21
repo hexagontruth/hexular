@@ -1552,6 +1552,19 @@ var Hexular = (function () {
   }
 
   /**
+   * Constraint a given number between two inclusive bounds.
+   *
+   * @param {number} n Value to clamp
+   * @param {number} a Lower bound
+   * @param {number} b Upper bound
+   * @return {number} n when a <= n <= b, otherwise a or b
+   * @memberof Hexular.math
+   */
+  function clamp(n, a, b) {
+    return Math.min(b, Math.max(a, n));
+  }
+
+  /**
    * Perform element-wise arithmetic operation on arbitrarily-dimensioned tensor.
    *
    * @param {number[]} obj    Arbitrary-dimensional array of numbers
@@ -1688,6 +1701,7 @@ var Hexular = (function () {
     },
     math: Object.assign(math, {
       mod,
+      clamp,
       scalarOp,
       matrixMult,
       vectorAdd,

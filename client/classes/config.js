@@ -47,8 +47,8 @@ class Config {
         stroke: true,
       },
       defaultColor: '#ccccff',
-      pageBackground: '#f8f8f8',
-      modelBackground: '#ffffff',
+      backgroundColor: '#f8f8f8',
+      modelBackgroundColor: '#ffffff',
       defaultColor: '#77f0f0',
       selectWidth: 2,
       selectColor: '#ffbb33',
@@ -77,7 +77,10 @@ class Config {
       customPaintMap: null,
       steps: 0,
       drawDefaultQ: 1,
+      clearOnDraw: true,
       drawStepInterval: 1,
+      fadeIndex: 0,
+      drawModelBackground: true,
       blendMode: 'source-over',
       defaultCap: 'butt', // lol
       defaultJoin: 'miter',
@@ -99,7 +102,6 @@ class Config {
       drawFunctions: {
         sortCellsAsc: false,
         sortCellsDesc: false,
-        drawModelBackground: true,
         drawFilledPointyHex: true,
         drawOutlinePointyHex: false,
         drawFilledFlatHex: false,
@@ -109,7 +111,6 @@ class Config {
       },
       radioGroups: {
         draw: [
-          ['drawModelBackground'],
           [
             'sortCellsAsc',
             'sortCellsDesc',
@@ -191,6 +192,7 @@ class Config {
     try {
       this.model = this.board.model;
       this.bgAdapter = this.board.bgAdapter;
+      this.adapter = this.board.adapter;
       this.fgAdapter = this.board.fgAdapter;
       this.configModal = this.board.modals.config;
       this.customModal = this.board.modals.custom;
@@ -199,15 +201,14 @@ class Config {
       this.trbModal = this.board.modals.trb;
       this.themeModal = this.board.modals.theme;
       this.configModal.update();
+      this.updateMathPresets();
 
       // Drawing config initialization
-      this.drawingFunctions = {
+      this.adapterFunctions = {
           sortCellsAsc: () => this.model.sortCells((a, b) => a.state - b.state),
           sortCellsDesc: () => this.model.sortCells((a, b) => b.state - a.state),
         };
-      let bgAdapterCallbacks = [
-          'drawSolidBackground',
-          'drawModelBackground',
+      let cellCallbacks = [
           'drawFilledPointyHex',
           'drawOutlinePointyHex',
           'drawFilledFlatHex',
@@ -215,8 +216,8 @@ class Config {
           'drawFilledCircle',
           'drawOutlineCircle',
       ];
-      for (let cb of bgAdapterCallbacks) {
-        this.drawingFunctions[cb] = (...args) => this.bgAdapter[cb](...args);
+      for (let cb of cellCallbacks) {
+        this.adapterFunctions[cb] = (cell) => this.adapter[cb](cell);
       }
       let drawCb = (active, alts) => {
         for (let alt of alts) {
@@ -227,7 +228,7 @@ class Config {
           this.drawFunctions[active] = true;
           this.drawModal.drawButtons[active].classList.add('active');
         }
-        return this.drawingFunctions[active];
+        return this.adapterFunctions[active];
       };
       for (let hook of Object.keys(this.radioGroups)) {
         for (let group of this.radioGroups[hook]) {
@@ -375,27 +376,43 @@ class Config {
     }
   }
 
+  updateMathPresets() {
+    this.cellRadius = this.model.cellRadius;
+    this.innerRadius = this.cellRadius - this.cellGap / (2 * Hexular.math.apothem);
+    this.flatVertices = Hexular.math.scalarOp(Hexular.math.vertices, this.innerRadius);
+    this.pointyVertices = Hexular.math.scalarOp(Hexular.math.vertices.map(([x, y]) => [y, x]), this.innerRadius);
+    this.board.draw();
+  }
+
   // --- SETTERS ---
 
   setAutopause(value) {
     this.autopause = value;
-    if (value)
-      this.drawModal.autopause.classList.add('active');
-    else
-      this.drawModal.autopause.classList.remove('active');
+    this.drawModal.updateAutopause();
     this.storeSessionConfigAsync();
   }
 
   setCellGap(width) {
     this.cellGap = width != null ? width : this.cellGap;
     this.themeModal.cellGap.value = this.cellGap;
-    this.updateAdapter();
+    this.updateMathPresets();
+    this.checkTheme();
+    this.storeSessionConfigAsync();
   }
 
   setCellBorderWidth(width) {
     this.cellBorderWidth = width != null ? width : this.cellBorderWidth;
     this.themeModal.cellBorderWidth.value = this.cellBorderWidth;
-    this.updateAdapter();
+    this.updateMathPresets();
+    this.checkTheme();
+    this.storeSessionConfigAsync();
+  }
+
+  setClearOnDraw(value=this.clearOnDraw) {
+    this.clearOnDraw = value;
+    value && this.board.draw();
+    this.drawModal.updateClearOnDraw();
+    this.storeSessionConfigAsync();
   }
 
   setCustomInput(value) {
@@ -404,21 +421,16 @@ class Config {
     this.storeSessionConfigAsync();
   }
 
-  updateAdapter() {
-    this.bgAdapter.cellGap = this.cellGap; // * this.scaleRatio;
-    this.fgAdapter.cellGap = this.cellGap; // * this.scaleRatio;
-    this.bgAdapter.cellBorderWidth = this.cellBorderWidth; // * this.scaleRatio;
-    this.fgAdapter.cellBorderWidth = this.cellBorderWidth; // * this.scaleRatio;
-    this.bgAdapter.updateMathPresets();
-    this.fgAdapter.updateMathPresets();
-    this.checkTheme();
+  setDrawModelBackground(value=this.drawModelBackground) {
+    this.drawModelBackground = value;
     this.board.draw();
+    this.drawModal.updateDrawModelBackground();
     this.storeSessionConfigAsync();
   }
 
   setBlendMode(mode) {
     this.blendMode = mode;
-    this.bgAdapter.context.globalCompositeOperation = mode;
+    this.adapter.context.globalCompositeOperation = mode;
     this.themeModal.selectBlendMode.value = mode;
     this.checkTheme();
     this.board.draw();
@@ -466,41 +478,31 @@ class Config {
   }
 
   setColorProperty(type, color) {
-    let types = type ? [type] : ['pageBackground', 'modelBackground', 'defaultColor'];
+    let types = type ? [type] : ['backgroundColor', 'modelBackgroundColor', 'defaultColor'];
     types.forEach((key) => {
       let keyColor = this[key] = Color(color || this[key]);
-      if (key == 'pageBackground'){
-        document.body.style.backgroundColor = keyColor.hex;
-      }
-      else if (key == 'modelBackground') {
-        this.bgAdapter.backgroundColor = keyColor.hex;
-        this.bgAdapter.backgroundColor = keyColor.hex;
-      }
-      else if (key == 'defaultColor') {
-        this.bgAdapter.defaultColor = keyColor.hex;
-        this.bgAdapter.defaultColor = keyColor.hex;
-      }
       this.themeModal[key].jscolor.fromString(keyColor.hex);
     });
-
     this.checkTheme();
     this.storeSessionConfigAsync();
   }
 
-  setDefaultScale(scale) {
-    this.defaultScale = scale;
-    this.board.scaleTo(scale);
-    if (this.drawModal.scale.value != '0') {
-      let sliderValue = Math.max(Math.min(scale, this.drawModal.scaleMax), this.drawModal.scaleMin);
-      this.drawModal.scale.value = sliderValue;
-    }
-    this.drawModal.scaleIndicator.innerHTML = scale;
+  setDefaultScale(value) {
+    this.defaultScale = value && parseFloat(value) || Config.defaults.defaultScale;
+    this.drawModal.updateDefaultScale();
+    this.board.scaleTo(this.defaultScale);
     this.storeSessionConfigAsync();
   }
 
   setDrawStepInterval(value) {
-    this.drawStepInterval = value;
-    this.drawModal.drawSteps.value = value;
+    this.drawStepInterval = value && parseFloat(value) || Config.defaults.drawStepInterval;
+    this.drawModal.updateDrawStepInterval();
+    this.storeSessionConfigAsync();
+  }
+
+  setFadeIndex(value) {
+    this.fadeIndex = parseFloat(value);
+    this.drawModal.updateFadeIndex();
     this.storeSessionConfigAsync();
   }
 
@@ -519,6 +521,12 @@ class Config {
       value && this.configModal.filters[filter].classList.add('active');
     });
     this.checkPreset();
+    this.storeSessionConfigAsync();
+  }
+
+  setInterval(value=this.interval) {
+    this.interval = parseInt(value);
+    this.drawModal.updateInterval();
     this.storeSessionConfigAsync();
   }
 
@@ -566,7 +574,7 @@ class Config {
       let activeFns = Object.entries(this.drawFunctions).filter(([k, v]) => v).map(([k, v]) => k);
       activeFns.forEach((e) => this.setOnDraw(e, true));
     }
-    else {
+    else if (this.radioMap[fnName]){
       value = value != null ? value : this.drawFunctions[fnName];
       this.radioMap[fnName].set(value ? fnName : null);
       this.storeSessionConfigAsync();
@@ -709,15 +717,7 @@ class Config {
   }
 
   setRecordingMode(value) {
-    let fn = this.drawingFunctions.drawSolidBackground;
-    if (value) {
-      this.recordingMode = true;
-      this.board.addHook('draw', fn, 0);
-    }
-    else {
-      this.recordingMode = false;
-      this.board.removeHook('draw', fn);
-    }
+    this.recordingMode = value != null ? value : !this.recordingMode;
   }
 
   setSteps(steps) {
@@ -769,7 +769,7 @@ class Config {
     Object.values(this.board.tools).forEach((e) => e.classList.remove('active'));
     if (this.board.tools[this.tool])
       this.board.tools[this.tool].classList.add('active');
-    this.board.fg.setAttribute('data-tool', this.tool);
+    this.board.fgCanvas.setAttribute('data-tool', this.tool);
     this.board.drawSelectedCell();
   }
 
@@ -821,8 +821,8 @@ class Config {
       }
     }
     dirty = dirty
-      || !Color.eq(theme.pageBackground, this.pageBackground)
-      || !Color.eq(theme.modelBackground, this.modelBackground)
+      || !Color.eq(theme.backgroundColor, this.backgroundColor)
+      || !Color.eq(theme.modelBackgroundColor, this.modelBackgroundColor)
       || !Color.eq(theme.defaultColor, this.defaultColor)
       || theme.blendMode != this.blendMode
       || theme.cellGap != this.cellGap
@@ -835,8 +835,8 @@ class Config {
 
   getThemeFromObject(obj) {
     let args = [Config.defaults, obj].map((e) => {
-      let {blendMode, cellGap, cellBorderWidth, pageBackground, modelBackground, defaultColor, colors} = e;
-      return {blendMode, cellGap, cellBorderWidth, pageBackground, modelBackground, defaultColor, colors};
+      let {blendMode, cellGap, cellBorderWidth, backgroundColor, modelBackgroundColor, defaultColor, colors} = e;
+      return {blendMode, cellGap, cellBorderWidth, backgroundColor, modelBackgroundColor, defaultColor, colors};
     });
     return Hexular.util.merge(...args);
   }
@@ -856,6 +856,7 @@ class Config {
       'blendMode',
       'cellBorderWidth',
       'cellGap',
+      'clearOnDraw',
       'colorMapping',
       'colorMode',
       'colors',
@@ -867,7 +868,9 @@ class Config {
       'defaultScale',
       'drawFunctions',
       'drawDefaultQ',
+      'drawModelBackground',
       'drawStepInterval',
+      'fadeIndex',
       'fallbackTool',
       'filters',
       'groundState',
@@ -875,10 +878,10 @@ class Config {
       'interval',
       'maxNumStates',
       'meta',
-      'modelBackground',
+      'modelBackgroundColor',
       'nh',
       'numStates',
-      'pageBackground',
+      'backgroundColor',
       'paintColors',
       'preset',
       'radius',

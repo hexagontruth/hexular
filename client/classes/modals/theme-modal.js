@@ -5,8 +5,8 @@ class ThemeModal extends Modal {
     this.addTheme = document.querySelector('#add-theme');
 
     this.colors = Array.from(document.querySelectorAll('#color-controllers input'));
-    this.pageBackground = document.querySelector('#page-bg');
-    this.modelBackground = document.querySelector('#model-bg');
+    this.backgroundColor = document.querySelector('#page-bg');
+    this.modelBackgroundColor = document.querySelector('#model-bg');
     this.defaultColor = document.querySelector('#default-color');
     this.selectBlendMode = document.querySelector('#select-blend').select;
     this.cellGap = document.querySelector('#cell-gap');
@@ -16,7 +16,7 @@ class ThemeModal extends Modal {
       el.setAttribute('title', `Color ${idx}`);
       el.onchange = () => this.config.setColor(idx, el.value);
     });
-    ['pageBackground', 'modelBackground', 'defaultColor'].forEach((key) => {
+    ['backgroundColor', 'modelBackgroundColor', 'defaultColor'].forEach((key) => {
       let el = this[key];
       el.onchange = () => this.config.setColorProperty(key, el.value);
     });

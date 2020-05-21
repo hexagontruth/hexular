@@ -38,8 +38,8 @@ class RotatorExpander extends Plugin {
     downQ = this.getPivot(q, downQ);
     let fadeQ = this.getFade(q);
     let angle = angleOffset + angleDelta * q;
-    let upRadius = adapter.innerRadius * ((maxRadius - baseRadius) * upQ + baseRadius);
-    let downRadius = adapter.innerRadius * ((baseRadius - minRadius) * (1 - downQ) + minRadius);
+    let upRadius = this.config.innerRadius * ((maxRadius - baseRadius) * upQ + baseRadius);
+    let downRadius = this.config.innerRadius * ((baseRadius - minRadius) * (1 - downQ) + minRadius);
     lineWidth = lineWidth != null ? lineWidth : this.config.cellBorderWidth;
     lineJoin = lineJoin || this.config.defaultJoin;
 

@@ -597,12 +597,22 @@ select {
   white-space: nowrap;
 }
 
-.modal .group .quarter {
+.modal .group.quartered > * {
+  width: 25%;
   min-width: 25%;
 }
 
+.modal .group.halved > * {
+  width: 50%;
+  min-width: 50%;
+}
+
+.modal .group .quarter {
+  width: 25%;
+}
+
 .modal .group .third {
-  min-width: calc(100% / 3);
+  width: calc(100% / 3);
 }
 
 .modal .group .half {
@@ -613,12 +623,10 @@ select {
   width: 75%;
 }
 
-.modal .group.halved > * {
-  width: 50%;
-}
-
 .modal label.indicator {
-  width: 4.5em;
+  font-size: 0.75em;
+  width: 5em;
+  align-self: center;
 }
 
 .modal button {

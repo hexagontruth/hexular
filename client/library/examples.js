@@ -41,9 +41,8 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
   }
 
   function removeAll() {
-    let adapter = Board.bgAdapter;
+    let adapter = Board.adapter;
     let idxs = Array(fnCount + 1).fill().map((_, i) => i);
-    console.log(idxs);
     remove(...idxs);
   }
 
@@ -65,11 +64,11 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
         img.src = url;
         img.onload = () => {
           let fn = () => {
-            let adapter = Board.bgAdapter;
+            let adapter = Board.adapter;
             let w = img.width;
             let h = img.height;
-            let viewW = Board.instance.bg.width;
-            let viewH = Board.instance.bg.height;
+            let viewW = Board.instance.canvasWidth;
+            let viewH = Board.instance.canvasHeight;
             let scaleAspect = Board.instance.scaleX / Board.instance.scaleY;
             if (opts.scale) {
               if (viewH < viewW) {
@@ -115,19 +114,20 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
         let img = new Image();
         img.src = url;
         img.onload = () => {
-          let adapter = Board.bgAdapter;
+          let adapter = Board.adapter;
+          let config = Board.config;
           let w = img.width;
           let h = img.height;
           if (opts.scale) {
-            w = adapter.innerRadius * 2 * +opts.scale;
+            w = config.innerRadius * 2 * +opts.scale;
             h = w * img.height / img.width;
           }
           let pathScale = opts.scale || 1;
           let path = opts.type == Hexular.enums.TYPE_POINTY
-            ? Hexular.math.scalarOp(Hexular.math.vertices.map(([x, y]) => [y, x]), adapter.innerRadius * pathScale)
-            : Hexular.math.scalarOp(Hexular.math.vertices, adapter.innerRadius * pathScale)
+            ? Hexular.math.scalarOp(Hexular.math.vertices.map(([x, y]) => [y, x]), config.innerRadius * pathScale)
+            : Hexular.math.scalarOp(Hexular.math.vertices, config.innerRadius * pathScale)
           let fn = (cell) => {
-            let adapter = Board.bgAdapter;
+            let adapter = Board.adapter;
             if (!opts.states.includes(cell.state))
               return;
             let [x, y] = Board.model.cellMap.get(cell);

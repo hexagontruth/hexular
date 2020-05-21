@@ -113,7 +113,7 @@ var jsc = {
 
   attachEvent : function (el, evnt, func) {
     if (el.addEventListener) {
-      el.addEventListener(evnt, func, false);
+      el.addEventListener(evnt, func, {capture: false, passive: false});
     } else if (el.attachEvent) {
       el.attachEvent('on' + evnt, func);
     }
@@ -122,7 +122,7 @@ var jsc = {
 
   detachEvent : function (el, evnt, func) {
     if (el.removeEventListener) {
-      el.removeEventListener(evnt, func, false);
+      el.removeEventListener(evnt, func, {capture: false, passive: false});
     } else if (el.detachEvent) {
       el.detachEvent('on' + evnt, func);
     }

@@ -27,6 +27,7 @@ class Board {
         Board.config = board.config;
         Board.model = board.model;
         Board.bgAdapter = board.bgAdapter;
+        Board.adapter = board.adapter;
         Board.fgAdapter = board.fgAdapter;
         Board.modals = board.modals;
         Board.shared = board.shared;
@@ -187,17 +188,20 @@ class Board {
     this.config = new Config(this, configOpts);
 
     // Initialize canvases
-    this.bg = document.createElement('canvas');
-    this.fg = document.createElement('canvas');
-    this.bg.classList.add('canvas', 'canvas-bg');
-    this.fg.classList.add('canvas', 'canvas-fg');
-    this.bgCtx = this.bg.getContext('2d');
-    this.fgCtx = this.fg.getContext('2d');
-
     while (this.container.firstChild)
       this.container.firstChild.remove();
-    this.container.appendChild(this.bg);
-    this.container.appendChild(this.fg);
+    this.bgCanvas = document.createElement('canvas');
+    this.mainCanvas = document.createElement('canvas');
+    this.fgCanvas = document.createElement('canvas');
+    this.bgCanvas.classList.add('canvas', 'canvas-bg');
+    this.bgCanvas.classList.add('canvas', 'canvas-main');
+    this.fgCanvas.classList.add('canvas', 'canvas-fg');
+    this.bgCtx = this.bgCanvas.getContext('2d');
+    this.mainCtx = this.mainCanvas.getContext('2d');
+    this.fgCtx = this.fgCanvas.getContext('2d');
+    this.container.appendChild(this.bgCanvas);
+    this.container.appendChild(this.mainCanvas);
+    this.container.appendChild(this.fgCanvas);
 
     window.onblur = (ev) => this.handleBlur(ev);
     window.onkeydown = (ev) => this.handleKey(ev);
@@ -254,6 +258,7 @@ class Board {
     let {radius, numStates, groundState, cellRadius, cellGap, colors} = this.config;
     this.model = Hexular({radius, numStates, groundState, cellRadius});
     this.bgAdapter = new CanvasAdapter({model: this.model, board: this, context: this.bgCtx, cellGap, colors});
+    this.adapter = new CanvasAdapter({model: this.model, board: this, context: this.mainCtx, cellGap, colors});
     this.fgAdapter = new CanvasAdapter({model: this.model, board: this, context: this.fgCtx, cellGap, colors});
     this.resetTransform();
 
@@ -280,11 +285,11 @@ class Board {
   }
 
   eachContext(fn) {
-    [this.bgCtx, this.fgCtx].forEach(fn);
+    [this.bgCtx, this.mainCtx, this.fgCtx].forEach(fn);
   }
 
   draw() {
-    if (!this.drawPromise && this.bgAdapter) {
+    if (!this.drawPromise && this.adapter) {
       this.drawPromise = new Promise((resolve, reject) => {
         if (!this.running) {
           requestAnimationFrame(() => {
@@ -306,9 +311,11 @@ class Board {
   }
 
   drawSync() {
-    this.bgAdapter.context.lineCap = this.config.defaultCap;
-    this.bgAdapter.context.lineJoin = this.config.defaultJoin;
-    this.bgAdapter.draw();
+    this.bgAdapter.drawBackground();
+    this.adapter.context.lineCap = this.config.defaultCap;
+    this.adapter.context.lineJoin = this.config.defaultJoin;
+    this.config.clearOnDraw && this.adapter.clear();
+    this.adapter.draw();
     this.recorder && this.recorder.draw();
     this.drawPromise = null;
   }
@@ -462,6 +469,7 @@ class Board {
     this.newHistoryState();
     this.model.clear();
     this.resetDrawStep();
+    this.adapter.clear();
     this.draw();
     this.storeModelState();
     this.config.setSteps(0);
@@ -545,7 +553,7 @@ class Board {
       document.body.classList.add('modal-state');
     }
     else if (!selected) {
-      this.fg.focus();
+      this.fgCanvas.focus();
       document.body.classList.remove('modal-state');
     }
   }
@@ -1002,7 +1010,7 @@ class Board {
         focus.dispatchEvent(new Event('input'));
       }
     }
-    else if (ev.target == this.fg) {
+    else if (ev.target == this.fgCanvas) {
       let scale = 1 - Math.sign(ev.deltaY) * 0.1;
       this.scaleRelative(scale);
       this.draw();
@@ -1010,7 +1018,7 @@ class Board {
   }
 
   handleContextmenu(ev) {
-    if (ev.target == this.fg || this.colorButtons.includes(ev.target))
+    if (ev.target == this.fgCanvas || this.colorButtons.includes(ev.target))
       ev.preventDefault();
   }
 
@@ -1248,7 +1256,7 @@ class Board {
           this.toggleMenu(false);
         }
       }
-      if (ev.target == this.fg) {
+      if (ev.target == this.fgCanvas) {
         if (this.modal) {
           this.toggleModal();
         }
@@ -1282,7 +1290,7 @@ class Board {
     }
     else if (ev.type == 'mousemove') {
       let cell;
-      if (ev.target == this.fg && !this.modal) {
+      if (ev.target == this.fgCanvas && !this.modal) {
         this.selectCell([ev.pageX, ev.pageY]);
         this.moveAction(ev);
       }
@@ -1307,7 +1315,7 @@ class Board {
       setTimeout(() => this.toggleMenu(false), 500);
     }
 
-    if (ev.target == this.fg) {
+    if (ev.target == this.fgCanvas) {
       if (this.modal) {
         this.toggleModal();
       }
