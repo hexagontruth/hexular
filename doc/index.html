@@ -195,12 +195,13 @@
 <p>It is possible to make needlessly complex rules with this rulebuilder, though not necessarily quickly or ergonomically. It is however useful for defining rules that require a consideration of some portion of the full 19-cell state not available to the simple rulebuilder.</p>
 <p>There are GUI implementations of both rulebuilders in the Hexular Studio interface, and it's probably easiest to get a feel for how they work there.</p>
 <h3 id="filters">Filters</h3>
-<p>Filters allow us to, e.g., perform a modulo operation on new cell states, to keep them confined to a certain range. This was historically the default behavior, but has now been spun out into a separate functionality that must be added explicitly to a new model via the <a href="Model.html#addFilter"><code>model.addFilter(fn)</code></a> method:</p>
-<pre><code>    model.addFilter(Hexular.filters.modFilter)
+<p>Filters allow us to, e.g., perform a modulo operation on new cell states, to keep them confined to a certain range. This was historically the default behavior, but has now been spun out into a separate functionality that must be added explicitly to a new model via the <a href="HookList.html#add"><code>model.filters.add(fn)</code></a> method:</p>
+<pre><code>    model.filters.add(Hexular.filters.modFilter)
 </code></pre>
 <p>Filters can be any function that takes a state value and an optional <a href="Cell.html"><code>cell</code></a> instance, and return a new state value:</p>
-<pre><code>    model.addFilter((state) =&gt; state &gt;&gt; 1); // Divides all new states by 2
+<pre><code>    model.filters.add((state) =&gt; state &gt;&gt; 1); // Divides all new states by 2
 </code></pre>
+<p>Filters can be removed with <a href="HookList.html#delete"><code>model.filters.delete(fn)</code></a>. For more detail consult the <a href="HookList.html">HookList</a> documentation.</p>
 <p>The following additional filters are currently available in the core library:</p>
 <ul>
 <li><a href="Hexular.filters.html#.modFilter"><code>modFilter</code></a> — Discussed above</li>
@@ -353,9 +354,10 @@
 <p>The following hooks are currently supported</p>
 <ul>
 <li>incrementStep</li>
-<li>drawStep</li>
 <li>playStep</li>
 <li>step</li>
+<li>draw</li>
+<li>drawCell</li>
 <li>timer *</li>
 <li>playStart</li>
 <li>playStop</li>
@@ -373,7 +375,7 @@
 <p>* Requires trigger argument.</p>
 <p>** Callback function accepts one or more arguments — consult source code for details.</p>
 <p>We can add functions to be called at a given time index during play or recording via the timer hook. For example, to turn cells with state 4 cyan after five seconds, we could run the following from the console or the custom code modal:</p>
-<pre><code>    Board.instance.addHook('timer', 5000, () =&gt; Board.config.setColor(3, '#33cccc'));
+<pre><code>    Board.instance.addTriggerHook('timer', () =&gt; Board.config.setColor(3, '#33cccc'), 5000);
 </code></pre>
 <p>Timer hooks will be rerun at their appropriate time index after every stop/start event, but changes they make to e.g. the configuration object will persist until explicitly reset.</p>
 <h2 id="more-information">More information</h2>
