@@ -1,32 +1,21 @@
 // TODO: Massively refactor this and/or scatter it to the very winds
 
-class Adapter {
-  constructor(model, ...args) {
-     this.model = model;
-     Hexular.util.merge(this, ...args);
-     Hexular.HexError.validateKeys(this, 'model');
-  }
-}
-
-class CanvasAdapter extends Adapter {
-  constructor(model, ...args) {
-    super(model);
+class CanvasAdapter {
+  constructor(...args) {
     let defaults = {
-      context: null,
+      model: null,
       board: null,
+      context: null,
       stateBuffer: new Map(),
     };
     Hexular.util.merge(this, defaults, ...args);
-    Hexular.HexError.validateKeys(this, 'context', 'board');
+    Hexular.HexError.validateKeys(this, 'model', 'board', 'context');
     this.config = this.board.config;
 
     // Build cell map if not already built
     this.model.buildCellMap();
     // Compute math stuff
     this.updateMathPresets();
-
-    this.onDraw = new Hexular.HookList(this);
-    this.onDrawCell = new Hexular.HookList(this);
   }
 
   updateMathPresets() {
@@ -47,8 +36,8 @@ class CanvasAdapter extends Adapter {
 
   draw() {
     this.clear();
-    this.onDraw.call(this);
-    this.onDrawCell.callParallel(this.model.getCells(), this);
+    this.board.runHooks('draw', this);
+    this.board.runHooksParallel('drawCell', this.model.getCells(), this);
   }
 
   clear() {
@@ -58,11 +47,7 @@ class CanvasAdapter extends Adapter {
     this.context.restore();
   }
 
-  drawCell(cell) {
-    this.onDrawCell.call(cell);
-  }
-
-  defaultDrawBuffer(cell) {
+  drawBuffer(cell) {
     let state = this.stateBuffer.get(cell);
     let color = this.config.fillColors[state] || this.config.defaultColor;
     color = color == Color.t ? this.config.modelBackground : Color([color[0], color[1], color[2], 0xff]);

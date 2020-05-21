@@ -77,32 +77,20 @@
 
   registerFunction(fn) {
     let wrapper = (...args) => (this.enabled || undefined) && fn(...args);
+    wrapper.plugin = this;
     this.fns.push(wrapper);
     return wrapper;
   }
 
-  registerBoardHook(hook, fn) {
+  registerHook(hook, fn) {
     let wrapper = this.registerFunction(fn);
-    wrapper.plugin = this;
     this.board.addHook(hook, wrapper);
   }
 
-  registerAdapterHook(hookList, fn) {
-    let wrapper = this.registerFunction(fn);
-    wrapper.plugin = this;
-    hookList.push(wrapper);
-  }
-
   deleteHooks() {
-    // TODO: Fix this whole thing
     Object.entries(this.board.hooks).forEach(([hook, fns]) => {
-      this.board.hooks[hook] = fns.filter((e) => e.plugin != this);
+      this.board.hooks[hook] = fns.filter((e) => e.run.plugin != this);
     });
-    let bgAdapter = this.bgAdapter;
-    let fgAdapter = this.fgAdapter;
-    let hookLists = [bgAdapter.onDraw, bgAdapter.onDrawCell, fgAdapter.onDraw, fgAdapter.onDrawCell];
-    for (let hookList of hookLists)
-      hookList.keep((e) => e.plugin != this);
     this.fns = [];
   }
 

@@ -21,7 +21,7 @@ class FaderExpander extends Plugin {
   }
 
   _activate() {
-    this.registerAdapterHook(this.bgAdapter.onDraw, (adapter) => this.onDraw(adapter));
+    this.registerHook('draw', (adapter) => this.onDraw(adapter));
   }
 
   onDraw(adapter) {

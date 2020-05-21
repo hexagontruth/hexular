@@ -15,14 +15,14 @@ class QuickPlugin extends Plugin {
   }
   _activate() {
     let callFn = (key) => (...args) => this.settings[key] && this.settings[key](...args);
-    this.registerAdapterHook(this.bgAdapter.onDraw, callFn('onDraw'));
-    this.registerAdapterHook(this.bgAdapter.onDrawCell, callFn('onDrawCell'));
-    this.registerBoardHook('step', callFn('onStep'));
-    this.registerBoardHook('select', callFn('onSelect'));
-    this.registerBoardHook('debugSelect', callFn('onDebugSelect'));
-    this.registerBoardHook('paint', callFn('onPaint'));
-    this.registerBoardHook('updatePreset', callFn('onUpdatePreset'));
-    this.registerBoardHook('updateTheme', callFn('onUpdateTheme'));
+    this.registerHook('draw', callFn('onDraw'));
+    this.registerHook('drawCell', callFn('onDrawCell'));
+    this.registerHook('step', callFn('onStep'));
+    this.registerHook('select', callFn('onSelect'));
+    this.registerHook('debugSelect', callFn('onDebugSelect'));
+    this.registerHook('paint', callFn('onPaint'));
+    this.registerHook('updatePreset', callFn('onUpdatePreset'));
+    this.registerHook('updateTheme', callFn('onUpdateTheme'));
   }
 }
 Board.registerPlugin(QuickPlugin);

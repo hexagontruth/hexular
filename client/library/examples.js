@@ -34,23 +34,16 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
   }
 
   function remove(...idxs) {
-    let adapter = Board.bgAdapter;
-    let onDraw = Board.bgAdapter.onDraw;
-    let onDrawCell = Board.bgAdapter.onDrawCell;
-    idxs[0] || idxs.push(
-      adapter.onDraw.concat(adapter.onDrawCell)
-      .filter((e) => e.idx).map((e) => e.idx).sort().slice(-1)[0]
-    );
-    for (let idx of idxs) {
-      onDraw.replace(onDraw.filter((e) => !e.idx || e.idx != idx));
-      onDrawCell.replace(onDrawCell.filter((e) => !e.idx || e.idx != idx));
-      Board.instance.draw();
-    }
+    Object.entries(Board.instance.hooks).forEach(([key, values]) => {
+      Board.instance.hooks[key] = values.filter((e) => !idxs.includes(e.run.idx));
+    });
+    Board.instance.draw();
   }
 
   function removeAll() {
     let adapter = Board.bgAdapter;
-    let idxs = adapter.onDraw.concat(adapter.onDrawCell).filter((e) => e.idx).map((e) => e.idx);
+    let idxs = Array(fnCount + 1).fill().map((_, i) => i);
+    console.log(idxs);
     remove(...idxs);
   }
 
@@ -62,7 +55,6 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
 
     drawBackgroundImage: (url, opts={}) => {
       let fnIdx = ++fnCount;
-      let adapter = Board.bgAdapter;
       (async () => {
         let defaults = {
           scale: 1,
@@ -72,8 +64,8 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
         let img = new Image();
         img.src = url;
         img.onload = () => {
-          let adapter = Board.bgAdapter;
           let fn = () => {
+            let adapter = Board.bgAdapter;
             let w = img.width;
             let h = img.height;
             let viewW = Board.instance.bg.width;
@@ -101,7 +93,7 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
             adapter.context.restore();
           };
           fn.idx = fnIdx;
-          adapter.onDraw.push(fn);
+          Board.instance.addHook('draw', fn);
           Board.instance.draw();
         };
       })();
@@ -110,7 +102,6 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
 
     drawCellImage: (url, opts={}) => {
       let fnIdx = ++fnCount;
-      let adapter = Board.bgAdapter;
       (async () => {
         let defaults = {
           clip: true,
@@ -124,6 +115,7 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
         let img = new Image();
         img.src = url;
         img.onload = () => {
+          let adapter = Board.bgAdapter;
           let w = img.width;
           let h = img.height;
           if (opts.scale) {
@@ -135,6 +127,7 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
             ? Hexular.math.scalarOp(Hexular.math.vertices.map(([x, y]) => [y, x]), adapter.innerRadius * pathScale)
             : Hexular.math.scalarOp(Hexular.math.vertices, adapter.innerRadius * pathScale)
           let fn = (cell) => {
+            let adapter = Board.bgAdapter;
             if (!opts.states.includes(cell.state))
               return;
             let [x, y] = Board.model.cellMap.get(cell);
@@ -149,7 +142,7 @@ Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [
             adapter.context.restore();
           };
           fn.idx = ++fnCount;
-          adapter.onDrawCell.push(fn);
+          Board.instance.addHook('drawCell', fn);
           Board.instance.draw();
         }
       })();

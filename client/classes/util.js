@@ -1,6 +1,39 @@
 const Util = (() => {
   const Util = {};
 
+  Util.binaryRuleFactory = (...args) => {
+    args = args.filter((e) => typeof e == 'number' && e >= 0 && Math.floor(e) == e);
+    if (args.length)
+      return eval(`(cell) => ${args.map((e) => `cell.state == ${e}`).join(' || ')} ? 1 : 0`); // lol
+    else
+      return () => false;
+  }
+
+  Util.setColorRange = (opts={}) => {
+    let [min, max] = opts.range || [0, Board.config.maxNumStates];
+    let range = max - min;
+    let hBase = opts.h || 0;
+    let sBase = opts.s != null ? opts.s : 0.5;
+    let lBase = opts.l != null ? opts.l : 0.5;
+    let aBase = opts.a != null ? opts.a : 1;
+    let hDelta = opts.hDelta || 360;
+    let sDelta = opts.sDelta || 0;
+    let lDelta = opts.lDelta || 0;
+    let aDelta = opts.aDelta || 0;
+    let dir = opts.dir || 1;
+    let colors = Board.config.colors.slice();
+    let clamp = (n) => n; //(n, min=0, max=1) => Math.min(max, Math.max(min, n));
+    for (let i = min; i < max; i++) {
+      let q = i - min;
+      let h = (hBase + dir * q * hDelta / range) % 360;
+      let s = clamp(sBase + dir * q * sDelta / range);
+      let l = clamp(lBase + dir * q * lDelta / range);
+      let a = clamp(aBase + dir * q * aDelta / range);
+      colors[i] = Color.hslaToRgba(h, s, l, a);
+    }
+    Board.config.setColors(colors);
+  };
+
   Util.rotateColors = (offset=1) => {
     let colors = [];
     let len = Math.min(Board.config.maxNumStates, Board.config.colors.length);
@@ -9,6 +42,12 @@ const Util = (() => {
       colors.push(color);
     }
     Board.config.setColors(colors);
+  };
+
+  Util.pairsToObject = (tuples) => {
+    let obj = {};
+    tuples.forEach(([key, value]) => obj[key] = value);
+    return obj;
   };
 
   Util.findDuplicateSteps = (radius=7, cell=Board.instance.debugSelected) => {
@@ -31,41 +70,6 @@ const Util = (() => {
     Board.instance.addHook('step', fn);
     return [map, dups];
   };
-
-  Util.setColorRange = (opts={}) => {
-    let [min, max] = opts.range || [0, Board.config.maxNumStates];
-    let range = max - min;
-    let hBase = opts.h || 0;
-    let sBase = opts.s != null ? opts.s : 0.5;
-    let lBase = opts.l != null ? opts.l : 0.5;
-    let aBase = opts.a != null ? opts.a : 1;
-    let hDelta = opts.hDelta || 360;
-    let sDelta = opts.sDelta || 0;
-    let lDelta = opts.lDelta || 0;
-    let aDelta = opts.aDelta || 0;
-    let dir = opts.dir || 1;
-    let colors = Board.config.colors.slice();
-    let clamp = (n) => n; //(n, min=0, max=1) => Math.min(max, Math.max(min, n));
-    console.log(hBase, sBase, lBase, aBase, range);
-    for (let i = min; i < max; i++) {
-      let q = i - min;
-      let h = (hBase + dir * q * hDelta / range) % 360;
-      let s = clamp(sBase + dir * q * sDelta / range);
-      let l = clamp(lBase + dir * q * lDelta / range);
-      let a = clamp(aBase + dir * q * aDelta / range);
-      console.log(h,s,l,a);
-      colors[i] = Color.hslaToRgba(h, s, l, a);
-    }
-    Board.config.setColors(colors);
-  };
-
-  Util.binaryRuleFactory = (...args) => {
-    args = args.filter((e) => typeof e == 'number' && e >= 0 && Math.floor(e) == e);
-    if (args.length)
-      return eval(`(cell) => ${args.map((e) => `cell.state == ${e}`).join(' || ')} ? 1 : 0`); // lol
-    else
-      return () => false;
-  }
 
   Util.shallowPrettyJson = (data, maxLevels=2, indentText='  ') => {
     let json = JSON.stringify(data);

@@ -20,9 +20,9 @@ class Hexagrams extends Plugin {
     };
 
     this.initializeLines();
-    this.registerBoardHook('clear', clearLines);
-    this.registerBoardHook('paint', paintLines);
-    this.registerAdapterHook(this.bgAdapter.onDraw, (adapter) => this.onDraw(adapter));
+    this.registerHook('clear', clearLines);
+    this.registerHook('paint', paintLines);
+    this.registerHook('draw', (adapter) => this.onDraw(adapter));
   }
 
   _enable() {

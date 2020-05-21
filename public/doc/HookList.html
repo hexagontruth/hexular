@@ -26,7 +26,7 @@
 
 <header>
     
-        <h2><span class="attribs"><span class="type-signature"></span></span>HookList<span class="signature">(owner, functions)</span><span class="type-signature"></span></h2>
+        <h2><span class="attribs"><span class="type-signature"></span></span>HookList<span class="signature">(functions)</span><span class="type-signature"></span></h2>
         
             <div class="class-description"><p>Class representing a list of callback hooks</p>
 <p>This class extends <code>Array</code>, and we can use standard array methods — e.g. <code>push</code>, &amp;c. — to populate it.</p></div>
@@ -44,7 +44,7 @@
     
 
     
-    <h4 class="name" id="HookList"><span class="type-signature"></span>new HookList<span class="signature">(owner, functions)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="HookList"><span class="type-signature"></span>new HookList<span class="signature">(functions)</span><span class="type-signature"></span></h4>
     
 
     
@@ -88,29 +88,6 @@
 
         <tr>
             
-                <td class="name"><code>owner</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">*</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Object or value for populating <a href="HookList.html#owner"><code>this.owner</code></a></p></td>
-        </tr>
-
-    
-
-        <tr>
-            
                 <td class="name"><code>functions</code></td>
             
 
@@ -127,7 +104,7 @@
 
             
 
-            <td class="description last"><p>Optional list of functions to add</p></td>
+            <td class="description last"><p>Optional initial list of functions to add</p></td>
         </tr>
 
     
@@ -168,7 +145,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1088">line 1088</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1033">line 1033</a>
     </li></ul></dd>
     
 
@@ -225,20 +202,140 @@
     
 
     
-        <h3 class="subsection-title">Members</h3>
+
+    
+        <h3 class="subsection-title">Methods</h3>
 
         
             
-<h4 class="name" id="owner"><span class="type-signature"></span>owner<span class="type-signature"></span></h4>
 
+    
+
+    
+    <h4 class="name" id="add"><span class="type-signature"></span>add<span class="signature">(filter, idx<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    
+
+    
 
 
 
 <div class="description">
-    <p>Object or value to be bound to functions in hook list.</p>
-<p>Typically a class instance. Overwriting this will have no effect on functions already in the list.</p>
+    <p>Add function to list.</p>
 </div>
 
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>filter</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+|
+
+<span class="param-type">Array.&lt;function()></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
+            
+
+            <td class="description last"><p>Filter function to add, or an array of such functions</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>idx</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    this.length
+                
+                </td>
+            
+
+            <td class="description last"><p>Optional insertion index (defaults to end of array)</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
 
 
 
@@ -274,7 +371,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1090">line 1090</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1046">line 1046</a>
     </li></ul></dd>
     
 
@@ -290,11 +387,19 @@
 
 
 
-        
-    
 
-    
-        <h3 class="subsection-title">Methods</h3>
+
+
+
+
+
+
+
+
+
+
+
+
 
         
             
@@ -310,7 +415,7 @@
 
 
 <div class="description">
-    <p>Call each function entry in hook list, bound to <a href="HookList.html#owner"><code>this.owner</code></a>.</p>
+    <p>Call each function entry in hook list.</p>
 <p>The first function is called with the arguments as given to this method. When a called
 function returns a value besides <code>undefined</code>, <code>val</code> is set to that value for the next
 function. The final state of <code>val</code> is returned at the end of the iteration.</p>
@@ -454,7 +559,7 @@ arguments.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1168">line 1168</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1135">line 1135</a>
     </li></ul></dd>
     
 
@@ -657,7 +762,7 @@ array before moving on to the next.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1183">line 1183</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1150">line 1150</a>
     </li></ul></dd>
     
 
@@ -682,6 +787,166 @@ array before moving on to the next.</p>
 
 
 
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="delete"><span class="type-signature"></span>delete<span class="signature">(filter)</span><span class="type-signature"> &rarr; {number}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    <p>Remove a given filter function.</p>
+<p>Functions are compared via toString() method, so the first identically-coded function will be removed.</p>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>filter</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Filter to remove</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1059">line 1059</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    <p>The index of the removed function or -1 if not found</p>
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">number</span>
+
+
+    </dd>
+</dl>
+
+    
 
 
 
@@ -795,7 +1060,7 @@ array before moving on to the next.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1121">line 1121</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1088">line 1088</a>
     </li></ul></dd>
     
 
@@ -862,6 +1127,7 @@ array before moving on to the next.</p>
 
 <div class="description">
     <p>Convenience method for removing all existing functions and optionally adding new ones.</p>
+<p>Call without argument to clear all functions.</p>
 </div>
 
 
@@ -887,6 +1153,8 @@ array before moving on to the next.</p>
         
 
         
+        <th>Default</th>
+        
 
         <th class="last">Description</th>
     </tr>
@@ -911,6 +1179,12 @@ array before moving on to the next.</p>
 
             
 
+            
+                <td class="default">
+                
+                    [
+                
+                </td>
             
 
             <td class="description last"><p>List of new functions to add</p></td>
@@ -954,7 +1228,7 @@ array before moving on to the next.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1107">line 1107</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1074">line 1074</a>
     </li></ul></dd>
     
 
@@ -1113,7 +1387,7 @@ array before moving on to the next.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1139">line 1139</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line1106">line 1106</a>
     </li></ul></dd>
     
 

@@ -17,7 +17,7 @@ class Action {
       if (this.board.fgAdapter.stateBuffer.get(cell) == this.setState)
         continue;
       this.board.fgAdapter.stateBuffer.set(cell, this.setState)
-      this.board.fgAdapter.defaultDrawBuffer(cell);
+      this.board.fgAdapter.drawBuffer(cell);
     }
   }
 
@@ -36,7 +36,7 @@ class Action {
       });
       this.board.fgAdapter.stateBuffer.clear();
       this.board.clearFg();
-      this.board.hooks.paint.forEach((e) => e.run(cells));
+      this.board.runHooks('paint', cells);
       this.board.draw();
     }
   }

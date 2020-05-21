@@ -191,13 +191,15 @@ There are GUI implementations of both rulebuilders in the Hexular Studio interfa
 
 ### Filters
 
-Filters allow us to, e.g., perform a modulo operation on new cell states, to keep them confined to a certain range. This was historically the default behavior, but has now been spun out into a separate functionality that must be added explicitly to a new model via the [`model.addFilter(fn)`](Model.html#addFilter) method:
+Filters allow us to, e.g., perform a modulo operation on new cell states, to keep them confined to a certain range. This was historically the default behavior, but has now been spun out into a separate functionality that must be added explicitly to a new model via the [`model.filters.add(fn)`](HookList.html#add) method:
 
-        model.addFilter(Hexular.filters.modFilter)
+        model.filters.add(Hexular.filters.modFilter)
 
 Filters can be any function that takes a state value and an optional [`cell`](Cell.html) instance, and return a new state value:
 
-        model.addFilter((state) => state >> 1); // Divides all new states by 2
+        model.filters.add((state) => state >> 1); // Divides all new states by 2
+
+Filters can be removed with [`model.filters.delete(fn)`](HookList.html#delete). For more detail consult the [HookList](HookList.html) documentation.
 
 The following additional filters are currently available in the core library:
 
@@ -391,9 +393,10 @@ We can add callback functions to be run on the advent of particular events with 
 The following hooks are currently supported
 
 - incrementStep
-- drawStep
 - playStep
 - step
+- draw
+- drawCell
 - timer \*
 - playStart
 - playStop
@@ -414,7 +417,7 @@ The following hooks are currently supported
 
 We can add functions to be called at a given time index during play or recording via the timer hook. For example, to turn cells with state 4 cyan after five seconds, we could run the following from the console or the custom code modal:
 
-        Board.instance.addHook('timer', 5000, () => Board.config.setColor(3, '#33cccc'));
+        Board.instance.addTriggerHook('timer', () => Board.config.setColor(3, '#33cccc'), 5000);
 
 Timer hooks will be rerun at their appropriate time index after every stop/start event, but changes they make to e.g. the configuration object will persist until explicitly reset.
 

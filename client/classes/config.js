@@ -108,14 +108,14 @@ class Config {
         drawOutlineCircle: false,
       },
       radioGroups: {
-        onDraw: [
+        draw: [
           ['drawModelBackground'],
           [
             'sortCellsAsc',
             'sortCellsDesc',
           ]
         ],
-        onDrawCell: [
+        drawCell: [
           [
             'drawFilledPointyHex',
             'drawOutlinePointyHex',
@@ -150,14 +150,6 @@ class Config {
     this.board = board;
     Hexular.util.merge(this, Config.defaults, library);
     this.colors = Color.from(this.colors);
-    Object.entries(this).forEach(([key, value]) => {
-      // Leftover from a simpler time when filters were set via URL params
-      if (this.filters[key]) {
-        this.filters[key] = value;
-        delete this[key];
-      }
-    });
-
     // Let us infer if this is a mobile browser and make some tweaks
     if (window.devicePixelRatio > 1 && screen.width < 640) {
       this.scaleFactor *= window.devicePixelRatio;
@@ -242,7 +234,7 @@ class Config {
           let radioGroup = new RadioGroup(group, drawCb);
           for (let key of group)
             this.radioMap[key] = radioGroup;
-          this.bgAdapter[hook].unshift(radioGroup.fn);
+          this.board.addHook(hook, radioGroup.fn);
         }
       }
       this.setOnDraw();
@@ -363,7 +355,7 @@ class Config {
   resize(radius=this.radius) {
     this.radius = radius;
     this.storeSessionConfig();
-    Board.resize(radius);
+    Board.resize();
   }
 
   radioAlts(buttonName) {
@@ -513,34 +505,21 @@ class Config {
   }
 
   setFilter(filter, value) {
-    let oldValue = this.filters[filter];
-    this.filters[filter] = value;
-    if (oldValue == value)
+    if (this.filters[filter] == value)
       return;
-    this.model.clearFilters();
-    Object.entries(this.filters).forEach(([filter, value]) => {
-      if (value) {
-        this.model.addFilter(Hexular.filters[filter]);
-        this.configModal.filters[filter].classList.add('active');
-      }
-      else {
-        this.configModal.filters[filter].classList.remove('active');
-      }
-    });
-    this.checkPreset();
-    this.storeSessionConfig();
+    this.filters[filter] = value;
+    this.setFilters();
   }
 
   setFilters() {
-    this.model.clearFilters();
+    this.model.filters.keep((e) => this.filters[e.name] === undefined);
+    this.model.filters.add(Object.values(Hexular.filters).filter((e) => this.filters[e.name]), 0);
     Object.values(this.configModal.filters).forEach((e) => e.classList.remove('active'));
     Object.entries(this.filters).forEach(([filter, value]) => {
-      if (value) {
-        this.model.addFilter(Hexular.filters[filter]);
-        this.configModal.filters[filter].classList.add('active');
-      }
+      value && this.configModal.filters[filter].classList.add('active');
     });
-    this.storeSessionConfig();
+    this.checkPreset();
+    this.storeSessionConfigAsync();
   }
 
   setMaxNumStates(num=this.maxNumStates) {
@@ -583,13 +562,12 @@ class Config {
 
   setOnDraw(fnName, value, radio=true) {
     if (!fnName) {
+      Object.values(this.drawModal.drawButtons).forEach((e) => e.classList.remove('active'));
       let activeFns = Object.entries(this.drawFunctions).filter(([k, v]) => v).map(([k, v]) => k);
-      for (let name of activeFns)
-        this.setOnDraw(name, true);
+      activeFns.forEach((e) => this.setOnDraw(e, true));
     }
     else {
-      if (value == null)
-        value = this.drawFunctions[fnName];
+      value = value != null ? value : this.drawFunctions[fnName];
       this.radioMap[fnName].set(value ? fnName : null);
       this.storeSessionConfigAsync();
     }
@@ -610,7 +588,7 @@ class Config {
     else if (this.customPaintMap)
       return this.customPaintMap(idx, this.board.selected.state);
     else
-      return Hexular.math.mod(this.board.selected.state + offset, this.numStates);
+      return Hexular.math.mod((this.board.selected.state || 0) + offset, this.numStates);
   }
 
   setPaintColorMode(mode) {
@@ -656,7 +634,7 @@ class Config {
     this.configModal.savePreset.disabled = false;
     this.preset = presetName;
     this.storeSessionConfigAsync();
-    this.board.runHookAsync('updatePreset');
+    this.board.runHooksAsync('updatePreset');
   }
 
   setRule(idx, rule) {
@@ -731,14 +709,14 @@ class Config {
   }
 
   setRecordingMode(value) {
-    let hookList = this.bgAdapter.onDraw;
+    let fn = this.drawingFunctions.drawSolidBackground;
     if (value) {
       this.recordingMode = true;
-      hookList.unshift(this.drawingFunctions.drawSolidBackground);
+      this.board.addHook('draw', fn, 0);
     }
     else {
       this.recordingMode = false;
-      hookList.keep((e) => e != this.drawingFunctions.drawSolidBackground);
+      this.board.removeHook('draw', fn);
     }
   }
 
@@ -746,7 +724,7 @@ class Config {
     steps = steps != null ? steps : this.steps;
     this.steps = steps;
     this.board.setInfoBox('steps', steps);
-    this.storeSessionConfig();
+    this.storeSessionConfigAsync();
   }
 
   setTheme(themeName) {
@@ -765,7 +743,7 @@ class Config {
     }
     this.board.draw();
     this.storeSessionConfigAsync();
-    this.board.runHookAsync('updateTheme');
+    this.board.runHooksAsync('updateTheme');
   }
 
   setThemable() {
@@ -780,7 +758,7 @@ class Config {
     if (tool && this.board.toolClasses[tool]) {
       this.tool = tool;
       this.fallbackTool = fallbackTool || tool;
-      this.storeSessionConfig();
+      this.storeSessionConfigAsync();
     }
     else if (this.shift) {
       this.tool = this.shiftTool;
@@ -801,7 +779,7 @@ class Config {
     let selected = this.board.toolSizes[size - 1];
     selected && selected.classList.add('active');
     this.board.drawSelectedCell();
-    this.storeSessionConfig();
+    this.storeSessionConfigAsync();
   }
 
   // --- VALIDATION ---
@@ -824,7 +802,7 @@ class Config {
     if (dirty) {
       this.setPreset();
     }
-    this.board.runHookAsync('updatePreset');
+    this.board.runHooksAsync('updatePreset');
   }
 
   checkTheme() {
@@ -852,7 +830,7 @@ class Config {
     if (dirty) {
       this.setTheme();
     }
-    this.board.runHookAsync('updateTheme');
+    this.board.runHooksAsync('updateTheme');
   }
 
   getThemeFromObject(obj) {

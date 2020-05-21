@@ -4,24 +4,25 @@ class Board {
     Board.instance && Board.instance.modals.draw.update();
   }
 
-  static resize(configOpts={}, boardOpts={}) {
+  static resize(configOpts={}, boardOpts=Board.defaults) {
+    // TODO: Wtf is this even doing?
     return new Promise((resolve, reject) => {
       document.body.classList.add('splash');
       let oldBoard = Board.instance;
-      if (oldBoard) {
-        oldBoard.stop();
-        boardOpts.undoStack = oldBoard.undoStack;
-        boardOpts.redoStack = oldBoard.redoStack;
-        boardOpts.hooks = Hexular.util.merge({}, oldBoard.hooks, boardOpts.hooks);
-      }
+      oldBoard && oldBoard.stop();
       setTimeout(async () => {
         let board = new Board(configOpts, boardOpts);
         Board.instance = board;
         if (oldBoard) {
-          oldBoard.pluginControls.forEach((pluginControl) => {
-            pluginControl.delete();
-          });
+          oldBoard.pluginControls.forEach((e) => e.delete());
+          board.undoStack = oldBoard.undoStack;
+          board.redoStack = oldBoard.redoStack;
           board.refreshHistoryButtons();
+          Object.entries(oldBoard.hooks).forEach(([key, value]) => {
+            let hooks = value.filter((e) => !e.run.radio);
+            board.hooks[key] = board.hooks[key] || [];
+            board.hooks[key].splice(board.hooks[key].length, 0, ...hooks);
+          });
         }
         Board.config = board.config;
         Board.model = board.model;
@@ -29,7 +30,7 @@ class Board {
         Board.fgAdapter = board.fgAdapter;
         Board.modals = board.modals;
         Board.shared = board.shared;
-        board.runHook('resize');
+        board.runHooks('resize');
         await board.draw();
         board.clearFg();
         document.body.classList.remove('splash');
@@ -42,8 +43,8 @@ class Board {
     return window.innerWidth / window.innerHeight;
   }
 
-  constructor(configOpts={}, boardOpts={}) {
-    let props = {
+  static get defaults() {
+    let defaults = {
       selected: null,
       debugSelected: null,
       lastSet: null,
@@ -65,9 +66,10 @@ class Board {
       imageCapture: null,
       hooks: {
         incrementStep: [],
-        drawStep: [],
         playStep: [],
         step: [],
+        draw: [],
+        drawCell: [],
         timer: [],
         playStart: [],
         playStop: [],
@@ -166,18 +168,22 @@ class Board {
       allColorButtons: Array.from(document.querySelectorAll('.toolbar.colors button')),
       colorButtons: [],
     };
-    props.disableWhenRecording = [
-      props.buttons.step,
-      props.buttons.undo,
-      props.buttons.redo,
-      props.buttons.saveSnapshot,
-      props.buttons.loadSnapshot,
-      props.buttons.saveImage,
-      props.buttons.toggleImageCapture,
-      props.buttons.save,
-      props.buttons.load,
+    defaults.disableWhenRecording = [
+      defaults.buttons.step,
+      defaults.buttons.undo,
+      defaults.buttons.redo,
+      defaults.buttons.saveSnapshot,
+      defaults.buttons.loadSnapshot,
+      defaults.buttons.saveImage,
+      defaults.buttons.toggleImageCapture,
+      defaults.buttons.save,
+      defaults.buttons.load,
     ];
-    Object.assign(this, props, boardOpts);
+    return defaults;
+  }
+
+  constructor(configOpts={}, boardOpts=Board.defaults) {
+    Object.assign(this, boardOpts);
     this.config = new Config(this, configOpts);
 
     // Initialize canvases
@@ -247,8 +253,8 @@ class Board {
 
     let {radius, numStates, groundState, cellRadius, cellGap, colors} = this.config;
     this.model = Hexular({radius, numStates, groundState, cellRadius});
-    this.bgAdapter = new CanvasAdapter(this.model, {board: this, context: this.bgCtx, cellGap, colors});
-    this.fgAdapter = new CanvasAdapter(this.model, {board: this, context: this.fgCtx, cellGap, colors});
+    this.bgAdapter = new CanvasAdapter({model: this.model, board: this, context: this.bgCtx, cellGap, colors});
+    this.fgAdapter = new CanvasAdapter({model: this.model, board: this, context: this.fgCtx, cellGap, colors});
     this.resetTransform();
 
     this.modals = {
@@ -363,7 +369,7 @@ class Board {
       this.buttons.step.disabled = true;
       this.buttons.togglePlay.className = 'icon-pause';
       this.setButtonTitle(this.buttons.togglePlay, 'Pause');
-      this.runHook('playStart');
+      this.runHooks('playStart');
     }
   }
 
@@ -380,7 +386,7 @@ class Board {
       this.buttons.step.disabled = false;
       this.buttons.togglePlay.className = 'icon-play';
       this.setButtonTitle(this.buttons.togglePlay, 'Play');
-      this.runHook('playStop');
+      this.runHooks('playStop');
     }
   }
 
@@ -433,14 +439,13 @@ class Board {
         else {
           this.config.setSteps(this.config.steps + 1);
           this.running
-            ? this.runHook('playStep')
-            : this.runHook('incrementStep');
-          this.runHook('step');
-          this.debugSelected && this.runHook('debugStep', this.debugSelected);
+            ? this.runHooks('playStep')
+            : this.runHooks('incrementStep');
+          this.runHooks('step');
+          this.debugSelected && this.runHooks('debugStep', this.debugSelected);
         }
       }
       this.drawSync();
-      this.runHook('drawStep');
       // Reset cell order in case sorting has been applied
       this.model.sortCells();
     }
@@ -460,18 +465,26 @@ class Board {
     this.draw();
     this.storeModelState();
     this.config.setSteps(0);
-    this.runHook('clear');
+    this.runHooks('clear');
   }
 
   clearFg() {
     this.fgAdapter.clear();
-    this.runHook('drawFg');
+    this.runHooks('drawFg');
   }
 
-  addHook(...args) {
-    let [key, trigger, run] = args.length == 3 ? args : [args[0], null, args[1]];
+  addHook(key, fn, idx) {
     this.hooks[key] = this.hooks[key] || [];
-    this.hooks[key].push({trigger, run});
+    idx = idx != null ? idx : this.hooks[key].length;
+    let obj = {run: fn};
+    this.hooks[key].splice(idx, 0, obj);
+  }
+
+  // This is ridiculous
+  addTriggerHook(key, fn, trigger) {
+    this.hooks[key] = this.hooks[key] || [];
+    let obj = {run: fn, trigger};
+    this.hooks[key].push(obj);
     this.hooks[key].sort((a, b) => a.trigger - b.trigger);
   }
 
@@ -486,18 +499,27 @@ class Board {
       this.hooks[key] = [];
   }
 
-  runHook(hook, ...args) {
+  runHooks(hook, ...args) {
     let fns = this.hooks[hook] || [];
     fns.forEach((e) => e.run(...args));
   }
 
-  runHookAsync(hook, ...args) {
+  runHooksAsync(hook, ...args) {
     if (!this.hookQueue.has(hook)) {
       this.hookQueue.add(hook);
       window.requestAnimationFrame(() => {
         this.hookQueue.delete(hook);
-        this.runHook(hook, ...args);
+        this.runHooks(hook, ...args);
       });
+    }
+  }
+
+  runHooksParallel(hook, argArray, ...args) {
+    let fns = this.hooks[hook] || [];
+    for (let i = 0; i < fns.length; i++) {
+      for (let j = 0; j < argArray.length; j++) {
+        fns[i].run(argArray[j], ...args);
+      }
     }
   }
 
@@ -721,7 +743,7 @@ class Board {
         this.config.restorePlugins();
         this.config.storeLocalConfig();
         this.config.storeSessionConfig();
-        Board.resize();
+        Board.resize();//Hexular.util.merge({}, this.config));
         this.setMessage('Settings restored!');
       }
       catch (e) {
@@ -852,7 +874,7 @@ class Board {
     this.translate([this.canvasWidth / this.scaleX / 2, this.canvasHeight / this.scaleY / 2]);
     this.draw();
     this.clearFg();
-    this.runHook('center');
+    this.runHooks('center');
   }
 
   resizeMenu() {
@@ -949,7 +971,7 @@ class Board {
     .then((e) => {
       if (e) {
         this.config.clearStorage();
-        Board.resize(this.config.radius);
+        Board.resize();
         Board.instance.setMessage('Settings cleared!');
       }
     }).catch((e) => { throw e; });
@@ -1347,7 +1369,7 @@ class Board {
     this.selected = coord && this.cellAt(coord);
     this.drawSelectedCell();
     if (lastCell != this.selected)
-      this.runHook('select', this.selected);
+      this.runHooks('select', this.selected);
   }
 
   drawSelectedCell() {
@@ -1383,7 +1405,7 @@ class Board {
       this.debugSelected = window.cell = cell;
     if (cell) {
       this.setMessage(`Cell at ${cell}: ${cell.state}`);
-      this.runHook('debugSelect', cell);
+      this.runHooks('debugSelect', cell);
     }
   }
 

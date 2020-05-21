@@ -99,12 +99,12 @@
   }
 
   _activate() {
-    this.registerBoardHook('clear', () => this.killAll());
-    this.registerBoardHook('step', () => this.onStep());
-    this.registerBoardHook('drawFg', () => this.onDrawFg());
-    this.registerBoardHook('paint', (cells) => this.onPaint(cells));
-    this.registerBoardHook('select', (cell) => this.onSelect(cell));
-    this.registerBoardHook('debugSelect', (cell) => this.onDebugSelect(cell));
+    this.registerHook('clear', () => this.killAll());
+    this.registerHook('step', () => this.onStep());
+    this.registerHook('drawFg', () => this.onDrawFg());
+    this.registerHook('paint', (cells) => this.onPaint(cells));
+    this.registerHook('select', (cell) => this.onSelect(cell));
+    this.registerHook('debugSelect', (cell) => this.onDebugSelect(cell));
   }
 
   _enable() {
@@ -272,7 +272,7 @@
         }
       }
     }
-    this.board.runHook('midiMessage', msg);
+    this.board.runHooks('midiMessage', msg);
   }
 }
 Board.registerPlugin(MidiMap);

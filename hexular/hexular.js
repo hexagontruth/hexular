@@ -10,7 +10,7 @@
   * Filters are functions that take in a state value, plus optionally a {@link Cell} instance, and return a potentially
   * modified form of that value.
   *
-  * Filters can be added and removed via {@link Model#addFilter} and {@link Model#removeFilter}.
+  * See {@link Filter} for details on adding and removing filters.
   *
   * @namespace {object} Hexular.filters
   */
@@ -253,9 +253,9 @@ var Hexular = (function () {
          *
          * @name Model#filters
          * @type HookList
-         * @default {@link Hexular.filters.modFilter|[Hexular.filters.modFilter]}
+         * @default []
          */
-        filters: new HookList(this),
+        filters: new HookList(),
         /**
          * Canonical, publicly-exposed one-dimensional array of cells in an order defined by a given subclass.
          *
@@ -313,44 +313,6 @@ var Hexular = (function () {
        *
        */
       this.cellApothem = this.cellRadius * math.apothem;
-    }
-
-    /**
-     * Add filter function to model.
-     *
-     * @param {function} filter                  Filter to add
-     * @param {number} [idx=this.filters.length] Optional insertion index (defaults to end of array)
-     */
-    addFilter(filter, idx=this.filters.length) {
-      let boundFilter = filter.bind(this);
-      boundFilter.hash = this._hash(filter.toString());
-      this.filters.splice(idx, 0, boundFilter);
-    }
-
-    /**
-     * Remove filter function from model.
-     *
-     * Since filters are bound to the model, and anonymous functions lack a name, they can't be directly compared to
-     * those in `this.filters`, . Thus we identify and compare functions based on a hash value derived from the string
-     * version of the function. The upshot being any identically-coded functions will be equivalent.
-     *
-     * @param {function} filter Filter to remove
-     */
-    removeFilter(filter) {
-      let hash = this._hash(filter.toString());
-      let idx = this.filters.findIndex(((e) => e.hash == hash));
-      if (idx < 0) return;
-      this.filters.splice(idx, 1);
-      return idx;
-    }
-
-    /**
-     * Clear all filters.
-     *
-     */
-    clearFilters() {
-      while (this.filters.length)
-        this.filters.pop();
     }
 
     /**
@@ -538,22 +500,6 @@ var Hexular = (function () {
       this.cells.forEach((cell, idx) => {
         cell.setState(array[idx] || this.groundState);
       });
-    }
-
-    /**
-     * Internal hashing function to track bound functions. Not actually important.
-     *
-     * @param {string} str Some string
-     * @return {string}     Chunked, summed mod 256 hexadecimal string
-     */
-    _hash(str) {
-      let bytes = new Uint8Array(str.split('').map((e) => e.charCodeAt(0)));
-      let chunkSize = Math.max(2, Math.ceil(bytes.length / 16));
-      let chunked = bytes.reduce((a, e, i) => {
-        a[Math.floor(i / chunkSize)] += e;
-        return a;
-      }, Array(Math.ceil(bytes.length / chunkSize)).fill(0));
-      return chunked.map((e) => ('0' + (e % 256).toString(16)).slice(-2)).join('');
     }
   }
 
@@ -1082,27 +1028,48 @@ var Hexular = (function () {
     /**
      * Creates `HookList` instance.
      *
-     * @param {*} owner              Object or value for populating {@link HookList#owner|this.owner}
-     * @param {function[]} functions Optional list of functions to add
+     * @param {function[]} functions Optional initial list of functions to add
      */
-    constructor(owner, functions=[]) {
+    constructor(arg) {
+      // We need to allow Array constructor signature to keep Array methods from freaking out
+      let functions = typeof arg == 'number' || arg == null ? [] : arg;
       super();
-      /**
-       * Object or value to be bound to functions in hook list.
-       *
-       * Typically a class instance. Overwriting this will have no effect on functions already in the list.
-       *
-       * @name HookList#owner
-       */
-      this.owner = owner;
-
       this.replace(functions)
+    }
+
+    /**
+     * Add function to list.
+     *
+     * @param {function|function[]} filter                  Filter function to add, or an array of such functions
+     * @param {number} [idx=this.length] Optional insertion index (defaults to end of array)
+     */
+    add(filterArg, idx=this.length) {
+      let filters = Array.isArray(filterArg) ? filterArg : [filterArg];
+      this.splice(idx, 0, ...filters);
+    }
+
+    /**
+     * Remove a given filter function.
+     *
+     * Functions are compared via toString() method, so the first identically-coded function will be removed.
+     *
+     * @param {function} filter Filter to remove
+     * @return {number}         The index of the removed function or -1 if not found
+     */
+    delete(filter) {
+      let str = filter.toString();
+      let idx = this.findIndex((e) => e.toString() == str);
+      console.log(idx, idx >= -1);
+      idx >= -1 && this.splice(idx, 1);
+      return idx;
     }
 
     /**
      * Convenience method for removing all existing functions and optionally adding new ones.
      *
-     * @param {function[]} functions List of new functions to add
+     * Call without argument to clear all functions.
+     *
+     * @param {function[]} functions=[] List of new functions to add
      */
     replace(functions=[]) {
       this.length = 0;
@@ -1148,7 +1115,7 @@ var Hexular = (function () {
     }
 
     /**
-     * Call each function entry in hook list, bound to {@link HookList#owner|this.owner}.
+     * Call each function entry in hook list.
      *
      * The first function is called with the arguments as given to this method. When a called
      * function returns a value besides `undefined`, `val` is set to that value for the next
@@ -1250,8 +1217,8 @@ var Hexular = (function () {
    *
    * @memberof Hexular.filters
    */
-  function clipTopFilter(value) {
-    return Math.min(this.numStates - 1, value);
+  function clipTopFilter(value, cell) {
+    return Math.min(cell.model.numStates - 1, value);
   }
 
   /**
@@ -1263,8 +1230,8 @@ var Hexular = (function () {
    *
    * @memberof Hexular.filters
    */
-  function modFilter(value) {
-    return mod(value, this.numStates);
+  function modFilter(value, cell) {
+    return mod(value, cell.model.numStates);
   }
 
   /**
@@ -1276,7 +1243,7 @@ var Hexular = (function () {
    * @memberof Hexular.filters
    */
   function edgeFilter(value, cell) {
-    return !cell.edge ? value : this.groundState;
+    return !cell.edge ? value : cell.model.groundState;
   }
 
   /**

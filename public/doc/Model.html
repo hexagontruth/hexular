@@ -861,7 +861,7 @@ otherwise.</p>
     
     <dt class="tag-default">Default Value:</dt>
     <dd class="tag-default"><ul class="dummy">
-            <li><a href="Hexular.filters.html#.modFilter"><code>[Hexular.filters.modFilter]</code></a></li>
+            <li>[]</li>
         </ul></dd>
     
 
@@ -1210,357 +1210,6 @@ otherwise.</p>
     
 
     
-    <h4 class="name" id="_hash"><span class="type-signature"></span>_hash<span class="signature">(str)</span><span class="type-signature"> &rarr; {string}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    <p>Internal hashing function to track bound functions. Not actually important.</p>
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>str</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Some string</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line549">line 549</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    <p>Chunked, summed mod 256 hexadecimal string</p>
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">string</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="addFilter"><span class="type-signature"></span>addFilter<span class="signature">(filter, idx<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    <p>Add filter function to model.</p>
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-        <th>Attributes</th>
-        
-
-        
-        <th>Default</th>
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>filter</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">function</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                </td>
-            
-
-            <td class="description last"><p>Filter to add</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>idx</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">number</span>
-
-
-            
-            </td>
-
-            
-                <td class="attributes">
-                
-                    &lt;optional><br>
-                
-
-                
-
-                
-                </td>
-            
-
-            
-                <td class="default">
-                
-                    this.filters.length
-                
-                </td>
-            
-
-            <td class="description last"><p>Optional insertion index (defaults to end of array)</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line324">line 324</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
     <h4 class="name" id="buildCellMap"><span class="type-signature"></span>buildCellMap<span class="signature">()</span><span class="type-signature"></span></h4>
     
 
@@ -1615,7 +1264,7 @@ cells. This method should be idempotent.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line450">line 450</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line412">line 412</a>
     </li></ul></dd>
     
 
@@ -1754,7 +1403,7 @@ a user's cursor position using <a href="Model.html#cellRadius"><code>Model#cellR
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line506">line 506</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line468">line 468</a>
     </li></ul></dd>
     
 
@@ -1927,7 +1576,7 @@ interested clients to look up cells spatially using this convention.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line490">line 490</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line452">line 452</a>
     </li></ul></dd>
     
 
@@ -1994,94 +1643,6 @@ interested clients to look up cells spatially using this convention.</p>
 
 <div class="description">
     <p>Reset each cell state to <code>this.groundState</code>.</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line389">line 389</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="clearFilters"><span class="type-signature"></span>clearFilters<span class="signature">()</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    <p>Clear all filters.</p>
 </div>
 
 
@@ -2264,7 +1825,7 @@ interested clients to look up cells spatially using this convention.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line415">line 415</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line377">line 377</a>
     </li></ul></dd>
     
 
@@ -2425,7 +1986,7 @@ construct <a href="Cell.html#coord"><code>Cell#coord</code></a></p></td>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line466">line 466</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line428">line 428</a>
     </li></ul></dd>
     
 
@@ -2516,7 +2077,7 @@ under the default settings, for non-numeric states or states outside the range -
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line525">line 525</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line487">line 487</a>
     </li></ul></dd>
     
 
@@ -2635,7 +2196,7 @@ under the default settings, for non-numeric states or states outside the range -
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line440">line 440</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line402">line 402</a>
     </li></ul></dd>
     
 
@@ -2772,7 +2333,7 @@ under the default settings, for non-numeric states or states outside the range -
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line476">line 476</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line438">line 438</a>
     </li></ul></dd>
     
 
@@ -2934,7 +2495,7 @@ under the default settings, for non-numeric states or states outside the range -
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line537">line 537</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line499">line 499</a>
     </li></ul></dd>
     
 
@@ -2949,146 +2510,6 @@ under the default settings, for non-numeric states or states outside the range -
             <li><a href="Model.html#export"><code>Model#export</code></a></li>
         </ul>
     </dd>
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="removeFilter"><span class="type-signature"></span>removeFilter<span class="signature">(filter)</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    <p>Remove filter function from model.</p>
-<p>Since filters are bound to the model, and anonymous functions lack a name, they can't be directly compared to
-those in <code>this.filters</code>, . Thus we identify and compare functions based on a hash value derived from the string
-version of the function. The upshot being any identically-coded functions will be equivalent.</p>
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>filter</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">function</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>Filter to remove</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line339">line 339</a>
-    </li></ul></dd>
-    
-
-    
-
     
 
     
@@ -3220,7 +2641,7 @@ version of the function. The upshot being any identically-coded functions will b
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line400">line 400</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line362">line 362</a>
     </li></ul></dd>
     
 
@@ -3308,7 +2729,7 @@ version of the function. The upshot being any identically-coded functions will b
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line427">line 427</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line389">line 389</a>
     </li></ul></dd>
     
 
@@ -3396,7 +2817,7 @@ version of the function. The upshot being any identically-coded functions will b
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line359">line 359</a>
+        <a href="hexular.js.html">hexular.js</a>, <a href="hexular.js.html#line321">line 321</a>
     </li></ul></dd>
     
 

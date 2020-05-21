@@ -34,9 +34,9 @@ class VertexShapes extends Plugin {
 
   _activate() {
     this.updateMaps();
-    this.registerBoardHook('clear', () => this.updateMaps());
-    this.registerBoardHook('step', () => this.onStep)
-    this.registerAdapterHook(this.bgAdapter.onDraw, (adapter) => this.onDraw(adapter));
+    this.registerHook('clear', () => this.updateMaps());
+    this.registerHook('step', () => this.onStep)
+    this.registerHook('draw', (adapter) => this.onDraw(adapter));
   }
 
   onStep() {

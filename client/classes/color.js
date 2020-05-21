@@ -107,7 +107,7 @@ const Color = (() => {
     let tCount = 0;
     for (let i = 0; i < colors.length; i++) {
       let color = colors[i];
-      if (!colors || color[3] == 0) {
+      if (!color || color[3] == 0) {
         tCount++;
       }
       else {
