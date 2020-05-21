@@ -48,7 +48,7 @@
   </div>
   <div id="config-menu" class="toolbar menu hidden">
     <div class="group tools">
-      <button id="show-config" title="Model configuration (Ctrl+M)" class="icon-gear"></button>
+      <button id="show-config" title="Model configuration (Ctrl+G)" class="icon-gear"></button>
       <button id="show-draw" title="Draw configuration (Ctrl+Y)" class="icon-lead-pencil"></button>
       <button id="show-theme" title="Theme (Ctrl+E)" class="icon-rainbow"></button>
       <button id="show-resize" title="Resize model (Ctrl+R)" class="icon-arrow-top-right-bottom-left"></button>
@@ -151,7 +151,7 @@
         <div class="modal-content">
           <div class="group buttons">
             <button id="autopause" class="icon-pause" title="Autopause"></button>
-            <div class="divider"></div>
+            <button id="clear-on-draw" class="icon-block" title="Clear on draw"></button>
             <button id="draw-model-background" class="icon-hexception" title="Draw model background"></button>
             <button id="sort-cells-asc" class="icon-sort-ascending" title="Draw in ascending order (may cause performance issues)"></button>
             <button id="sort-cells-desc" class="icon-sort-descending" title="Draw in descending order (may cause performance issues)"></button>
@@ -166,11 +166,11 @@
           </div>
           <div class="group">
             <label class="third">Interval:</label>
-            <input type="range" id="interval-slider" min="0" max="1000" step="5"
+            <input type="range" id="interval-slider" min="5" max="1000" step="5"
               value="60" list="interval-ticks" title="Timer interval (ms)"/>
             <datalist id="interval-ticks">
-              <option>0</option>
               <option>100</option>
+              <option>125</option>
               <option>200</option>
               <option>300</option>
               <option>400</option>
@@ -189,8 +189,8 @@
               value="1" list="draw-step-ticks" title="Intermediate draw steps between model steps"/>
             <datalist id="draw-step-ticks">
               <option>1</option>
-              <option>4</option>
-              <option>8</option>
+              <option>5</option>
+              <option>10</option>
               <option>15</option>
               <option>30</option>
               <option>60</option>
@@ -198,8 +198,21 @@
             <label id="draw-step-indicator" class="indicator"></label>
           </div>
           <div class="group">
+            <label class="third">Fade:</label>
+            <input type="range" id="fade-index-slider" min="0" max="1" step="0.05"
+              value="1" list="fade-index-ticks" title="Intermediate draw steps between model steps"/>
+            <datalist id="fade-index-ticks">
+              <option>0</option>
+              <option>0.25</option>
+              <option>0.5</option>
+              <option>0.75</option>
+              <option>1</option>
+            </datalist>
+            <label id="fade-indicator" class="indicator"></label>
+          </div>
+          <div class="group">
             <label class="third">Base scale:</label>
-            <input type="range" id="scale-slider" min="0" max="4" step="0.1"
+            <input type="range" id="scale-slider" min="0.1" max="4" step="0.1"
               value="60" list="scale-ticks" title="Default scale"/>
             <datalist id="scale-ticks">
               <option>0.1</option>
