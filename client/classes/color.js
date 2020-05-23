@@ -89,6 +89,12 @@ const Color = (() => {
         vector[i] = Math.round(this[i] * q + other[i] * (1 - q));
       return _Color(vector);
     }
+
+    get fg() {
+      let total = (this[0] + this[1] + this[2]) / 765;
+      let alpha = this[3] / 255;
+      return total > 0.5 || alpha < 0.25 ? _Color('#333333') : _Color('#ffffff');
+    }
   }
 
   class ColorT extends Color {

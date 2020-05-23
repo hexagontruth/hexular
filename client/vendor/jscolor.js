@@ -1283,7 +1283,7 @@ var jsc = {
         0.715 * this.rgb[1] +
         0.072 * this.rgb[2] >
         255 / 2
-      );
+      ) || this.alpha != null && this.alpha < 64;
     };
 
 

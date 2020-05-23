@@ -92,13 +92,20 @@ body.modal-state canvas {
   cursor: default;
 }
 
+button, input.jscolor {
+  box-shadow:
+    inset -1px -1px 2px #0000000a,
+    inset 1px 1px 2px #ffffff0a;
+}
+
 button {
   display: block;
   color: #fff;
-  background: #44aacc;
+  background: #4ac;
   font-weight: normal;
   font-style: normal;
   cursor: pointer;
+  border-radius: 0.1rem;
 }
 
 body:not(.mobile) button:hover:not(:disabled) {
@@ -109,6 +116,9 @@ body:not(.mobile) button:hover:not(:disabled) {
 body.mobile button:active, button.active {
   background: #66ddee;
   color: #fff;
+  box-shadow:
+    inset 1px 1px 0 #0000000a,
+    inset -1px -1px 0 #ffffff0a;
 }
 
 button:disabled {
@@ -162,52 +172,13 @@ button:disabled {
   margin-right: 0;
 }
 
-.toolbar.left button:first-child,
-.toolbar.right button:first-child,
-.toolbar.menu button:first-child {
-  padding-top: 0.5em;
-}
-
-.toolbar.left button:last-child,
-.toolbar.right button:last-child,
-.toolbar.menu button:last-child {
-  padding-bottom: 0.5em;
-}
-
 .toolbar.left button,
 .toolbqar.right button {
-  padding-left: 0.4em;
-  padding-right: 0.4em;
+  padding: 0.5em 0.4em;
 }
 
 .toolbar.top.left button {
   padding: 0.25em;
-}
-
-.toolbar.top button:first-child,
-.toolbar.bottom button:first-child {
-  border-top-left-radius: 1em;
-  border-bottom-left-radius: 1em;
-}
-
-.toolbar.top button:last-child,
-.toolbar.bottom button:last-child {
-  border-top-right-radius: 1em;
-  border-bottom-right-radius: 1em;
-}
-
-.toolbar.left button:first-child,
-.toolbar.right button:first-child,
-.toolbar.menu button:first-child {
-  border-top-left-radius: 1em;
-  border-top-right-radius: 1em;
-}
-
-.toolbar.left button:last-child,
-.toolbar.right button:last-child,
-.toolbar.menu button:last-child {
-  border-bottom-left-radius: 1em;
-  border-bottom-right-radius: 1em;
 }
 
 .toolbar.top, .toolbar.bottom, .toolbar.menu {
@@ -279,7 +250,6 @@ button:disabled {
   margin: 0.05rem;
   padding: 0;
   border: 0.1em solid #0000000f;
-  border-radius: 2em;
 }
 
 .toolbar.colors .group button.active-1 {
@@ -325,7 +295,7 @@ input.hidden, button.hidden {
   padding: 0.4em 0.5em;
   line-height: 1;
   font-weight: bold;
-  border-radius: 3em;
+  border-radius: 0.1rem;
   color: #4f4f5f;
   background: #ffffff7f;
   pointer-events: none;
@@ -392,7 +362,7 @@ input.hidden, button.hidden {
   cursor: pointer;
   text-align: center;
   opacity: 0;
-  border-radius: 2rem;
+  border-radius: 0.1rem;
   transition: all 500ms;
   pointer-events: none;
 }
@@ -445,30 +415,33 @@ input.hidden, button.hidden {
   max-width: 100%;
   max-height: 100%;
   overflow: auto;
-  border-radius: 1em;
-  box-shadow: 0 1px 2px #0000001f;
+  border-radius: 0.1rem;
   pointer-events: auto;
 }
 
 .modal > div:first-child {
-  border-top-left-radius: 1em;
-  border-top-right-radius: 1em;
+  border-top-left-radius: 0.1rem;
+  border-top-right-radius: 0.1rem;
 }
 
 .modal > div:last-child {
-  border-bottom-left-radius: 1em;
-  border-bottom-right-radius: 1em;
+  border-bottom-left-radius: 0.1rem;
+  border-bottom-right-radius: 0.1rem;
 }
 
 .modal-title, .modal-content {
-  background: #ddd;
   text-align: center;
+  box-shadow:
+    inset 1px 0 1px #0000000a,
+    inset -1px -1px 1px #0000000a,
+    inset 0 1px 1px #ffffff3f;
 }
 
 .modal-title {
   position: relative;
   padding: 0.5em 0.75em;
   cursor: pointer;
+  background: #dfdfcf;
 }
 
 .close-box {
@@ -487,8 +460,8 @@ input.hidden, button.hidden {
   flex-direction: column;
   justify-content: flex-start;
   align-items: stretch;
-  padding: 0.75em;
-  background: #eee;
+  padding: 0.25em;
+  background: #e7e7d7;
 }
 
 .modal .group {
@@ -527,8 +500,8 @@ select, input {
 textarea, select, input {
   width: 100%;
   padding: 0.25em;
-  border-radius: 0.5em;
-  background: #fff;
+  border-radius: 0.1rem;
+  background: #f9f9f1;
   font-family: inherit;
   flex: 1 1 auto;
   min-width: 0;
@@ -557,7 +530,7 @@ select {
   height: 10em;
   padding: calc(0.75em * 4/3);
   margin: calc(0.25em * 4/3);
-  border-radius: calc(0.5em * 4/3);
+  border-radius: 0.1rem;
   font-size: 0.75em;
   line-height: 1.5;
   outline: 0;
@@ -633,7 +606,7 @@ select {
   flex: 0 0 2em;
   min-height: 2em;
   padding: 0.25em;
-  border-radius: 0.5em;
+  border-radius: 0.1rem;
 }
 
 .modal .group.buttons button {
@@ -655,17 +628,6 @@ select {
   font-size: 0.75em;
   padding-right: 0.25em;
   padding-left: 0.25em;
-  border-radius: 0;
-}
-
-.modal .group.buttons.sub-buttons button:first-child {
-  border-top-left-radius: 0.5em;
-  border-bottom-left-radius: 0.5em;
-}
-
-.modal .group.buttons.sub-buttons button:last-child {
-  border-top-right-radius: 0.5em;
-  border-bottom-right-radius: 0.5em;
 }
 
 .modal .group.buttons.sub-buttons button:hover {
@@ -714,7 +676,7 @@ select {
 }
 
 .modal button.checkable {
-  border: 0.2em solid transparent;
+  /*border: 0.2em solid transparent;*/
 }
 
 body .modal button.checkable:hover {
@@ -722,7 +684,11 @@ body .modal button.checkable:hover {
 }
 
 .modal .checked button.checkable {
-  border-color: #66ddee;
+  border: 0.2em solid transparent;
+  border-color: #6de;
+  box-shadow:
+    inset 1px 1px 1px #3333333f,
+    inset -1px -1px 1px #f9f9f13f;
 }
 
 .group.color {
@@ -742,7 +708,7 @@ body .modal button.checkable:hover {
   text-align: center;
   font-size: 0.75em;
   margin: 0.333em;
-  border-radius: 2em;
+  border-radius: 0.1rem;
 }
 
 .group.color label {
@@ -767,13 +733,13 @@ body .modal button.checkable:hover {
 }
 
 button.statemask {
-
   width: auto;
   height: 2em;
   flex: 0 0 calc(100% / 8);
   margin: 0;
   padding: 0.25em;
   background-color: transparent;
+  box-shadow: none;
 }
 
 button.statemask.active, button.statemask:hover {
@@ -819,8 +785,8 @@ button.statemask.active, button.statemask:hover {
   align-items: stretch;
   margin: 0.25em;
   padding: 0.2em;
-  background: #fff;
-  border-radius: 0.5em;
+  background: #f9f9f1;
+  border-radius: 0.1rem;
   overflow-y: scroll;
 }
 
@@ -828,7 +794,7 @@ button.statemask.active, button.statemask:hover {
   flex: 0 1 auto;
   border: 0.2em solid transparent;
   padding: 0.2em;
-  border-radius: 0.5em;
+  border-radius: 0.1rem;
   cursor: pointer;
 }
 
@@ -853,8 +819,8 @@ button.statemask.active, button.statemask:hover {
   margin: 0.25em;
   width: 100%;
   height: 10rem;
-  background: #fff;
-  border-radius: 0.5em;
+  background: #f9f9f1;
+  border-radius: 0.1rem;
 }
 
 .template-mask polygon {
