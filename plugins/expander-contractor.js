@@ -44,7 +44,7 @@ class ExpanderContractor extends Plugin {
       type: this.settings.hexType,
       fill: this.settings.fill,
       stroke: this.settings.stroke,
-      lineWidth: this.settings.lineWidth != null ? this.settings.lineWidth : adapter.cellBorderWidth,
+      lineWidth: this.settings.lineWidth != null ? this.settings.lineWidth : this.config.cellBorderWidth,
       lineJoin: this.settings.lineJoin || this.config.defaultJoin,
     };
 
@@ -54,6 +54,7 @@ class ExpanderContractor extends Plugin {
       fillColors.fill(Color(this.settings.color));
       strokeColors.fill(Color(this.settings.color));
     }
+
     // Draw
     this.drawEachCell((cell) => {
       let r;

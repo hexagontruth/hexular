@@ -978,12 +978,13 @@ class Board {
   // Page/canvas listeners
 
   handleClearStorage() {
-    this.modals.confirm.ask('Are you sure you want to clear local data, including custom rules and presets?')
+    let msg = 'Clear all data, including rules, presets, and themes, or only session data from the current tab?'
+    this.modals.confirm.ask(msg, {'Cancel': 0, 'Session data': 1, 'All data': 2})
     .then((e) => {
       if (e) {
-        this.config.clearStorage();
+        this.config.clearStorage(!!e, e == 2);
         Board.resize();
-        Board.instance.setMessage('Settings cleared!');
+        Board.instance.setMessage(`${e == 2 ? 'Local' : 'Session'} settings cleared!`);
       }
     }).catch((e) => { throw e; });
   }

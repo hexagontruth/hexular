@@ -88,7 +88,6 @@ class CanvasAdapter {
     if (opts.type == 2) {
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, Hexular.math.tau);
-      ctx.fill();
     }
     else {
       let path = opts.type == Hexular.enums.TYPE_POINTY ? Hexular.math.pointyVertices : Hexular.math.flatVertices;

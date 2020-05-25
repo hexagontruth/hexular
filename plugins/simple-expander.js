@@ -37,7 +37,7 @@ class SimpleExpander extends Plugin {
       type: this.settings.hexType,
       fill: this.settings.fill,
       stroke: this.settings.stroke,
-      lineWidth: this.settings.lineWidth != null ? this.settings.lineWidth : adapter.cellBorderWidth,
+      lineWidth: this.settings.lineWidth != null ? this.settings.lineWidth : this.config.cellBorderWidth,
       lineJoin: this.settings.lineJoin || this.config.defaultJoin,
     };
     let fillColors = this.config.fillColors.slice();

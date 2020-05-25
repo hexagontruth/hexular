@@ -13,6 +13,10 @@ html {
   font-family: 'DejaVu Sans Mono', 'Lucida Console', 'Lucida Sans Typewriter', Monaco, 'Noto Mono', monospace;
 }
 
+.modal-title, .text {
+  font-family: Frutiger, "Frutiger Linotype", Univers, Calibri, "Gill Sans", "Gill Sans MT", "Myriad Pro", Myriad, "DejaVu Sans Condensed", "Liberation Sans", "Nimbus Sans L", Tahoma, Geneva, "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
 body {
   background: #fff;
   color: #333;
@@ -38,7 +42,7 @@ body {
 .overlay-splash svg {
   width: 100px;
   height: 100px;
-  fill: #44aacc;
+  fill: #4ac;
 }
 
 body.splash .overlay-splash {
@@ -55,6 +59,14 @@ a {
   color: inherit;
 }
 
+.text a {
+  color: #4ac;
+}
+
+.text a:hover {
+  color: #fb3;
+}
+
 .rel {
   position: relative;
 }
@@ -65,6 +77,20 @@ a {
   left: 0;
   width: 100%;
   height: 100%;
+}
+
+.container .placeholder-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.container .placeholder-wrapper > * {
+  margin: 1rem 5rem;
 }
 
 .container canvas {
@@ -204,8 +230,8 @@ button:disabled {
   bottom: 0.05rem;
   flex-wrap: wrap-reverse;
   align-items: flex-end;
-  left: 2.5rem;
-  right: 2.5rem;
+  left: 4rem;
+  right: 4rem;
 }
 
 .toolbar.left {
@@ -460,11 +486,11 @@ input.hidden, button.hidden {
 
 
 .modal-box:hover {
-  color: #44aacc;
+  color: #4ac;
 }
 
 .restore-box:hover {
-  color: #44aacc;
+  color: #4ac;
 }
 
 .modal-content {
@@ -559,7 +585,8 @@ select {
 .modal .text {
   line-height: 1.5;
   margin-top: 0;
-  margin-bottom: 0.5em;
+  margin-bottom: 0.25em;
+  padding: 0.25em;
   width: 100%;
   text-align: left;
 }
@@ -626,9 +653,8 @@ select {
 .modal .group.buttons button {
   font-family: inherit;
   flex: 1 1 auto;
-  padding: 0 1em;
-  padding-left: 0;
-  padding-right: 0;
+  padding: 0.3em 0.5em;
+  line-height: 1.4;
 }
 
 .modal .group.buttons button.icon {
@@ -694,7 +720,7 @@ select {
 }
 
 body .modal button.checkable:hover {
-  background-color: #44aacc;
+  background-color: #4ac;
 }
 
 .modal .checked button.checkable {
@@ -866,9 +892,6 @@ button.statemask.active, button.statemask:hover {
 
 @media screen and (max-width: 480px) {
   .info-timer { opacity: 0 !important; }
-}
-
-@media screen and (max-width: 420px) {
   .info { opacity: 0 !important; }
 }
 

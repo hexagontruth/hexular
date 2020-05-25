@@ -1040,10 +1040,10 @@ class Config {
     }
   }
 
-  clearStorage() {
+  clearStorage(session=true, local=true) {
     let modelState = this.loadModel('modelState');
-    this.sessionStorageObj.clear();
-    this.localStorageObj.clear();
+    session && this.sessionStorageObj.clear();
+    local && this.localStorageObj.clear();
     this.storeModel('modelState', modelState);
   }
 
