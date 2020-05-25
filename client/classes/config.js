@@ -6,7 +6,7 @@ class Config {
       meta: {},
       radius: 60,
       cellRadius: 10,
-      defaultScale: 1,
+      zoom: 1,
       numStates: 12,
       maxNumStates: 12,
       groundState: 0,
@@ -22,10 +22,11 @@ class Config {
       },
       undoStackSize: 64,
       mobileRadius: 30,
-      mobileDefaultScale: 1.5,
+      mobileZoom: 1.5,
       mobileUndoStackSize: 32,
       interval: 125,
       autopause: true,
+      theme: 'default',
       colors: [
         'transparent',
         '#ccccbb',
@@ -68,7 +69,8 @@ class Config {
       videoCodec: 'vp9',
       videoFrameRate: 30,
       videoBitsPerSecond: 2 ** 28,
-      scaleFactor: 2,
+      scaleFactor: 1,
+      pixelScaleFactor: 1,
       tool: 'brush',
       shiftTool: 'move',
       toolSize: 1,
@@ -153,10 +155,9 @@ class Config {
     this.colors = Color.from(this.colors);
     // Let us infer if this is a mobile browser and make some tweaks
     if (window.devicePixelRatio > 1 && screen.width < 640) {
-      this.scaleFactor *= window.devicePixelRatio;
       this.mobile = true;
       this.radius = Config.defaults.mobileRadius;
-      this.defaultScale = Config.defaults.mobileDefaultScale;
+      this.zoom = Config.defaults.mobileZoom;
       this.undoStackSize = Config.defaults.mobileUndoStackSize;
     }
 
@@ -166,22 +167,9 @@ class Config {
     // Finally, merge in URL parameter and constructor args
     Hexular.util.merge(this, new OptParser(this), ...args);
 
-    // Set logical size and scale small boards
-    // (Suspended as part of antialias precision reform efforts)
+    // Set logical size for all canvases
     let width = this.radius * this.cellRadius * Hexular.math.apothem * 4;
     let height = this.radius * this.cellRadius * 3;
-    // let scaleThreshold = 10 / 12;
-    // let scaleRatio = 1;
-    // if (width < window.innerWidth * scaleThreshold) {
-    //   scaleRatio = window.innerWidth * scaleThreshold / width;
-    // }
-    // if (height < window.innerHeight * scaleThreshold) {
-    //   scaleRatio = window.innerWidth * scaleThreshold / width;
-    // }
-    // this.scaleRatio = scaleRatio;
-    // this.cellRadius *= scaleRatio;
-    // width *= scaleRatio;
-    // height *= scaleRatio;
     this.logicalWidth = width;
     this.logicalHeight = height;
 
@@ -251,7 +239,8 @@ class Config {
       this.setTool(this.tool);
       this.setToolSize(this.toolSize);
       this.setSteps(this.steps);
-      this.setDefaultScale(this.defaultScale);
+      this.setScaleFactor(this.scaleFactor);
+      this.setZoom(this.zoom);
 
       // Config modal
       this.setPreset(this.preset);
@@ -364,6 +353,11 @@ class Config {
       if (radioGroup.includes(buttonName))
         return radioGroup.filter((e) => e != buttonName);
     return [];
+  }
+
+  resetOnDraw() {
+    this.drawFunctions = Object.assign({}, Config.defaults.drawFunctions);
+    this.setOnDraw();
   }
 
   restorePlugins() {
@@ -487,10 +481,18 @@ class Config {
     this.storeSessionConfigAsync();
   }
 
-  setDefaultScale(value) {
-    this.defaultScale = value && parseFloat(value) || Config.defaults.defaultScale;
-    this.drawModal.updateDefaultScale();
-    this.board.scaleTo(this.defaultScale);
+  setScaleFactor(scale) {
+    this.scaleFactor = parseFloat(scale) || this.scaleFactor || 1;
+    this.pixelScaleFactor = this.scaleFactor * window.devicePixelRatio;
+    this.drawModal.updateScaleFactor();
+    this.board.resetTransform();
+    this.storeSessionConfigAsync();
+  }
+
+  setZoom(value) {
+    this.zoom = value && parseFloat(value) || Config.defaults.zoom;
+    this.drawModal.updateZoom();
+    this.board.scaleTo(this.zoom);
     this.storeSessionConfigAsync();
   }
 
@@ -770,7 +772,7 @@ class Config {
     if (this.board.tools[this.tool])
       this.board.tools[this.tool].classList.add('active');
     this.board.fgCanvas.setAttribute('data-tool', this.tool);
-    this.board.drawSelectedCell();
+    this.board.drawFg();
   }
 
   setToolSize(size) {
@@ -778,7 +780,7 @@ class Config {
     this.board.toolSizes.forEach((e) => e.classList.remove('active'));
     let selected = this.board.toolSizes[size - 1];
     selected && selected.classList.add('active');
-    this.board.drawSelectedCell();
+    this.board.drawFg();
     this.storeSessionConfigAsync();
   }
 
@@ -865,7 +867,6 @@ class Config {
       'defaultColor',
       'defaultJoin',
       'defaultRule',
-      'defaultScale',
       'drawFunctions',
       'drawDefaultQ',
       'drawModelBackground',
@@ -893,6 +894,7 @@ class Config {
       'rbRel',
       'rbStates',
       'rules',
+      'scaleFactor',
       'shiftTool',
       'showModelBackground',
       'steps',
@@ -904,6 +906,7 @@ class Config {
       'videoCodec',
       'videoFrameRate',
       'videoMimeType',
+      'zoom',
     ]);
     sessionConfig.pluginData = this.plugins.map((e) => e.toString());
     return sessionConfig;

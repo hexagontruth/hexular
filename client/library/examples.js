@@ -3,20 +3,38 @@ const Examples = (() => {
   let fnCount = 0;
 
   let customCodeDemos = {
-    addRule: `Board.config.addRule('newRule', (cell) => cell.max > 2 ? cell.state + 1 : 0)`,
-    deleteRule: `Board.config.deleteRule('ruleName')`,
+    addRule: `
+      Board.config.addRule('newRule', (cell) =>
+        cell.max > 2 ? cell.state + 1 : 0
+      );
+    `,
+    deleteRule: `Board.config.deleteRule('ruleName');`,
     drawCellImage: `
-Examples.drawCellImage(null, {scale: 2, type: Hexular.enums.TYPE_FLAT, states: [1, 2], clip: true})
-`,
-    drawBackgroundImage: `Examples.drawBackgroundImage(null, {scale: 1})`,
-    rotateColors: `Examples.rotateColors()`,
-    scaleTo: `Board.instance.scaleTo(Board.instance.scale * 2, 5000)`,
-    maxNumStates: `Board.config.setMaxNumStates(64)`,
-    setColorRange: `Util.setColorRange({range: [1, 12], dir: 1, h: 0, hDelta: 360})`,
+      Examples.drawCellImage(null, {
+        scale: 2,
+        type: Hexular.enums.TYPE_FLAT,
+        states: [1, 2],
+        clip: true
+      });
+    `,
+    drawBackgroundImage: `Examples.drawBackgroundImage(null, {scale: 1});`,
+    rotateColors: `Examples.rotateColors();`,
+    scaleTo: `Board.instance.scaleTo(Board.instance.scale * 2, 5000);`,
+    maxNumStates: `Board.config.setMaxNumStates(64);`,
+    setColorRange: `Util.setColorRange({range: [1, 12], dir: 1, h: 0, hDelta: 360});`,
+    debugTimer: `
+      // Writes interval to console and window.debugIntervals
+      Util.debugTimer();
+    `,
+    findDuplicateSteps: `Util.findDuplicateSteps();`,
+    clearHooks: `
+      // Hook used for e.g. debugTimer, findDuplicateSteps
+      Board.instance.clearHooks('step');
+    `,
   };
 
   Object.entries(customCodeDemos).forEach(([k, v]) => {
-    customCodeDemos[k] = v.trim();
+    customCodeDemos[k] = Util.indentTrim(v);
   });
 
   function loadImageAsUrl() {

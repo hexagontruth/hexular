@@ -6,6 +6,7 @@ class Action {
     this.model = board.model;
     this.coords = [];
     this.board.clearFg();
+    this.buffer = new Map();
   }
 
   start() {}
@@ -13,12 +14,14 @@ class Action {
   end() {}
 
   _setCells(...cells) {
+    let cur = new Map();
     for (let cell of cells) {
-      if (this.board.fgAdapter.stateBuffer.get(cell) == this.setState)
+      if (this.buffer.get(cell) == this.setState)
         continue;
-      this.board.fgAdapter.stateBuffer.set(cell, this.setState)
-      this.board.fgAdapter.drawBuffer(cell);
+      this.buffer.set(cell, this.setState)
+      cur.set(cell, this.setState);
     }
+    this.board.fgAdapter.drawStateMap(cur);
   }
 
   _selectWithSize(arg) {
@@ -28,13 +31,13 @@ class Action {
   }
 
   _applyBuffer() {
-    if (this.board.fgAdapter.stateBuffer.size > 0) {
-      let cells = Array.from(this.board.fgAdapter.stateBuffer.keys());
+    if (this.buffer.size > 0) {
+      let cells = Array.from(this.buffer.keys());
       this.board.newHistoryState();
-      this.board.fgAdapter.stateBuffer.forEach((state, cell) => {
+      this.buffer.forEach((state, cell) => {
         cell.setState(state);
       });
-      this.board.fgAdapter.stateBuffer.clear();
+      this.buffer.clear();
       this.board.clearFg();
       this.board.runHooks('paint', cells);
       this.board.draw();
@@ -181,7 +184,7 @@ class LineAction extends PaintAction {
 
   _bufferCells(cells) {
     this.board.clearFg();
-    this.board.fgAdapter.stateBuffer.clear();
+    this.buffer.clear();
     cells.forEach((cell) => {
       this._setCells(cell);
     })

@@ -46,7 +46,7 @@ const Themes = (() => {
   ]);
 
   let themes = {
-    light: {
+    default: {
     },
     smooth: {
       cellGap: -0.5,

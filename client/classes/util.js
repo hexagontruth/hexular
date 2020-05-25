@@ -51,6 +51,7 @@ const Util = (() => {
   };
 
   Util.findDuplicateSteps = (radius=7, cell=Board.instance.debugSelected) => {
+    cell = cell || Board.model.cells[0];
     let cells = Hexular.util.hexWrap(cell, radius);
     let map = window.stateMap = new Map();
     let dups = window.duplicates = [];
@@ -70,6 +71,37 @@ const Util = (() => {
     Board.instance.addHook('step', fn);
     return [map, dups];
   };
+
+  Util.debugTimer = (log=true) => {
+    let intervals = window.debugIntervals = [];
+    let t;
+    let fn = () => {
+      let oldT = t;
+      t = Date.now();
+      if (oldT) {
+        let delta = t - oldT;
+        log && console.log(delta);
+        intervals.push(delta);
+      }
+    }
+    fn.debugTimer = true;
+    Board.instance.hooks.step = Board.instance.hooks.step.filter((e) => !e.run.debugTiger);
+    Board.instance.addHook('step', fn);
+    return intervals;
+  }
+
+  Util.indentTrim = (string) => {
+    let lines = string.split('\n');
+    let min = Infinity;
+    for (let line of lines) {
+      let indent = line.match(/^( *?)[^ ]+$/)
+      if (indent) {
+        min = Math.min(indent[1].length, min);
+      }
+    }
+    min = min < Infinity ? min : 0;
+    return lines.map((e) => e.substring(min)).filter((e) => e.length > 0).join('\n');
+  }
 
   Util.shallowPrettyJson = (data, maxLevels=2, indentText='  ') => {
     let json = JSON.stringify(data);

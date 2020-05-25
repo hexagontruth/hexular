@@ -8,11 +8,21 @@ class Modal {
     let title = this.modal.querySelector('.modal-title');
     if (title) {
       let closeBox = document.createElement('div');
-      closeBox.className = 'close-box icon-clear';
+      closeBox.className = 'modal-box close-box icon-clear';
       title.appendChild(closeBox);
       closeBox.onclick = (ev) => this.board.toggleModal();
       title.onmousedown = (ev) => this.board.translateModal([ev.pageX, ev.pageY]);
     }
+  }
+
+  addRestoreBox(fn) {
+    let title = this.modal.querySelector('.modal-title');
+    if (!title)
+      return;
+    let restoreBox = this.restoreBox = document.createElement('div');
+    restoreBox.className = 'modal-box restore-box icon-restore';
+    title && title.appendChild(restoreBox);
+    restoreBox.onclick = (ev) => fn(ev);
   }
 
   open() {

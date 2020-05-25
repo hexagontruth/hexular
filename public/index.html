@@ -164,10 +164,10 @@
             <button id="draw-filled-circle" class="icon-circle" title="Filled circle"></button>
             <button id="draw-outline-circle" class="icon-circle-outline" title="Outline circle"></button>
           </div>
-          <div class="group">
+          <div class="group" title="Timer interval (ms)">
             <label class="third">Interval:</label>
             <input type="range" id="interval-slider" min="5" max="1000" step="5"
-              value="60" list="interval-ticks" title="Timer interval (ms)"/>
+              value="60" list="interval-ticks"/>
             <datalist id="interval-ticks">
               <option>100</option>
               <option>125</option>
@@ -183,10 +183,10 @@
             </datalist>
             <label id="interval-indicator" class="indicator"></label>
           </div>
-          <div class="group">
+          <div class="group" title="Intermediate draw steps between model steps (used by plugins)">
             <label class="third">Draw steps:</label>
             <input type="range" id="draw-step-slider" min="1" max="60" step="1"
-              value="1" list="draw-step-ticks" title="Intermediate draw steps between model steps"/>
+              value="1" list="draw-step-ticks"/>
             <datalist id="draw-step-ticks">
               <option>1</option>
               <option>5</option>
@@ -197,10 +197,10 @@
             </datalist>
             <label id="draw-step-indicator" class="indicator"></label>
           </div>
-          <div class="group">
+          <div class="group" title="Fade last state color into current color over draw steps">
             <label class="third">Fade:</label>
             <input type="range" id="fade-index-slider" min="0" max="1" step="0.05"
-              value="1" list="fade-index-ticks" title="Intermediate draw steps between model steps"/>
+              value="1" list="fade-index-ticks"/>
             <datalist id="fade-index-ticks">
               <option>0</option>
               <option>0.25</option>
@@ -210,11 +210,11 @@
             </datalist>
             <label id="fade-indicator" class="indicator"></label>
           </div>
-          <div class="group">
-            <label class="third">Base scale:</label>
-            <input type="range" id="scale-slider" min="0.1" max="4" step="0.1"
-              value="60" list="scale-ticks" title="Default scale"/>
-            <datalist id="scale-ticks">
+          <div class="group" title="Default zoom on transform reset (R)">
+            <label class="third">Base zoom:</label>
+            <input type="range" id="zoom-slider" min="0.1" max="6" step="0.1"
+              value="60" list="zoom-ticks"/>
+            <datalist id="zoom-ticks">
               <option>0.1</option>
               <option>0.2</option>
               <option>0.3</option>
@@ -229,6 +229,23 @@
               <option>2</option>
               <option>2.5</option>
               <option>3</option>
+              <option>4</option>
+              <option>5</option>
+              <option>6</option>
+            </datalist>
+            <label id="zoom-indicator" class="indicator"></label>
+          </div>
+          <div class="group" title="Default pixel scale factor (higher is better but slower)">
+            <label class="third">Draw scale:</label>
+            <input type="range" id="scale-slider" min="0.5" max="4" step="0.25"
+              value="60" list="scale-ticks"/>
+            <datalist id="scale-ticks">
+              <option>0.5</option>
+              <option>1</option>
+              <option>1.5</option>
+              <option>2</option>
+              <option>3</option>
+              <option>4</option>
             </datalist>
             <label id="scale-indicator" class="indicator"></label>
           </div>

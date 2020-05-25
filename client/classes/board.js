@@ -64,6 +64,7 @@ class Board {
       msgIdx: 0,
       shift: false,
       configMenu: false,
+      altView: false,
       imageCapture: null,
       hooks: {
         incrementStep: [],
@@ -316,6 +317,7 @@ class Board {
     this.adapter.context.lineJoin = this.config.defaultJoin;
     this.config.clearOnDraw && this.adapter.clear();
     this.adapter.draw();
+    this.altView && this.drawFg();
     this.recorder && this.recorder.draw();
     this.drawPromise = null;
   }
@@ -531,16 +533,17 @@ class Board {
     }
   }
 
+  toggleAltView(state=!this.altView) {
+    this.altView = state;
+    this.selectCell();
+  }
+
   toggleMenu(state=!this.configMenu) {
     this.configMenu = state;
-    if (state) {
-      this.buttons.toggleMenu.classList.add('active');
-      this.menus.config.classList.remove('hidden')
-    }
-    else {
-      this.buttons.toggleMenu.classList.remove('active');
-      this.menus.config.classList.add('hidden')
-    }
+    this.buttons.toggleMenu.classList.toggle('active', state);
+    this.menus.config.classList.toggle('hidden', !state);
+    if (!state)
+      this.altView = false;
   }
 
   toggleModal(modal) {
@@ -853,8 +856,8 @@ class Board {
     // Canvas stuff
     let logicalWidth = this.config.logicalWidth;
     let logicalHeight = this.config.logicalHeight;
-    this.canvasWidth = window.innerWidth * this.config.scaleFactor;
-    this.canvasHeight = window.innerHeight * this.config.scaleFactor;
+    this.canvasWidth = window.innerWidth * this.config.pixelScaleFactor;
+    this.canvasHeight = window.innerHeight * this.config.pixelScaleFactor;
     this.translateX = 0;
     this.translateY = 0;
     this.scaleX = 1;
@@ -869,7 +872,7 @@ class Board {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.globalCompositeOperation = gco;
     });
-    this.scaleTo(this.config.defaultScale);
+    this.scaleTo(this.config.zoom);
     // Resize
     let [oldX, oldY] = [this.scaleX, this.scaleY];
     this.scaleX = this.canvasWidth / window.innerWidth;
@@ -902,7 +905,7 @@ class Board {
       ctx.scale(scale, scale);
     });
     this.draw();
-    this.drawSelectedCell();
+    this.drawFg();
   }
 
   scaleTo(target, interval=0, step=50, timingFn) {
@@ -1060,10 +1063,10 @@ class Board {
     // Board things
     if (ev.key == 'Alt' || ev.key == 'Meta') {
       if (ev.type == 'keydown') {
-        this.toggleMenu(true);
+        this.toggleAltView(true);
       }
       else if (ev.type == 'keyup') {
-        this.toggleMenu(false);
+        this.toggleAltView(false);
       }
     }
     if (ev.key == 'Shift') {
@@ -1251,10 +1254,13 @@ class Board {
       // Close config menu if applicable;
       if (this.configMenu) {
         let target =  ev.target;
-        while (target !=  this.buttons.toggleMenu && target.parentNode && (target = target.parentNode));
+        while (target != this.buttons.toggleMenu && target.parentNode && (target = target.parentNode));
         if (target != this.buttons.toggleMenu) {
           this.toggleMenu(false);
         }
+      }
+      if (this.altView) {
+        this.toggleAltView(false);
       }
       if (ev.target == this.fgCanvas) {
         if (this.modal) {
@@ -1375,16 +1381,19 @@ class Board {
   selectCell(coord) {
     let lastCell = this.selected;
     this.selected = coord && this.cellAt(coord);
-    this.drawSelectedCell();
+    this.drawFg();
     if (lastCell != this.selected)
       this.runHooks('select', this.selected);
   }
 
-  drawSelectedCell() {
+  drawFg() {
     let cell = this.selected;
     if (!this.action) {
       this.clearFg();
-      if (cell) {
+      if (this.altView) {
+        this.fgAdapter.drawCells();
+      }
+      else if (cell) {
         let color = this.config.selectColor;
         let width = this.config.selectWidth;
         width = (width + width / this.scale) / 2;

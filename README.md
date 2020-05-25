@@ -11,6 +11,8 @@ An extensible hexagonal CA platform.
 
 For more information on the hexagonal consciousness movement, visit [Hexagon.life](https://hexagon.life/).
 
+To view some examples of media created with Hexular, see our [YouTube channel](https://www.youtube.com/channel/UCf-ml0bmw7OJZHZCIB0cx3g).
+
 ## Contents
 
   - [Overview](#overview)
@@ -35,7 +37,7 @@ Hexular is an extensible hexagonal cellular automaton (CA) platform for JavaScri
 - Hexular Core (hexular.js) &mdash; A core automaton management engine coupled with an extensible topological interface
 - Hexular Studio &mdash; A browser-based platform for designing, composing, recording, and exporting hexagonal CAs
 
-The latter evolved out of what was originally a fairly lightweight "demo" page for what was intended to be, at its core, an interface-agnostic CA engine. At this point the two components should probably either be integrated more fully, or spun off into truly separate projects, but having effectively reached the limits of what I can do in contemporary browsers vis-a-vis this sort of compute-bound work, I'm not sure it's worth sinking too much additional effort into. The next iteration of this project will probably be a desktop app written in e.g. Python. There may or may not be a web client front-end for that, but I am eager to move the actual automaton computation to a backend system of some sort that more fully leverages e.g. threading, modern GPU capabilities, etc.
+The latter evolved out of a fairly lightweight "demo" page for what was intended to be, at its core, an interface-agnostic CA engine. At this point the two components should probably be either integrated more fully or spun off into truly separate projects, but having effectively reached the limits of what I can do in contemporary browsers vis-a-vis this sort of compute-bound work, I'm not sure it's worth sinking too much additional effort into. The next iteration of this project will probably be a desktop app written in e.g. Python. There may or may not be a web client front-end for that, but I'm eager to move the actual automaton computation to a backend system of some sort that more fully leverages e.g. threading, modern GPU capabilities, etc.
 
 ## Hexular Core
 
@@ -122,7 +124,7 @@ Cell rules &mdash; functions that take in the cell as an argument and return a n
         let model = Hexular();
         model.cells[0].state = 5;
         model.rules[5] = (cell) => cell.state + 1;
-        model.step;
+        model.step();
         console.log(model.cells[0].state) // 6
 
 A valid rule is a function that takes a cell as an argument and returns a value corresponding to the next desired state. Hexular is, again, generally opinionated towards natural number states, but they can in principle be any value that can be coerced into a JavaScript object key. The rule function has access to the cell's current state, its neighbors' states (through [`cell.nbrs`](Cell.html#nbrs) and the neighborhood-bound helper functions), and by extension the state of every cell in the grid &mdash; though in principle CAs should only consider cell states within some finite local neighborhood. Larger neighborhoods can be extracted as necessary via the [`Hexular.util.hexWrap`](Hexular.util.html#.hexWrap) function, which returns an arbitrarily-large spiral-wrapped array of neighbors around a given cell.
@@ -166,7 +168,7 @@ Please see the relevant [documentation](Hexular.util.html#.ruleBuilder) for addi
 
 #### Template Rulebuilder
 
-A more advanced rulebuilding function, suitable for larger neighborhoods, is provided by the [`Hexular.util.ruleBuilder`](Hexular.util.html#.templateRuleBuilder) function. It takes only one argument, an array of "templates" (the term is perhaps not apt here, but was chosen to avoid confusion with "rules" itself), each defining a set of neighbor state conditions and a resulting modification to the cell state.
+A more advanced rulebuilding function, suitable for larger neighborhoods, is provided by the [`Hexular.util.templateRuleBuilder`](Hexular.util.html#.templateRuleBuilder) function. It takes only one argument, an array of templates, each defining a set of neighbor state conditions and a resulting modification to the cell state ("templates" is perhaps not the best descriptor for these objects, but was chosen to avoid confusion with the "rules" themselves).
 
 By default each template consists of the following values:
 
@@ -181,11 +183,11 @@ By default each template consists of the following values:
           states: Array(19).fill(-1),
         }
 
-The salient difference from the simple rulebuilder described above is that the `states` attribute here consists of a 19-element array of ternary values &mdash; `-1`, `0`, or `1` &mdash; where `-1` means we don't care about the value of the neighbor at this position, `0` means it must be inactive, and `1`means it must be active. Activation is determined by the `matchFn` function, which takes three arguments, corresponding to the neighbor's state, the home cell's original state, and the state as modified by previous templates in this rule (but not yet applied). The default is to simply evaluate the boolean value of the neighbor's state itself &mdash; i.e., all nonzero states are active. We can change this to e.g. `(c, a, b) => c && c >= a` if we want to only match states that are equal to or greater than the home cell's current value, similar to the `rel` attribute in `ruleBuilder`.
+The salient difference from the simple rulebuilder described above is that the `states` attribute here consists of a 19-element array of ternary values &mdash; `-1`, `0`, or `1` &mdash; where `-1` means we don't care about the value of the neighbor at this position, `0` means it must be inactive, and `1` means it must be active. Activation is determined by the `matchFn` function, which takes three arguments, corresponding to the neighbor's state, the home cell's original state, and the state as modified by previous templates in this rule (but not yet applied). The default is to simply evaluate the boolean value of the neighbor's state itself &mdash; i.e., all nonzero states are active. We can change this to e.g. `(c, a, b) => c && c >= a` if we want to only match states that are equal to or greater than the home cell's current value, similar to the `rel` attribute in `ruleBuilder`.
 
 The `applyFn` function likewise defines whether to invoke the template at all based on original and current home cell states. We can use this to make sure only one template of several is applied (i.e., to prevent a rule state from being, say, incremented multiple times in a single step) by changing this, under most circumstances, to `(a, b) => a == b` (though this will not always work depending on how other templates adjust the state).
 
-It is possible to make needlessly complex rules with this rulebuilder, though not necessarily quickly or ergonomically. It is however useful for defining rules that require a consideration of some portion of the full 19-cell state not available to the simple rulebuilder.
+It is possible to make needlessly complex rules with this rulebuilder, though not necessarily quickly or ergonomically. It is however also useful for defining rules that require a consideration of some portion of the full 19-cell neighborhood state, or that require the prioritized application of certain neighborhood patterns over others.
 
 There are GUI implementations of both rulebuilders in the Hexular Studio interface, and it's probably easiest to get a feel for how they work there.
 
@@ -233,7 +235,7 @@ Control flow, state, and configuration buttons run along the along the top of th
   - Start/Pause (Tab) &mdash; Step model at, by default, 125ms intervals (this may be slower for larger grids or when certain custom drawing functions are used, depending on hardware, and can be set via the draw configuration modal)
   - Step (Space) &mdash; Perform individual step
   - Clear (Ctrl+C)
-  - Configuration menu toggle (Alt)
+  - Configuration menu toggle
     - Model configuration modal (Ctrl+G)
     - Draw configuration modal (Ctrl+Y)
     - Theme modal (Ctrl+E)
@@ -272,7 +274,7 @@ Tool buttons and various editorial options run along the bottom:
   - Re-scale and re-center model (R)
   - Toggle color mode (C) &mdash; Override the default color assignment on paint actions with specific state colors
 
-Holding `<Shift>` will temporarily select the move tool by default, or whatever tool is given in the `Board.config.shiftTool` parameter. Holding `<Alt>` temporarily expands the configuration menu. `<Escape>` toggles button and coordinate indicator visibility, or conversely closes any open modal. Scrolling a central mouse wheel or pinch zooming will scale the canvas.
+Holding `<Shift>` will temporarily select the move tool by default, or whatever tool is given in the `Board.config.shiftTool` parameter. Holding `<Alt>` temporarily displays the default (pointy) hex for each cell state &mdash; useful when using plugins or drawing settings that may temporarily occult the drawn model state. `<Escape>` toggles button and coordinate indicator visibility, or conversely closes any open modal. Scrolling a central mouse wheel or pinch zooming will scale the canvas.
 
 Cell states are changed by clicking and dragging with a paint tool selected. By default, the painting state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo `Board.instance.model.numStates`. Right clicking, conversely, decrements the cell state by one, and ctrl+clicking clears to the ground state. Setting a specific state color can be effected by toggling the color mode button on the bottom right (C).
 
@@ -282,7 +284,7 @@ Additional options can be set or configured via the various modals. (Note that t
 
 ### Model configuration
 
-The somewhat-confusingly named model configuration modal (Ctrl+G) was the original and in some senses still principle configuration modal exposed by Hexular Studio. It consists of the following fields:
+The somewhat-confusingly named model configuration modal (Ctrl+G) was the original and in some senses still principal configuration modal exposed by Hexular Studio. It consists of the following fields:
 
   - Preset dropdown menu and import/export buttons
   - Slider input to set the number of available states, with a default range of 2-12
@@ -304,7 +306,7 @@ Rules are saved to local storage and thus exportable as part of the overall conf
 
 Basic colors, spacing, and blending options can be set in the theme modal (Ctrl+E). Themes work generally the same as presets in the model configuration modal, and can be saved, etc. They are exported as part of the overall configuration export (Ctrl+Alt+S or Ctrl+Meta+S).
 
-The draw configuration modal (Ctrl+H) allows us to set several parameters related to how cells are drawn on screen, including which if any simple shape to draw for each cell, as well as the default zoom, play step interval, and number of intermediate "drawing steps" to perform between each model step. This allows e.g. complex animations with fading colors, animated shapes, etc., to occupy our minds as we enjoy the procession of our automata.
+The draw configuration modal (Ctrl+H) allows us to set additional parameters related to how cells are drawn on screen, including which if any simple shape to draw for each cell, as well as the default zoom, play step interval, and number of intermediate "drawing steps" to perform between each model step. This allows e.g. complex animations with fading colors, animated shapes, etc., to occupy our minds as we enjoy the procession of our automata. The "draw scale" setting principally affects exported video and images, and should typically be kept at `1` unless these features are being used, as larger numbers will slow down drawing significantly.
 
 #### Plugins
 
@@ -312,7 +314,7 @@ Animations and other auxiliary effects can be configured via the plugin system a
 
 Most plugins describe various types of animations, &c., but the `MidiMap` plugin also allows us to play music on a hardware or software MIDI synthesizer, or to set cell states via a MIDI controller (albeit somewhat weirdly): we can select MIDI input and output devices, map individual channels on each device to functions defining how a note should be played or interpreted, and configure the range, stride, and location of the note mapping.
 
-The plugin system evolved from one-off animation experiments I developed while composing videos using Hexular Studio. Many of them to be frank don't make a lot of sense at this point &mdash; there's a lot of overlapping-yet-slightly-different behavior between many of them. The source code for these plugins &mdash; located sensibly in the "/plugins" directory &mdash; is a good place to start if you're interested in writing your own or extending the built-in ones.
+The plugin system evolved from one-off animation experiments I developed while composing videos using earlier versions of Hexular Studio. Many, to be frank, don't make a lot of sense at this point &mdash; there's a lot of overlapping-yet-slightly-different behavior between them. The source code for these plugins &mdash; located sensibly in the "/plugins" directory &mdash; is a good place to start if you're interested in writing your own or extending the built-in ones.
 
 Of particular note here are the increasingly-misnamed "pivot" attributes available in most animation plugins. These fields can take one of the following three forms:
 

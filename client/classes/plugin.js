@@ -112,7 +112,7 @@
       throw e;
     }
     if (typeof settingsObj == 'object') {
-      this.settingsString = this.trim(settingsString);
+      this.settingsString = Util.indentTrim(settingsString);
       this.settings = settingsObj;
       this.setStateLists();
       this._onSaveSettings && this._onSaveSettings();
@@ -138,19 +138,6 @@
     ctx.globalCompositeOperation = this.settings.blendMode;
     this.model.eachCell(fn);
     ctx.restore();
-  }
-
-  trim(string) {
-    let lines = string.split('\n');
-    let min = Infinity;
-    for (let line of lines) {
-      let indent = line.match(/^( *?)[^ ]+$/)
-      if (indent) {
-        min = Math.min(indent[1].length, min);
-      }
-    }
-    min = min < Infinity ? min : 0;
-    return lines.map((e) => e.substring(min)).filter((e) => e.length > 0).join('\n');
   }
 
   getPivot(q, p=0.5) {

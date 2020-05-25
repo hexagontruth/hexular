@@ -6,7 +6,6 @@ class CanvasAdapter {
       model: null,
       board: null,
       context: null,
-      stateBuffer: new Map(),
     };
     Hexular.util.merge(this, defaults, ...args);
     Hexular.HexError.validateKeys(this, 'model', 'board', 'context');
@@ -36,13 +35,24 @@ class CanvasAdapter {
     this.context.restore();
   }
 
-  drawBuffer(cell) {
-    let state = this.stateBuffer.get(cell);
-    let color = this.config.fillColors[state] || this.config.defaultColor;
-    color = color == Color.t ? this.config.modelBackground : Color([color[0], color[1], color[2], 0xff]);
-    this.context.fillStyle = color;
-    this.drawPath(cell);
-    this.context.fill();
+  drawCells(cells=this.model.getCells()) {
+    cells.forEach((cell) => {
+      let state = cell.state;
+      let color = this.config.fillColors[state] || this.config.defaultColor;
+      this.context.fillStyle = color;
+      this.drawPath(cell);
+      this.context.fill();
+    });
+  }
+
+  drawStateMap(map) {
+    map.forEach((state, cell) => {
+      let color = this.config.fillColors[state] || this.config.defaultColor;
+      color = color[3] == 0 ? this.config.modelBackground : Color([color[0], color[1], color[2], 0xff]);
+      this.context.fillStyle = color;
+      this.drawPath(cell);
+      this.context.fill();
+    });
   }
 
   drawCircle(cell, radius=this.config.innerRadius) {

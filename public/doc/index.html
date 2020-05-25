@@ -50,6 +50,7 @@
 <li><a href="https://github.com/hexagrahamaton/hexular/">GitHub</a></li>
 </ul>
 <p>For more information on the hexagonal consciousness movement, visit <a href="https://hexagon.life/">Hexagon.life</a>.</p>
+<p>To view some examples of media created with Hexular, see our <a href="https://www.youtube.com/channel/UCf-ml0bmw7OJZHZCIB0cx3g">YouTube channel</a>.</p>
 <h2 id="contents">Contents</h2>
 <ul>
 <li><a href="#overview">Overview</a></li>
@@ -79,7 +80,7 @@
 <li>Hexular Core (hexular.js) — A core automaton management engine coupled with an extensible topological interface</li>
 <li>Hexular Studio — A browser-based platform for designing, composing, recording, and exporting hexagonal CAs</li>
 </ul>
-<p>The latter evolved out of what was originally a fairly lightweight &quot;demo&quot; page for what was intended to be, at its core, an interface-agnostic CA engine. At this point the two components should probably either be integrated more fully, or spun off into truly separate projects, but having effectively reached the limits of what I can do in contemporary browsers vis-a-vis this sort of compute-bound work, I'm not sure it's worth sinking too much additional effort into. The next iteration of this project will probably be a desktop app written in e.g. Python. There may or may not be a web client front-end for that, but I am eager to move the actual automaton computation to a backend system of some sort that more fully leverages e.g. threading, modern GPU capabilities, etc.</p>
+<p>The latter evolved out of a fairly lightweight &quot;demo&quot; page for what was intended to be, at its core, an interface-agnostic CA engine. At this point the two components should probably be either integrated more fully or spun off into truly separate projects, but having effectively reached the limits of what I can do in contemporary browsers vis-a-vis this sort of compute-bound work, I'm not sure it's worth sinking too much additional effort into. The next iteration of this project will probably be a desktop app written in e.g. Python. There may or may not be a web client front-end for that, but I'm eager to move the actual automaton computation to a backend system of some sort that more fully leverages e.g. threading, modern GPU capabilities, etc.</p>
 <h2 id="hexular-core">Hexular Core</h2>
 <p>Hexular Core can be used in any e.g. Node.js project via <code>npm install -s hexular</code>, or by simply copying the file <code>hexular/hexular.js</code> from the project directory. I'm under no illusions that this will actually be useful to anyone — nobody in their right mind would choose to implement a hexagonal CA in JavaScript unless they had to.</p>
 <p>The structure of Hexular has undergone several changes since its somewhat halfassed inception in 2017, but in broad terms it is a file that returns a single <code>Hexular</code> function — either via <code>module.exports</code> when available or via assignment to a global constant of the same name. This function can be called to instantiate new automata, and serves as a self-contained namespace for a variety of subsidiary classes and utility functions. The simplest usage in Node.js, using all default settings, would be as follows:</p>
@@ -143,7 +144,7 @@
 <pre><code>    let model = Hexular();
     model.cells[0].state = 5;
     model.rules[5] = (cell) =&gt; cell.state + 1;
-    model.step;
+    model.step();
     console.log(model.cells[0].state) // 6
 </code></pre>
 <p>A valid rule is a function that takes a cell as an argument and returns a value corresponding to the next desired state. Hexular is, again, generally opinionated towards natural number states, but they can in principle be any value that can be coerced into a JavaScript object key. The rule function has access to the cell's current state, its neighbors' states (through <a href="Cell.html#nbrs"><code>cell.nbrs</code></a> and the neighborhood-bound helper functions), and by extension the state of every cell in the grid — though in principle CAs should only consider cell states within some finite local neighborhood. Larger neighborhoods can be extracted as necessary via the <a href="Hexular.util.html#.hexWrap"><code>Hexular.util.hexWrap</code></a> function, which returns an arbitrarily-large spiral-wrapped array of neighbors around a given cell.</p>
@@ -177,7 +178,7 @@
 <p>Note this would be a somewhat useless rule under most circumstances.</p>
 <p>Please see the relevant <a href="Hexular.util.html#.ruleBuilder">documentation</a> for additional details on this function.</p>
 <h4 id="template-rulebuilder">Template Rulebuilder</h4>
-<p>A more advanced rulebuilding function, suitable for larger neighborhoods, is provided by the <a href="Hexular.util.html#.templateRuleBuilder"><code>Hexular.util.ruleBuilder</code></a> function. It takes only one argument, an array of &quot;templates&quot; (the term is perhaps not apt here, but was chosen to avoid confusion with &quot;rules&quot; itself), each defining a set of neighbor state conditions and a resulting modification to the cell state.</p>
+<p>A more advanced rulebuilding function, suitable for larger neighborhoods, is provided by the <a href="Hexular.util.html#.templateRuleBuilder"><code>Hexular.util.templateRuleBuilder</code></a> function. It takes only one argument, an array of templates, each defining a set of neighbor state conditions and a resulting modification to the cell state (&quot;templates&quot; is perhaps not the best descriptor for these objects, but was chosen to avoid confusion with the &quot;rules&quot; themselves).</p>
 <p>By default each template consists of the following values:</p>
 <pre><code>    {
       applyFn: (a, b) =&gt; 1,
@@ -190,9 +191,9 @@
       states: Array(19).fill(-1),
     }
 </code></pre>
-<p>The salient difference from the simple rulebuilder described above is that the <code>states</code> attribute here consists of a 19-element array of ternary values — <code>-1</code>, <code>0</code>, or <code>1</code> — where <code>-1</code> means we don't care about the value of the neighbor at this position, <code>0</code> means it must be inactive, and <code>1</code>means it must be active. Activation is determined by the <code>matchFn</code> function, which takes three arguments, corresponding to the neighbor's state, the home cell's original state, and the state as modified by previous templates in this rule (but not yet applied). The default is to simply evaluate the boolean value of the neighbor's state itself — i.e., all nonzero states are active. We can change this to e.g. <code>(c, a, b) =&gt; c &amp;&amp; c &gt;= a</code> if we want to only match states that are equal to or greater than the home cell's current value, similar to the <code>rel</code> attribute in <code>ruleBuilder</code>.</p>
+<p>The salient difference from the simple rulebuilder described above is that the <code>states</code> attribute here consists of a 19-element array of ternary values — <code>-1</code>, <code>0</code>, or <code>1</code> — where <code>-1</code> means we don't care about the value of the neighbor at this position, <code>0</code> means it must be inactive, and <code>1</code> means it must be active. Activation is determined by the <code>matchFn</code> function, which takes three arguments, corresponding to the neighbor's state, the home cell's original state, and the state as modified by previous templates in this rule (but not yet applied). The default is to simply evaluate the boolean value of the neighbor's state itself — i.e., all nonzero states are active. We can change this to e.g. <code>(c, a, b) =&gt; c &amp;&amp; c &gt;= a</code> if we want to only match states that are equal to or greater than the home cell's current value, similar to the <code>rel</code> attribute in <code>ruleBuilder</code>.</p>
 <p>The <code>applyFn</code> function likewise defines whether to invoke the template at all based on original and current home cell states. We can use this to make sure only one template of several is applied (i.e., to prevent a rule state from being, say, incremented multiple times in a single step) by changing this, under most circumstances, to <code>(a, b) =&gt; a == b</code> (though this will not always work depending on how other templates adjust the state).</p>
-<p>It is possible to make needlessly complex rules with this rulebuilder, though not necessarily quickly or ergonomically. It is however useful for defining rules that require a consideration of some portion of the full 19-cell state not available to the simple rulebuilder.</p>
+<p>It is possible to make needlessly complex rules with this rulebuilder, though not necessarily quickly or ergonomically. It is however also useful for defining rules that require a consideration of some portion of the full 19-cell neighborhood state, or that require the prioritized application of certain neighborhood patterns over others.</p>
 <p>There are GUI implementations of both rulebuilders in the Hexular Studio interface, and it's probably easiest to get a feel for how they work there.</p>
 <h3 id="filters">Filters</h3>
 <p>Filters allow us to, e.g., perform a modulo operation on new cell states, to keep them confined to a certain range. This was historically the default behavior, but has now been spun out into a separate functionality that must be added explicitly to a new model via the <a href="HookList.html#add"><code>model.filters.add(fn)</code></a> method:</p>
@@ -229,7 +230,7 @@
 <li>Start/Pause (Tab) — Step model at, by default, 125ms intervals (this may be slower for larger grids or when certain custom drawing functions are used, depending on hardware, and can be set via the draw configuration modal)</li>
 <li>Step (Space) — Perform individual step</li>
 <li>Clear (Ctrl+C)</li>
-<li>Configuration menu toggle (Alt)
+<li>Configuration menu toggle
 <ul>
 <li>Model configuration modal (Ctrl+G)</li>
 <li>Draw configuration modal (Ctrl+Y)</li>
@@ -271,12 +272,12 @@
 <li>Re-scale and re-center model (R)</li>
 <li>Toggle color mode (C) — Override the default color assignment on paint actions with specific state colors</li>
 </ul>
-<p>Holding <code>&lt;Shift&gt;</code> will temporarily select the move tool by default, or whatever tool is given in the <code>Board.config.shiftTool</code> parameter. Holding <code>&lt;Alt&gt;</code> temporarily expands the configuration menu. <code>&lt;Escape&gt;</code> toggles button and coordinate indicator visibility, or conversely closes any open modal. Scrolling a central mouse wheel or pinch zooming will scale the canvas.</p>
+<p>Holding <code>&lt;Shift&gt;</code> will temporarily select the move tool by default, or whatever tool is given in the <code>Board.config.shiftTool</code> parameter. Holding <code>&lt;Alt&gt;</code> temporarily displays the default (pointy) hex for each cell state — useful when using plugins or drawing settings that may temporarily occult the drawn model state. <code>&lt;Escape&gt;</code> toggles button and coordinate indicator visibility, or conversely closes any open modal. Scrolling a central mouse wheel or pinch zooming will scale the canvas.</p>
 <p>Cell states are changed by clicking and dragging with a paint tool selected. By default, the painting state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo <code>Board.instance.model.numStates</code>. Right clicking, conversely, decrements the cell state by one, and ctrl+clicking clears to the ground state. Setting a specific state color can be effected by toggling the color mode button on the bottom right (C).</p>
 <p>The basic flow of the program is to set one's preferred state using either the mouse or by importing a saved file, setting desired rules, &amp;c. in the model configuration modal, and then either starting the timer (tab) or incrementing the state one step at a time (space).</p>
 <p>Additional options can be set or configured via the various modals. (Note that the modals aren't, at this point, strictly modal, as I've found it convenient to allow an automaton to be e.g. stopped and started while a &quot;modal&quot; is open. But the name remains as a sort of vestigial taxonomic artifact.)</p>
 <h3 id="model-configuration">Model configuration</h3>
-<p>The somewhat-confusingly named model configuration modal (Ctrl+G) was the original and in some senses still principle configuration modal exposed by Hexular Studio. It consists of the following fields:</p>
+<p>The somewhat-confusingly named model configuration modal (Ctrl+G) was the original and in some senses still principal configuration modal exposed by Hexular Studio. It consists of the following fields:</p>
 <ul>
 <li>Preset dropdown menu and import/export buttons</li>
 <li>Slider input to set the number of available states, with a default range of 2-12</li>
@@ -292,11 +293,11 @@
 <p>Rules are saved to local storage and thus exportable as part of the overall configuration, but rules are serialized/deserialized on storage and will lose access to any e.g. closure properties. Thus it is best to not define rules that rely on anything beyond the cell passed into them. (An exception to this is any rule created by either of the two rulebuilder functions, but these are serialized and restored according to a specific pattern.)</p>
 <h3 id="theming-and-drawing">Theming and drawing</h3>
 <p>Basic colors, spacing, and blending options can be set in the theme modal (Ctrl+E). Themes work generally the same as presets in the model configuration modal, and can be saved, etc. They are exported as part of the overall configuration export (Ctrl+Alt+S or Ctrl+Meta+S).</p>
-<p>The draw configuration modal (Ctrl+H) allows us to set several parameters related to how cells are drawn on screen, including which if any simple shape to draw for each cell, as well as the default zoom, play step interval, and number of intermediate &quot;drawing steps&quot; to perform between each model step. This allows e.g. complex animations with fading colors, animated shapes, etc., to occupy our minds as we enjoy the procession of our automata.</p>
+<p>The draw configuration modal (Ctrl+H) allows us to set additional parameters related to how cells are drawn on screen, including which if any simple shape to draw for each cell, as well as the default zoom, play step interval, and number of intermediate &quot;drawing steps&quot; to perform between each model step. This allows e.g. complex animations with fading colors, animated shapes, etc., to occupy our minds as we enjoy the procession of our automata. The &quot;draw scale&quot; setting principally affects exported video and images, and should typically be kept at <code>1</code> unless these features are being used, as larger numbers will slow down drawing significantly.</p>
 <h4 id="plugins">Plugins</h4>
 <p>Animations and other auxiliary effects can be configured via the plugin system also exposed in the theme modal. Plugins are configurable via a JavaScript object that is edited and saved in a free-form text field. These settings are fully-evaluable objects, not JSON strings, and can thus contain functions, employ global <code>Math</code> functions, etc.</p>
 <p>Most plugins describe various types of animations, &amp;c., but the <code>MidiMap</code> plugin also allows us to play music on a hardware or software MIDI synthesizer, or to set cell states via a MIDI controller (albeit somewhat weirdly): we can select MIDI input and output devices, map individual channels on each device to functions defining how a note should be played or interpreted, and configure the range, stride, and location of the note mapping.</p>
-<p>The plugin system evolved from one-off animation experiments I developed while composing videos using Hexular Studio. Many of them to be frank don't make a lot of sense at this point — there's a lot of overlapping-yet-slightly-different behavior between many of them. The source code for these plugins — located sensibly in the &quot;/plugins&quot; directory — is a good place to start if you're interested in writing your own or extending the built-in ones.</p>
+<p>The plugin system evolved from one-off animation experiments I developed while composing videos using earlier versions of Hexular Studio. Many, to be frank, don't make a lot of sense at this point — there's a lot of overlapping-yet-slightly-different behavior between them. The source code for these plugins — located sensibly in the &quot;/plugins&quot; directory — is a good place to start if you're interested in writing your own or extending the built-in ones.</p>
 <p>Of particular note here are the increasingly-misnamed &quot;pivot&quot; attributes available in most animation plugins. These fields can take one of the following three forms:</p>
 <ul>
 <li>A single real number n where <code>0 &lt;= n &lt;= 1</code>, e.g. <code>0.5</code></li>

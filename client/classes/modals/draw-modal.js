@@ -23,10 +23,10 @@ class DrawModal extends Modal {
     this.drawStepIndicator = document.querySelector('#draw-step-indicator');
     this.fadeIndex = document.querySelector('#fade-index-slider');
     this.fadeIndicator = document.querySelector('#fade-indicator');
-    this.defaultScale = document.querySelector('#scale-slider');
-    this.defaultScaleIndicator = document.querySelector('#scale-indicator');
-    this.scaleMin = parseFloat(this.defaultScale.min);
-    this.scaleMax = parseFloat(this.defaultScale.max);
+    this.zoom = document.querySelector('#zoom-slider');
+    this.zoomIndicator = document.querySelector('#zoom-indicator');
+    this.scaleFactor = document.querySelector('#scale-slider');
+    this.scaleIndicator = document.querySelector('#scale-indicator');
     this.selectPlugin = document.querySelector('#select-plugin').select;
     this.addPlugin = document.querySelector('#add-plugin');
     this.pluginList = document.querySelector('#plugin-list');
@@ -39,9 +39,22 @@ class DrawModal extends Modal {
     this.interval.oninput = (ev) => this.config.setInterval(this.interval.value);
     this.drawStepInterval.oninput = (ev) => this.config.setDrawStepInterval(this.drawStepInterval.value);
     this.fadeIndex.oninput = (ev) => this.config.setFadeIndex(this.fadeIndex.value);
-    this.defaultScale.oninput = (ev) => this.config.setDefaultScale(this.defaultScale.value);
+    this.zoom.oninput = (ev) => this.config.setZoom(this.zoom.value);
+    this.scaleFactor.oninput = (ev) => this.config.setScaleFactor(this.scaleFactor.value);
     this.selectPlugin.onchange = (ev) => this.updatePlugins();
     this.addPlugin.onclick = (ev) => this._addPlugin(this.selectPlugin.value);
+
+    this.addRestoreBox(() => {
+      this.config.setAutopause(true);
+      this.config.setClearOnDraw(true);
+      this.config.setDrawModelBackground(true);
+      this.config.resetOnDraw();
+      this.config.setInterval(Config.defaults.interval);
+      this.config.setDrawStepInterval(Config.defaults.drawStepInterval);
+      this.config.setFadeIndex(Config.defaults.fadeIndex);
+      this.config.setZoom(Config.defaults.zoom);
+      this.config.setScaleFactor(Config.defaults.scaleFactor);
+    });
   }
 
   reset() {
@@ -51,7 +64,7 @@ class DrawModal extends Modal {
     this.updateInterval();
     this.updateDrawStepInterval();
     this.updateFadeIndex();
-    this.updateDefaultScale();
+    this.updateZoom();
     this.updatePlugins();
   }
 
@@ -86,9 +99,14 @@ class DrawModal extends Modal {
     this.fadeIndicator.innerHTML = this.config.fadeIndex;
   }
 
-  updateDefaultScale(value) {
-    this.defaultScale.value = this.config.defaultScale;
-    this.defaultScaleIndicator.innerHTML = this.config.defaultScale;
+  updateZoom() {
+    this.zoom.value = this.config.zoom;
+    this.zoomIndicator.innerHTML = this.config.zoom;
+  }
+
+  updateScaleFactor() {
+    this.scaleFactor.value = this.config.scaleFactor;
+    this.scaleIndicator.innerHTML = this.config.scaleFactor;
   }
 
   _setOnDraw(fnName) {

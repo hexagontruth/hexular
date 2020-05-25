@@ -36,7 +36,13 @@ class ThemeModal extends Modal {
   }
 
   update() {
-    this.selectTheme.replace(Object.keys(this.config.themes).sort(), this.config.theme, 1);
+    let themeNames = Object.keys(this.config.themes).sort();
+    let defaultIdx = themeNames.indexOf('default');
+    if (defaultIdx > 0) {
+      themeNames.splice(defaultIdx, 1);
+      themeNames.unshift('default');
+    }
+    this.selectTheme.replace(themeNames, this.config.theme, 1);
     for (let i = 0; i < this.colors.length; i++) {
       let color = this.colors[i];
       if (i < this.config.maxNumStates)
