@@ -67,6 +67,7 @@
 <li><a href="#interface">Interface</a></li>
 <li><a href="#model-configuration">Model configuration</a></li>
 <li><a href="#theming-and-drawing">Theming and drawing</a></li>
+<li><a href="#plugins">Plugins</a></li>
 <li><a href="#simple-rulebuilder-2">Simple Rulebuilder</a></li>
 <li><a href="#template-rulebuilder-2">Template Rulebuilder</a></li>
 <li><a href="#additional-options">Additional options</a></li>
@@ -233,13 +234,13 @@
 <li>Configuration menu toggle
 <ul>
 <li>Model configuration modal (Ctrl+G)</li>
-<li>Draw configuration modal (Ctrl+Y)</li>
 <li>Theme modal (Ctrl+E)</li>
+<li>Draw configuration modal (Ctrl+D)</li>
+<li>Plugin modal (Ctrl+Y)</li>
 <li>Resize modal (Ctrl+R)</li>
 <li>Simple Rulebuilder modal (Ctrl+B)</li>
 <li>Template Rulebuilder modal (Ctrl+H)</li>
 <li>Custom Code modal (Ctrl+F)</li>
-<li>Clear local settings (Ctrl+X)</li>
 </ul>
 </li>
 <li>Undo (Ctrl+Z)</li>
@@ -256,6 +257,7 @@
 <li>Save model (Ctrl+S)</li>
 <li>Load local settings (Ctrl+Alt+O)</li>
 <li>Save local settings (Ctrl+Alt+S)</li>
+<li>Clear local settings (Ctrl+X)</li>
 </ul>
 <p>Tool buttons and various editorial options run along the bottom:</p>
 <ul>
@@ -293,9 +295,9 @@
 <p>Rules are saved to local storage and thus exportable as part of the overall configuration, but rules are serialized/deserialized on storage and will lose access to any e.g. closure properties. Thus it is best to not define rules that rely on anything beyond the cell passed into them. (An exception to this is any rule created by either of the two rulebuilder functions, but these are serialized and restored according to a specific pattern.)</p>
 <h3 id="theming-and-drawing">Theming and drawing</h3>
 <p>Basic colors, spacing, and blending options can be set in the theme modal (Ctrl+E). Themes work generally the same as presets in the model configuration modal, and can be saved, etc. They are exported as part of the overall configuration export (Ctrl+Alt+S or Ctrl+Meta+S).</p>
-<p>The draw configuration modal (Ctrl+H) allows us to set additional parameters related to how cells are drawn on screen, including which if any simple shape to draw for each cell, as well as the default zoom, play step interval, and number of intermediate &quot;drawing steps&quot; to perform between each model step. This allows e.g. complex animations with fading colors, animated shapes, etc., to occupy our minds as we enjoy the procession of our automata. The &quot;draw scale&quot; setting principally affects exported video and images, and should typically be kept at <code>1</code> unless these features are being used, as larger numbers will slow down drawing significantly.</p>
-<h4 id="plugins">Plugins</h4>
-<p>Animations and other auxiliary effects can be configured via the plugin system also exposed in the theme modal. Plugins are configurable via a JavaScript object that is edited and saved in a free-form text field. These settings are fully-evaluable objects, not JSON strings, and can thus contain functions, employ global <code>Math</code> functions, etc.</p>
+<p>The draw configuration modal (Ctrl+D) allows us to set additional parameters related to how cells are drawn on screen, including which if any simple shape to draw for each cell, as well as the default zoom, play step interval, and number of intermediate &quot;drawing steps&quot; to perform between each model step. This allows e.g. complex animations with fading colors, animated shapes, etc., to occupy our minds as we enjoy the procession of our automata. The &quot;draw scale&quot; setting principally affects exported video and images, and should typically be kept at <code>1</code> unless these features are being used, as larger numbers will slow down drawing significantly.</p>
+<h3 id="plugins">Plugins</h3>
+<p>Animations and other auxiliary effects can be configured via the plugin modal (Ctrl+Y). Plugins are configurable via a JavaScript object that is edited and saved in a free-form text field. These settings are fully-evaluable objects, not JSON strings, and can thus contain functions, employ global <code>Math</code> functions, etc.</p>
 <p>Most plugins describe various types of animations, &amp;c., but the <code>MidiMap</code> plugin also allows us to play music on a hardware or software MIDI synthesizer, or to set cell states via a MIDI controller (albeit somewhat weirdly): we can select MIDI input and output devices, map individual channels on each device to functions defining how a note should be played or interpreted, and configure the range, stride, and location of the note mapping.</p>
 <p>The plugin system evolved from one-off animation experiments I developed while composing videos using earlier versions of Hexular Studio. Many, to be frank, don't make a lot of sense at this point — there's a lot of overlapping-yet-slightly-different behavior between them. The source code for these plugins — located sensibly in the &quot;/plugins&quot; directory — is a good place to start if you're interested in writing your own or extending the built-in ones.</p>
 <p>Of particular note here are the increasingly-misnamed &quot;pivot&quot; attributes available in most animation plugins. These fields can take one of the following three forms:</p>
