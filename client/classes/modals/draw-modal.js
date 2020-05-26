@@ -27,10 +27,6 @@ class DrawModal extends Modal {
     this.zoomIndicator = document.querySelector('#zoom-indicator');
     this.scaleFactor = document.querySelector('#scale-slider');
     this.scaleIndicator = document.querySelector('#scale-indicator');
-    this.selectPlugin = document.querySelector('#select-plugin').select;
-    this.addPlugin = document.querySelector('#add-plugin');
-    this.pluginList = document.querySelector('#plugin-list');
-    this.pluginEditor = document.querySelector('#plugin-editor');
 
     Object.entries(this.drawButtons).forEach(([fnName, button]) => button.onclick = () => this._setOnDraw(fnName));
     this.autopause.onclick = (ev) => this.config.setAutopause(!this.config.autopause);
@@ -41,8 +37,6 @@ class DrawModal extends Modal {
     this.fadeIndex.oninput = (ev) => this.config.setFadeIndex(this.fadeIndex.value);
     this.zoom.oninput = (ev) => this.config.setZoom(this.zoom.value);
     this.scaleFactor.oninput = (ev) => this.config.setScaleFactor(this.scaleFactor.value);
-    this.selectPlugin.onchange = (ev) => this.updatePlugins();
-    this.addPlugin.onclick = (ev) => this._addPlugin(this.selectPlugin.value);
 
     this.addRestoreBox(() => {
       this.config.setAutopause(true);
@@ -65,11 +59,6 @@ class DrawModal extends Modal {
     this.updateDrawStepInterval();
     this.updateFadeIndex();
     this.updateZoom();
-    this.updatePlugins();
-  }
-
-  update() {
-    this.selectPlugin.replace(Object.keys(Board.plugins), this.selectPlugin.value, 1);
   }
 
   updateAutopause() {
@@ -116,16 +105,5 @@ class DrawModal extends Modal {
     if (this.sortFunctions.includes(fnName) && lastState)
       this.model.sortCells();
     this.board.draw();
-  }
-
-
-
-  _addPlugin(pluginName) {
-    let plugin = new PluginControl(this.board, pluginName);
-    plugin && this.board.setMessage(`Added ${pluginName} plugin!`);
-  }
-
-  updatePlugins() {
-    this.addPlugin.disabled = !this.selectPlugin.value;
   }
 }

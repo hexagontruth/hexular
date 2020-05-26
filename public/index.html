@@ -63,13 +63,13 @@
   <div id="config-menu" class="toolbar menu hidden">
     <div class="group tools">
       <button id="show-config" title="Model configuration (Ctrl+G)" class="icon-gear"></button>
-      <button id="show-draw" title="Draw configuration (Ctrl+Y)" class="icon-lead-pencil"></button>
       <button id="show-theme" title="Theme (Ctrl+E)" class="icon-rainbow"></button>
+      <button id="show-draw" title="Draw configuration (Ctrl+D)" class="icon-lead-pencil"></button>
+      <button id="show-plugin" title="Plugins (Ctrl+Y)" class="icon-hexagon-multiple"></button>
       <button id="show-resize" title="Resize model (Ctrl+R)" class="icon-arrow-top-right-bottom-left"></button>
       <button id="show-srb" title="Simple Rulebuilder (Ctrl+B)" class="icon-function"></button>
       <button id="show-trb" title="Template Rulebuilder (Ctrl+H)" class="icon-lambda"></button>
       <button id="show-custom" title="Custom Code (Ctrl+F)" class="icon-code"></button>
-      <button id="show-clear" title="Clear local data (Ctrl+X)" class="icon-refresh"></button>
     </div>
   </div>
   <div class="toolbar bottom">
@@ -93,7 +93,7 @@
   <div class="toolbar left">
     <div class="group">
       <button id="save-image" title="Save image... (Ctrl+Shift+S)" class="icon-image"></button>
-      <button id="toggle-image-capture" title="Toggle image capture mode" class="icon-image-multiple"></button>
+      <button id="toggle-image-capture" title="Toggle image capture mode (Ctrl+I)" class="icon-image-multiple"></button>
     </div>
     <div class="group">
       <button id="load" title="Load model state... (Ctrl+O)" class="icon-hexagon-left rotate"></button>
@@ -102,6 +102,7 @@
     <div class="group">
       <button id="load-data" title="Load settings... (Ctrl+Alt+O)" class="icon-upload"></button>
       <button id="save-data" title="Save settings... (Ctrl+Alt+S)" class="icon-download"></button>
+      <button id="show-clear" title="Clear local data (Ctrl+X)" class="icon-refresh"></button>
     </div>
   </div>
   <div id="color-menu" class="toolbar right colors hidden">
@@ -263,15 +264,6 @@
             </datalist>
             <label id="scale-indicator" class="indicator"></label>
           </div>
-          <div class="group">
-            <label class="third">Plugins:</label>
-            <select id="select-plugin">
-              <option value="" selected>[ Select plugin ]</option>
-            </select>
-            <button id="add-plugin" class="icon-plus"></button>
-          </div>
-          <div id="plugin-list" class="group wrap"></div>
-          <div id="plugin-editor" class="group"></div>
         </div>
       </div>
       <div class="modal resize hidden">
@@ -415,6 +407,29 @@
           </div>
         </div>
       </div>
+      <div class="modal plugin hidden">
+        <div class="modal-title"><i class="icon-hexagon-multiple"></i> Plugin configuration</div>
+        <div class="modal-content">
+          <div class="group">
+            <label>Plugins:</label>
+            <select id="select-plugin">
+              <option value="" selected>[ Select plugin ]</option>
+            </select>
+            <button id="add-plugin" class="icon-plus"></button>
+          </div>
+          <div id="plugin-list" class="group wrap"></div>
+          <div class="group wrap">
+            <div class="group">
+              <textarea id="plugin-editor" class="plugin-editor"></textarea>
+            </div>
+            <div class="group buttons">
+              <button id="plugin-reset" title="Reset settings to default state" disabled="true"><i class="icon-restore"></i> Reset</button>
+              <button id="plugin-revert" title="Revert settings to last saved state" disabled="true"><i class="icon-undo"></i> Revert</button>
+              <button id="plugin-save" title="Save plugin settings" disabled="true"><i class="icon-save"></i> Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="modal custom hidden">
         <div class="modal-title"><i class="icon-code"></i> Custom Code</div>
         <div class="modal-content">
@@ -529,16 +544,6 @@
       <input class="plugin-name"/>
       <button class="plugin-edit icon-dots-horizontal"></button>
       <button class="plugin-delete icon-trash"></button>
-    </div>
-    <div class="group wrap plugin-editor">
-      <div class="group">
-        <textarea class="plugin-editor-field"></textarea>
-      </div>
-      <div class="group buttons">
-        <button class="plugin-reset"><i class="icon-restore"></i> Reset</button>
-        <button class="plugin-revert"><i class="icon-undo"></i> Revert</button>
-        <button class="plugin-save"><i class="icon-save"></i> Save</button>
-      </div>
     </div>
     <button class="statemask">
       <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"

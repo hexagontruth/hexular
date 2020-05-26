@@ -2,19 +2,27 @@ class QuickPlugin extends Plugin {
   defaultSettings() {
     return `
       {
-        onDraw: (adapter) => {},
-        onDrawCell: (cell, adapter) => {},
-        onStep: () => {},
-        onSelect: (cell) => {},
-        onDebugSelect: (cell) => {},
-        onPaint: (cells) => {},
-        onUpdatePreset: () => {},
-        onUpdateTheme: () => {},
+        hooks: (plugin) => ({
+          onDraw: (adapter) => {},
+          onDrawCell: (cell, adapter) => {},
+          onStep: () => {},
+          onSelect: (cell) => {},
+          onDebugSelect: (cell) => {},
+          onPaint: (cells) => {},
+          onUpdatePreset: () => {},
+          onUpdateTheme: () => {},
+        })
       }
     `;
   }
+
+  _onSaveSettings() {
+    this.hooks = this.settings.hooks && this.settings.hooks(this);
+    this.board.draw();
+  }
+
   _activate() {
-    let callFn = (key) => (...args) => this.settings[key] && this.settings[key](...args);
+    let callFn = (key) => (...args) => this.hooks[key] && this.hooks[key](...args);
     this.registerHook('draw', callFn('onDraw'));
     this.registerHook('drawCell', callFn('onDrawCell'));
     this.registerHook('step', callFn('onStep'));

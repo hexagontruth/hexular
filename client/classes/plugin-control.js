@@ -7,7 +7,7 @@ class PluginControl {
   constructor(board, plugin, enable=null) {
     this.board = board;
     this.config = board.config;
-    let modal = this.modal = board.modals.draw;
+    let modal = this.modal = board.modals.plugin;
     if (typeof plugin == 'string') {
       let PluginClass = Board.plugins[plugin];
       if (!PluginClass)
@@ -21,20 +21,20 @@ class PluginControl {
     this.config.plugins.push(plugin);
 
     let controllerPrototype = document.querySelector('.assets .plugin-control');
-    let editorPrototype = document.querySelector('.assets .plugin-editor');
     this.controller = controllerPrototype.cloneNode(true);
     this.controller.control = this;
-    this.editor = editorPrototype.cloneNode(true);
 
     this.enabledButton = this.controller.querySelector('.plugin-enabled');
     this.deleteButton = this.controller.querySelector('.plugin-delete');
     this.editButton = this.controller.querySelector('.plugin-edit');
     this.nameField = this.controller.querySelector('.plugin-name');
 
-    this.editorField = this.editor.querySelector('.plugin-editor-field');
-    this.resetButton = this.editor.querySelector('.plugin-reset');
-    this.revertButton = this.editor.querySelector('.plugin-revert');
-    this.saveButton = this.editor.querySelector('.plugin-save');
+    this.editorField = document.querySelector('#plugin-editor');
+    this.resetButton = document.querySelector('#plugin-reset');
+    this.revertButton = document.querySelector('#plugin-revert');
+    this.saveButton = document.querySelector('#plugin-save');
+    this.editorControls = [this.editorField, this.resetButton, this.revertButton, this.saveButton];
+    this.settingsBuffer = '';
 
     this.nameField.value = this.name;
     modal.pluginList.appendChild(this.controller);
@@ -47,9 +47,6 @@ class PluginControl {
       this.delete();
       this.config.storeSessionConfigAsync();
     }
-    this.resetButton.onclick = (ev) => this.reset();
-    this.revertButton.onclick = (ev) => this.revert();
-    this.saveButton.onclick = (ev) => this.save();
     this.nameField.onchange = (ev) => this.setName(this.nameField.value);
 
     enable = enable != null ? enable : this.policy.autostart;
@@ -144,15 +141,27 @@ class PluginControl {
   }
 
   openEditor() {
-    this.board.pluginControls.forEach((e) => e.closeEditor());
+    if (this.modal.editing)
+      this.modal.editing.closeEditor();
     this.editing = true;
-    this.modal.pluginEditor.appendChild(this.editor);
+    this.modal.editing = this;
+    this.editorField.onchange = (ev) => this.saveBuffer();
+    this.resetButton.onclick = (ev) => this.reset();
+    this.revertButton.onclick = (ev) => this.revert();
+    this.saveButton.onclick = (ev) => this.save();
+    this.editorField.value = this.settingsBuffer;
+    this.editorControls.forEach((e) => e.disabled = false);
     this.editButton.classList.add('active');
   }
 
   closeEditor() {
+    if (!this.modal.editing == this)
+      return
+    this.saveBuffer();
+    this.modal.editing = null;
     this.editing = false;
-    this.editor.remove();
+    this.editorField.value = '';
+    this.editorControls.forEach((e) => e.disabled = true);
     this.editButton.classList.remove('active');
   }
 
@@ -162,12 +171,19 @@ class PluginControl {
   }
 
   revert() {
-    this.editorField.value = this.plugin.getSettings();
+    this.settingsBuffer = this.plugin.getSettings();
+    if (this.modal.editing == this)
+      this.editorField.value = this.settingsBuffer;
+  }
+
+  saveBuffer() {
+    this.settingsBuffer = this.editorField.value;
   }
 
   save() {
     try {
-      this.plugin.saveSettings(this.editorField.value);
+      this.saveBuffer();
+      this.plugin.saveSettings(this.settingsBuffer);
       this.board.setMessage(`Settings saved for ${this.name} plugin!`);
       this.board.draw();
     }
@@ -184,7 +200,6 @@ class PluginControl {
     this.config.plugins = this.config.plugins.filter((e) => e != this.plugin);
     this.board.pluginControls = this.board.pluginControls.filter((e) => e != this);
     this.controller.remove();
-    this.editor.remove();
   }
 
   to(board) {

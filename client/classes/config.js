@@ -183,11 +183,12 @@ class Config {
       this.adapter = this.board.adapter;
       this.fgAdapter = this.board.fgAdapter;
       this.configModal = this.board.modals.config;
-      this.customModal = this.board.modals.custom;
+      this.themeModal = this.board.modals.theme;
       this.drawModal = this.board.modals.draw;
       this.srbModal = this.board.modals.srb;
       this.trbModal = this.board.modals.trb;
-      this.themeModal = this.board.modals.theme;
+      this.pluginModal = this.board.modals.plugin;
+      this.customModal = this.board.modals.custom;
       this.configModal.update();
       this.updateMathPresets();
 
@@ -265,12 +266,14 @@ class Config {
       this.trbModal.reset();
 
       // Draw modal
-      this.drawModal.update();
       this.drawModal.reset();
 
       // Theme modal
       this.themeModal.update();
       this.themeModal.reset();
+
+      // Plugins
+      this.pluginModal.update();
 
       // Custom code modal
       this.setCustomInput(this.customInput);

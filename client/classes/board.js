@@ -132,8 +132,9 @@ class Board {
         redo: document.querySelector('#redo'),
         toggleMenu: document.querySelector('#toggle-menu'),
         showConfig: document.querySelector('#show-config'),
-        showDraw: document.querySelector('#show-draw'),
         showTheme: document.querySelector('#show-theme'),
+        showDraw: document.querySelector('#show-draw'),
+        showPlugin: document.querySelector('#show-plugin'),
         showResize: document.querySelector('#show-resize'),
         showSrb: document.querySelector('#show-srb'),
         showTrb: document.querySelector('#show-trb'),
@@ -227,6 +228,7 @@ class Board {
     this.buttons.showResize.onmousedown = () => this.toggleModal('resize');
     this.buttons.showSrb.onmousedown = () => this.toggleModal('srb');
     this.buttons.showTrb.onmousedown = () => this.toggleModal('trb');
+    this.buttons.showPlugin.onmousedown = () => this.toggleModal('plugin');
     this.buttons.showCustom.onmousedown = () => this.toggleModal('custom');
     this.buttons.showClear.onmousedown = () => this.handleClearStorage();
 
@@ -266,12 +268,13 @@ class Board {
     this.modals = {
       confirm: new ConfirmModal(this, 'confirm'),
       config: new ConfigModal(this, 'config'),
-      custom: new CustomModal(this, 'custom'),
-      srb: new SrbModal(this, 'srb'),
-      trb: new TrbModal(this, 'trb'),
-      resize: new ResizeModal(this, 'resize'),
       theme: new ThemeModal(this, 'theme'),
       draw: new DrawModal(this, 'draw'),
+      plugin: new PluginModal(this, 'plugin'),
+      resize: new ResizeModal(this, 'resize'),
+      srb: new SrbModal(this, 'srb'),
+      trb: new TrbModal(this, 'trb'),
+      custom: new CustomModal(this, 'custom'),
     }
     this.toggleModal();
     this.config.restoreModel();
@@ -1101,6 +1104,9 @@ class Board {
           else if (key == 'c') {
             this.clear();
           }
+          else if (key == 'd') {
+            this.toggleModal('draw');
+          }
           else if (key == 'e') {
             this.toggleModal('theme');
           }
@@ -1120,7 +1126,7 @@ class Board {
             this.toggleModal('resize');
           }
           else if (key == 'y') {
-            this.toggleModal('draw');
+            this.toggleModal('plugin');
           }
           else if (key == 'x') {
             this.handleClearStorage();

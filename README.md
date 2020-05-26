@@ -25,6 +25,7 @@ To view some examples of media created with Hexular, see our [YouTube channel](h
     - [Interface](#interface)
     - [Model configuration](#model-configuration)
     - [Theming and drawing](#theming-and-drawing)
+    - [Plugins](#plugins)
     - [Simple Rulebuilder](#simple-rulebuilder-2)
     - [Template Rulebuilder](#template-rulebuilder-2)
     - [Additional options](#additional-options)
@@ -237,13 +238,13 @@ Control flow, state, and configuration buttons run along the along the top of th
   - Clear (Ctrl+C)
   - Configuration menu toggle
     - Model configuration modal (Ctrl+G)
-    - Draw configuration modal (Ctrl+Y)
     - Theme modal (Ctrl+E)
+    - Draw configuration modal (Ctrl+D)
+    - Plugin modal (Ctrl+Y)
     - Resize modal (Ctrl+R)
     - Simple Rulebuilder modal (Ctrl+B)
     - Template Rulebuilder modal (Ctrl+H)
     - Custom Code modal (Ctrl+F)
-    - Clear local settings (Ctrl+X)
   - Undo (Ctrl+Z)
   - Redo (Ctrl+Shift+Z)
   - Save snapshot (Q)
@@ -258,6 +259,7 @@ Several buttons concerning file I/O run along the left side:
   - Save model (Ctrl+S)
   - Load local settings (Ctrl+Alt+O)
   - Save local settings (Ctrl+Alt+S)
+  - Clear local settings (Ctrl+X)
 
 Tool buttons and various editorial options run along the bottom:
 
@@ -306,11 +308,11 @@ Rules are saved to local storage and thus exportable as part of the overall conf
 
 Basic colors, spacing, and blending options can be set in the theme modal (Ctrl+E). Themes work generally the same as presets in the model configuration modal, and can be saved, etc. They are exported as part of the overall configuration export (Ctrl+Alt+S or Ctrl+Meta+S).
 
-The draw configuration modal (Ctrl+H) allows us to set additional parameters related to how cells are drawn on screen, including which if any simple shape to draw for each cell, as well as the default zoom, play step interval, and number of intermediate "drawing steps" to perform between each model step. This allows e.g. complex animations with fading colors, animated shapes, etc., to occupy our minds as we enjoy the procession of our automata. The "draw scale" setting principally affects exported video and images, and should typically be kept at `1` unless these features are being used, as larger numbers will slow down drawing significantly.
+The draw configuration modal (Ctrl+D) allows us to set additional parameters related to how cells are drawn on screen, including which if any simple shape to draw for each cell, as well as the default zoom, play step interval, and number of intermediate "drawing steps" to perform between each model step. This allows e.g. complex animations with fading colors, animated shapes, etc., to occupy our minds as we enjoy the procession of our automata. The "draw scale" setting principally affects exported video and images, and should typically be kept at `1` unless these features are being used, as larger numbers will slow down drawing significantly.
 
-#### Plugins
+### Plugins
 
-Animations and other auxiliary effects can be configured via the plugin system also exposed in the theme modal. Plugins are configurable via a JavaScript object that is edited and saved in a free-form text field. These settings are fully-evaluable objects, not JSON strings, and can thus contain functions, employ global `Math` functions, etc.
+Animations and other auxiliary effects can be configured via the plugin modal (Ctrl+Y). Plugins are configurable via a JavaScript object that is edited and saved in a free-form text field. These settings are fully-evaluable objects, not JSON strings, and can thus contain functions, employ global `Math` functions, etc.
 
 Most plugins describe various types of animations, &c., but the `MidiMap` plugin also allows us to play music on a hardware or software MIDI synthesizer, or to set cell states via a MIDI controller (albeit somewhat weirdly): we can select MIDI input and output devices, map individual channels on each device to functions defining how a note should be played or interpreted, and configure the range, stride, and location of the note mapping.
 

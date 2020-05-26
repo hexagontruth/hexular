@@ -578,8 +578,25 @@ select {
   height: 5em;
 }
 
-.modal textarea.plugin-editor-field {
+.modal textarea.plugin-editor {
   height: 8em;
+}
+
+#plugin-list {
+  min-height: 2em;
+  max-height: 19.5em;
+  overflow-y: scroll;
+  margin: 0.25em 0.25em 0.25em 0;
+  padding-right: 0.25em;
+}
+
+/* yes this is tedious and dumb */
+.plugin-control:first-child {
+  margin-top: -0.25em;
+}
+
+.plugin-control:last-child {
+  margin-bottom: -0.25em;
 }
 
 .modal .text {

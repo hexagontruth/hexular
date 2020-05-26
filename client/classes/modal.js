@@ -44,5 +44,5 @@ class Modal {
 
   reset() {}
 
-  upate() {}
+  update() {}
 }

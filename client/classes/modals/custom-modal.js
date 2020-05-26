@@ -22,7 +22,10 @@ class CustomModal extends Modal {
       }
     };
 
-    this.input.oninput = (ev) => this.selectExample.value = null;
+    this.input.oninput = (ev) => {
+      this.selectExample.value = null;
+      Util.handleTextFormat(this.input, ev);
+    };
 
     this.input.onchange = (ev) => this.config.setCustomInput(this.input.value);
 

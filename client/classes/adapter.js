@@ -78,7 +78,7 @@ class CanvasAdapter {
       stroke: false,
       fill: false,
       strokeStyle: null,
-      lineWidth: 0,
+      lineWidth: this.config.cellBorderWidth,
       lineJoin: 'miter',
       fillStyle: null,
     };

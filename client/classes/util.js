@@ -90,6 +90,11 @@ const Util = (() => {
     return intervals;
   }
 
+  Util.debugCell = (cell, fn) => {
+    if (cell == Board.instance.debugSelected)
+      fn(cell);
+  };
+
   Util.indentTrim = (string) => {
     let lines = string.split('\n');
     let min = Infinity;
@@ -101,6 +106,33 @@ const Util = (() => {
     }
     min = min < Infinity ? min : 0;
     return lines.map((e) => e.substring(min)).filter((e) => e.length > 0).join('\n');
+  }
+
+  Util.handleTextFormat = (elem, ev) => {
+    let cursor = elem.selectionStart;
+    let text = elem.value;
+    let beforeCursor = text.slice(0, cursor);
+    let afterCursor = text.slice(cursor);
+    if (
+      ev.inputType == 'insertLineBreak' ||
+      text[cursor -1] == '\n' && ev.inputType == 'insertText' && !ev.data // wtf
+    ) {
+      let rows = beforeCursor.split('\n');
+      let lastRow = rows.slice(-2)[0];
+      if (!lastRow)
+        return;
+      let match = lastRow.match(/^\s+/);
+      if (!match)
+        return;
+      rows.push(match[0] + rows.pop());
+      text = rows.join('\n') + afterCursor;
+      cursor += match[0].length;
+    }
+    else {
+      return;
+    }
+    elem.value = text;
+    elem.setSelectionRange(cursor, cursor);
   }
 
   Util.shallowPrettyJson = (data, maxLevels=2, indentText='  ') => {

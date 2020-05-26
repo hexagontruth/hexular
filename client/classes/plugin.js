@@ -104,8 +104,8 @@
     let fn;
     let settingsObj;
     try {
-      fn = new Function('Board', 'Hexular', 'settings', `return eval('(' + settings + ')');`);
-      settingsObj = fn(Board, Hexular, settingsString);
+      fn = new Function('Board', 'Hexular', 'Util', 'settings', `return eval('(' + settings + ')');`);
+      settingsObj = fn(Board, Hexular, Util, settingsString);
     }
     catch (e) {
       this.board.setMessage(e, 'error');
