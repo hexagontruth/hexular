@@ -58,7 +58,7 @@ class FaderExpander extends Plugin {
         opts.strokeStyle = strokeColors[cell.state] || Color.t;
         if (fade) opts.strokeStyle = opts.strokeStyle.blend(strokeColors[cell.lastState], fadeQ);
       }
-      adapter.drawHexagon(cell, radius, opts);
+      adapter.drawShape(cell, radius, opts);
     });
   }
 }

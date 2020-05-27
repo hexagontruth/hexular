@@ -56,17 +56,17 @@ class SimpleExpander extends Plugin {
         opts.fillStyle = fillColors[cell.lastState];
         opts.strokeStyle = strokeColors[cell.lastState];
         if (allowed && this.settings.drawLast) {
-          adapter.drawHexagon(cell,  maxRadius, opts);
+          adapter.drawShape(cell,  maxRadius, opts);
         }
         else if (this.settings.drawTerminal) {
-          adapter.drawHexagon(cell, invRadius, opts);
+          adapter.drawShape(cell, invRadius, opts);
         }
 
       }
       if (allowed) {
         opts.fillStyle = fillColors[cell.state];
         opts.strokeStyle = strokeColors[cell.state];
-        adapter.drawHexagon(cell, radius, opts);
+        adapter.drawShape(cell, radius, opts);
       }
     });
   }

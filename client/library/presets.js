@@ -9,6 +9,8 @@ const Presets = {
     Object.assign(Array(12).fill('average'), Array(6).fill('bicameral'))
   ),
 
+  binaryFlake: new Preset(Object.assign(Array(10).fill('stepUp'), ['binary1'])),
+
   enneadPlus: new Preset(
     {filters: {clipBottomFilter: true, modFilter: true, edgeFilter: true}},
     Array(12).fill('enneadPlus')

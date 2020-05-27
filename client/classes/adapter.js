@@ -13,6 +13,15 @@ class CanvasAdapter {
 
     // Build cell map if not already built
     this.model.buildCellMap();
+
+    // Common paths
+    this.shapes = {};
+    this.shapes[Hexular.enums.TYPE_FLAT] = Hexular.math.flatVertices.slice();
+    this.shapes[Hexular.enums.TYPE_POINTY] = Hexular.math.pointyVertices.slice();
+    this.shapes[Hexular.enums.TYPE_TRI_UP] = Hexular.math.pointyVertices.filter((_, i) => i % 2 == 0);
+    this.shapes[Hexular.enums.TYPE_TRI_DOWN] = Hexular.math.pointyVertices.filter((_, i) => i % 2 != 0);
+    this.shapes[Hexular.enums.TYPE_TRI_LEFT] = Hexular.math.flatVertices.filter((_, i) => i % 2 == 0);
+    this.shapes[Hexular.enums.TYPE_TRI_RIGHT] = Hexular.math.flatVertices.filter((_, i) => i % 2 != 0);
   }
 
   set fillColor(color=Color.t) {
@@ -72,25 +81,25 @@ class CanvasAdapter {
     ctx.closePath();
   }
 
-  drawHexagon(locator, radius, opts={}) {
+  drawShape(locator, radius, opts={}) {
     let defaults = {
       type: Hexular.enums.TYPE_POINTY,
-      stroke: false,
       fill: false,
+      stroke: false,
+      fillStyle: null,
       strokeStyle: null,
       lineWidth: this.config.cellBorderWidth,
       lineJoin: 'miter',
-      fillStyle: null,
     };
     opts = Object.assign(defaults, opts);
     const [x, y] = locator instanceof Hexular.Cell ? this.model.cellMap.get(locator) : locator;
     let ctx = this.context;
-    if (opts.type == 2) {
+    if (opts.type == Hexular.enums.TYPE_CIRCLE) {
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, Hexular.math.tau);
     }
     else {
-      let path = opts.type == Hexular.enums.TYPE_POINTY ? Hexular.math.pointyVertices : Hexular.math.flatVertices;
+      let path = this.shapes[opts.type] || this.shapes[Hexular.enums.TYPE_POINTY];
       path = Hexular.math.scalarOp(path, radius);
       ctx.beginPath();
       ctx.moveTo(x + path[0][0], y + path[0][1]);
@@ -99,11 +108,11 @@ class CanvasAdapter {
       ctx.closePath();
     }
     if (opts.fill) {
-      ctx.fillStyle = opts.fillStyle.toString();
+      ctx.fillStyle = (opts.fillStyle || this.config.defaultColor).toString();
       ctx.fill();
     }
-    if (opts.stroke && opts.lineWidth > 0) {
-      ctx.strokeStyle = opts.strokeStyle.toString();
+    if (opts.stroke && opts.lineWidth) {
+      ctx.strokeStyle = (opts.strokeStyle || this.config.defaultColor).toString();
       ctx.lineWidth = opts.lineWidth;
       ctx.lineJoin = opts.lineJoin;
       ctx.stroke();

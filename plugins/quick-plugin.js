@@ -3,7 +3,24 @@ class QuickPlugin extends Plugin {
     return `
       {
         hooks: (plugin) => ({
-          onDraw: (adapter) => {},
+          onDraw: (adapter) => {
+            // Configure stateWhitelist/stateBlacklist to enable
+            let opts = {
+              type: Hexular.enums.TYPE_POINTY,
+              fill: true,
+              stroke: false,
+              fillStyle: null,
+              strokeStyle: null,
+              lineWidth: plugin.config.cellBorderWidth,
+              lineJoin: 'miter',
+            };
+            let radius = plugin.config.innerRadius;
+            plugin.drawEachCell((cell) => {
+              if (!plugin.isAllowedState(cell.state)) return;
+              opts.fillStyle = plugin.config.fillColors[cell.state];
+              plugin.adapter.drawShape(cell, radius, opts);
+            });
+          },
           onDrawCell: (cell, adapter) => {},
           onStep: () => {},
           onSelect: (cell) => {},
@@ -11,7 +28,9 @@ class QuickPlugin extends Plugin {
           onPaint: (cells) => {},
           onUpdatePreset: () => {},
           onUpdateTheme: () => {},
-        })
+        }),
+        stateWhitelist: [],
+        stateBlacklist: null,
       }
     `;
   }

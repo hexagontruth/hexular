@@ -87,7 +87,7 @@ class ExpanderContractor extends Plugin {
       else {
         return;
       }
-      adapter.drawHexagon(cell, r, opts);
+      adapter.drawShape(cell, r, opts);
     });
   }
 }

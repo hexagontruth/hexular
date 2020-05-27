@@ -180,12 +180,12 @@
       if (this.settings.constrainFrameToHex) {
         opts.type = Hexular.enums.TYPE_FLAT;
         let radius = this.radius * this.config.cellRadius * Hexular.math.apothem * 2;
-        this.board.fgAdapter.drawHexagon(this.homeCell, radius, opts);
+        this.board.fgAdapter.drawShape(this.homeCell, radius, opts);
       }
       else {
         opts.type = Hexular.enums.TYPE_POINTY;
         this.cells.forEach((cell) => {
-          this.board.fgAdapter.drawHexagon(cell, this.config.cellRadius, opts);
+          this.board.fgAdapter.drawShape(cell, this.config.cellRadius, opts);
         });
       }
     }

@@ -1147,6 +1147,12 @@ class Board {
           }
         }
         else if (ev.altKey) {
+          if (key == 'c') {
+            // Secret shortcut
+            this.clear();
+            this.model.cells[0].setState(1);
+            this.draw();
+          }
           if (key == 's') {
             this.saveData();
           }
@@ -1414,7 +1420,7 @@ class Board {
           opts.type = Hexular.enums.TYPE_FLAT;
           radius = radius * (size * 2 - 1) * Hexular.math.apothem;
         }
-        this.fgAdapter.drawHexagon(cell, radius, opts);
+        this.fgAdapter.drawShape(cell, radius, opts);
       }
     }
   }

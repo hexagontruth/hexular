@@ -74,16 +74,16 @@ class Hexagrams extends Plugin {
           next = i / 6;
           if (this.config.drawStepInterval == 1) {
             color = cell.lines[i] ? colors[i + 1] : colors[0];
-            adapter.drawHexagon(cell, r * cur, {fill: true, fillStyle: color});
+            adapter.drawShape(cell, r * cur, {fill: true, fillStyle: color});
           }
           else {
             if (q <= cur) {
               color = cell.lastLines[i] ? colors[i + 1] : colors[0];
-              adapter.drawHexagon(cell, r * cur, {fill: true, fillStyle: color});
+              adapter.drawShape(cell, r * cur, {fill: true, fillStyle: color});
             }
             if (q > next) {
               color = cell.lines[i] ? colors[i + 1] : colors[0];
-              adapter.drawHexagon(cell, Math.min(r * q, r * cur), {fill: true, fillStyle: color});
+              adapter.drawShape(cell, Math.min(r * q, r * cur), {fill: true, fillStyle: color});
             }
           }
         }

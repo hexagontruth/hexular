@@ -48,7 +48,97 @@ var Hexular = (function () {
       groundState: 0,
       cellRadius: 10,
     },
-  }
+
+    /**
+     * A collection of elements representing common hexagonal concepts for general semantic interoperability.
+     *
+     * @namespace {object} Hexular.enums
+     */
+    enums: {
+      /**
+       * Enumerator representing flat-topped, the greatest of all hexagons.
+       *
+       * @name TYPE_FLAT
+       * @default 0
+       * @constant
+       * @memberof Hexular.enums
+       */
+      TYPE_FLAT: 0,
+
+      /**
+       * Enumerator representing pointy-topped hexagons.
+       *
+       * @name TYPE_POINTY
+       * @default 1
+       * @constant
+       * @memberof Hexular.enums
+       */
+      TYPE_POINTY: 1,
+
+      /**
+       * Enumerator representing circles &mdash; the most degenerate form of hexagon.
+       *
+       * @name TYPE_CIRCLE
+       * @default 2
+       * @constant
+       * @memberof Hexular.enums
+       */
+      TYPE_CIRCLE: 2,
+
+      /**
+       * Enumerator representing triangles whose orientation can be contextually inferred.
+       * 
+       * (For instance, the alternating members of a hex grid's dual triangular grid.)
+       *
+       * @name TYPE_CIRCLE
+       * @default 10
+       * @constant
+       * @memberof Hexular.enums
+       */
+      TYPE_TRI_AUTO: 10,
+
+      /**
+       * Enumerator representing triangles with a vertex facing up.
+       *
+       * @name TYPE_TRI_UP
+       * @default 11
+       * @constant
+       * @memberof Hexular.enums
+       */
+      TYPE_TRI_UP: 11,
+
+      /**
+       * Enumerator representing triangles with a vertex facing down.
+       *
+       * @name TYPE_TRI_DOWN
+       * @default 12
+       * @constant
+       * @memberof Hexular.enums
+       */
+      TYPE_TRI_DOWN: 12,
+
+      /**
+       * Enumerator representing triangles with a vertex facing left.
+       *
+       * @name TYPE_TRI_LEFT
+       * @default 13
+       * @constant
+       * @memberof Hexular.enums
+       */
+      TYPE_TRI_LEFT: 13,
+
+      /**
+       * Enumerator representing triangles with a vertex facing right.
+       *
+       * @name TYPE_TRI_RIGHT
+       * @default 14
+       * @constant
+       * @memberof Hexular.enums
+       */
+      TYPE_TRI_RIGHT: 14,
+    },
+  };
+
   /**
    * Principal function object assigned to global `Hexular` object or returned as module.
    *
@@ -61,42 +151,6 @@ var Hexular = (function () {
     return new Class(...args);
   }
   merge(Hexular, hexularAttributes);
-
-  /**
-   * A collection of elements representing common hexagonal concepts for general semantic interoperability.
-   *
-   * @namespace {object} Hexular.enums
-   */
-
-    /**
-     * Enumerator representing flat-topped, the greatest of all hexagons.
-     *
-     * @name TYPE_FLAT
-     * @default 0
-     * @constant
-     * @memberof Hexular.enums
-     */
-  const TYPE_FLAT = 0;
-
-    /**
-     * Enumerator representing pointy-topped hexagons.
-     *
-     * @name TYPE_POINTY
-     * @default 1
-     * @constant
-     * @memberof Hexular.enums
-     */
-  const TYPE_POINTY = 1;
-
-    /**
-     * Enumerator representing circles &mdash; the most degenerate form of hexagon.
-     *
-     * @name TYPE_CIRCLE
-     * @default 2
-     * @constant
-     * @memberof Hexular.enums
-     */
-  const TYPE_CIRCLE = 2;
 
   /**
    * A collection of mathematical properties and functions used internally, which may be of interest when extending
@@ -1673,12 +1727,8 @@ var Hexular = (function () {
 
   // ---
 
-  merge(Hexular, {
+  merge(Hexular, {math}, {
     defaults: {model: CubicModel},
-    enums: {
-      TYPE_FLAT,
-      TYPE_POINTY,
-    },
     rules: {
       identityRule,
       nullRule,
@@ -1699,7 +1749,7 @@ var Hexular = (function () {
       ruleBuilder,
       templateRuleBuilder,
     },
-    math: Object.assign(math, {
+    math: {
       mod,
       clamp,
       scalarOp,
@@ -1710,7 +1760,7 @@ var Hexular = (function () {
       roundCubic,
       flatVertices: math.vertices,
       pointyVertices: math.vertices.map(([x, y]) => [y, x]),
-    }),
+    },
     HexError,
     Model,
     Cell,

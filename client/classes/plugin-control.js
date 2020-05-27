@@ -17,6 +17,7 @@ class PluginControl {
     this.plugin = plugin;
     this.policy = plugin.getPolicy();
     this.name = plugin.name;
+    this.copyIdx = 0;
     board.pluginControls.push(this);
     this.config.plugins.push(plugin);
 
@@ -25,9 +26,10 @@ class PluginControl {
     this.controller.control = this;
 
     this.enabledButton = this.controller.querySelector('.plugin-enabled');
-    this.deleteButton = this.controller.querySelector('.plugin-delete');
-    this.editButton = this.controller.querySelector('.plugin-edit');
     this.nameField = this.controller.querySelector('.plugin-name');
+    this.editButton = this.controller.querySelector('.plugin-edit');
+    this.cloneButton = this.controller.querySelector('.plugin-clone');
+    this.deleteButton = this.controller.querySelector('.plugin-delete');
 
     this.editorField = document.querySelector('#plugin-editor');
     this.resetButton = document.querySelector('#plugin-reset');
@@ -43,6 +45,7 @@ class PluginControl {
     this.controller.ondrop = (ev) => this.handleDrop(ev);
     this.enabledButton.onclick = (ev) => this.toggleEnabled();
     this.editButton.onclick = (ev) => this.toggleEditor();
+    this.cloneButton.onclick = (ev) => this.clone();
     this.deleteButton.onclick = (ev) => {
       this.delete();
       this.config.storeSessionConfigAsync();
@@ -105,6 +108,7 @@ class PluginControl {
 
   toggleEnabled() {
     this.enabled ? this.disable() : this.enable();
+    this.config.storeSessionConfigAsync();
   }
 
   toggleEditor() {
@@ -155,7 +159,7 @@ class PluginControl {
   }
 
   closeEditor() {
-    if (!this.modal.editing == this)
+    if (this.modal.editing != this)
       return
     this.saveBuffer();
     this.modal.editing = null;
@@ -206,5 +210,14 @@ class PluginControl {
     let enabled = this.enabled;
     this.delete();
     return new PluginControl(board, this.plugin.to(board), enabled);
+  }
+
+  clone() {
+    let newPlugin = new this.plugin.constructor(
+      this.board,
+      this.plugin.getSettings(),
+      `${this.plugin.name}-${('00' + this.copyIdx++).slice(-3)}`
+    );
+    return new PluginControl(this.board, newPlugin, this.policy.autostart || null);
   }
 }

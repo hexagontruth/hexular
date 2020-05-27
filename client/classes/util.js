@@ -113,6 +113,8 @@ const Util = (() => {
     let text = elem.value;
     let beforeCursor = text.slice(0, cursor);
     let afterCursor = text.slice(cursor);
+    let scrollX = elem.scrollTop;
+    let scrollY = elem.scrollLeft;
     if (
       ev.inputType == 'insertLineBreak' ||
       text[cursor -1] == '\n' && ev.inputType == 'insertText' && !ev.data // wtf
@@ -133,6 +135,7 @@ const Util = (() => {
     }
     elem.value = text;
     elem.setSelectionRange(cursor, cursor);
+    elem.scrollTo(scrollX, scrollY);
   }
 
   Util.shallowPrettyJson = (data, maxLevels=2, indentText='  ') => {

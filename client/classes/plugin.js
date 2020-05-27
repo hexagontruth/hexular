@@ -124,10 +124,8 @@
   }
 
   setStateLists() {
-    let isWhitelist = this.settings.stateWhitelist && this.settings.stateWhitelist.length > 0;
-    let isBlacklist = this.settings.stateBlacklist && this.settings.stateBlacklist.length > 0;
-    this.stateWhitelist = isWhitelist ? new Set(this.settings.stateWhitelist) : null;
-    this.stateBlacklist = isBlacklist ? new Set(this.settings.stateBlacklist) : null;
+    this.stateWhitelist = this.settings.stateWhitelist && new Set(this.settings.stateWhitelist);
+    this.stateBlacklist = this.settings.stateBlacklist && new Set(this.settings.stateBlacklist);
   }
 
   drawEachCell(...args) {
@@ -164,7 +162,9 @@
     }
   }
 
-  getFade(q, f=this.settings.fadeIndex) {
+  getFade(q=this.board.drawStepQ, f=this.settings.fadeIndex) {
+    if (f == null)
+      f = 1;
     return q >= f ? 1 : q / f;
   }
 
