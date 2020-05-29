@@ -63,6 +63,18 @@ const Rules = (() => {
       return cell.state && (t == 2 || t == 3) || t == 3 ? 1 : 0;
     },
 
+    fancytown: (cell) => {
+      const tot = cell.total;
+      if (tot > 2 && tot < 5)
+        return cell.state + 1;
+      else if (tot >= 9)
+        return cell.state - 1;
+      else
+        return cell.state;
+    },
+
+    // SRB rules
+
     bicameral: Hexular.util.ruleBuilder([
       0b000011,
       0b000110,
@@ -292,15 +304,48 @@ const Rules = (() => {
       0b111000,
     ], {miss: -1, missRel: true, matchRel: true, rel: true}),
 
-    fancytown: (cell) => {
-      const tot = cell.total;
-      if (tot > 2 && tot < 5)
-        return cell.state + 1;
-      else if (tot >= 9)
-        return cell.state - 1;
-      else
-        return cell.state;
+    // TRB Rules
+
+    tripleReactor: Hexular.util.templateRuleBuilder([{
+      applyFn: (a, b) => a == b,
+      matchFn: (c, a, b) => c,
+      match: 1,
+      miss: 0,
+      matchRel: 1,
+      missRel: 1,
+      sym: 1,
+      states: [-1, 0, 0, 0, 0, 1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
     },
+    {
+      applyFn: (a, b) => a == b,
+      matchFn: (c, a, b) => c,
+      match: 1,
+      miss: 0,
+      matchRel: 1,
+      missRel: 1,
+      sym: 1,
+      states: [-1, 1, 1, 0, 1, 1, 0, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, 0],
+    },
+    {
+      applyFn: (a, b) => a == b,
+      matchFn: (c, a, b) => c,
+      match: 1,
+      miss: 0,
+      matchRel: 1,
+      missRel: 1,
+      sym: 1,
+      states: [-1, -1, 1, -1, -1, 1, -1, -1, -1, -1, -1, -1, -1, -1, 1, -1, -1, 1, -1],
+    },
+    {
+      applyFn: (a, b) => a == b,
+      matchFn: (c, a, b) => c,
+      match: -1,
+      miss: 0,
+      matchRel: 1,
+      missRel: 1,
+      sym: 0,
+      states: [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+    }]),
   };
   let entries = Object.entries(customRules);
   entries.sort((a, b) => {

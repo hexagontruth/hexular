@@ -74,10 +74,6 @@ const Themes = (() => {
       modelBackgroundColor: '#efefe7',
       cellGap: -12.75,
     },
-    lightRainbow: {
-      cellGap: -0.5,
-      colors: rainbow,
-    },
     dark: {
       backgroundColor: '#111111',
       modelBackgroundColor: '#000000',

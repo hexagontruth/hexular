@@ -23,7 +23,7 @@ body {
 }
 
 .overlay-splash {
-  z-index: 100;
+  z-index: 500;
   position: fixed;
   top: 0;
   bottom: 0;
@@ -311,6 +311,10 @@ input.hidden, button.hidden {
   transform: none !important;
 }
 
+.toolbar.menu#config-menu {
+  z-index: 200;
+}
+
 .info {
   position: fixed;
   z-index: 20;
@@ -367,8 +371,8 @@ input.hidden, button.hidden {
 
 .message-wrapper {
   position: fixed;
-  z-index: 30;
-  top: 3rem;
+  z-index: 300;
+  top: 4rem;
   left: 1rem;
   right: 1rem;
   height: 0;

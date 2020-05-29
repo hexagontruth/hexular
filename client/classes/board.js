@@ -111,8 +111,10 @@ class Board {
       modalTranslate: null,
       container: document.querySelector('.container'),
       overlay: document.querySelector('.modal-container'),
+      messageWrapper: document.querySelector('.message-wrapper'),
       message: document.querySelector('.message'),
       menus: {
+        top: document.querySelector('#toolbar-top'),
         color: document.querySelector('#color-menu'),
         config: document.querySelector('#config-menu'),
       },
@@ -589,7 +591,7 @@ class Board {
     this.buttons.toolHider.classList.toggle('active');
     this.buttons.toolHider.classList.toggle('icon-eye');
     this.buttons.toolHider.classList.toggle('icon-eye-off');
-    setTimeout(() => this.resizeMenu(), 500);
+    setTimeout(() => this.repositionElements(), 500);
   }
 
   setButtonTitle(button, title) {
@@ -854,7 +856,7 @@ class Board {
   }
 
   resetTransform() {
-    this.resizeMenu();
+    this.repositionElements();
 
     // Canvas stuff
     let logicalWidth = this.config.logicalWidth;
@@ -891,10 +893,15 @@ class Board {
     this.runHooks('center');
   }
 
-  resizeMenu() {
-    let {x, y, height} = this.buttons.toggleMenu.getBoundingClientRect();
+  repositionElements() {
+    // Config menu
+    let x, y, height;
+    ({x, y, height} = this.buttons.toggleMenu.getBoundingClientRect());
     this.menus.config.style.top = `${y + height}px`;
     this.menus.config.style.left = `${x}px`;
+    // Message box
+    ({y, height} = this.menus.top.getBoundingClientRect());
+    this.messageWrapper.style.top = `calc(${y + height}px + 1rem)`;
   }
 
   refreshHistoryButtons() {
@@ -1150,8 +1157,7 @@ class Board {
           if (key == 'c') {
             // Secret shortcut
             this.clear();
-            this.model.cells[0].setState(1);
-            this.draw();
+            this.autodot();
           }
           if (key == 's') {
             this.saveData();
@@ -1387,6 +1393,15 @@ class Board {
     this.action && this.action.end(ev);
     this.action = null;
     this.setToolInfo();
+  }
+
+  autodot() {
+    let oldSelected = this.selected;
+    this.selected = this.model.cells[0];
+    let action = new BrushAction(this);
+    action.start();
+    action.end();
+    this.selected = oldSelected;
   }
 
   // Cell selection and setting

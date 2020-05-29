@@ -172,7 +172,7 @@ class CanvasAdapter {
       return;
     this.context.strokeStyle = style || this.getStrokeFade(cell);
     this.context.lineWidth = lineWidth;
-    this.drawPath(cell, this.flatVertices);
+    this.drawPath(cell, this.config.flatVertices);
     this.context.stroke();
   }
 

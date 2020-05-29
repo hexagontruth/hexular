@@ -116,9 +116,7 @@ class Config {
           [
             'sortCellsAsc',
             'sortCellsDesc',
-          ]
-        ],
-        drawCell: [
+          ],
           [
             'drawFilledPointyHex',
             'drawOutlinePointyHex',
@@ -206,7 +204,11 @@ class Config {
           'drawOutlineCircle',
       ];
       for (let cb of cellCallbacks) {
-        this.adapterFunctions[cb] = (cell) => this.adapter[cb](cell);
+        this.adapterFunctions[cb] = (...args) => {
+          this.model.eachCell((cell) => {
+            this.adapter[cb](cell);
+          });
+        }
       }
       let drawCb = (active, alts) => {
         for (let alt of alts) {
