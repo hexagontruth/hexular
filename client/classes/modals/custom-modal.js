@@ -9,17 +9,7 @@ class CustomModal extends Modal {
 
     this.selectExample.onchange = (ev) => {
       let str = Examples.customCodeDemos[this.selectExample.value];
-      if (str) {
-        if (document.execCommand) {
-          this.input.focus();
-          this.input.select();
-          document.execCommand("delete", false, str);
-          document.execCommand("insertText", false, str);
-        }
-        else {
-          this.input.value = str;
-        }
-      }
+      str && Util.execInsert(this.input, str);
     };
 
     this.input.oninput = (ev) => {

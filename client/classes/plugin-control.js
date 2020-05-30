@@ -177,7 +177,7 @@ class PluginControl {
   revert() {
     this.settingsBuffer = this.plugin.getSettings();
     if (this.modal.editing == this)
-      this.editorField.value = this.settingsBuffer;
+      Util.execInsert(this.editorField, this.settingsBuffer);
   }
 
   saveBuffer() {

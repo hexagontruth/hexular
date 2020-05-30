@@ -190,6 +190,7 @@ class Board {
   constructor(configOpts={}, boardOpts=Board.defaults) {
     Object.assign(this, boardOpts);
     this.config = new Config(this, configOpts);
+    this.execCommandBroken = Util.execCommandBroken();
 
     // Initialize canvases
     while (this.container.firstChild)

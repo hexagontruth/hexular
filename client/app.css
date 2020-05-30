@@ -377,7 +377,7 @@ input.hidden, button.hidden {
   right: 1rem;
   height: 0;
   display: flex;
-  flex-align: flex-start;
+  align-items: flex-start;
   justify-content: center;
 }
 

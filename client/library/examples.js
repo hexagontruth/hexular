@@ -37,20 +37,6 @@ const Examples = (() => {
     customCodeDemos[k] = Util.indentTrim(v);
   });
 
-  function loadImageAsUrl() {
-    return new Promise((resolve, reject) => {
-      let board = Board.instance;
-      let fileLoader = new FileLoader('.jpg,.jpeg,.gif,.png,.svg,.bmp', {reader: 'readAsArrayBuffer'});
-      fileLoader.onload = (result) => {
-        if (result) {
-          let blob = new Blob([result], {type: fileLoader.fileTypes[0]});
-          resolve(window.URL.createObjectURL(blob));
-        }
-      };
-      fileLoader.prompt();
-    });
-  }
-
   function remove(...idxs) {
     Object.entries(Board.instance.hooks).forEach(([key, values]) => {
       Board.instance.hooks[key] = values.filter((e) => !idxs.includes(e.run.idx));
@@ -66,7 +52,6 @@ const Examples = (() => {
 
   let examples = {
     customCodeDemos,
-    loadImageAsUrl,
     remove,
     removeAll,
 
@@ -75,8 +60,9 @@ const Examples = (() => {
       (async () => {
         let defaults = {
           scale: 1,
+          cb: null,
         }
-        url = url || await loadImageAsUrl();
+        url = url || await Util.loadImageAsUrl();
         opts = Object.assign(defaults, opts);
         let img = new Image();
         img.src = url;
@@ -104,9 +90,11 @@ const Examples = (() => {
             }
             let x = (viewW - w) / 2;
             let y = (viewH - h) / 2;
+            let coords = {x, y, w, h};
             adapter.context.save();
             adapter.context.setTransform(1, 0, 0, 1, 0, 0);
-            adapter.context.drawImage(img, x, y, w, h);
+            opts.cb && opts.cb(coords, Board.instance);
+            adapter.context.drawImage(img, coords.x, coords.y, coords.w, coords.h);
             adapter.context.restore();
           };
           fn.idx = fnIdx;
@@ -125,9 +113,10 @@ const Examples = (() => {
           type: Hexular.enums.TYPE_POINTY,
           scale: 1,
           states: [1],
+          cb: null,
         };
         if (!url);
-        url = url || await loadImageAsUrl();
+        url = url || await Util.loadImageAsUrl();
         opts = Object.assign(defaults, opts);
         let img = new Image();
         img.src = url;
@@ -141,22 +130,16 @@ const Examples = (() => {
             h = w * img.height / img.width;
           }
           let pathScale = opts.scale || 1;
-          let path = opts.type == Hexular.enums.TYPE_POINTY
-            ? Hexular.math.scalarOp(Hexular.math.vertices.map(([x, y]) => [y, x]), config.innerRadius * pathScale)
-            : Hexular.math.scalarOp(Hexular.math.vertices, config.innerRadius * pathScale)
           let fn = (cell) => {
             let adapter = Board.adapter;
             if (!opts.states.includes(cell.state))
               return;
-            let [x, y] = Board.model.cellMap.get(cell);
-            x -= w / 2;
-            y -= h / 2;
             adapter.context.save();
-            if (opts.clip) {
-              adapter.drawPath(cell, path);
-              adapter.context.clip();
-            }
-            adapter.context.drawImage(img, 0, 0, img.width, img.height, x, y, w, h);
+            adapter.context.translate(...Board.model.cellMap.get(cell));
+            let coords = {x: -w / 2, y: -h / 2, w, h};
+            opts.clip && adapter.drawShape([0, 0], adapter.config.innerRadius * pathScale, {type: opts.type, clip: true});
+            opts.cb && opts.cb(cell, coords, Board.instance);
+            adapter.context.drawImage(img, 0, 0, img.width, img.height, coords.x, coords.y, coords.w, coords.h);
             adapter.context.restore();
           };
           fn.idx = ++fnCount;

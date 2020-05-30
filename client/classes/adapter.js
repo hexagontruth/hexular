@@ -83,6 +83,7 @@ class CanvasAdapter {
 
   drawShape(locator, radius, opts={}) {
     let defaults = {
+      path: null,
       type: Hexular.enums.TYPE_POINTY,
       fill: false,
       stroke: false,
@@ -90,11 +91,15 @@ class CanvasAdapter {
       strokeStyle: null,
       lineWidth: this.config.cellBorderWidth,
       lineJoin: 'miter',
+      clip: false,
     };
     opts = Object.assign(defaults, opts);
     const [x, y] = locator instanceof Hexular.Cell ? this.model.cellMap.get(locator) : locator;
     let ctx = this.context;
-    if (opts.type == Hexular.enums.TYPE_CIRCLE) {
+    if (opts.path) {
+      this.drawPath(cell, opts.path);
+    }
+    else if (opts.type == Hexular.enums.TYPE_CIRCLE) {
       ctx.beginPath();
       ctx.arc(x, y, radius, 0, Hexular.math.tau);
     }
@@ -107,15 +112,20 @@ class CanvasAdapter {
         ctx.lineTo(x + path[i][0], y + path[i][1]);
       ctx.closePath();
     }
-    if (opts.fill) {
-      ctx.fillStyle = (opts.fillStyle || this.config.defaultColor).toString();
-      ctx.fill();
+    if (opts.clip) {
+      ctx.clip();
     }
-    if (opts.stroke && opts.lineWidth) {
-      ctx.strokeStyle = (opts.strokeStyle || this.config.defaultColor).toString();
-      ctx.lineWidth = opts.lineWidth;
-      ctx.lineJoin = opts.lineJoin;
-      ctx.stroke();
+    else {
+      if (opts.fill) {
+        ctx.fillStyle = (opts.fillStyle || this.config.defaultColor).toString();
+        ctx.fill();
+      }
+      if (opts.stroke && opts.lineWidth) {
+        ctx.strokeStyle = (opts.strokeStyle || this.config.defaultColor).toString();
+        ctx.lineWidth = opts.lineWidth;
+        ctx.lineJoin = opts.lineJoin;
+        ctx.stroke();
+      }
     }
   }
 
@@ -196,8 +206,8 @@ class CanvasAdapter {
     if (!this.model.radius) return;
     this.context.save();
     this.context.setTransform(1, 0, 0, 1, 0, 0);
-    this.context.fillStyle =
-      this.config.recordingMode ? this.config.modelBackgroundColor : this.config.backgroundColor;
+    this.context.fillStyle = this.config.recordingMode ?
+      this.config.modelBackgroundColor.toString() : this.config.backgroundColor.toString();
     this.context.fillRect(0, 0, this.context.canvas.width, this.context.canvas.height);
     this.context.restore();
     if (this.config.drawModelBackground && !this.config.recordingMode) {

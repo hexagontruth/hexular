@@ -7,7 +7,7 @@ const Util = (() => {
       return eval(`(cell) => ${args.map((e) => `cell.state == ${e}`).join(' || ')} ? 1 : 0`); // lol
     else
       return () => false;
-  }
+  };
 
   Util.setColorRange = (opts={}) => {
     let [min, max] = opts.range || [0, Board.config.maxNumStates];
@@ -88,7 +88,7 @@ const Util = (() => {
     Board.instance.hooks.step = Board.instance.hooks.step.filter((e) => !e.run.debugTiger);
     Board.instance.addHook('step', fn);
     return intervals;
-  }
+  };
 
   Util.debugCell = (cell, fn) => {
     if (cell == Board.instance.debugSelected)
@@ -106,37 +106,67 @@ const Util = (() => {
     }
     min = min < Infinity ? min : 0;
     return lines.map((e) => e.substring(min)).filter((e) => e.length > 0).join('\n');
-  }
+  };
+
+  Util.execCommandBroken = () => { // *sigh*
+    if (!document.execCommand || !document.queryCommandSupported)
+      return true;
+    let lastFocus = document.activeElement;
+    let elem = document.createElement('textarea');
+    elem.style.position = 'fixed';
+    elem.style.left = '0';
+    elem.style.top = '0';
+    elem.style.opacity = '0';
+    document.body.appendChild(elem);
+    elem.value = `Looking at you Firefox`;
+    elem.focus();
+    elem.setSelectionRange(0, 15);
+    document.execCommand('delete', false);
+    document.execCommand('insertText', false, 'Wtf ');
+    let str = elem.value;
+    lastFocus && lastFocus.focus();
+    elem.remove();
+    return str.length == 22 ? true : false;
+  };
 
   Util.handleTextFormat = (elem, ev) => {
     let cursor = elem.selectionStart;
     let text = elem.value;
     let beforeCursor = text.slice(0, cursor);
     let afterCursor = text.slice(cursor);
-    let scrollX = elem.scrollTop;
-    let scrollY = elem.scrollLeft;
     if (
       ev.inputType == 'insertLineBreak' ||
       text[cursor -1] == '\n' && ev.inputType == 'insertText' && !ev.data // wtf
     ) {
       let rows = beforeCursor.split('\n');
       let lastRow = rows.slice(-2)[0];
-      if (!lastRow)
-        return;
-      let match = lastRow.match(/^\s+/);
-      if (!match)
-        return;
-      rows.push(match[0] + rows.pop());
-      text = rows.join('\n') + afterCursor;
-      cursor += match[0].length;
+      let match = lastRow && lastRow.match(/^\s+/);
+      let spaces = match && match[0] || '';
+      Util.execInsert(elem, spaces, cursor);
+      elem.setSelectionRange(cursor + spaces.length, cursor + spaces.length);
+    }
+  };
+
+  Util.execInsert = (elem, str, startIdx, endIdx) => {
+    endIdx = endIdx || startIdx;
+    if (!Board.instance.execCommandBroken) {
+      elem.focus();
+      if (startIdx) {
+        elem.setSelectionRange(startIdx, endIdx);
+      }
+      else {
+        elem.select();
+        document.execCommand("delete", false);
+      }
+      document.execCommand("insertText", false, str);
     }
     else {
-      return;
+      if (!startIdx)
+        elem.value = str;
+      else
+        elem.value = elem.value.slice(0, startIdx) + str + elem.value.slice(endIdx);
     }
-    elem.value = text;
-    elem.setSelectionRange(cursor, cursor);
-    elem.scrollTo(scrollX, scrollY);
-  }
+  };
 
   Util.shallowPrettyJson = (data, maxLevels=2, indentText='  ') => {
     let json = JSON.stringify(data);
@@ -184,6 +214,20 @@ const Util = (() => {
       }
     }
     return str;
+  };
+
+  Util.loadImageAsUrl = () => {
+    return new Promise((resolve, reject) => {
+      let board = Board.instance;
+      let fileLoader = new FileLoader('.jpg,.jpeg,.gif,.png,.svg,.bmp', {reader: 'readAsArrayBuffer'});
+      fileLoader.onload = (result) => {
+        if (result) {
+          let blob = new Blob([result], {type: fileLoader.fileTypes[0]});
+          resolve(window.URL.createObjectURL(blob));
+        }
+      };
+      fileLoader.prompt();
+    });
   }
 
   return Util;

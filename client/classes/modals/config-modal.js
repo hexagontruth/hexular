@@ -185,7 +185,7 @@ class RuleMenu {
     select.onchange = (ev) => this.config.setRule(idx, select.value);
     if (idx != null) {
       container.title = `State ${idx}`;
-      button.style.backgroundColor = this.config.colors[idx];
+      button.style.backgroundColor = this.config.colors[idx] && this.config.colors[idx].toString();
       select.replace(this.modal.availableRuleNames, this.config.rules[idx]);
     }
     else {
