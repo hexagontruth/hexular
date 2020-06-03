@@ -44,13 +44,18 @@ class CanvasAdapter {
     this.context.restore();
   }
 
-  drawCells(cells=this.model.getCells()) {
+  drawDefaultCells(cells=this.model.getCells()) {
+    let opts = {
+      type: Hexular.enums.TYPE_POINTY,
+      fill: true,
+      stroke: true,
+      strokeStyle: this.config.modelBackgroundColor,
+      lineWidth: Config.defaults.cellBorderWidth,
+    };
     cells.forEach((cell) => {
       let state = cell.state;
-      let color = this.config.fillColors[state] || this.config.defaultColor;
-      this.context.fillStyle = color;
-      this.drawPath(cell);
-      this.context.fill();
+      opts.fillStyle = this.config.fillColors[state] || this.config.defaultColor;
+      this.drawShape(cell, this.config.cellRadius, opts);
     });
   }
 
@@ -71,8 +76,9 @@ class CanvasAdapter {
     ctx.arc(x, y, radius, 0, Math.PI * 2);
   }
 
-  drawPath(cell, path=this.config.pointyVertices) {
-    const [x, y] = this.model.cellMap.get(cell);
+  // Draw paths as relative points, without styling &c.
+  drawPath(locator, path=this.config.pointyVertices) {
+    const [x, y] = locator instanceof Hexular.Cell ? this.model.cellMap.get(locator) : locator;
     let ctx = this.context;
     ctx.beginPath();
     ctx.moveTo(x + path[0][0], y + path[0][1]);
@@ -81,7 +87,8 @@ class CanvasAdapter {
     ctx.closePath();
   }
 
-  drawShape(locator, radius, opts={}) {
+  // Draw enumerated shapes or paths, without saving or restoring context
+  drawShape(locator, radius=this.config.innerRadius, opts={}) {
     let defaults = {
       path: null,
       type: Hexular.enums.TYPE_POINTY,
@@ -91,31 +98,35 @@ class CanvasAdapter {
       strokeStyle: null,
       lineWidth: this.config.cellBorderWidth,
       lineJoin: 'miter',
+      alpha: 1,
       clip: false,
     };
     opts = Object.assign(defaults, opts);
-    const [x, y] = locator instanceof Hexular.Cell ? this.model.cellMap.get(locator) : locator;
     let ctx = this.context;
     if (opts.path) {
-      this.drawPath(cell, opts.path);
-    }
-    else if (opts.type == Hexular.enums.TYPE_CIRCLE) {
-      ctx.beginPath();
-      ctx.arc(x, y, radius, 0, Hexular.math.tau);
+      this.drawPath(locator, Hexular.math.scalarOp(opts.path, radius));
     }
     else {
-      let path = this.shapes[opts.type] || this.shapes[Hexular.enums.TYPE_POINTY];
-      path = Hexular.math.scalarOp(path, radius);
-      ctx.beginPath();
-      ctx.moveTo(x + path[0][0], y + path[0][1]);
-      for (let i = 1; i < path.length; i++)
-        ctx.lineTo(x + path[i][0], y + path[i][1]);
-      ctx.closePath();
+      const [x, y] = locator instanceof Hexular.Cell ? this.model.cellMap.get(locator) : locator;
+      if (opts.type == Hexular.enums.TYPE_CIRCLE) {
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Hexular.math.tau);
+      }
+      else {
+        let path = this.shapes[opts.type] || this.shapes[Hexular.enums.TYPE_POINTY];
+        path = Hexular.math.scalarOp(path, radius);
+        ctx.beginPath();
+        ctx.moveTo(x + path[0][0], y + path[0][1]);
+        for (let i = 1; i < path.length; i++)
+          ctx.lineTo(x + path[i][0], y + path[i][1]);
+        ctx.closePath();
+      }
     }
     if (opts.clip) {
       ctx.clip();
     }
     else {
+      ctx.globalAlpha = opts.alpha;
       if (opts.fill) {
         ctx.fillStyle = (opts.fillStyle || this.config.defaultColor).toString();
         ctx.fill();

@@ -8,6 +8,9 @@ class RotatorExpander extends Plugin {
         minRadius: 0.5,
         baseRadius: 1,
         maxRadius: 1.5,
+        minAlpha: 1,
+        baseAlpha: 1,
+        maxAlpha: 1,
         fill: true,
         stroke: false,
         lineWidth: null,
@@ -31,18 +34,19 @@ class RotatorExpander extends Plugin {
     let ctx = adapter.context;
     let {
       angleOffset, angleDelta, fadeIndex, minRadius, baseRadius, maxRadius,
-      fill, stroke, lineWidth, lineJoin, color, upQ, downQ
+      minAlpha, baseAlpha, maxAlpha, fill, stroke, lineWidth, lineJoin, color, upQ, downQ
     } = this.settings;
     let q = this.board.drawStepQInc;
     upQ = this.getPivot(q, upQ);
-    downQ = this.getPivot(q, downQ);
+    downQ = 1 - this.getPivot(q, downQ);
     let fadeQ = this.getFade(q);
     let angle = angleOffset + angleDelta * q;
     let upRadius = this.config.innerRadius * ((maxRadius - baseRadius) * upQ + baseRadius);
-    let downRadius = this.config.innerRadius * ((baseRadius - minRadius) * (1 - downQ) + minRadius);
+    let downRadius = this.config.innerRadius * ((baseRadius - minRadius) * downQ + minRadius);
+    let upAlpha = (maxAlpha - baseAlpha) * upQ + baseAlpha;
+    let downAlpha = (baseAlpha - minAlpha) * downQ + minAlpha;
     lineWidth = lineWidth != null ? lineWidth : this.config.cellBorderWidth;
     lineJoin = lineJoin || this.config.defaultJoin;
-
     let fillColors = this.config.fillColors.slice();
     let strokeColors = this.config.strokeColors.slice();
     if (this.settings.color) {
@@ -53,7 +57,7 @@ class RotatorExpander extends Plugin {
     // Draw
     this.drawEachCell((cell) => {
       if (!this.isAllowedState(cell.state)) return;
-      let r = cell.state - cell.lastState > 0 ? upRadius : downRadius;
+      let [r, a] = cell.state - cell.lastState > 0 ? [upRadius, upAlpha] : [downRadius, downAlpha];
       let p = [];
       for (let i = 0; i < 6; i++) {
         let x = r * Math.cos(angle + Hexular.math.tau / 6 * i);
@@ -63,6 +67,7 @@ class RotatorExpander extends Plugin {
       let color;
       adapter.drawPath(cell, p);
       let fade = fadeQ < 1;
+      ctx.globalAlpha = a;
       if (this.settings.fill) {
         if (!this.settings.color) {
           color = fillColors[cell.state] || Color.t;

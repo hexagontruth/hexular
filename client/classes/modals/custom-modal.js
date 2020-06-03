@@ -4,7 +4,7 @@ class CustomModal extends Modal {
     this.selectExample = document.querySelector('#select-example').select;
     this.input = document.querySelector('#custom-input');
     this.output = document.querySelector('#custom-output');
-    this.import = document.querySelector('#import'),
+    this.import = document.querySelector('#import');
     this.button = document.querySelector('#add-custom-code');
 
     this.selectExample.onchange = (ev) => {

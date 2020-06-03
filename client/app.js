@@ -6,10 +6,14 @@ window.addEventListener('DOMContentLoaded',(e) => {
   let paintButtonGroup = document.querySelector('#color-menu .group');
   let colorControllerGroup = document.querySelector('#color-controllers');
   let paintButtonPrototype = document.querySelector('.assets .paint-button');
-  let colorControllerPrototype = document.querySelector('.assets .color-controller');
+  let ruleButtonPrototype = document.querySelector('.assets .color-controller');
   for (let i = 0; i < 256; i++) {
-    paintButtonGroup.appendChild(paintButtonPrototype.cloneNode());
-    colorControllerGroup.appendChild(colorControllerPrototype.cloneNode());
+    let paintButton = paintButtonPrototype.cloneNode();
+    let ruleButton = ruleButtonPrototype.cloneNode();
+    paintButton.setAttribute('title', i);
+    ruleButton.setAttribute('title', i);
+    paintButtonGroup.appendChild(paintButton);
+    colorControllerGroup.appendChild(ruleButton);
   }
   jscolor.installByClassName('jscolor');
 });

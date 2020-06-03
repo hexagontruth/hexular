@@ -2,7 +2,7 @@ class VertexShapes extends Plugin {
   defaultSettings() {
     return `
       {
-        shape: 'tri', // hex|circle|tri,
+        shapeType: Hexular.enums.TYPE_TRI_AUTO,
         color: 'blend', // max|min|blend|[custom]
         fadeIndex: 0, // 0-1 - only works with max, min, or blend color mode
         angleOffset: 0,
@@ -42,10 +42,6 @@ class VertexShapes extends Plugin {
     this.updateMaps();
   }
 
-  onStep() {
-
-  }
-
   onDraw(adapter) {
     // Setup
     let model = this.model;
@@ -54,6 +50,7 @@ class VertexShapes extends Plugin {
     let strokeColors = this.config.strokeColors;
     let q = this.board.drawStepQInc;
     let {
+      shapeType,
       angleOffset,
       angleDelta,
       anglePivot,
@@ -81,12 +78,26 @@ class VertexShapes extends Plugin {
     let lineWidth = minWidth + widthQ * (maxWidth - minWidth);
     let lineJoin = this.settings.lineJoin || 'miter';
     let transVerts = Hexular.math.scalarOp(Hexular.math.pointyVertices, model.cellRadius);
-    let hexVerts = new Array(6).fill(null).map((_, i) => {
-      return [
-        Math.sin(i * Math.PI / 3 + angleOffset + angleQ * angleDelta) * radius,
-        Math.cos(i * Math.PI / 3 + angleOffset + angleQ * angleDelta) * radius
-      ];
-    });
+    let paths;
+    if (shapeType != Hexular.enums.TYPE_CIRCLE) {
+      let matrix = Hexular.math.scalarOp(Hexular.math.rotationMatrix(angle), radius);
+      if (adapter.shapes[shapeType]) {
+        let path = adapter.shapes[shapeType].map((v) => Hexular.math.matrixMult(matrix, v));
+        paths = [path, path];
+      }
+      else {
+        let path0, path1;
+        if (shapeType == Hexular.enums.TYPE_TRI_ANTI_AUTO) {
+          path0 = adapter.shapes[Hexular.enums.TYPE_TRI_UP];
+          path1 = adapter.shapes[Hexular.enums.TYPE_TRI_DOWN];
+        }
+        else { // Default to Hexular.enums.TYPE_TRI_AUTO
+          path0 = adapter.shapes[Hexular.enums.TYPE_TRI_DOWN];
+          path1 = adapter.shapes[Hexular.enums.TYPE_TRI_UP];
+        }
+        paths = [path0, path1].map((p) => p.map((v) => Hexular.math.matrixMult(matrix, v)));
+      }
+    }
 
     // Draw
     this.drawEachCell((cell) => {
@@ -108,23 +119,13 @@ class VertexShapes extends Plugin {
         x += xo;
         y += yo;
         // Draw shapes
-        ctx.beginPath();
-        if (this.settings.shape == 'hex') {
-          ctx.moveTo(x + hexVerts[0][0], y + hexVerts[0][1]);
-          for (let j = 0; j < 6; j++)
-            ctx.lineTo(x + hexVerts[j][0], y + hexVerts[j][1]);
-          ctx.closePath();
-        }
-        else if (this.settings.shape == 'circle') {
+        if (shapeType == Hexular.enums.TYPE_CIRCLE) {
+          ctx.beginPath();
           ctx.moveTo(x, y);
           ctx.arc(x, y, radius, 0, Math.PI * 2);
-          ctx.closePath();
         }
-        else if (this.settings.shape == 'tri') {
-          ctx.moveTo(x + hexVerts[i][0], y + hexVerts[i][1]);
-          for (let j = 2 + i; j < 6; j += 2)
-            ctx.lineTo(x + hexVerts[j][0], y + hexVerts[j][1]);
-          ctx.closePath();
+        else {
+          adapter.drawPath([x, y], paths[i]);
         }
         // Fill and stroke
         let colorFill, colorStroke;

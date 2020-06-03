@@ -193,8 +193,7 @@ class Board {
     this.execCommandBroken = Util.execCommandBroken();
 
     // Initialize canvases
-    while (this.container.firstChild)
-      this.container.firstChild.remove();
+    this.container.querySelectorAll('canvas').forEach((e) => e.remove());
     this.bgCanvas = document.createElement('canvas');
     this.mainCanvas = document.createElement('canvas');
     this.fgCanvas = document.createElement('canvas');
@@ -1420,7 +1419,8 @@ class Board {
     if (!this.action) {
       this.clearFg();
       if (this.altView) {
-        this.fgAdapter.drawCells();
+        this.fgAdapter.drawBackground();
+        this.fgAdapter.drawDefaultCells();
       }
       else if (cell) {
         let color = this.config.selectColor;

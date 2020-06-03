@@ -90,7 +90,7 @@ var Hexular = (function () {
        * 
        * (For instance, the alternating members of a hex grid's dual triangular grid.)
        *
-       * @name TYPE_CIRCLE
+       * @name TYPE_TRI_AUTO
        * @default 10
        * @constant
        * @memberof Hexular.enums
@@ -136,6 +136,16 @@ var Hexular = (function () {
        * @memberof Hexular.enums
        */
       TYPE_TRI_RIGHT: 14,
+      /**
+       * Enumerator representing inverse triangles from contextually inferred ones.
+       *
+       * @name TYPE_TRI_ANTI_AUTO
+       * @default 15
+       * @constant
+       * @memberof Hexular.enums
+       * @see {@link Hexular.enums.TYPE_TRI_AUTO}
+       */
+      TYPE_TRI_ANTI_AUTO: 15,
     },
   };
 
@@ -1663,6 +1673,20 @@ var Hexular = (function () {
   }
 
   /**
+   * Convenience method for generating a 2D rotation matrix for left-hand [x, y] coordinates.
+   * 
+   * @param {number} a    The angle of rotation in radians
+   * @return {number[][]} Two-dimensional array representing a transformation matrix
+   * @memberof Hexular.math
+   */
+  function rotationMatrix(a) {
+    return [
+      [Math.cos(a), Math.sin(a)],
+      [-Math.sin(a), Math.cos(a)]
+    ];
+  }
+
+  /**
    * Element-wise addition of two identical-length arrays.
    *
    * @param {array} u `n`-dimensional first argument
@@ -1754,6 +1778,7 @@ var Hexular = (function () {
       clamp,
       scalarOp,
       matrixMult,
+      rotationMatrix,
       vectorAdd,
       absMax,
       cartesianToCubic,

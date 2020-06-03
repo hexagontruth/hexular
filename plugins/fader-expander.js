@@ -2,7 +2,7 @@ class FaderExpander extends Plugin {
   defaultSettings() {
     return `
       {
-        hexType: 1, // 0|1|2
+        shapeType: Hexular.enums.TYPE_POINTY,
         fadeIndex: 0, // 0-1
         minAlpha: 0,
         maxAlpha: 1,
@@ -30,7 +30,7 @@ class FaderExpander extends Plugin {
     let fillColors = this.config.fillColors;
     let strokeColors = this.config.strokeColors;
     let {
-      hexType, fill, stroke, lineWidth, minRadius,
+      shapeType, fill, stroke, lineWidth, minRadius,
       maxRadius, minAlpha, maxAlpha, pivot
     } = this.settings;
     let q = this.board.drawStepQInc;
@@ -39,7 +39,7 @@ class FaderExpander extends Plugin {
     let radius = this.config.innerRadius * ((maxRadius - minRadius) * pivotQ + minRadius);
     this.globalAlpha = (maxAlpha - minAlpha) * pivotQ + minAlpha;
     let opts = {
-      type: hexType,
+      type: shapeType,
       fill: fill,
       stroke: stroke,
       lineWidth: lineWidth != null ? lineWidth : this.config.cellBorderWidth,

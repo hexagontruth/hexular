@@ -2,7 +2,7 @@ class SimpleExpander extends Plugin {
   defaultSettings() {
     return `
       {
-        hexType: 1,
+        shapeType: Hexular.enums.TYPE_POINTY,
         drawLast: true,
         drawTerminal: true,
         minRadius: 0,
@@ -34,7 +34,7 @@ class SimpleExpander extends Plugin {
     let maxRadius = r * max;
     let invRadius = r * ((max - min) * (1 - q) + min);
     let opts = {
-      type: this.settings.hexType,
+      type: this.settings.shapeType,
       fill: this.settings.fill,
       stroke: this.settings.stroke,
       lineWidth: this.settings.lineWidth != null ? this.settings.lineWidth : this.config.cellBorderWidth,

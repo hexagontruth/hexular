@@ -13,7 +13,6 @@ class ThemeModal extends Modal {
     this.cellBorderWidth = document.querySelector('#cell-border-width');
 
     this.colors.forEach((el, idx) => {
-      el.setAttribute('title', `Color ${idx}`);
       el.onchange = () => this.config.setColor(idx, el.value);
     });
     ['backgroundColor', 'modelBackgroundColor', 'defaultColor'].forEach((key) => {

@@ -39,6 +39,7 @@
   _onSaveSettings() {
     if (!this.enabled)
       return;
+    this.players && this.players.forEach((player) => player.stop());
     this.noteCellMap = new Map();
     this.cellNoteMap = new Map();
     this.playlists = {};
@@ -213,24 +214,29 @@
     }
   }
 
-  startNote(player) {
+  startNote(channel, note, vel, interval) {
+    new MidiPlayer(this, channel, note, vel, interval);
+  }
+
+  startPlayer(player) {
     if (!this.out)
       return;
     this.players.add(player);
     let {channel, note, vel} = player;
     let list = this.playlists[channel][note];
     list.push(player);
+    this.out.send([0x90 + channel, note, 0]);
     this.out.send([0x90 + channel, note, vel]);
   }
 
-  stopNote(player) {
+  stopPlayer(player) {
     this.players.delete(player);
     if (!this.out)
       return;
     let {channel, note} = player;
     let list = this.playlists[channel][note];
-    let idx = list.indexOf(player);
-    if (idx != -1) {
+    let idx = list && list.indexOf(player);
+    if (idx != null && idx != -1) {
       let player = list.splice(idx, 1);
       let nextPlayer = list.slice(-1)[0];
       let nextVel = nextPlayer ? nextPlayer.vel : 0;
@@ -247,7 +253,7 @@
     this.channelsOut.forEach((channel) => {
       let value = this.outFn[channel](cell.state, note, cell);
       let [vel, interval] = value.length ? value : [value, this.settings.defaultInterval];
-      vel && new MidiPlayer(this, channel, note, vel, stuck ? null : interval);
+      vel && this.startNote(channel, note, vel, stuck ? null : interval);
       stuck && this.stuckCells.set(cell, cell.state);
     });
   }
@@ -287,12 +293,12 @@ class MidiPlayer {
     this.vel = vel;
     this.interval = interval;
     this.active = true;
-    this.plugin.startNote(this);
+    this.plugin.startPlayer(this);
     this.timer = this.interval && window.setTimeout(() => this.stop(), this.interval);
   }
 
   stop() {
     clearInterval(this.timer);
-    this.plugin.stopNote(this);
+    this.plugin.stopPlayer(this);
   }
 }
