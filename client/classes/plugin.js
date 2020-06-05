@@ -87,7 +87,7 @@
 
   deleteHooks() {
     Object.entries(this.board.hooks).forEach(([hook, fns]) => {
-      this.board.hooks[hook] = fns.filter((e) => e.run.plugin != this);
+      this.board.hooks[hook] = fns.filter((e) => e.fn.plugin != this);
     });
     this.fns = [];
   }

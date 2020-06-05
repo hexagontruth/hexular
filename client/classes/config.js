@@ -481,6 +481,8 @@ class Config {
     types.forEach((key) => {
       let keyColor = this[key] = Color(color || this[key]);
       this.themeModal[key].jscolor.fromString(keyColor.hex);
+      if (key == 'backgroundColor')
+        document.body.style.backgroundColor = keyColor.hex;
     });
     this.checkTheme();
     this.storeSessionConfigAsync();

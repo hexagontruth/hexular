@@ -67,7 +67,7 @@ const Util = (() => {
       map.set(stateKey, Board.config.steps);
     }
     fn.duplicateMapper = true;
-    Board.instance.hooks.step = Board.instance.hooks.step.filter((e) => !e.run.duplicateMapper);
+    Board.instance.hooks.step = Board.instance.hooks.step.filter((e) => !e.fn.duplicateMapper);
     Board.instance.addHook('step', fn);
     return [map, dups];
   };
@@ -85,7 +85,7 @@ const Util = (() => {
       }
     }
     fn.debugTimer = true;
-    Board.instance.hooks.step = Board.instance.hooks.step.filter((e) => !e.run.debugTiger);
+    Board.instance.hooks.step = Board.instance.hooks.step.filter((e) => !e.fn.debugTiger);
     Board.instance.addHook('step', fn);
     return intervals;
   };
@@ -167,6 +167,32 @@ const Util = (() => {
         elem.value = elem.value.slice(0, startIdx) + str + elem.value.slice(endIdx);
     }
   };
+
+  Util.fit = (parent, child, action='cover') => {
+    let w, h;
+    if (!action) {
+      [w, h] = child;
+    }
+    else if (action == 'stretch') {
+      [w, h] = parent;
+    }
+    else {
+      let [wp, hp] = parent;
+      let [wc, hc] = child;
+      let ap = wp / hp;
+      let ac = wc / hc;
+      let cover = action == 'cover';
+      if (cover == ac < ap) {
+        w = wp;
+        h = wp * hc / wc;
+      }
+      else { // action == 'contain'
+        h = hp;
+        w = hp * wc / hc;
+      }
+    }
+    return [w, h];
+  }
 
   Util.shallowPrettyJson = (data, maxLevels=2, indentText='  ') => {
     let json = JSON.stringify(data);

@@ -56,14 +56,26 @@ var Hexular = (function () {
      */
     enums: {
       /**
-       * Enumerator representing flat-topped, the greatest of all hexagons.
+       * Enumerator representing nothing whatsoever.
        *
-       * @name TYPE_FLAT
+       * This must be the unique enum evaluating to false.
+       *
+       * @name NONE
        * @default 0
        * @constant
        * @memberof Hexular.enums
        */
-      TYPE_FLAT: 0,
+      NONE: 0,
+
+      /**
+       * Enumerator representing flat-topped, the greatest of all hexagons.
+       *
+       * @name TYPE_FLAT
+       * @default 2
+       * @constant
+       * @memberof Hexular.enums
+       */
+      TYPE_FLAT: 2,
 
       /**
        * Enumerator representing pointy-topped hexagons.
@@ -79,11 +91,11 @@ var Hexular = (function () {
        * Enumerator representing circles &mdash; the most degenerate form of hexagon.
        *
        * @name TYPE_CIRCLE
-       * @default 2
+       * @default 64
        * @constant
        * @memberof Hexular.enums
        */
-      TYPE_CIRCLE: 2,
+      TYPE_CIRCLE: 64,
 
       /**
        * Enumerator representing triangles whose orientation can be contextually inferred.

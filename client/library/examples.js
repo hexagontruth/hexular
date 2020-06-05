@@ -11,13 +11,18 @@ const Examples = (() => {
     deleteRule: `Board.config.deleteRule('ruleName');`,
     drawCellImage: `
       Examples.drawCellImage(null, {
-        scale: 2,
-        type: Hexular.enums.TYPE_FLAT,
+        clipType: Hexular.enums.TYPE_POINTY,
+        translate: [0, 0],
         states: [1, 2],
         clip: true
       });
     `,
-    drawBackgroundImage: `Examples.drawBackgroundImage(null, {scale: 1});`,
+    drawBackgroundImage: `
+      Examples.drawBackgroundImage(null, {
+        fit: 'cover',
+        scale: [1, 1],
+      });
+    `,
     rotateColors: `Examples.rotateColors();`,
     scaleTo: `Board.instance.scaleTo(Board.instance.scale * 2, 5000);`,
     maxNumStates: `Board.config.setMaxNumStates(64);`,
@@ -39,7 +44,7 @@ const Examples = (() => {
 
   function remove(...idxs) {
     Object.entries(Board.instance.hooks).forEach(([key, values]) => {
-      Board.instance.hooks[key] = values.filter((e) => !idxs.includes(e.run.idx));
+      Board.instance.hooks[key] = values.filter((e) => !idxs.includes(e.fn.idx));
     });
     Board.instance.draw();
   }
@@ -59,46 +64,40 @@ const Examples = (() => {
       let fnIdx = ++fnCount;
       (async () => {
         let defaults = {
-          scale: 1,
+          fit: 'cover',
+          scale: [1, 1],
+          translate: [0, 0],
+          blend: 'source-over',
+          alpha: 1,
           cb: null,
+          adapter: null,
+          insertionIndex: 0,
         }
         url = url || await Util.loadImageAsUrl();
         opts = Object.assign(defaults, opts);
         let img = new Image();
         img.src = url;
         img.onload = () => {
-          let fn = () => {
-            let adapter = Board.adapter;
-            let w = img.width;
-            let h = img.height;
+          let fn = (adapter) => {
+            adapter = opts.adapter || adapter;
             let viewW = Board.instance.canvasWidth;
             let viewH = Board.instance.canvasHeight;
-            let scaleAspect = Board.instance.scaleX / Board.instance.scaleY;
-            if (opts.scale) {
-              if (viewH < viewW) {
-                w = viewW * +opts.scale;
-                h = w * img.height / img.width / scaleAspect;;
-              }
-              else {
-                h = viewH * +opts.scale;
-                w = h * img.width / img.height * scaleAspect;
-              }
-            }
-            else {
-              w = w * Board.instance.scaleX;
-              h = h * Board.instance.scaleY;
-            }
+            let [w, h] = Util.fit([viewW, viewH], [img.width, img.height], opts.fit);
+            w *= opts.scale[0];
+            h *= opts.scale[1];
             let x = (viewW - w) / 2;
             let y = (viewH - h) / 2;
-            let coords = {x, y, w, h};
+            opts = {...opts, x, y, w, h};
             adapter.context.save();
-            adapter.context.setTransform(1, 0, 0, 1, 0, 0);
-            opts.cb && opts.cb(coords, Board.instance);
-            adapter.context.drawImage(img, coords.x, coords.y, coords.w, coords.h);
+            adapter.context.setTransform(1, 0, 0, 1, ...opts.translate);
+            opts.cb && opts.cb(opts, Board.instance);
+            adapter.context.globalCompositeOperation = opts.blend;
+            adapter.context.globalAlpha = opts.alpha,
+            adapter.context.drawImage(img, opts.x, opts.y, opts.w, opts.h);
             adapter.context.restore();
           };
           fn.idx = fnIdx;
-          Board.instance.addHook('draw', fn);
+          Board.instance.addHook('draw', fn, opts.insertionIndex);
           Board.instance.draw();
         };
       })();
@@ -109,11 +108,16 @@ const Examples = (() => {
       let fnIdx = ++fnCount;
       (async () => {
         let defaults = {
-          clip: true,
-          type: Hexular.enums.TYPE_POINTY,
-          scale: 1,
+          clipType: Hexular.enums.TYPE_POINTY,
+          clipScale: 1,
+          fit: 'cover',
+          scale: [1, 1],
+          translate: [0, 0],
+          blend: 'source-over',
+          alpha: 1,
           states: [1],
           cb: null,
+          adapter: null,
         };
         if (!url);
         url = url || await Util.loadImageAsUrl();
@@ -121,29 +125,33 @@ const Examples = (() => {
         let img = new Image();
         img.src = url;
         img.onload = () => {
-          let adapter = Board.adapter;
           let config = Board.config;
-          let w = img.width;
-          let h = img.height;
-          if (opts.scale) {
-            w = config.innerRadius * 2 * +opts.scale;
-            h = w * img.height / img.width;
-          }
-          let pathScale = opts.scale || 1;
-          let fn = (cell) => {
-            let adapter = Board.adapter;
-            if (!opts.states.includes(cell.state))
-              return;
-            adapter.context.save();
-            adapter.context.translate(...Board.model.cellMap.get(cell));
-            let coords = {x: -w / 2, y: -h / 2, w, h};
-            opts.clip && adapter.drawShape([0, 0], adapter.config.innerRadius * pathScale, {type: opts.type, clip: true});
-            opts.cb && opts.cb(cell, coords, Board.instance);
-            adapter.context.drawImage(img, 0, 0, img.width, img.height, coords.x, coords.y, coords.w, coords.h);
-            adapter.context.restore();
+          let fn = (adapter) => {
+            adapter = opts.adapter || adapter;
+            let parent = [config.innerRadius * 2, config.innerRadius * 2];
+            let [w, h] = Util.fit(parent, [img.width, img.height], opts.fit);
+            w *= opts.scale[0];
+            h *= opts.scale[1];
+            Board.model.eachCell((cell) => {
+              if (!opts.states.includes(cell.state))
+                return;
+              adapter.context.save();
+              adapter.context.translate(...Board.model.cellMap.get(cell));
+              adapter.context.translate(...opts.translate);
+              opts = {...opts, x: -w / 2, y: -h / 2, w, h};
+              opts.cb && opts.cb(cell, opts, Board.instance);
+              adapter.context.globalCompositeOperation = opts.blend;
+              adapter.context.globalAlpha = opts.alpha;
+              if (opts.clipType) {
+                let clipR = adapter.config.innerRadius * opts.clipScale;
+                adapter.drawShape([0, 0], clipR, {type: opts.clipType, clip: true});
+              }
+              adapter.context.drawImage(img, 0, 0, img.width, img.height, opts.x, opts.y, opts.w, opts.h);
+              adapter.context.restore();
+            });
           };
           fn.idx = ++fnCount;
-          Board.instance.addHook('drawCell', fn);
+          Board.instance.addHook('draw', fn, opts.insertionIndex);
           Board.instance.draw();
         }
       })();

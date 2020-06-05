@@ -10,6 +10,7 @@ class FaderExpander extends Plugin {
         maxRadius: 1,
         fill: true,
         stroke: false,
+        color: null,
         lineWidth: null,
         lineJoin: null,
         pivot: 0.5,
@@ -27,10 +28,8 @@ class FaderExpander extends Plugin {
   onDraw(adapter) {
     // Setup
     let ctx = adapter.context;
-    let fillColors = this.config.fillColors;
-    let strokeColors = this.config.strokeColors;
     let {
-      shapeType, fill, stroke, lineWidth, minRadius,
+      shapeType, fill, stroke, color, lineWidth, minRadius,
       maxRadius, minAlpha, maxAlpha, pivot
     } = this.settings;
     let q = this.board.drawStepQInc;
@@ -45,6 +44,12 @@ class FaderExpander extends Plugin {
       lineWidth: lineWidth != null ? lineWidth : this.config.cellBorderWidth,
       lineJoin: this.settings.lineJoin || this.config.defaultJoin,
     };
+    let fillColors = this.config.fillColors.slice();
+    let strokeColors = this.config.strokeColors.slice();
+    if (color) {
+      fillColors.fill(Color(this.settings.color));
+      strokeColors.fill(Color(this.settings.color));
+    }
 
     // Draw
     this.drawEachCell((cell) => {

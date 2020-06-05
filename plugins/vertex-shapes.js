@@ -120,8 +120,8 @@ class VertexShapes extends Plugin {
         y += yo;
         // Draw shapes
         if (shapeType == Hexular.enums.TYPE_CIRCLE) {
-          ctx.beginPath();
           ctx.moveTo(x, y);
+          ctx.beginPath();
           ctx.arc(x, y, radius, 0, Math.PI * 2);
         }
         else {

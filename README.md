@@ -422,7 +422,7 @@ The following hooks are currently supported
 
 We can add functions to be called at a given time index during play or recording via the timer hook. For example, to turn cells with state 4 cyan after five seconds, we could run the following from the console or the custom code modal:
 
-        Board.instance.addTriggerHook('timer', () => Board.config.setColor(3, '#33cccc'), 5000);
+        Board.instance.addTrigger('timer', () => Board.config.setColor(3, '#33cccc'), 5000);
 
 Timer hooks will be rerun at their appropriate time index after every stop/start event, but changes they make to e.g. the configuration object will persist until explicitly reset.
 

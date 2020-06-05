@@ -19,9 +19,9 @@ class Board {
           board.redoStack = oldBoard.redoStack;
           board.refreshHistoryButtons();
           Object.entries(oldBoard.hooks).forEach(([key, value]) => {
-            let hooks = value.filter((e) => !e.run.radio);
-            board.hooks[key] = board.hooks[key] || [];
-            board.hooks[key].splice(board.hooks[key].length, 0, ...hooks);
+            value.forEach((e, i) => {
+              e.fn.radio || board.addHook(key, e, i)
+            });
           });
         }
         Board.config = board.config;
@@ -86,6 +86,7 @@ class Board {
         updatePreset: [],
         updateTheme: [],
       },
+      hookMap: {},
       hookQueue: new Set(),
       pluginControls: [],
       scaling: false,
@@ -191,6 +192,7 @@ class Board {
     Object.assign(this, boardOpts);
     this.config = new Config(this, configOpts);
     this.execCommandBroken = Util.execCommandBroken();
+    this.hookCounter = 0;
 
     // Initialize canvases
     this.container.querySelectorAll('canvas').forEach((e) => e.remove());
@@ -419,9 +421,9 @@ class Board {
       this.setInfoBox('timer', str);
       while (hooks[0] && hooks[0].trigger <= deltaMs) {
         let hook = hooks.shift();
-        hook.run();
+        hook.fn();
       }
-    }, 25);
+    }, 10);
   }
 
   stopMeta() {
@@ -488,25 +490,42 @@ class Board {
     this.runHooks('drawFg');
   }
 
-  addHook(key, fn, idx) {
+  createHook(key, obj, opts={}) {
     this.hooks[key] = this.hooks[key] || [];
+    let fn = obj.fn || obj;
+    obj = {...opts, key, fn, id: this.hookCounter++};
+    this.hookMap[obj.id] = obj;
+    return obj;
+  }
+
+  addHook(key, obj, idx, opts={}) {
+    obj = this.createHook(key, obj, opts);
     idx = idx != null ? idx : this.hooks[key].length;
-    let obj = {run: fn};
     this.hooks[key].splice(idx, 0, obj);
+    return obj.id;
   }
 
   // This is ridiculous
-  addTriggerHook(key, fn, trigger) {
-    this.hooks[key] = this.hooks[key] || [];
-    let obj = {run: fn, trigger};
+  addTrigger(key, obj, trigger) {
+    obj = this.createHook(key, obj, {trigger});
     this.hooks[key].push(obj);
     this.hooks[key].sort((a, b) => a.trigger - b.trigger);
+    return obj.id;
   }
 
-  removeHook(hook, fn) {
-    let idx = this.hooks[hook].findIndex((e) => e.run == fn);
-    if (idx != -1)
-      this.hooks[hook].splice(idx, 1);
+  removeHook(...args) {
+    if (args.length == 2 && typeof args[1] == 'function') {
+      let [hook, fn] = args;
+      let idx = this.hooks[hook].findIndex((e) => e.fn == fn);
+      if (idx != -1)
+        this.hooks[hook].splice(idx, 1);
+    }
+    else {
+      let [id] = args;
+      let obj = this.hookMap[id];
+      if (obj)
+        this.hooks[obj.key] = this.hooks[obj.key].filter((e) => e.id != id);
+    }
   }
 
   clearHooks(key) {
@@ -516,7 +535,7 @@ class Board {
 
   runHooks(hook, ...args) {
     let fns = this.hooks[hook] || [];
-    fns.forEach((e) => e.run(...args));
+    fns.forEach((e) => e.fn(...args));
   }
 
   runHooksAsync(hook, ...args) {
@@ -533,7 +552,7 @@ class Board {
     let fns = this.hooks[hook] || [];
     for (let i = 0; i < fns.length; i++) {
       for (let j = 0; j < argArray.length; j++) {
-        fns[i].run(argArray[j], ...args);
+        fns[i].fn(argArray[j], ...args);
       }
     }
   }
@@ -665,7 +684,7 @@ class Board {
       this.draw();
       this.processImageCaptures(this.imageCapture);
       this.imageCapture = null;
-      this.hooks.drawStep = this.hooks.drawStep.filter((e) => !e.run.imageCaptureCb);
+      this.hooks.drawStep = this.hooks.drawStep.filter((e) => !e.fn.imageCaptureCb);
       this.buttons.toggleImageCapture.classList.remove('active');
     }
   }

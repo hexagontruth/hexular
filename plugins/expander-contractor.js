@@ -78,7 +78,7 @@ class ExpanderContractor extends Plugin {
     };
     let fillColors = this.config.fillColors.slice();
     let strokeColors = this.config.strokeColors.slice();
-    if (this.settings.color) {
+    if (color) {
       fillColors.fill(Color(this.settings.color));
       strokeColors.fill(Color(this.settings.color));
     }

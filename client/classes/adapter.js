@@ -98,7 +98,7 @@ class CanvasAdapter {
       strokeStyle: null,
       lineWidth: this.config.cellBorderWidth,
       lineJoin: 'miter',
-      alpha: 1,
+      alpha: null,
       clip: false,
     };
     opts = Object.assign(defaults, opts);
@@ -126,7 +126,9 @@ class CanvasAdapter {
       ctx.clip();
     }
     else {
-      ctx.globalAlpha = opts.alpha;
+      if (opts.alpha != null) {
+        ctx.globalAlpha = opts.alpha;
+      }
       if (opts.fill) {
         ctx.fillStyle = (opts.fillStyle || this.config.defaultColor).toString();
         ctx.fill();
@@ -171,7 +173,7 @@ class CanvasAdapter {
   }
 
   drawOutlinePointyHex(cell, style, lineWidth) {
-    lineWidth = lineWidth || this.cellBorderWidth;
+    lineWidth = lineWidth || this.config.cellBorderWidth;
     if (lineWidth == 0)
       return;
     this.context.strokeStyle = style || this.getStrokeFade(cell);
@@ -188,7 +190,7 @@ class CanvasAdapter {
   }
 
   drawOutlineFlatHex(cell, style, lineWidth) {
-    lineWidth = lineWidth || this.cellBorderWidth;
+    lineWidth = lineWidth || this.config.cellBorderWidth;
     if (lineWidth == 0)
       return;
     this.context.strokeStyle = style || this.getStrokeFade(cell);
@@ -204,7 +206,7 @@ class CanvasAdapter {
   }
 
   drawOutlineCircle(cell, style, lineWidth) {
-    lineWidth = lineWidth || this.cellBorderWidth;
+    lineWidth = lineWidth || this.config.cellBorderWidth;
     if (lineWidth == 0)
       return;
     this.context.strokeStyle = style || this.getStrokeFade(cell);
