@@ -379,7 +379,7 @@
 <p>* Requires trigger argument.</p>
 <p>** Callback function accepts one or more arguments — consult source code for details.</p>
 <p>We can add functions to be called at a given time index during play or recording via the timer hook. For example, to turn cells with state 4 cyan after five seconds, we could run the following from the console or the custom code modal:</p>
-<pre><code>    Board.instance.addTriggerHook('timer', () =&gt; Board.config.setColor(3, '#33cccc'), 5000);
+<pre><code>    Board.instance.addTrigger('timer', () =&gt; Board.config.setColor(3, '#33cccc'), 5000);
 </code></pre>
 <p>Timer hooks will be rerun at their appropriate time index after every stop/start event, but changes they make to e.g. the configuration object will persist until explicitly reset.</p>
 <h2 id="more-information">More information</h2>
