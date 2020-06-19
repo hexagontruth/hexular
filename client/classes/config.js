@@ -731,7 +731,7 @@ class Config {
 
   setSteps(steps) {
     steps = steps != null ? steps : this.steps;
-    this.steps = steps;
+    this.steps = parseInt(steps);
     this.board.setInfoBox('steps', steps);
     this.storeSessionConfigAsync();
   }
@@ -1000,6 +1000,14 @@ class Config {
     Object.entries(opts).forEach(([key, value]) => {
       this.localStorageObj.setItem(key, value);
     });
+  }
+
+  getSessionItem(key) {
+    return this.sessionStorageObj.getItem(key);
+  }
+
+  getLocalItem(key) {
+    return this.localStorageObj.getItem(key);
   }
 
   storeSessionConfig() {

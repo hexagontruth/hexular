@@ -213,7 +213,7 @@ const Themes = (() => {
       modelBackgroundColor: '#182b2e',
       defaultColor: '#e7e7e7',
       cellGap: 4.33,
-      colors: [null].concat(Color.from(Array(63).fill().map((_, i) => Color.hslaToRgba(i * 360 / 63, 50, 50)))),
+      colors: [null].concat(Color.from(Array(63).fill().map((_, i) => Color.hslaToRgba(i * 360 / 63, 0.5, 0.5)))),
     },
   };
   return themes;

@@ -633,14 +633,17 @@ class Board {
   // Save/load
 
   saveSnapshot() {
-    this.config.storeModel('modelSnapshot', this.model.export());
+    this.config.storeModel('snapshotModel', this.model.export());
+    this.config.storeSessionState({snapshotSteps: this.config.steps});
     this.setMessage('Snapshot saved!');
   }
 
   loadSnapshot() {
     this.newHistoryState();
-    let bytes = this.config.loadModel('modelSnapshot');
+    let bytes = this.config.loadModel('snapshotModel');
+    let steps = this.config.getSessionItem('snapshotSteps');
     if (bytes) {
+      this.config.setSteps(steps);
       let cur = this.model.export();
       let diff = false;
       for (let i = 0; i < cur.length; i++)
@@ -672,8 +675,8 @@ class Board {
       let fn = async (e) => {
         this.imageCapture.push([this.getImageFilename(), await this.saveImage()]);
       };
-      fn.imageCaptureCb = true;
-      this.addHook('drawStep', fn);
+      // This shocks the conscience
+      this.imageCapture.handle = this.addHook('draw', fn);
       // Capture current state
       fn();
       this.buttons.toggleImageCapture.classList.add('active');
@@ -682,9 +685,10 @@ class Board {
       if (!this.recorder)
         this.config.setRecordingMode(false);
       this.draw();
+      this.removeHook(this.imageCapture.handle);
       this.processImageCaptures(this.imageCapture);
       this.imageCapture = null;
-      this.hooks.drawStep = this.hooks.drawStep.filter((e) => !e.fn.imageCaptureCb);
+
       this.buttons.toggleImageCapture.classList.remove('active');
     }
   }

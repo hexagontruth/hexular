@@ -20,15 +20,13 @@ const Util = (() => {
     let sDelta = opts.sDelta || 0;
     let lDelta = opts.lDelta || 0;
     let aDelta = opts.aDelta || 0;
-    let dir = opts.dir || 1;
     let colors = Board.config.colors.slice();
-    let clamp = (n) => n; //(n, min=0, max=1) => Math.min(max, Math.max(min, n));
     for (let i = min; i < max; i++) {
       let q = i - min;
-      let h = (hBase + dir * q * hDelta / range) % 360;
-      let s = clamp(sBase + dir * q * sDelta / range);
-      let l = clamp(lBase + dir * q * lDelta / range);
-      let a = clamp(aBase + dir * q * aDelta / range);
+      let h = Hexular.math.mod((hBase + q * hDelta / range), 360);
+      let s = sBase + q * sDelta / range;
+      let l = lBase + q * lDelta / range;
+      let a = aBase + q * aDelta / range;
       colors[i] = Color.hslaToRgba(h, s, l, a);
     }
     Board.config.setColors(colors);

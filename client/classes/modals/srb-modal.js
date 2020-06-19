@@ -106,7 +106,8 @@ class SrbModal extends Modal {
   }
 
   update() {
-    let rbRules = Object.entries(this.config.availableRules).filter(([rule, fn]) => fn.n).map(([rule, fn]) => rule);
+    let rbRules = Object.entries(this.config.availableRules)
+    .filter(([rule, fn]) => fn.n != null).map(([rule, fn]) => rule);
     this.selectAvailable.replace(rbRules, this.ruleName.value, 1);
   }
 

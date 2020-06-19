@@ -26,7 +26,7 @@ const Examples = (() => {
     rotateColors: `Examples.rotateColors();`,
     scaleTo: `Board.instance.scaleTo(Board.instance.scale * 2, 5000);`,
     maxNumStates: `Board.config.setMaxNumStates(64);`,
-    setColorRange: `Util.setColorRange({range: [1, 12], dir: 1, h: 0, hDelta: 360});`,
+    setColorRange: `Util.setColorRange({range: [1, 12], h: 0, hDelta: 360});`,
     debugTimer: `
       // Writes interval to console and window.debugIntervals
       Util.debugTimer();
