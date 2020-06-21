@@ -1,31 +1,47 @@
 class CustomModal extends Modal {
   constructor(...args) {
     super(...args);
-    this.selectExample = document.querySelector('#select-example').select;
-    this.input = document.querySelector('#custom-input');
-    this.output = document.querySelector('#custom-output');
+    this.selectSnippet = document.querySelector('#select-snippet').select;
+    this.input = document.querySelector('#snippet-input');
+    this.output = document.querySelector('#snippet-output');
     this.import = document.querySelector('#import');
-    this.button = document.querySelector('#add-custom-code');
+    this.addButton = document.querySelector('#add-snippet');
+    this.runButton = document.querySelector('#run-custom-code');
+    this.snippetFields = {};
+    this.editMode = true;
 
-    this.selectExample.onchange = (ev) => {
-      let str = Examples.customCodeDemos[this.selectExample.value];
-      str && Util.execInsert(this.input, str);
+    this.selectSnippet.onchange = (ev) => {
+      let text = this.config.snippets[this.selectSnippet.value];
+      this.addButton.disabled = !!text;
+      if (text) {
+        this.editMode = false; // ugh
+        Util.execInsert(this.input, text);
+        this.setSnippetFields({name: this.selectSnippet.value, text});
+        this.editMode = true;
+      }
     };
 
     this.input.oninput = (ev) => {
-      this.selectExample.value = null;
       Util.handleTextFormat(this.input, ev);
+      if (this.editMode) {
+        this.selectSnippet.value = null;
+        this.addButton.disabled = false;
+      }
     };
 
-    this.input.onchange = (ev) => this.config.setCustomInput(this.input.value);
+    this.input.onchange = (ev) => {
+      this.setSnippetFields({text: this.input.value});
+    }
 
     this.output.onclick = (ev) => this.output.select();
 
     this.import.onclick = (ev) => this.board.import();
 
-    this.button.onclick = (ev) => {
+    this.addButton.onclick = (ev) => this.handleAddSnippet();
+
+    this.runButton.onclick = (ev) => {
       if (this.input.value == '') {
-        this.board.setMessage('Nothing to run!', 'error');
+        this.board.setMessage('Nothing to run!', 'warning');
         return;
       }
       try {
@@ -35,14 +51,37 @@ class CustomModal extends Modal {
         this.board.setMessage('Done!');
       }
       catch (err) {
-        this.board.setMessage(`An error occurred: ${err}.`, 'error');
+        this.board.setMessage(`Error: ${err}.`, 'error');
       }
     }
   }
 
+  update() {
+    this.selectSnippet.replace(Object.keys(this.config.snippets).sort(), null, 1);
+    this.reset();
+  }
+
   reset() {
-    this.selectExample.replace(Object.keys(Examples.customCodeDemos), null, 1);
-    if (this.input.value == '')
-      this.input.value = this.input.placeholder;
+    this.snippetFields = Hexular.util.merge({}, this.config.snippetFields);
+    this.addButton.disabled = !!this.snippetFields.name;
+    this.selectSnippet.value = this.snippetFields.name;
+    this.input.value = this.snippetFields.text;
+  }
+
+  setSnippetFields(fields) {
+    if (!fields.name && fields.text && fields.text != this.snippetFields.text)
+      fields.name = null;
+    this.snippetFields = Object.assign(this.snippetFields, fields);
+    this.config.setSnippetFields(this.snippetFields);
+  }
+
+  handleAddSnippet() {
+    // TODO: Replace native prompt
+    let snippetName = window.prompt('Please enter a snippet name:');
+    if (snippetName) {
+      this.config.addSnippet(snippetName, this.config.snippetFields.text);
+      this.config.setSnippetFields({name: snippetName});
+      this.reset();
+    }
   }
 }

@@ -557,7 +557,7 @@ input[type=number] {
 }
 
 input[type=number].short {
-  max-width: 3rem;
+  max-width: 4rem;
 }
 
 select {

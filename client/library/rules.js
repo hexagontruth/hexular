@@ -1,26 +1,19 @@
 const Rules = (() => {
   const coreRules = Hexular.rules;
   const customRules = {
-    binary1: (cell) => cell.count == 1 ? 1 : 0,
+    binary1: Util.binaryRuleFactory(1),
 
-    binary2: (cell) => cell.count == 2 ? 1 : 0,
+    binary2: Util.binaryRuleFactory(2),
 
-    binary3: (cell) => cell.count == 3 ? 1 : 0,
+    binary3: Util.binaryRuleFactory(3),
 
-    binary12: (cell) => {
-      let count = cell.count;
-      return count == 1 || count == 2 ? 1 : 0;
-    },
+    binary12: Util.binaryRuleFactory(1, 2),
 
-    binary23: (cell) => {
-      const count = cell.count;
-      return count == 2 || count == 3 ? 1 : 0;
-    },
+    binary23: Util.binaryRuleFactory(2, 3),
 
-    binary34: (cell) => {
-      const count = cell.count;
-      return count == 3 || count == 4 ? 1 : 0;
-    },
+    binary34: Util.binaryRuleFactory(3, 4),
+
+    symmetric36: Util.symmetricRuleFactory(3, 6),
 
     stepDown: (cell) => cell.state - 1,
 
@@ -29,8 +22,6 @@ const Rules = (() => {
     xor: (cell) => cell.map.reduce((a, e) => e ^ a, 0),
 
     xorCount: (cell) => cell.count % 2,
-
-    xorTotal: (cell) => cell.total % 2,
 
     average: (cell) => cell.average,
 
@@ -41,22 +32,6 @@ const Rules = (() => {
     min: (cell) => cell.min,
 
     max: (cell) => cell.max,
-
-    diurnal: (cell) => {
-      let t = cell.total;
-      if (cell.state) {
-        if (t == 3 || t == 6)
-          return 1;
-        else
-          return 0;
-      }
-      else {
-        if (t == 3 || t == 0)
-          return 0;
-        else
-          return 1;
-      }
-    },
 
     rhombicLife: (cell) => {
       let t = cell.with[6].total + cell.nbrs[7].state + cell.nbrs[10].state;

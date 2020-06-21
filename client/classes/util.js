@@ -3,10 +3,40 @@ const Util = (() => {
 
   Util.binaryRuleFactory = (...args) => {
     args = args.filter((e) => typeof e == 'number' && e >= 0 && Math.floor(e) == e);
+    let str = '() => 0';
     if (args.length)
-      return eval(`(cell) => ${args.map((e) => `cell.state == ${e}`).join(' || ')} ? 1 : 0`); // lol
-    else
-      return () => false;
+      str = Util.indentTrim(`
+        (cell) => {
+          let c = cell.count;
+          return ${args.map((e) => `c == ${e}`).join(' || ')} ? 1 : 0;
+        }
+      `);
+    return eval(str);
+  };
+
+  Util.symmetricRuleFactory = (...args) => {
+    args = args.filter((e) => typeof e == 'number' && e >= 0 && Math.floor(e) == e);
+    let str = '() => 0';
+    if (args.length)
+      str = Util.indentTrim(`
+        (cell) => {
+          let c = cell.count;
+          let n = cell.neighborhood;
+          if (cell.state) {
+            if (${args.map((e) => `c == ${e}`).join(' || ')})
+              return 1;
+            else
+              return 0;
+          }
+          else {
+            if (${args.map((e) => `c == n - ${e}`).join(' || ')})
+              return 0;
+            else
+              return 1;
+          }
+        }
+      `);
+    return eval(str);
   };
 
   Util.setColorRange = (opts={}) => {

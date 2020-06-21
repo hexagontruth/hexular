@@ -327,8 +327,8 @@
 <h3 id="additional-options">Additional options</h3>
 <p>The resize modal (Ctrl+R) allows us to resize the model to a new size. Note that this effectively destroys the existing model and board and creates a wholly new one. Built-in settings and plugins will be copied over, but any more bespoke modifications may be lost. If the new radius is smaller than the current one, cells outside the new radius will simply be discarded. Conversely, if the new radius is larger, we of course keep all existing cells and insert blank ones around them.</p>
 <h4 id="custom-code">Custom code</h4>
-<p>The custom code modal (Ctrl+F) allows us to execute arbitrary JavaScript code, or indeed upload raw JavaScript to be evaluated. This obviously shouldn't be used by people who don't have a pretty solid grasp of JavaScript.</p>
-<p>Every board instance attaches the following to the global <code>Board</code> object (which is itself the <code>Board</code> class):</p>
+<p>The custom code modal (Ctrl+F) allows us to execute arbitrary JavaScript code, or indeed upload raw JavaScript to be evaluated. This should probably only be used by users with a pretty solid grasp of JavaScript.</p>
+<p>Custom code is evaluated with the global <code>Hexular</code> and <code>Board</code> made available. Every board instance (i.e., the currently displayed board) attaches the following attributes to the <code>Board</code> object:</p>
 <ul>
 <li><code>Board.instance</code> - The board itself</li>
 <li><code>Board.config</code> - Alias for <code>Board.instance.config</code></li>
@@ -338,9 +338,17 @@
 <li><code>Board.fgAdapter</code> - Alias for <code>Board.instance.fgAdapter</code></li>
 <li><code>Board.shared</code> - Alias for <code>Board.instance.shared</code></li>
 </ul>
-<p>Some examples can be found in the &quot;Examples&quot; dropdown in this modal. We can e.g. add a new custom rule as follows:</p>
-<pre><code>    Board.config.addRule('fancyRule', (cell) =&gt; cell.count == 3 ? 1 : 0)
+<p>Some built-in examples can be found in the &quot;code snippets&quot; dropdown. We can select e.g. &quot;addRule&quot; from the dropdown and modify it to add the following new rule:</p>
+<pre><code>    Board.config.addRule('fancyRule', (cell) =&gt; cell.count == 3 ? 1 : 0);
 </code></pre>
+<p>The same rule can be defined using a variation on the &quot;binaryRuleFactory&quot; example:</p>
+<pre><code>    Board.config.addRule('fancyRule', Util.binaryRuleFactory(3));
+</code></pre>
+<p>Binary rules are simple isotropic rules like that given in this example — for instance, the built-in &quot;binary1&quot; rule returns <code>1</code> if and only if the cell has one active neighbor, and <code>0</code> otherwise.</p>
+<p>A variation on binary rules are symmetric rules, which can likewise be instantiated via the &quot;symmetricRuleFactory&quot; and associated example snippet:</p>
+<pre><code>    Board.config.addRule('symmetric26', Util.symmetricRuleFactory(2, 6));
+</code></pre>
+<p>Here, already-active cells are likewise sustained with an active neighbor count of 2 or 6. However, inactive cells are kept inactive by the <em>inverse</em> neighbor count relative to the current neighborhood, and activated otherwise. So in this case, under the default six-neighbor N6 neighborhood, inactive cells with 0 or 4 active neighbors are kept inactive, while all others are activated. In other words, this rule is equivalent to having a <code>binary12356</code> rule for state 0, and <code>binary26</code> for active states.</p>
 <p>We can also add our own rule presets:</p>
 <pre><code>    Board.config.addPreset(
       'fancyPreset',
@@ -350,7 +358,8 @@
       )
     )
 </code></pre>
-<p>As a practical matter it's usually easier to simply use your browser's dev console for anything this involved, but in cases where that isn't practical, the custom code modal offers a convenient and powerful alternative.</p>
+<p>We can define new snippets or overwrite existing ones with the &quot;Save code snippet...&quot; (plus sign) button.</p>
+<p>As a practical matter it's usually easier to simply use your browser's dev console for anything this involved, but in cases where that isn't practical, the custom code modal offers a convenient and powerful alternative, as well as a mechanism for storing, importing, and exporting frequently-used blocks of code between sessions.</p>
 <h4 id="board-hooks">Board hooks</h4>
 <p>We can add callback functions to be run on the advent of particular events with the <code>board.addHook</code> method, e.g.:</p>
 <pre><code>    Board.instance.addHook('debugSelect', (cell) =&gt; console.log(cell.state));

@@ -361,9 +361,9 @@ The resize modal (Ctrl+R) allows us to resize the model to a new size. Note that
 
 #### Custom code
 
-The custom code modal (Ctrl+F) allows us to execute arbitrary JavaScript code, or indeed upload raw JavaScript to be evaluated. This obviously shouldn't be used by people who don't have a pretty solid grasp of JavaScript.
+The custom code modal (Ctrl+F) allows us to execute arbitrary JavaScript code, or indeed upload raw JavaScript to be evaluated. This should probably only be used by users with a pretty solid grasp of JavaScript.
 
-Every board instance attaches the following to the global `Board` object (which is itself the `Board` class):
+Custom code is evaluated with the global `Hexular` and `Board` made available. Every board instance (i.e., the currently displayed board) attaches the following attributes to the `Board` object:
 
 - `Board.instance` - The board itself
 - `Board.config` - Alias for `Board.instance.config`
@@ -373,9 +373,21 @@ Every board instance attaches the following to the global `Board` object (which 
 - `Board.fgAdapter` - Alias for `Board.instance.fgAdapter`
 - `Board.shared` - Alias for `Board.instance.shared`
 
-Some examples can be found in the "Examples" dropdown in this modal. We can e.g. add a new custom rule as follows:
+Some built-in examples can be found in the "code snippets" dropdown. We can select e.g. "addRule" from the dropdown and modify it to add the following new rule:
 
-        Board.config.addRule('fancyRule', (cell) => cell.count == 3 ? 1 : 0)
+        Board.config.addRule('fancyRule', (cell) => cell.count == 3 ? 1 : 0);
+
+The same rule can be defined using a variation on the "binaryRuleFactory" example:
+
+        Board.config.addRule('fancyRule', Util.binaryRuleFactory(3));
+
+Binary rules are simple isotropic rules like that given in this example — for instance, the built-in "binary1" rule returns `1` if and only if the cell has one active neighbor, and `0` otherwise.
+
+A variation on binary rules are symmetric rules, which can likewise be instantiated via the "symmetricRuleFactory" and associated example snippet:
+
+        Board.config.addRule('symmetric26', Util.symmetricRuleFactory(2, 6));
+
+Here, already-active cells are likewise sustained with an active neighbor count of 2 or 6. However, inactive cells are kept inactive by the *inverse* neighbor count relative to the current neighborhood, and activated otherwise. So in this case, under the default six-neighbor N6 neighborhood, inactive cells with 0 or 4 active neighbors are kept inactive, while all others are activated. In other words, this rule is equivalent to having a `binary12356` rule for state 0, and `binary26` for active states.
 
 We can also add our own rule presets:
 
@@ -387,7 +399,10 @@ We can also add our own rule presets:
           )
         )
 
-As a practical matter it's usually easier to simply use your browser's dev console for anything this involved, but in cases where that isn't practical, the custom code modal offers a convenient and powerful alternative.
+
+We can define new snippets or overwrite existing ones with the "Save code snippet..." (plus sign) button.
+
+As a practical matter it's usually easier to simply use your browser's dev console for anything this involved, but in cases where that isn't practical, the custom code modal offers a convenient and powerful alternative, as well as a mechanism for storing, importing, and exporting frequently-used blocks of code between sessions.
 
 #### Board hooks
 

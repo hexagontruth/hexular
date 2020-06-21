@@ -29,7 +29,7 @@
     this.activated = false;
     this.enabled = false;
     this.fns = [];
-    this.globalAlpha = 1;
+    this.globalAlpha = null;
     this.saveSettings(settings || this.defaultSettings());
   }
 
@@ -132,7 +132,7 @@
     let fn = args.pop();
     let ctx = args.pop() || this.adapter.context;
     ctx.save();
-    ctx.globalAlpha = this.globalAlpha;
+    ctx.globalAlpha = this.globalAlpha != null ? this.globalAlpha : this.config.alpha;
     ctx.globalCompositeOperation = this.settings.blendMode;
     this.model.eachCell(fn);
     ctx.restore();

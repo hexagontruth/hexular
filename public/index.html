@@ -68,7 +68,7 @@
       <button id="show-resize" title="Resize model (Ctrl+R)" class="icon-arrow-top-right-bottom-left"></button>
       <button id="show-srb" title="Simple Rulebuilder (Ctrl+B)" class="icon-function"></button>
       <button id="show-trb" title="Template Rulebuilder (Ctrl+H)" class="icon-lambda"></button>
-      <button id="show-custom" title="Custom Code (Ctrl+F)" class="icon-code"></button>
+      <button id="show-custom" title="Custom code (Ctrl+F)" class="icon-code"></button>
     </div>
   </div>
   <div class="toolbar bottom">
@@ -151,12 +151,14 @@
               <option selected>source-over</option>
               <option>xor</option>
             </select>
+            <label>Alpha:</label>
+            <input type="number" class="short" id="alpha" min="0" max="1" step="0.1" title="Global default alpha value"/>
           </div>
           <div class="group">
             <label>Gap:</label>
-            <input type="number" id="cell-gap" step="0.1"/>
+            <input type="number" id="cell-gap" step="0.1" title="Dfault gap distance between cells"/>
             <label>Border:</label>
-            <input type="number" id="cell-border-width" min="0" step="0.1"/>
+            <input type="number" id="cell-border-width" min="0" step="0.1" title="Default border width for strokes"/>
           </div>
         </div>
       </div>
@@ -430,22 +432,23 @@
         </div>
       </div>
       <div class="modal custom hidden">
-        <div class="modal-title"><i class="icon-code"></i> Custom Code</div>
+        <div class="modal-title"><i class="icon-code"></i> Custom code</div>
         <div class="modal-content">
           <div class="group">
-            <select id="select-example">
-              <option value="">[ Select example ]</option>
+            <button id="add-snippet" class="icon-plus" title="Save code snippet..."></button>
+            <select id="select-snippet">
+              <option value="">[ Select code snippet ]</option>
             </select>
           </div>
           <div class="group">
-            <textarea id="custom-input" class="focus" placeholder="// See global Examples object for more"></textarea>
+            <textarea id="snippet-input" class="focus" placeholder="Enter custom code or select snippet from dropdown"></textarea>
           </div>
           <div class="group">
-            <input type="text" id="custom-output" readonly/>
+            <input type="text" id="snippet-output" readonly/>
           </div>
           <div class="group buttons">
             <button id="import" title="Import custom JavaScript...">Import...</button>
-            <button id="add-custom-code" title="Run custom code">Run</button>
+            <button id="run-custom-code" title="Run custom code">Run</button>
           </div>
         </div>
       </div>

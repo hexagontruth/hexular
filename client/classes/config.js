@@ -83,6 +83,7 @@ class Config {
       drawStepInterval: 1,
       fadeIndex: 0,
       drawModelBackground: true,
+      alpha: 1,
       blendMode: 'source-over',
       defaultCap: 'butt', // lol
       defaultJoin: 'miter',
@@ -93,6 +94,10 @@ class Config {
       rbMatchRel: 0,
       rbRel: 0,
       rbStates: Array(64).fill(false),
+      snippetFields: {
+        name: null,
+        text: '',
+      },
       trb: {
         ruleName: 'newTemplateRule',
         selectedName: '',
@@ -128,7 +133,6 @@ class Config {
         ],
       },
       radioMap: {},
-      customInput: null,
       localStorageObj: window.localStorage,
       sessionStorageObj: window.sessionStorage,
     };
@@ -145,8 +149,9 @@ class Config {
     // We load these after Config.defaults b/c it needs to be available for populating themes &c.
     let library = {
       availableRules: Hexular.util.merge({}, Rules),
+      presets: Hexular.util.merge({}, Presets),
+      snippets: Hexular.util.merge({}, Examples.snippets),
       themes: Hexular.util.merge(Themes),
-      presets: Hexular.util.merge({}, Presets)
     };
     this.board = board;
     Hexular.util.merge(this, Config.defaults, library);
@@ -278,7 +283,7 @@ class Config {
       this.pluginModal.update();
 
       // Custom code modal
-      this.setCustomInput(this.customInput);
+      this.customModal.update();
 
       // Restore plugins
       this.restorePlugins();
@@ -303,10 +308,8 @@ class Config {
   }
 
   deleteRule(ruleName) {
-    if (this.availableRules[ruleName]) {
-      delete this.availableRules[ruleName];
-      this.updateRules();
-    }
+    delete this.availableRules[ruleName];
+    this.updateRules();
   }
 
   mergeRules(newRuleName, ...ruleNames) {
@@ -326,12 +329,47 @@ class Config {
 
   addPreset(presetName, preset) {
     this.presets[presetName] = preset
+    this.updatePresets();
+  }
+
+  deletePreset(presetName) {
+    delete this.presets[presetName];
+    this.updatePresets();
+  }
+
+  updatePresets() {
     this.configModal.update();
+    this.storeLocalConfigAsync();
+  }
+
+  addSnippet(snippetName, snippet) {
+    this.snippets[snippetName] = snippet;
+    this.updateSnippets();
+  }
+
+  deleteSnippet(snippetName) {
+    delete this.snippets[snippetName];
+    if (this.snippetFields.name == snippetName)
+      this.snippetFields.name = null;
+    this.updateSnippets();
+  }
+
+  updateSnippets() {
+    this.customModal.update();
     this.storeLocalConfigAsync();
   }
 
   addTheme(themeName, themeObj) {
     this.themes[themeName] = this.getThemeFromObject(themeObj || this);
+    this.updateThemes();
+  }
+
+  deleteTheme(themeName) {
+    delete this.themes[themeName];
+    this.updateThemes();
+  }
+
+  updateThemes() {
     this.themeModal.update();
     this.storeLocalConfigAsync();
   }
@@ -414,9 +452,8 @@ class Config {
     this.storeSessionConfigAsync();
   }
 
-  setCustomInput(value) {
-    this.customInput = value || this.customInput;
-    this.customModal.input.value = this.customInput || '';
+  setSnippetFields(snippetFields) {
+    this.snippetFields = Object.assign(this.snippetFields, snippetFields);
     this.storeSessionConfigAsync();
   }
 
@@ -424,6 +461,15 @@ class Config {
     this.drawModelBackground = value;
     this.board.draw();
     this.drawModal.updateDrawModelBackground();
+    this.storeSessionConfigAsync();
+  }
+
+  setAlpha(alpha) {
+    this.alpha = alpha = Math.max(0, Math.min(1, isNaN(alpha) ? 1 : alpha));
+    this.adapter.context.globalAlpha = alpha;
+    this.themeModal.alpha.value = alpha;
+    this.checkTheme();
+    this.board.draw();
     this.storeSessionConfigAsync();
   }
 
@@ -758,6 +804,7 @@ class Config {
   setThemable() {
     this.setColorProperty();
     this.setBlendMode(this.blendMode);
+    this.setAlpha(this.alpha);
     this.setColors();
     this.setCellGap();
     this.setCellBorderWidth();
@@ -833,6 +880,7 @@ class Config {
       || !Color.eq(theme.backgroundColor, this.backgroundColor)
       || !Color.eq(theme.modelBackgroundColor, this.modelBackgroundColor)
       || !Color.eq(theme.defaultColor, this.defaultColor)
+      || theme.alpha != this.alpha
       || theme.blendMode != this.blendMode
       || theme.cellGap != this.cellGap
       || theme.cellBorderWidth != this.cellBorderWidth;
@@ -844,8 +892,14 @@ class Config {
 
   getThemeFromObject(obj) {
     let args = [Config.defaults, obj].map((e) => {
-      let {blendMode, cellGap, cellBorderWidth, backgroundColor, modelBackgroundColor, defaultColor, colors} = e;
-      return {blendMode, cellGap, cellBorderWidth, backgroundColor, modelBackgroundColor, defaultColor, colors};
+      let {
+        alpha, blendMode, cellGap, cellBorderWidth, backgroundColor,
+        modelBackgroundColor, defaultColor, colors
+      } = e;
+      return {
+        alpha, blendMode, cellGap, cellBorderWidth, backgroundColor,
+        modelBackgroundColor, defaultColor, colors
+      };
     });
     return Hexular.util.merge(...args);
   }
@@ -861,6 +915,7 @@ class Config {
 
   getSessionConfig() {
     let sessionConfig = this.getKeyValues([
+      'alpha',
       'autopause',
       'blendMode',
       'cellBorderWidth',
@@ -869,7 +924,6 @@ class Config {
       'colorMapping',
       'colorMode',
       'colors',
-      'customInput',
       'defaultCap',
       'defaultColor',
       'defaultJoin',
@@ -904,6 +958,7 @@ class Config {
       'scaleFactor',
       'shiftTool',
       'showModelBackground',
+      'snippetFields',
       'steps',
       'theme',
       'tool',
@@ -923,6 +978,7 @@ class Config {
     let localConfig = this.getKeyValues([
       'availableRules',
       'presets',
+      'snippets',
       'themes',
     ]);
     Object.entries(localConfig.availableRules).forEach(([rule, fn]) => {

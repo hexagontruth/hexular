@@ -9,6 +9,7 @@ class ThemeModal extends Modal {
     this.modelBackgroundColor = document.querySelector('#model-bg');
     this.defaultColor = document.querySelector('#default-color');
     this.selectBlendMode = document.querySelector('#select-blend').select;
+    this.alpha = document.querySelector('#alpha');
     this.cellGap = document.querySelector('#cell-gap');
     this.cellBorderWidth = document.querySelector('#cell-border-width');
 
@@ -20,6 +21,7 @@ class ThemeModal extends Modal {
       el.onchange = () => this.config.setColorProperty(key, el.value);
     });
     this.selectBlendMode.onchange = (ev) => this._setBlendMode(this.selectBlendMode.value);
+    this.alpha.onchange = (ev) => this._setAlpha(this.alpha.value);
     this.cellGap.onchange = (ev) => this._setCellGap(this.cellGap.value);
     this.cellBorderWidth.onchange = (ev) => this._setCellBorderWidth(this.cellBorderWidth.value);
 
@@ -29,6 +31,7 @@ class ThemeModal extends Modal {
 
   reset() {
     this.selectTheme.value = this.config.theme;
+    this._setAlpha(this.config.alpha);
     this._setBlendMode(this.config.blendMode);
     this._setCellGap(this.config.cellGap);
     this._setCellBorderWidth(this.config.cellBorderWidth);
@@ -62,6 +65,10 @@ class ThemeModal extends Modal {
       this.config.addTheme(themeName, this.config);
       this.config.setTheme(themeName);
     }
+  }
+
+  _setAlpha(value) {
+    this.config.setAlpha(value != null ? value : this.config.alpha);
   }
 
   _setBlendMode(value) {

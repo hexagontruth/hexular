@@ -2,13 +2,15 @@
 const Examples = (() => {
   let fnCount = 0;
 
-  let customCodeDemos = {
+  let snippets = {
     addRule: `
       Board.config.addRule('newRule', (cell) =>
         cell.max > 2 ? cell.state + 1 : 0
       );
     `,
     deleteRule: `Board.config.deleteRule('ruleName');`,
+    binaryRuleFactory: `Board.config.addRule('binary135', Util.binaryRuleFactory(1, 3, 5));`,
+    symmetricRuleFactory: `Board.config.addRule('symmetric26', Util.symmetricRuleFactory(2, 6));`,
     drawCellImage: `
       Examples.drawCellImage(null, {
         clipType: Hexular.enums.TYPE_POINTY,
@@ -36,10 +38,14 @@ const Examples = (() => {
       // Hook used for e.g. debugTimer, findDuplicateSteps
       Board.instance.clearHooks('step');
     `,
+    deleteSnippet: `
+      // Reload page to restore built-in snippets
+      Board.config.deleteSnippet('deleteSnippet');
+    `,
   };
 
-  Object.entries(customCodeDemos).forEach(([k, v]) => {
-    customCodeDemos[k] = Util.indentTrim(v);
+  Object.entries(snippets).forEach(([k, v]) => {
+    snippets[k] = Util.indentTrim(v);
   });
 
   function remove(...idxs) {
@@ -56,7 +62,7 @@ const Examples = (() => {
   }
 
   let examples = {
-    customCodeDemos,
+    snippets,
     remove,
     removeAll,
 
