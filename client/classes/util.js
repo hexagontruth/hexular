@@ -78,6 +78,14 @@ const Util = (() => {
     return obj;
   };
 
+  Util.stateHistogram = () => {
+    return Board.model.cells.reduce((a, e) => {
+      a[e.state] = a[e.state] || 0;
+      a[e.state] += 1;
+      return a;
+    }, {});
+  }
+
   Util.findDuplicateSteps = (radius=7, cell=Board.instance.debugSelected) => {
     cell = cell || Board.model.cells[0];
     let cells = Hexular.util.hexWrap(cell, radius);
@@ -96,8 +104,8 @@ const Util = (() => {
     }
     fn.duplicateMapper = true;
     Board.instance.hooks.step = Board.instance.hooks.step.filter((e) => !e.fn.duplicateMapper);
-    Board.instance.addHook('step', fn);
-    return [map, dups];
+    let id = Board.instance.addHook('step', fn);
+    return {map, dups, id};
   };
 
   Util.debugTimer = (log=true) => {
@@ -114,8 +122,8 @@ const Util = (() => {
     }
     fn.debugTimer = true;
     Board.instance.hooks.step = Board.instance.hooks.step.filter((e) => !e.fn.debugTiger);
-    Board.instance.addHook('step', fn);
-    return intervals;
+    let id = Board.instance.addHook('step', fn);
+    return {intervals, id};
   };
 
   Util.debugCell = (cell, fn) => {

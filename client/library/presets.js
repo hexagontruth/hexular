@@ -16,7 +16,7 @@ const Presets = {
     Array(12).fill('enneadPlus')
   ),
 
-  fancytownClassic: new Preset({nh: 19}, Array(12).fill('fancytown')),
+  squiggletownClassic: new Preset(Array(13).fill('squiggle6')),
 
   gliderWorld: new Preset({filters: {edgeFilter: true}}, [
     'ennead',

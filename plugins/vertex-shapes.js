@@ -4,7 +4,7 @@ class VertexShapes extends Plugin {
       {
         shapeType: Hexular.enums.TYPE_TRI_AUTO,
         color: 'blend', // max|min|blend|[custom]
-        fadeIndex: 0, // 0-1 - only works with max, min, or blend color mode
+        fadeIndex: 0, // 0-1
         angleOffset: 0,
         angleDelta: 0,
         anglePivot: 0.5,
@@ -24,6 +24,8 @@ class VertexShapes extends Plugin {
         stateWhitelist: null,
         stateBlacklist: [0],
         inclusive: true,
+        isolate: false,
+        edges: false,
       }
     `;
   }
@@ -64,6 +66,8 @@ class VertexShapes extends Plugin {
       maxWidth,
       widthPivot,
       inclusive,
+      isolate,
+      edges,
     } = this.settings;
     minWidth = minWidth != null ? minWidth : this.config.cellBorderWidth;
     maxWidth = maxWidth != null ? maxWidth : this.config.cellBorderWidth;
@@ -88,12 +92,12 @@ class VertexShapes extends Plugin {
       else {
         let path0, path1;
         if (shapeType == Hexular.enums.TYPE_TRI_ANTI_AUTO) {
-          path0 = adapter.shapes[Hexular.enums.TYPE_TRI_UP];
-          path1 = adapter.shapes[Hexular.enums.TYPE_TRI_DOWN];
-        }
-        else { // Default to Hexular.enums.TYPE_TRI_AUTO
           path0 = adapter.shapes[Hexular.enums.TYPE_TRI_DOWN];
           path1 = adapter.shapes[Hexular.enums.TYPE_TRI_UP];
+        }
+        else { // Default to Hexular.enums.TYPE_TRI_AUTO
+          path0 = adapter.shapes[Hexular.enums.TYPE_TRI_UP];
+          path1 = adapter.shapes[Hexular.enums.TYPE_TRI_DOWN];
         }
         paths = [path0, path1].map((p) => p.map((v) => Hexular.math.matrixMult(matrix, v)));
       }
@@ -102,20 +106,27 @@ class VertexShapes extends Plugin {
     // Draw
     this.drawEachCell((cell) => {
       let allowed = this.isAllowedState(cell.state);
-      if (cell.edge || (!allowed && !inclusive)) return;
+      if (!allowed && !inclusive) return;
       let [xo, yo] = model.cellMap.get(cell);
       let lastFill = this.lastFill.get(cell);
       let lastStroke = this.lastStroke.get(cell);
       for (let i = 0; i < 2; i++) {
         let n0 = cell.nbrs[i * 3 + 1];
         let n1 = cell.nbrs[i * 3 + 2];
-        let allowed0 = this.isAllowedState(n0.state);
-        let allowed1 = this.isAllowedState(n1.state);
-        let allowedInclusive = inclusive && (allowed || allowed0 || allowed1);
-        let allowedExclusive = allowedInclusive || allowed && allowed0 && allowed1;
-        if (!allowedInclusive && !allowedExclusive)
+        if (!edges && cell.edge + n0.edge + n1.edge > 2)
           continue;
-        let [x, y] = transVerts[(i * 3 + 4) % 6];
+        if (!isolate) {
+          let allowed0 = this.isAllowedState(n0.state);
+          let allowed1 = this.isAllowedState(n1.state);
+          let allowedInclusive = inclusive && (allowed || allowed0 || allowed1);
+          let allowedExclusive = allowedInclusive || allowed && allowed0 && allowed1;
+          if (!allowedInclusive && !allowedExclusive)
+            continue;
+        }
+        else if (n0.state != cell.state || n1.state != cell.state) {
+          continue;
+        }
+        let [x, y] = transVerts[(i * 3 + 1) % 6];
         x += xo;
         y += yo;
         // Draw shapes

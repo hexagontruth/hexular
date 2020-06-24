@@ -417,6 +417,7 @@ The following hooks are currently supported
 - step
 - draw
 - drawCell
+- drawStep
 - timer \*
 - playStart
 - playStop

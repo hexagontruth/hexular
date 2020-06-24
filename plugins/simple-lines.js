@@ -15,6 +15,8 @@ class SimpleLines extends Plugin {
         stateWhitelist: null,
         stateBlacklist: [0],
         inclusive: false,
+        isolate: false,
+        edges: false,
       }
     `;
   }
@@ -37,18 +39,20 @@ class SimpleLines extends Plugin {
     this.globalAlpha = settings.minAlpha + alphaPivotQ * (settings.maxAlpha - settings.minAlpha);
     let width = minWidth + widthPivotQ * (maxWidth - minWidth);
     let lineCap = this.settings.lineCap || 'round';
+    let verts = Hexular.math.scalarOp(Hexular.math.flatVertices, this.config.cellRadius * 2 * Hexular.math.apothem);
 
     // Draw
     if (width) {
       this.drawEachCell((cell) => {
         let allowed = this.isAllowedState(cell.state);
         let allowedInclusive = allowed && this.settings.inclusive;
-        if (cell.edge || (!allowed && !this.settings.inclusive)) return;
+        if (!allowed && !this.settings.inclusive) return;
         let [x, y] = this.model.cellMap.get(cell);
         for (let i = 0; i < 6; i += 2) {
           let nbr = cell.nbrs[i + 1];
           let nbrAllowed = this.isAllowedState(nbr.state);
-          if (allowedInclusive || nbrAllowed) {
+          let cond = this.settings.isolate ? nbr.state == cell.state : allowedInclusive || nbrAllowed;
+          if (cond && (this.settings.edges || cell.edge + nbr.edge < 2)) {
             let color;
             if (this.settings.color == 'max')
               color = colors[Math.max(cell.state, nbr.state)] || Color.t;
@@ -72,7 +76,8 @@ class SimpleLines extends Plugin {
               adapter.strokeColor = color;
             ctx.lineWidth = width;
             ctx.lineCap = lineCap;
-            let [xn, yn] = this.model.cellMap.get(nbr);
+            let xn = x + verts[i][0];
+            let yn = y + verts[i][1];
             ctx.beginPath();
             ctx.moveTo(x, y);
             ctx.lineTo(xn, yn);

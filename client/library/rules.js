@@ -38,6 +38,14 @@ const Rules = (() => {
       return cell.state && (t == 2 || t == 3) || t == 3 ? 1 : 0;
     },
 
+    squiggle6: (cell) => {
+      let h = cell.histogram;
+      for (let i = cell.state; i < 7; i++)
+        if (i && h[i])
+          return cell.state + i;
+      return cell.average;
+    },
+
     fancytown: (cell) => {
       const tot = cell.total;
       if (tot > 2 && tot < 5)

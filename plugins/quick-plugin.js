@@ -4,7 +4,6 @@ class QuickPlugin extends Plugin {
       {
         hooks: (plugin) => ({
           onDraw: (adapter) => {
-            // Configure stateWhitelist/stateBlacklist to enable
             let opts = {
               type: Hexular.enums.TYPE_POINTY,
               fill: true,
@@ -29,7 +28,7 @@ class QuickPlugin extends Plugin {
           onUpdatePreset: () => {},
           onUpdateTheme: () => {},
         }),
-        stateWhitelist: [],
+        stateWhitelist: null,
         stateBlacklist: null,
       }
     `;

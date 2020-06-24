@@ -72,6 +72,7 @@ class Board {
         step: [],
         draw: [],
         drawCell: [],
+        drawStep: [],
         timer: [],
         playStart: [],
         playStop: [],
@@ -462,6 +463,7 @@ class Board {
         }
       }
       this.drawSync();
+      this.runHooks('drawStep');
       // Reset cell order in case sorting has been applied
       this.model.sortCells();
     }
@@ -676,7 +678,7 @@ class Board {
         this.imageCapture.push([this.getImageFilename(), await this.saveImage()]);
       };
       // This shocks the conscience
-      this.imageCapture.handle = this.addHook('draw', fn);
+      this.imageCapture.handle = this.addHook('drawStep', fn);
       // Capture current state
       fn();
       this.buttons.toggleImageCapture.classList.add('active');

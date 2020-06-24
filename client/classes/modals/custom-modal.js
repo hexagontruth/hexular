@@ -45,8 +45,8 @@ class CustomModal extends Modal {
         return;
       }
       try {
-        let evalFn = new Function('Hexular', 'Board', 'value', 'return eval(value)')
-        let output = evalFn(Hexular, Board, this.input.value);
+        let evalFn = new Function('Hexular', 'Board', 'Util', 'value', 'return eval(value)')
+        let output = evalFn(Hexular, Board, Util, this.input.value);
         this.output.value = output;
         this.board.setMessage('Done!');
       }
