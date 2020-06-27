@@ -9,7 +9,7 @@ An extensible hexagonal CA platform.
   - [Documentation](https://hexagrahamaton.github.io/hexular/doc/)
   - [GitHub](https://github.com/hexagrahamaton/hexular/)
 
-For more information on the hexagonal consciousness movement, visit [Hexagon.life](https://hexagon.life/).
+For more information on the hexagonal consciousness movement, visit [Hexagon.link](https://hexagon.link/).
 
 To view some examples of media created with Hexular, see our [YouTube channel](https://www.youtube.com/channel/UCf-ml0bmw7OJZHZCIB0cx3g).
 
@@ -455,7 +455,7 @@ Timer hooks will be rerun at their appropriate time index after every stop/start
   - At the moment I am also using [jscolor](http://jscolor.com/), with some modifications, for theme color selectors.
 
   - For more information on HEXAGONAL AWARENESS, please check out:
-    - [https://hexagon.life/](https://hexagon.life/)
+    - [https://hexagon.link/](https://hexagon.link/)
     - [https://twitter.com/hexagonalnews](https://twitter.com/hexagonalnews)
     - [https://facebook.com/hexagons](https://facebook.com/hexagons)
     - [https://reddit.com/r/hexagons](https://reddit.com/r/hexagons)
