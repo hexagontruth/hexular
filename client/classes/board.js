@@ -93,6 +93,7 @@ class Board {
       scaling: false,
       scaleQueue: [],
       toolClasses: {
+        none: NoneAction,
         move: MoveAction,
         fill: FillAction,
         brush: BrushAction,
@@ -320,6 +321,7 @@ class Board {
   }
 
   drawSync() {
+    this.bgAdapter.clear();
     this.bgAdapter.drawBackground();
     this.adapter.context.lineCap = this.config.defaultCap;
     this.adapter.context.lineJoin = this.config.defaultJoin;
@@ -656,7 +658,7 @@ class Board {
       this.resetDrawStep();
       this.draw();
       if (diff) {
-        this.model.import(bytes);
+        this.model.import(bytes, this.config.importMask);
         this.storeModelState();
         this.setMessage('Snapshot loaded!');
       }
@@ -759,7 +761,7 @@ class Board {
     let fileLoader = new FileLoader('.bin', {reader: 'readAsArrayBuffer'});
     fileLoader.onload = (result) => {
       let bytes = new Class(result);
-      this.model.import(bytes);
+      this.model.import(bytes, this.config.importMask);
       this.draw();
       this.storeModelState();
       this.setMessage('Model loaded!');
@@ -1033,7 +1035,7 @@ class Board {
 
   handleBlur(ev) {
     this.shift = false;
-    this.config.setTool('move');
+    this.config.blurTool && this.config.setTool(this.config.blurTool);
   }
 
   handleWheel(ev) {
@@ -1248,6 +1250,9 @@ class Board {
       }
       else if (key == 'm') {
         this.config.setTool('move');
+      }
+      else if (key == 'n') {
+        this.config.setTool('none');
       }
       else if (key == '1') {
         this.config.setToolSize(1);

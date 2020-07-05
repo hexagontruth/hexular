@@ -86,6 +86,36 @@ const Util = (() => {
     }, {});
   }
 
+  Util.translateStates = (cubicVector) => {
+    for (let i = 0; i < 3; i++) {
+      if (cubicVector[i] == null)
+        cubicVector[i] = -cubicVector[(i + 1) % 3] - cubicVector[(i + 2) % 3];
+    }
+    // I feel like these are going to be pretty opaque errors for most ppl
+    if (cubicVector.filter((e) => isNaN(parseInt(e))).length)
+      throw new Hexular.HexError('Requires at least 2 cubic coordinates');
+    if (!cubicVector.reduce((a, e, i, s) => a && e == -s[(i + 1) % 3] - s[(i + 2) % 3], true))
+      throw new Hexular.HexError('Inconsistent cubic coordinates');
+    let [u, v] = cubicVector.map((e) => Math.abs(e));
+    let un = cubicVector[0] > 0 ? 1 : 4;
+    let vn = cubicVector[1] > 0 ? 2 : 5;
+    let transMap = new Map();
+    Board.model.eachCell((cell) => {
+      let p = cell;
+      for (let i = 0; i < u; i ++)
+        p = p.nbrs[un];
+      for (let i = 0; i < v; i++)
+        p = p.nbrs[vn];
+      transMap.set(p, cell.state);
+    });
+    // Set states
+    Board.instance.newHistoryState();
+    transMap.forEach((state, cell) => {
+      cell.setState(state);
+    });
+    Board.instance.draw();
+  };
+
   Util.findDuplicateSteps = (radius=7, cell=Board.instance.debugSelected) => {
     cell = cell || Board.model.cells[0];
     let cells = Hexular.util.hexWrap(cell, radius);
@@ -135,7 +165,7 @@ const Util = (() => {
     let lines = string.split('\n');
     let min = Infinity;
     for (let line of lines) {
-      let indent = line.match(/^( *?)[^ ]+$/)
+      let indent = line.match(/^( *?)[^ ].*$/)
       if (indent) {
         min = Math.min(indent[1].length, min);
       }

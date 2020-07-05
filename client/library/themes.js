@@ -215,6 +215,12 @@ const Themes = (() => {
       cellGap: 4.33,
       colors: [null].concat(Color.from(Array(63).fill().map((_, i) => Color.hslaToRgba(i * 360 / 63, 0.5, 0.5)))),
     },
+
+    transparent: {
+      backgroundColor: '#0000',
+      modelBackgroundColor: '#0000',
+      cellGap: -0.5,
+    }
   };
   return themes;
 })();

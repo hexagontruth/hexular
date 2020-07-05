@@ -573,7 +573,7 @@ select {
 
 .modal .group textarea {
   height: 10em;
-  padding: calc(0.75em * 4/3);
+  padding: calc(0.75em * 4/3); /* why did i do this? */
   margin: calc(0.25em * 4/3);
   border-radius: 0.1rem;
   font-size: 0.75em;
@@ -587,6 +587,10 @@ select {
 
 .modal textarea.plugin-editor {
   height: 8em;
+}
+
+.modal textarea.monoline {
+  height: 3.5em;
 }
 
 #plugin-list {

@@ -73,6 +73,8 @@ class Action {
   }
 }
 
+class NoneAction extends Action {
+}
 
 class MoveAction extends Action {
   start(ev) {

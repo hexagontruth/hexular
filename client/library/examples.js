@@ -14,9 +14,9 @@ const Examples = (() => {
     drawCellImage: `
       Examples.drawCellImage(null, {
         clipType: Hexular.enums.TYPE_POINTY,
+        fit: 'cover',
         translate: [0, 0],
         states: [1, 2],
-        clip: true
       });
     `,
     drawBackgroundImage: `
@@ -41,6 +41,16 @@ const Examples = (() => {
     deleteSnippet: `
       // Reload page to restore built-in snippets
       Board.config.deleteSnippet('deleteSnippet');
+    `,
+    stateHistogram: `
+      Util.stateHistogram();
+    `,
+    blurTool: `
+      // Sets tool when window loses focus
+      Board.config.blurTool = 'none';
+    `,
+    translateStates: `
+      Util.translateStates([0, 1, -1]);
     `,
   };
 

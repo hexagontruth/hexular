@@ -128,7 +128,7 @@ const Rules = (() => {
       0b011000,
       0b110000,
       0b100001,
-    ]),
+    ], {matchRel: true}),
 
     enneadPlus: Hexular.util.ruleBuilder([
       0b001001,

@@ -1,5 +1,5 @@
 const Presets = {
-  default: new Preset({filters: {deltaFilter: true}}, Array(12).fill('ennead')),
+  default: new Preset(Array(12).fill('ennead')),
 
   bicameralJellyfish: new Preset(
     {
@@ -18,7 +18,7 @@ const Presets = {
 
   squiggletownClassic: new Preset(Array(13).fill('squiggle6')),
 
-  gliderWorld: new Preset({filters: {edgeFilter: true}}, [
+  gliderWorld: new Preset({filters: {binaryFilter: true, edgeFilter: true}}, [
     'ennead',
     'ennead',
   ]),

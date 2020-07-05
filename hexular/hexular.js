@@ -569,13 +569,16 @@ var Hexular = (function () {
      * Import cell states from typed or untyped array.
      *
      * @param {TypedArray|Array} array Any array of cell states
+     * @param {number[]} skip          Optional array of states to skip over
      * @see {@link Model#arrayType})
      * @see {@link Model#export}
      */
-    import(array) {
-      this.cells.forEach((cell, idx) => {
-        cell.setState(array[idx] || this.groundState);
-      });
+    import(array, skip) {
+      let len = Math.min(array.length, this.cells.length);
+      for (let i = 0; i < len; i++) {
+        if (!skip || !skip.includes(array[i]))
+          this.cells[i].setState(array[i] || this.groundState);
+      }
     }
   }
 

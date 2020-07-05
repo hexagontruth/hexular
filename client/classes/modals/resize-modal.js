@@ -8,6 +8,10 @@ class ResizeModal extends Modal {
 
     this.resize.oninput = (ev) => this._updateResize(this.resize.value);
     this.resizeButton.onclick = (ev) => this._resize();
+
+    this.addRestoreBox(() => {
+      this._updateResize(this.defaultRadius);
+    });
   }
 
   reset() {
