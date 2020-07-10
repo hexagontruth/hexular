@@ -46,6 +46,22 @@ const Rules = (() => {
       return cell.average;
     },
 
+    sub1: (cell) => {
+      let m = cell.map;
+      let c = 0;
+      for (let i = 0; i < m.length; i++) {
+        if (m[i] > cell.state) {
+          c ++;
+          if (c > 1) {
+            return cell.average;
+          }
+        }
+      }
+      if (c == 1)
+        return cell.state - 1;
+      return cell.average;
+    },
+
     fancytown: (cell) => {
       const tot = cell.total;
       if (tot > 2 && tot < 5)

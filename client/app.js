@@ -20,7 +20,9 @@ window.addEventListener('DOMContentLoaded',(e) => {
 
 // Do the stuff
 window.addEventListener('load', (e) => {
+  // Build select wrappers
   Select.init('.modal select');
+  // Set up board
   Board.resize();
 });
 

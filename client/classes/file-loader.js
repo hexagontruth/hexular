@@ -1,10 +1,11 @@
 class FileLoader {
   constructor(accept, ...args) {
     const defaults = {
-      reader: 'readAsText',
+      reader: 'auto',
       multiple: false,
       readIdx: 0,
       fileTypes: [],
+      fileNames: [],
       filterFn: () => Array(this.input.files.length).fill(true),
       loadFn: () => null,
       fileReader: new FileReader(),
@@ -22,7 +23,8 @@ class FileLoader {
       ++this.readIdx < this.input.files.length && this._readNext();
     }
     this.fileReader.onload = (ev) => {
-      this.loadFn(ev.target.result);
+      let idx = this.readIdx;
+      this.loadFn(ev.target.result, this.fileNames[idx], this.fileTypes[idx]);
     };
   }
 
@@ -40,7 +42,14 @@ class FileLoader {
 
   _readNext() {
     let idx = this.readIdx;
-    this.fileTypes[idx] = this.input.files[idx].type;
-    this.readFilter[idx] && this.fileReader[this.reader](this.input.files[idx]);
+    let file = this.input.files[idx];
+    this.fileTypes[idx] = file.type;
+    this.fileNames[idx] = file.name;
+    let reader = this.reader;
+    if (reader == 'auto') {
+      let isText = ['text/plain', 'application/javascript', 'application/json'].includes(file.type);
+      reader = isText ? 'readAsText' : 'readAsArrayBuffer';
+    }
+    this.readFilter[idx] && this.fileReader[reader](file);
   }
 }

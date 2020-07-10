@@ -31,6 +31,7 @@ class Board {
         Board.fgAdapter = board.fgAdapter;
         Board.modals = board.modals;
         Board.shared = board.shared;
+        Board.db || Board.initDb();
         board.runHooks('resize');
         await board.draw();
         board.clearFg();
@@ -38,6 +39,17 @@ class Board {
         resolve();
       }, 50);
     });
+  }
+
+  static async initDb() {
+    // Initialize media database
+    const DB_VERSION = 1;
+    const DB_SCHEME = {
+      media: {keyPath: 'name'}
+    };
+    Board.db = new Database('hexular', DB_VERSION, DB_SCHEME);
+    await Board.db.connect();
+    return true;
   }
 
   static get aspectRatio() {
@@ -786,7 +798,7 @@ class Board {
         this.config.restorePlugins();
         this.config.storeLocalConfig();
         this.config.storeSessionConfig();
-        Board.resize();//Hexular.util.merge({}, this.config));
+        Board.resize();
         this.setMessage('Settings restored!');
       }
       catch (e) {
@@ -798,23 +810,39 @@ class Board {
   }
 
   import() {
-    let fileLoader = new FileLoader('.js', {multiple: true});
-    fileLoader.onload =  (code) => {
+    let fileLoader = new FileLoader('.js,.jpg,.jpeg,.gif,.png,.svg,.bmp', {multiple: true});
+    fileLoader.onload = (result, name, type) => {
       try {
-        eval(code) // lol
-        this.modals.config.update();
-        this.setMessage('Custom code imorted!');
+        if (type == 'text/javascript') {
+          eval(result) // lol
+          this.modals.config.update();
+          this.setMessage('Custom code imorted!');
+        }
+        else { // Assume is image
+          name = name.replace(/\.\w+/, '').replace(/\W+/g, '_').replace(/_+/, '_').replace(/^_?(.*?)_?$/, '$1');
+          let media = new Media(name, result, type);
+          let image = Media.getImage(name, (err) => {
+            // This is offensive
+            if (err) {
+              this.setMessage(`Error loading image "${name}"!`, 'error');
+              console.error(err);
+            }
+            else {
+              this.setMessage(`Image "${name}" loaded!`);
+            }
+          });
+        }
       }
       catch (e) {
         this.setMessage(e.toString(), 'error');
+        console.error(e);
       }
-
     };
-    fileLoader.filter = (files) => {
-      let result = files.map((file) => file.type.indexOf('javascript') >= 0);
-      result.some((e) => !e) && this.setMessage('Not all selected files are JavaScript files', 'error');
-      return result;
-    };
+    // fileLoader.filter = (files) => {
+    //   let result = files.map((file) => file.type.indexOf('javascript') >= 0);
+    //   result.some((e) => !e) && this.setMessage('Not all selected files are JavaScript files', 'error');
+    //   return result;
+    // };
     fileLoader.prompt();
   }
 

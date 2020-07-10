@@ -4,6 +4,7 @@ class Config {
       preset: 'default',
       theme: 'light',
       meta: {},
+      media: {},
       radius: 60,
       cellRadius: 10,
       zoom: 1,
