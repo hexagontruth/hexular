@@ -33,7 +33,7 @@ const Examples = (() => {
       // Writes interval to console and window.debugIntervals
       Util.debugTimer();
     `,
-    findDuplicateSteps: `Util.findDuplicateSteps();`,
+    findDuplicateSteps: `Util.findDuplicateSteps({halt: true});`,
     clearHooks: `
       // Hook used for e.g. debugTimer, findDuplicateSteps
       Board.instance.clearHooks('step');

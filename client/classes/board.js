@@ -206,7 +206,7 @@ class Board {
     Object.assign(this, boardOpts);
     this.config = new Config(this, configOpts);
     this.execCommandBroken = Util.execCommandBroken();
-    this.hookCounter = 0;
+    this.hookCounter = 1;
 
     // Initialize canvases
     this.container.querySelectorAll('canvas').forEach((e) => e.remove());
@@ -537,7 +537,7 @@ class Board {
         this.hooks[hook].splice(idx, 1);
     }
     else {
-      let [id] = args;
+      let id = args[0] && args[0].id  || args[0];
       let obj = this.hookMap[id];
       if (obj)
         this.hooks[obj.key] = this.hooks[obj.key].filter((e) => e.id != id);

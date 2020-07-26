@@ -33,6 +33,22 @@ class CanvasAdapter {
   }
 
   draw() {
+    // Provisional hack for the illusion of grid wrapping
+    // TODO: Rewrite
+    if (this.config.meta.heptad) {
+      let a = this.config.cellRadius * 2;
+      let r = (this.config.radius - 0.5) * 1.5 * a;
+      let bigT = Hexular.math.scalarOp(Hexular.math.pointyVertices, r);
+      let smolT = Hexular.math.scalarOp(Hexular.math.flatVertices, this.config.cellRadius * Hexular.math.apothem);
+      for (let i = 0; i < 6; i++) {
+        this.context.save();
+        this.context.translate(...bigT[i]);
+        this.context.translate(...smolT[(i + 1) % 6]);
+        this.board.runHooks('draw', this);
+        this.board.runHooksParallel('drawCell', this.model.getCells(), this);
+        this.context.restore();
+      }
+    }
     this.board.runHooks('draw', this);
     this.board.runHooksParallel('drawCell', this.model.getCells(), this);
   }

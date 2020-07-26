@@ -10,6 +10,9 @@ class TrbModal extends Modal {
     this.templateButtons = Array(19).fill().map((_, i) => {
       let button = this.templateMask.querySelector(`#cell-${('0' + i).slice(-2)}`);
       button.idx = i;
+      let title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+      title.innerHTML = i.toString();
+      button.appendChild(title);
       return button;
     });
     this.syms = [0, 1, 2, 3];

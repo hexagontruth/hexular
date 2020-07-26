@@ -27,6 +27,8 @@ class QuickPlugin extends Plugin {
           onPaint: (cells) => {},
           onUpdatePreset: () => {},
           onUpdateTheme: () => {},
+          onEnable: () => {},
+          onDisable: () => {},
         }),
         stateWhitelist: null,
         stateBlacklist: null,
@@ -40,15 +42,26 @@ class QuickPlugin extends Plugin {
   }
 
   _activate() {
-    let callFn = (key) => (...args) => this.hooks[key] && this.hooks[key](...args);
-    this.registerHook('draw', callFn('onDraw'));
-    this.registerHook('drawCell', callFn('onDrawCell'));
-    this.registerHook('step', callFn('onStep'));
-    this.registerHook('select', callFn('onSelect'));
-    this.registerHook('debugSelect', callFn('onDebugSelect'));
-    this.registerHook('paint', callFn('onPaint'));
-    this.registerHook('updatePreset', callFn('onUpdatePreset'));
-    this.registerHook('updateTheme', callFn('onUpdateTheme'));
+    this.registerHook('draw', this.callFn('onDraw'));
+    this.registerHook('drawCell', this.callFn('onDrawCell'));
+    this.registerHook('step', this.callFn('onStep'));
+    this.registerHook('select', this.callFn('onSelect'));
+    this.registerHook('debugSelect', this.callFn('onDebugSelect'));
+    this.registerHook('paint', this.callFn('onPaint'));
+    this.registerHook('updatePreset', this.callFn('onUpdatePreset'));
+    this.registerHook('updateTheme', this.callFn('onUpdateTheme'));
+  }
+
+  _enable() {
+    this.callFn('onEnable')();
+  }
+
+  _disable() {
+    this.callFn('onDisable')();
+  }
+
+  callFn(key) {
+    return (...args) => this.hooks[key] && this.hooks[key](...args);
   }
 }
 Board.registerPlugin(QuickPlugin);

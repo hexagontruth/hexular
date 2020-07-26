@@ -46,7 +46,7 @@ const Util = (() => {
     let sBase = opts.s != null ? opts.s : 0.5;
     let lBase = opts.l != null ? opts.l : 0.5;
     let aBase = opts.a != null ? opts.a : 1;
-    let hDelta = opts.hDelta || 360;
+    let hDelta = opts.hDelta != null ? opts.hDelta : 360;
     let sDelta = opts.sDelta || 0;
     let lDelta = opts.lDelta || 0;
     let aDelta = opts.aDelta || 0;
@@ -116,8 +116,10 @@ const Util = (() => {
     Board.instance.draw();
   };
 
-  Util.findDuplicateSteps = (radius=7, cell=Board.instance.debugSelected) => {
-    cell = cell || Board.model.cells[0];
+  Util.findDuplicateSteps = (opts={}) => {
+    let radius = opts.radius || Board.config.radius - 1;
+    let cell = opts.cell || Board.instance.debugSelected || Board.model.cells[0];
+    let halt = !!opts.halt;
     let cells = Hexular.util.hexWrap(cell, radius);
     let map = window.stateMap = new Map();
     let dups = window.duplicates = [];
@@ -128,7 +130,9 @@ const Util = (() => {
       if (cur != null) {
         dups.push([cur, Board.config.steps, stateKey]);
         Board.instance.setMessage(`Duplicate at ${cur}, ${Board.config.steps}!`);
-        console.log(`Duplicate at ${cur}, ${Board.config.steps}: ${stateKey}`);
+        console.log(`Duplicate at ${cur}, ${Board.config.steps}!`);
+        if (halt)
+          Board.instance.stop();
       }
       map.set(stateKey, Board.config.steps);
     }
