@@ -33,8 +33,8 @@
 var Hexular = (function () {
   const hexularAttributes = {
     defaults: {
-      // Default size for cubic (hexagonal) topology
-      radius: 30,
+      // Default size for cubic (hexagonal) topology, where `0`` is a single cell, `1` is 7 cells, &c.
+      order: 30,
       // Default size for offset (rectangular) topology
       rows: 60,
       cols: 60,
@@ -248,7 +248,7 @@ var Hexular = (function () {
    */
   HexError.validateKeys = (obj, ...args) => {
     for (let key of args)
-      if (!obj[key])
+      if (obj[key] == null)
          throw new HexError(`${obj.constructor.name} requires "${key}" to be defined`);
   }
 
@@ -693,27 +693,25 @@ var Hexular = (function () {
       super(...args);
       let defaults = {
         /**
-         * @name CubicModel#radius
+         * @name CubicModel#order
          * @type number
          * @default 30
          */
-        radius: Hexular.defaults.radius,
+        order: Hexular.defaults.order,
       };
       Object.assign(this, defaults, ...args);
-      HexError.validateKeys(this, 'radius');
-      this.size = this.radius * (this.radius - 1) * 3 + 1;
-      let max = this.max = this.radius - 1;
-      let cols = this.cols = this.radius * 2 - 1;
-      this.rhombus = Array(cols * 2).fill(null);
-
+      HexError.validateKeys(this, 'order');
+      let order = this.order;
+      let cols = this.cols = order * 2 + 1;
+      this.size = this.order * (order + 1) * 3 + 1;
+      this.rhombus = {};
       this.eachCoord(([u, v, w]) => {
           // Being on an edge affects draw actions involving neighbors
-          let edge = absMax(u, v, w) == max;
+          let edge = absMax(u, v, w) == order;
           this.rhombus[u * cols + v] = new Cell(this, [u, v, w], {edge});
       });
-
       // A hack for the trivial case
-      if (this.radius == 1) {
+      if (order == 0) {
         this.rhombus[0].nbrs.fill(this.rhombus[0]);
       }
       // Otherwise connect simple neighbors
@@ -728,12 +726,12 @@ var Hexular = (function () {
             nbr[dir2] -= 1;
             nbr[dir3] = -nbr[dir1] - nbr[dir2];
             for (let dir of [dir1, dir2, dir3]) {
-              if (Math.abs(nbr[dir]) > max) {
+              if (Math.abs(nbr[dir]) > order) {
                 let sign = Math.sign(nbr[dir]);
                 let dirA = (dir + 1) % 3;
                 let dirB = (dir + 2) % 3;
                 nbr[dir] -= sign * cols;
-                nbr[dirA] += sign * max;
+                nbr[dirA] += sign * order;
                 nbr[dirB] = -nbr[dir] - nbr[dirA];
               }
             }
@@ -741,17 +739,16 @@ var Hexular = (function () {
           }
         });
       }
-
       /**
        * `CubicModel` orders its `cells` array in rings from the center out, starting with a zero-indexed origin cell.
        * This allows cell states to be backed up and restored via {@link Model#export} and {@link Model#import} across
        * differently-sized maps. Cells always remain centered and in the correct order, though a smaller map will
-       * truncate cells outside of its radius.
+       * truncate cells outside of its area.
        *
        * @name CubicModel.cells
        * @type Cell[]
        */
-      this.cells = hexWrap(this.rhombus[0], this.radius);
+      this.cells = this.rhombus[0].wrap(this.order);
 
       // Connect extended neighbors
       this.eachCell((cell) => {
@@ -760,10 +757,10 @@ var Hexular = (function () {
     }
 
     eachCoord(fn) {
-      for (let u = -this.max; u < this.radius; u++) {
-        for (let v = -this.max; v < this.radius; v++) {
+      for (let u = -this.order; u <= this.order; u++) {
+        for (let v = -this.order; v <= this.order; v++) {
           let w = -u - v;
-          if (Math.abs(w) > this.max) continue;
+          if (Math.abs(w) > this.order) continue;
           if (fn([u, v, -u - v]) === false) return false;
         }
       }
@@ -779,7 +776,7 @@ var Hexular = (function () {
     }
 
     cellAtCubic([u, v, w]) {
-      if (absMax(u, v, w) > this.max)
+      if (absMax(u, v, w) > this.order)
         return null;
       let cell = this.rhombus[u * this.cols + v];
       return cell;
@@ -912,6 +909,33 @@ var Hexular = (function () {
     setState(state) {
       this.state = state;
       this.lastState = this.model.groundState;
+    }
+
+    /**
+     * Find all cells out to a given radius, ordered by radial ring.
+     *
+     * This is used to order {@link CubicModel#cells}, and by the hex-drawing tools in Hexular Studio.
+     *
+     * @param {number} order A nonnegative integer
+     * @return {Cell[]}        An array of cells, including the current cell, of length `3 * order * (order + 1) + 1`
+     */
+    wrap(order) {
+      let cells = [this];
+      for (let i = 1; i <= order; i++) {
+        let cell = this;
+        // We select the first simple neighbor in the i-th ring
+        for (let j = 0; j < i; j++)
+          cell = cell.nbrs[1];
+
+        for (let j = 0; j < 6; j++) {
+          let dir = 1 + (j + 2) % 6;
+          for (let k = 0; k < i; k++) {
+            cell = cell.nbrs[dir];
+            cells.push(cell);
+          }
+        }
+      }
+      return cells;
     }
 
     /**
@@ -1138,7 +1162,6 @@ var Hexular = (function () {
     delete(filter) {
       let str = filter.toString();
       let idx = this.findIndex((e) => e.toString() == str);
-      console.log(idx, idx >= -1);
       idx >= -1 && this.splice(idx, 1);
       return idx;
     }
@@ -1325,6 +1348,8 @@ var Hexular = (function () {
     return !cell.edge ? value : cell.model.groundState;
   }
 
+  // --- UTILITY FUNCTIONS ---
+
   /**
    * Utility function for recursively merging arrays and objects.
    *
@@ -1394,38 +1419,6 @@ var Hexular = (function () {
   * @memberof Hexular.util
   */
   let identity = (e) => e;
-
-  // --- UTILITY FUNCTIONS ---
-
-  /**
-   * Given a cell with immediately-connected neighbors, find all cells out to a given radius, ordered by radial ring.
-   *
-   * This is used to order {@link CubicModel#cells}, and by the hex-drawing tools in Hexular Studio.
-   *
-   * @param {Cell} origin   Central cell
-   * @param {number} radius A natural number greater than 0
-   * @return {Cell[]}        An array of cells, including the origin, of length `3 * radius * (radius - 1) + 1`
-   * @memberof Hexular.util
-   * @see {@link Cell#nbrs}
-   */
-  function hexWrap(origin, radius) {
-    let cells = [origin];
-    for (let i = 1; i < radius; i++) {
-      let cell = origin;
-      // We select the first simple neighbor in the i-th ring
-      for (let j = 0; j < i; j++)
-        cell = cell.nbrs[1];
-
-      for (let j = 0; j < 6; j++) {
-        let dir = 1 + (j + 2) % 6;
-        for (let k = 0; k < i; k++) {
-          cell = cell.nbrs[dir];
-          cells.push(cell);
-        }
-      }
-    }
-    return cells;
-  }
 
   /**
   * Generates an elementary rule based on the state of a cell's six immediate neighbors plus optionally itself.
@@ -1784,7 +1777,6 @@ var Hexular = (function () {
       merge,
       extract,
       identity,
-      hexWrap,
       ruleBuilder,
       templateRuleBuilder,
     },

@@ -72,10 +72,10 @@ The Hexular function accepts an optional first argument giving a model class (e.
 
       let model = Hexular(MyCustomModel, myOpts, moarOpts, iCantBelieveItsEvenMoreOpts);
 
-`CubicModel` is morphologically determined by its `radius`, which gives the number of rings of cells from the center to the edge. So, e.g., a seven-cell grid would have radius 2. Conversely, `OffsetModel` takes `rows` and `cols` arguments.
+`CubicModel` is morphologically determined by its `order`, which gives the number of rings of cells from the center to the edge. So, e.g., a seven-cell grid would have order 1, and a one-cell grid would have order 0. Conversely, `OffsetModel` takes `rows` and `cols` arguments.
 
       let offsetModel = Hexular(Hexular.OffsetModel, {rows: 64, cols: 32}); // 2,048 cells
-      let cubicModel = Hexular({radius: 27});  // 2,107 cells
+      let cubicModel = Hexular({order: 26});  // 2,107 cells
 
 For global model configuration options, please see the [`Model`](Model.html) documentation.
 
@@ -128,7 +128,7 @@ Cell rules &mdash; functions that take in the cell as an argument and return a n
         model.step();
         console.log(model.cells[0].state) // 6
 
-A valid rule is a function that takes a cell as an argument and returns a value corresponding to the next desired state. Hexular is, again, generally opinionated towards natural number states, but they can in principle be any value that can be coerced into a JavaScript object key. The rule function has access to the cell's current state, its neighbors' states (through [`cell.nbrs`](Cell.html#nbrs) and the neighborhood-bound helper functions), and by extension the state of every cell in the grid &mdash; though in principle CAs should only consider cell states within some finite local neighborhood. Larger neighborhoods can be extracted as necessary via the [`Hexular.util.hexWrap`](Hexular.util.html#.hexWrap) function, which returns an arbitrarily-large spiral-wrapped array of neighbors around a given cell.
+A valid rule is a function that takes a cell as an argument and returns a value corresponding to the next desired state. Hexular is, again, generally opinionated towards natural number states, but they can in principle be any value that can be coerced into a JavaScript object key. The rule function has access to the cell's current state, its neighbors' states (through [`cell.nbrs`](Cell.html#nbrs) and the neighborhood-bound helper functions), and by extension the state of every cell in the grid &mdash; though in principle CAs should only consider cell states within some finite local neighborhood. Larger neighborhoods can be extracted as necessary via the [`cell.wrap`](Cell.html#wrap) function, which returns an arbitrarily-large spiral-wrapped array of neighbors around a given cell.
 
 One could, if one were so inclined, create rules utilizing additional internal state data, etc., though this may cause undesirable effects, particularly in Hexular Studio.
 
@@ -357,7 +357,7 @@ The template rulebuilder may in general be a bit more difficult to work with tha
 
 ### Additional options
 
-The resize modal (Ctrl+R) allows us to resize the model to a new size. Note that this effectively destroys the existing model and board and creates a wholly new one. Built-in settings and plugins will be copied over, but any more bespoke modifications may be lost. If the new radius is smaller than the current one, cells outside the new radius will simply be discarded. Conversely, if the new radius is larger, we of course keep all existing cells and insert blank ones around them.
+The resize modal (Ctrl+R) allows us to resize the model to a new size. Note that this effectively destroys the existing model and board and creates a wholly new one. Built-in settings and plugins will be copied over, but any more bespoke modifications may be lost. If the new order or radius is smaller than the current one, cells outside the new radius will simply be discarded. Conversely, if the new radius is larger, we of course keep all existing cells and insert blank ones around them.
 
 #### Custom code
 

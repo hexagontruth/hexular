@@ -35,17 +35,29 @@ class CanvasAdapter {
   draw() {
     // Provisional hack for the illusion of grid wrapping
     // TODO: Rewrite
-    if (this.config.meta.heptad) {
+    if (this.config.meta.repeat) {
+      let rings = +this.config.meta.repeat;
+      let f = this.config.meta.repeatRadius || this.config.order;
       let a = this.config.cellRadius * 2;
-      let r = (this.config.radius - 0.5) * 1.5 * a;
+      let r = (f + 0.5) * 1.5 * a;
       let bigT = Hexular.math.scalarOp(Hexular.math.pointyVertices, r);
       let smolT = Hexular.math.scalarOp(Hexular.math.flatVertices, this.config.cellRadius * Hexular.math.apothem);
-      for (let i = 0; i < 6; i++) {
+      let translate = (dir) => {
+        this.context.translate(...bigT[dir]);
+        this.context.translate(...smolT[(dir + 1) % 6]);
+      };
+      for (let i = 0; i < rings; i++) {
         this.context.save();
-        this.context.translate(...bigT[i]);
-        this.context.translate(...smolT[(i + 1) % 6]);
-        this.board.runHooks('draw', this);
-        this.board.runHooksParallel('drawCell', this.model.getCells(), this);
+        for (let k = 0; k <= i; k++)
+          translate(0);
+        for (let j = 0; j < 6; j++) {
+          for (let k = 0; k <= i; k++) {
+            translate((j + 2) % 6);
+            this.board.runHooks('draw', this);
+            this.board.runHooksParallel('drawCell', this.model.getCells(), this);
+          }
+
+        }
         this.context.restore();
       }
     }
@@ -232,7 +244,7 @@ class CanvasAdapter {
   }
 
   drawBackground() {
-    if (!this.model.radius) return;
+    if (this.config.order == null) return;
     this.context.save();
     this.context.setTransform(1, 0, 0, 1, 0, 0);
     this.context.fillStyle = this.config.recordingMode ?
@@ -240,7 +252,7 @@ class CanvasAdapter {
     this.context.fillRect(0, 0, this.context.canvas.width, this.context.canvas.height);
     this.context.restore();
     if (this.config.drawModelBackground && !this.config.recordingMode) {
-      let radius = this.model.radius * this.config.cellRadius * Hexular.math.apothem * 2;
+      let radius = (this.config.order + 1) * this.config.cellRadius * Hexular.math.apothem * 2;
       this.context.beginPath();
       this.context.moveTo(radius, 0);
       for (let i = 0; i < 6; i++) {

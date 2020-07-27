@@ -2,7 +2,6 @@ class DrawModal extends Modal {
   constructor(...args) {
     super(...args);
     this.defaultInterval = Config.defaults.interval;
-    this.radius = this.defaultRadius = Config.defaults.radius;
     this.drawButtons = {
       sortCellsAsc: document.querySelector('#sort-cells-asc'),
       sortCellsDesc: document.querySelector('#sort-cells-desc'),

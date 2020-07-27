@@ -74,7 +74,7 @@
     let uvRange = Math.abs(Math.floor(dist / (uStride - vStride)));
     let radius = this.radius = minmaxFn(uwRange, vwRange, uvRange) + 1;
     this.homeCell = this.model.cellAtCubic(this.settings.homeCell) || this.model.cells[0];
-    let cells = Hexular.util.hexWrap(this.homeCell, radius);
+    let cells = this.homeCell.wrap(radius);
     // Assign cells from outside in so overflow cells keep innermost assignment
     cells.reverse();
     for (let cell of cells) {

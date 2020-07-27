@@ -28,4 +28,6 @@ const Presets = {
   rainbowRoad: new Preset(Object.assign(Array(12).fill('stepUp'), ['fractalLeft'])),
 
   rhombicLife: new Preset({filters: {modFilter: false}}, ['rhombicLife', 'rhombicLife']),
+
+  averager: new Preset({filters: {edgeFilter: true}}, Object.assign(Array(12).fill('average'), ['stepDown'])),
 };

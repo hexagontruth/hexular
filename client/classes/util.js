@@ -117,10 +117,10 @@ const Util = (() => {
   };
 
   Util.findDuplicateSteps = (opts={}) => {
-    let radius = opts.radius || Board.config.radius - 1;
+    let radius = opts.radius || Board.config.order;
     let cell = opts.cell || Board.instance.debugSelected || Board.model.cells[0];
     let halt = !!opts.halt;
-    let cells = Hexular.util.hexWrap(cell, radius);
+    let cells = cell.wrap(radius);
     let map = window.stateMap = new Map();
     let dups = window.duplicates = [];
     let getStateKey = () => cells.map((e) => ('0' + e.state.toString(16)).slice(-2)).join('');

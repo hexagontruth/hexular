@@ -5,7 +5,7 @@ class Config {
       theme: 'light',
       meta: {},
       media: {},
-      radius: 60,
+      order: 60,
       cellRadius: 10,
       zoom: 1,
       numStates: 12,
@@ -22,7 +22,7 @@ class Config {
         edgeFilter: false,
       },
       undoStackSize: 128,
-      mobileRadius: 30,
+      mobileOrder: 30,
       mobileZoom: 1.5,
       mobileUndoStackSize: 64,
       interval: 125,
@@ -162,7 +162,7 @@ class Config {
     // Let us infer if this is a mobile browser and make some tweaks
     if (window.devicePixelRatio > 1 && screen.width < 640) {
       this.mobile = true;
-      this.radius = Config.defaults.mobileRadius;
+      this.order = Config.defaults.mobileOrder;
       this.zoom = Config.defaults.mobileZoom;
       this.undoStackSize = Config.defaults.mobileUndoStackSize;
     }
@@ -174,8 +174,8 @@ class Config {
     Hexular.util.merge(this, new OptParser(this), ...args);
 
     // Set logical size for all canvases
-    let width = this.radius * this.cellRadius * Hexular.math.apothem * 4;
-    let height = this.radius * this.cellRadius * 3;
+    let width = (this.order + 1) * this.cellRadius * Hexular.math.apothem * 4;
+    let height = (this.order + 1) * this.cellRadius * 3;
     this.logicalWidth = width;
     this.logicalHeight = height;
 
@@ -388,8 +388,8 @@ class Config {
     };
   }
 
-  resize(radius=this.radius) {
-    this.radius = radius;
+  resize(order=this.order) {
+    this.order = order;
     this.storeSessionConfig();
     Board.resize();
   }
@@ -951,7 +951,7 @@ class Config {
       'backgroundColor',
       'paintColors',
       'preset',
-      'radius',
+      'order',
       'rbMiss',
       'rbMatch',
       'rbMissRel',

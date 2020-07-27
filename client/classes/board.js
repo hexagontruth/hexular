@@ -276,8 +276,8 @@ class Board {
       button.onmousedown = (ev) => this.handleSetColor(ev, i);
     });
 
-    let {radius, numStates, groundState, cellRadius, cellGap, colors} = this.config;
-    this.model = Hexular({radius, numStates, groundState, cellRadius});
+    let {order, numStates, groundState, cellRadius, cellGap, colors} = this.config;
+    this.model = Hexular({order, numStates, groundState, cellRadius});
     this.bgAdapter = new CanvasAdapter({model: this.model, board: this, context: this.bgCtx, cellGap, colors});
     this.adapter = new CanvasAdapter({model: this.model, board: this, context: this.mainCtx, cellGap, colors});
     this.fgAdapter = new CanvasAdapter({model: this.model, board: this, context: this.fgCtx, cellGap, colors});

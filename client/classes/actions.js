@@ -27,7 +27,7 @@ class Action {
   _selectWithSize(arg) {
     if (Array.isArray(arg))
       return [].concat(...arg.map((e) => this._selectWithSize(e)));
-    return arg ? Hexular.util.hexWrap(arg, this.config.toolSize) : [];
+    return arg ? arg.wrap(this.config.toolSize - 1) : [];
   }
 
   _applyBuffer() {
@@ -214,9 +214,9 @@ class LocklineAction extends LineAction {
 class HexAction extends LineAction {
   _calculateCells() {
     let pixRad = this.length / this.board.scale;
-    this.radius = Math.ceil(pixRad / (this.board.model.cellApothem * 2) + 0.5);
-    let cells = Hexular.util.hexWrap(this.originCell, this.radius);
-    let outline = cells.slice((-this.radius + 1) * 6);
+    this.radius = Math.ceil(pixRad / (this.board.model.cellApothem * 2) - 0.5);
+    let cells = this.originCell.wrap(this.radius);
+    let outline = cells.slice(-this.radius * 6);
     let expandedOutline = this._selectWithSize(outline);
     this._hexToBuffer(cells, expandedOutline);
   }

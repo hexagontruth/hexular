@@ -26,7 +26,7 @@ const Examples = (() => {
       });
     `,
     rotateColors: `Examples.rotateColors();`,
-    scaleTo: `Board.instance.scaleTo(Board.instance.scale * 2, 5000);`,
+    scaleTo: `Board.instance.scaleTo(Board.instance.scale * 2, 1000);`,
     maxNumStates: `Board.config.setMaxNumStates(64);`,
     setColorRange: `Util.setColorRange({range: [1, 12], h: 0, hDelta: 360});`,
     debugTimer: `

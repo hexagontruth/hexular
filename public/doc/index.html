@@ -107,9 +107,9 @@
 <p>The Hexular function accepts an optional first argument giving a model class (e.g. <code>Hexular.OffsetModel</code>), and any number of settings arguments. Different settings are required by different model classes.</p>
 <pre><code>  let model = Hexular(MyCustomModel, myOpts, moarOpts, iCantBelieveItsEvenMoreOpts);
 </code></pre>
-<p><code>CubicModel</code> is morphologically determined by its <code>radius</code>, which gives the number of rings of cells from the center to the edge. So, e.g., a seven-cell grid would have radius 2. Conversely, <code>OffsetModel</code> takes <code>rows</code> and <code>cols</code> arguments.</p>
+<p><code>CubicModel</code> is morphologically determined by its <code>order</code>, which gives the number of rings of cells from the center to the edge. So, e.g., a seven-cell grid would have order 1, and a one-cell grid would have order 0. Conversely, <code>OffsetModel</code> takes <code>rows</code> and <code>cols</code> arguments.</p>
 <pre><code>  let offsetModel = Hexular(Hexular.OffsetModel, {rows: 64, cols: 32}); // 2,048 cells
-  let cubicModel = Hexular({radius: 27});  // 2,107 cells
+  let cubicModel = Hexular({order: 26});  // 2,107 cells
 </code></pre>
 <p>For global model configuration options, please see the <a href="Model.html"><code>Model</code></a> documentation.</p>
 <h3 id="cells">Cells</h3>
@@ -148,7 +148,7 @@
     model.step();
     console.log(model.cells[0].state) // 6
 </code></pre>
-<p>A valid rule is a function that takes a cell as an argument and returns a value corresponding to the next desired state. Hexular is, again, generally opinionated towards natural number states, but they can in principle be any value that can be coerced into a JavaScript object key. The rule function has access to the cell's current state, its neighbors' states (through <a href="Cell.html#nbrs"><code>cell.nbrs</code></a> and the neighborhood-bound helper functions), and by extension the state of every cell in the grid — though in principle CAs should only consider cell states within some finite local neighborhood. Larger neighborhoods can be extracted as necessary via the <a href="Hexular.util.html#.hexWrap"><code>Hexular.util.hexWrap</code></a> function, which returns an arbitrarily-large spiral-wrapped array of neighbors around a given cell.</p>
+<p>A valid rule is a function that takes a cell as an argument and returns a value corresponding to the next desired state. Hexular is, again, generally opinionated towards natural number states, but they can in principle be any value that can be coerced into a JavaScript object key. The rule function has access to the cell's current state, its neighbors' states (through <a href="Cell.html#nbrs"><code>cell.nbrs</code></a> and the neighborhood-bound helper functions), and by extension the state of every cell in the grid — though in principle CAs should only consider cell states within some finite local neighborhood. Larger neighborhoods can be extracted as necessary via the <a href="Cell.html#wrap"><code>cell.wrap</code></a> function, which returns an arbitrarily-large spiral-wrapped array of neighbors around a given cell.</p>
 <p>One could, if one were so inclined, create rules utilizing additional internal state data, etc., though this may cause undesirable effects, particularly in Hexular Studio.</p>
 <h4 id="simple-rulebuilder">Simple Rulebuilder</h4>
 <p>The <a href="Hexular.util.html#.ruleBuilder"><code>Hexular.util.ruleBuilder</code></a> function allows for &quot;convenient&quot; generation of simple binary CA rules, analogous to Wolfram's <a href="http://mathworld.wolfram.com/ElementaryCellularAutomaton.html">Elementary Cellular Automaton</a> rules. The function takes as an input either a single natural number (preferably in the form of a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt">BigInt</a>), or an array of numbers each representing a single neighborhood state mask to add. It also accepts an optional <code>options</code> argument, overriding the following default values:</p>
@@ -325,7 +325,7 @@
 </ul>
 <p>The template rulebuilder may in general be a bit more difficult to work with than the simple rulebuilder.</p>
 <h3 id="additional-options">Additional options</h3>
-<p>The resize modal (Ctrl+R) allows us to resize the model to a new size. Note that this effectively destroys the existing model and board and creates a wholly new one. Built-in settings and plugins will be copied over, but any more bespoke modifications may be lost. If the new radius is smaller than the current one, cells outside the new radius will simply be discarded. Conversely, if the new radius is larger, we of course keep all existing cells and insert blank ones around them.</p>
+<p>The resize modal (Ctrl+R) allows us to resize the model to a new size. Note that this effectively destroys the existing model and board and creates a wholly new one. Built-in settings and plugins will be copied over, but any more bespoke modifications may be lost. If the new order or radius is smaller than the current one, cells outside the new radius will simply be discarded. Conversely, if the new radius is larger, we of course keep all existing cells and insert blank ones around them.</p>
 <h4 id="custom-code">Custom code</h4>
 <p>The custom code modal (Ctrl+F) allows us to execute arbitrary JavaScript code, or indeed upload raw JavaScript to be evaluated. This should probably only be used by users with a pretty solid grasp of JavaScript.</p>
 <p>Custom code is evaluated with the global <code>Hexular</code> and <code>Board</code> made available. Every board instance (i.e., the currently displayed board) attaches the following attributes to the <code>Board</code> object:</p>
