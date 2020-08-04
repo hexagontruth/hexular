@@ -30,4 +30,9 @@ const Presets = {
   rhombicLife: new Preset({filters: {modFilter: false}}, ['rhombicLife', 'rhombicLife']),
 
   averager: new Preset({filters: {edgeFilter: true}}, Object.assign(Array(12).fill('average'), ['stepDown'])),
+  count18: new Preset(
+    {filters: {edgeFilter: true, modFilter: false}, nh: 18},
+    Object.assign(Array(19).fill('average'), ['count'])
+  ),
+  identity: new Preset({defaultRule: 'identityRule'}, Array(12).fill('identityRule')),
 };

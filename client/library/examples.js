@@ -52,6 +52,12 @@ const Examples = (() => {
     translateStates: `
       Util.translateStates([0, 1, -1]);
     `,
+    preventClose: `Util.preventClose();`,
+    setBreakpoints: `
+      // Sets/reads the Board.config.meta.breakpoints value
+      Util.setBreakpoints([100, 200, 300]);
+    `,
+    clearUtilHooks: `Util.clearUtilHooks();`,
   };
 
   Object.entries(snippets).forEach(([k, v]) => {
@@ -113,7 +119,7 @@ const Examples = (() => {
             adapter.context.restore();
           };
           fn.idx = fnIdx;
-          Board.instance.addHook('draw', fn, opts.insertionIndex);
+          Board.instance.addHook('draw', fn, {index: opts.insertionIndex});
           Board.instance.draw();
         };
       })();
@@ -167,7 +173,7 @@ const Examples = (() => {
             });
           };
           fn.idx = ++fnCount;
-          Board.instance.addHook('draw', fn, opts.insertionIndex);
+          Board.instance.addHook('draw', fn, {index: opts.insertionIndex});
           Board.instance.draw();
         }
       })();

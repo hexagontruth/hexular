@@ -1372,9 +1372,18 @@ var Hexular = (function () {
     let mergeWhitelist = [Object, Array];
     while (next = objs.shift()) {
       for (let [key, val] of Object.entries(next)) {
-        if (val == null) continue;
-        let defaultBaseVal = Array.isArray(val) ? [] : typeof val == 'object' ? {} : null;
-        let baseVal = base[key] || defaultBaseVal;
+        let baseVal = base[key];
+        // Keep nulls when overwriting undefined
+        if (val == null) {
+          base[key] = baseVal || val;
+          continue;
+        }
+        // Populate objects and arrays as appropriate
+        if (!baseVal) {
+          let defaultBaseVal = Array.isArray(val) ? [] : typeof val == 'object' ? {} : null;
+          baseVal = defaultBaseVal;
+        }
+        // Do things
         if (typeof val == 'object' && !mergeWhitelist.includes(val.constructor)) {
           base[key] = val;
         }

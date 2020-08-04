@@ -116,6 +116,13 @@ const Util = (() => {
     Board.instance.draw();
   };
 
+  Util.preventClose = () => {
+    window.onbeforeunload = (ev) => {
+      ev.preventDefault();
+      return 'r u sure lol?'
+    };
+  };
+
   Util.findDuplicateSteps = (opts={}) => {
     let radius = opts.radius || Board.config.order;
     let cell = opts.cell || Board.instance.debugSelected || Board.model.cells[0];
@@ -136,10 +143,16 @@ const Util = (() => {
       }
       map.set(stateKey, Board.config.steps);
     }
-    fn.duplicateMapper = true;
-    Board.instance.hooks.step = Board.instance.hooks.step.filter((e) => !e.fn.duplicateMapper);
-    let id = Board.instance.addHook('step', fn);
-    return {map, dups, id};
+    return Board.instance.addHook('step', fn, {id: 'Util.findDuplicateSteps', map, dups});
+  };
+
+  Util.setBreakpoints = (breakpoints) => {
+    Board.config.meta.breakpoints = breakpoints || Board.config.meta.breakpoints || [];
+    return Board.instance.addHook('step', () => {
+      if (Board.config.meta.breakpoints.includes(Board.config.steps)) {
+        Board.instance.stop();
+      }
+    }, {id: 'Util.setBreakpoints'});
   };
 
   Util.debugTimer = (log=true) => {
@@ -154,11 +167,17 @@ const Util = (() => {
         intervals.push(delta);
       }
     }
-    fn.debugTimer = true;
-    Board.instance.hooks.step = Board.instance.hooks.step.filter((e) => !e.fn.debugTiger);
-    let id = Board.instance.addHook('step', fn);
-    return {intervals, id};
+    return Board.instance.addHook('step', fn, {id: 'Util.debugTimer', intervals});
   };
+
+  Util.clearUtilHooks = () => {
+    let ids = [
+      'Util.findDuplicateSteps',
+      'Util.setBreakpoints',
+      'Util.debugTimer',
+    ];
+    ids.forEach((e) => Board.instance.removeHook(e));
+  },
 
   Util.debugCell = (cell, fn) => {
     if (cell == Board.instance.debugSelected)

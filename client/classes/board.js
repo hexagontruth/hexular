@@ -20,7 +20,7 @@ class Board {
           board.refreshHistoryButtons();
           Object.entries(oldBoard.hooks).forEach(([key, value]) => {
             value.forEach((e, i) => {
-              e.fn.radio || board.addHook(key, e, i)
+              e.fn.radio || board.addHook(key, e, {index: i})
             });
           });
         }
@@ -509,16 +509,25 @@ class Board {
   createHook(key, obj, opts={}) {
     this.hooks[key] = this.hooks[key] || [];
     let fn = obj.fn || obj;
-    obj = {...opts, key, fn, id: this.hookCounter++};
+    let id;
+    if (opts.id != null) {
+      id = opts.id;
+      this.removeHook(id);
+    }
+    else {
+      id = this.hookCounter++;
+    }
+    obj = {...opts, key, fn, id};
     this.hookMap[obj.id] = obj;
     return obj;
   }
 
-  addHook(key, obj, idx, opts={}) {
+  addHook(key, obj, opts={}) {
+    let idx = opts.index != null ? opts.index : this.hooks[key].length;
+    delete opts.index;
     obj = this.createHook(key, obj, opts);
-    idx = idx != null ? idx : this.hooks[key].length;
     this.hooks[key].splice(idx, 0, obj);
-    return obj.id;
+    return obj;
   }
 
   // This is ridiculous
@@ -526,7 +535,7 @@ class Board {
     obj = this.createHook(key, obj, {trigger});
     this.hooks[key].push(obj);
     this.hooks[key].sort((a, b) => a.trigger - b.trigger);
-    return obj.id;
+    return obj;
   }
 
   removeHook(...args) {
@@ -753,18 +762,37 @@ class Board {
     this.promptDownload(this.getImageFilename(), dataUri);
   }
 
+  parseTemplate(str, pairs={}) {
+    Object.entries(pairs).forEach(([k, v]) => {
+      str = str.replace(`{${k}}`, v);
+    });
+    return str;
+  }
+
+  padNum(n, pad) {
+    return ('0'.repeat(pad) + n).slice(-pad);
+  }
+
   getImageFilename() {
-    let padStep = ('0000' + this.config.steps).slice(-4);
-    if (this.config.drawStepInterval > 1)
-      padStep += '-' + ('00' + this.drawStep).slice(-2);
-    return `${this.config.defaultImageFilenameBase}-${padStep}.${this.config.imageFormat}`;
+    let padStep = this.padNum(this.config.steps, this.config.padStepDigits);
+    if (this.config.drawStepInterval > 1) {
+      padStep += '-' + this.padNum(this.drawStep, this.config.padDrawStepDigits);
+    }
+    return this.parseTemplate(
+      this.config.defaultImageFilenameTemplate,
+      {steps: padStep, format: this.config.imageFormat}
+    );
   }
 
   save() {
     let bytes = this.model.export();
     let blob = new Blob([bytes], {type: 'application/octet-stream'});
     let dataUri = window.URL.createObjectURL(blob);
-    this.promptDownload(this.config.defaultFilename, dataUri);
+    let filename = this.parseTemplate(
+      this.config.defaultModelFilenameTemplate,
+      {steps: this.padNum(this.config.steps, this.config.padStepDigits)}
+    )
+    this.promptDownload(filename, dataUri);
   }
 
   load() {
@@ -1062,8 +1090,11 @@ class Board {
   }
 
   handleBlur(ev) {
-    this.shift = false;
-    this.config.blurTool && this.config.setTool(this.config.blurTool);
+    setTimeout(() => {
+      this.shift = false;
+      this.config.blurTool && this.config.setTool(this.config.blurTool);
+      this.altView && this.toggleAltView();
+    });
   }
 
   handleWheel(ev) {
