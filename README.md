@@ -259,6 +259,7 @@ Several buttons concerning file I/O run along the left side:
   - Save model (Ctrl+S)
   - Load local settings (Ctrl+Alt+O)
   - Save local settings (Ctrl+Alt+S)
+  - Toggle lock mode (Ctrl+L)
   - Clear local settings (Ctrl+X)
 
 Tool buttons and various editorial options run along the bottom:
@@ -276,7 +277,7 @@ Tool buttons and various editorial options run along the bottom:
   - Re-scale and re-center model (R)
   - Toggle color mode (C) &mdash; Override the default color assignment on paint actions with specific state colors
 
-Holding `<Shift>` will temporarily select the move tool by default, or whatever tool is given in the `Board.config.shiftTool` parameter. Holding `<Alt>` temporarily displays the default (pointy) hex for each cell state &mdash; useful when using plugins or drawing settings that may temporarily occult the drawn model state. `<Escape>` toggles button and coordinate indicator visibility, or conversely closes any open modal. Scrolling a central mouse wheel or pinch zooming will scale the canvas.
+Holding `<Shift>` will temporarily select the move tool by default, or whatever tool is given in the `Board.config.shiftTool` parameter. Holding `<Alt>` temporarily displays the default (pointy) hex for each cell state &mdash; useful when using plugins or drawing settings that may temporarily occult the drawn model state. `<Escape>` toggles button and coordinate indicator visibility, or conversely closes any open modal. Scrolling a central mouse wheel or pinch zooming will scale the canvas. Ctrl+L will lock the board to prevent cursor-initiated painting, scrolling, or zooming &mdash; though "re-scale and re-center" command will still work (this can be useful to prevent accidental adjustment of the board during recording). Hitting Ctrl+L again will unlock it.
 
 Cell states are changed by clicking and dragging with a paint tool selected. By default, the painting state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo `Board.instance.model.numStates`. Right clicking, conversely, decrements the cell state by one, and ctrl+clicking clears to the ground state. Setting a specific state color can be effected by toggling the color mode button on the bottom right (C).
 
@@ -421,6 +422,7 @@ The following hooks are currently supported
 - timer \*
 - playStart
 - playStop
+- recordStop
 - resize
 - center
 - select

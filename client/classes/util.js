@@ -78,6 +78,18 @@ const Util = (() => {
     return obj;
   };
 
+  Util.sexToInt = (str, base=60) => {
+    let p = str.split(':').map((e) => parseInt(e));
+    let num = 0;
+    while (p.length) {
+      let val = p.shift();
+      let col = p.length;
+      val *= (base ** col);
+      num += val;
+    }
+    return num;
+  }
+
   Util.stateHistogram = () => {
     return Board.model.cells.reduce((a, e) => {
       a[e.state] = a[e.state] || 0;

@@ -58,6 +58,7 @@ const Examples = (() => {
       Util.setBreakpoints([100, 200, 300]);
     `,
     clearUtilHooks: `Util.clearUtilHooks();`,
+    setLock: `Board.config.setLock();`,
   };
 
   Object.entries(snippets).forEach(([k, v]) => {

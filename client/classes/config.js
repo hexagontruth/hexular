@@ -77,6 +77,8 @@ class Config {
       tool: 'brush',
       shiftTool: 'move',
       blurTool: null,
+      locked: false,
+      lockedTool: null,
       toolSize: 1,
       colorMode: 0,
       paintColors: [1, 0],
@@ -249,11 +251,12 @@ class Config {
       this.setPaintColor(0, this.paintColors[0]);
       this.setPaintColor(1, this.mobile ? -1 : this.paintColors[1]);
       this.setPaintColorMode(this.colorMode);
-      this.setTool(this.tool);
+      this._setTool(this.tool);
       this.setToolSize(this.toolSize);
       this.setSteps(this.steps);
       this.setScaleFactor(this.scaleFactor);
       this.setZoom(this.zoom);
+      this.setLock(this.locked);
 
       // Config modal
       this.setPreset(this.preset);
@@ -424,6 +427,41 @@ class Config {
     this.flatVertices = Hexular.math.scalarOp(Hexular.math.vertices, this.innerRadius);
     this.pointyVertices = Hexular.math.scalarOp(Hexular.math.vertices.map(([x, y]) => [y, x]), this.innerRadius);
     this.board.draw();
+  }
+
+  lock() {
+    return this.setLock(true);
+  }
+
+  unlock() {
+    return this.setLock(false);
+  }
+
+  setLock(value=!this.locked) {
+    let cur = this.locked;
+    this.locked = value;
+    let lockButton = this.board.buttons.toggleLock;
+    if (value) {
+      if (!cur && !this.lockedTool) {
+        this.lockedTool = this.tool;
+      }
+      this._setTool('none');
+    }
+    else {
+      if (cur && this.lockedTool) {
+        this._setTool(this.lockedTool);
+      }
+      this.lockedTool = null;
+    }
+    document.body.classList.toggle('locked', value);
+    lockButton.classList.toggle('active', value);
+    lockButton.classList.toggle('icon-lock', value);
+    lockButton.classList.toggle('icon-lock-open', !value);
+    lockButton.setAttribute('title', value ? 'Unlock' : 'Lock');
+    Object.values(this.board.tools).forEach((e) => e.disabled = value);
+    document.title = Board.constants.baseTitle  + (value ? ' [LOCKED]' : '');
+    this.storeSessionConfigAsync();
+    return value;
   }
 
   // --- SETTERS ---
@@ -815,7 +853,11 @@ class Config {
     this.setCellBorderWidth();
   }
 
-  setTool(tool, fallbackTool) {
+  setTool(tool, fallbackTool, force=false) {
+    !this.locked && this._setTool(tool, fallbackTool);
+  }
+
+  _setTool(tool, fallbackTool) {
     if (tool && this.board.toolClasses[tool]) {
       this.tool = tool;
       this.fallbackTool = fallbackTool || tool;
@@ -841,6 +883,12 @@ class Config {
     selected && selected.classList.add('active');
     this.board.drawFg();
     this.storeSessionConfigAsync();
+  }
+
+  setUndoStackSize(size) {
+    this.undoStackSize = size;
+    this.board.undoStack = size ? this.board.undoStack.slice(-size) : [];
+    this.board.refreshHistoryButtons();
   }
 
   // --- VALIDATION ---
@@ -945,6 +993,8 @@ class Config {
       'imageFormat',
       'importMask',
       'interval',
+      'locked',
+      'lockedTool',
       'maxNumStates',
       'meta',
       'modelBackgroundColor',
@@ -1122,7 +1172,7 @@ class Config {
     let modelState = this.loadModel('modelState');
     session && this.sessionStorageObj.clear();
     local && this.localStorageObj.clear();
-    this.storeModel('modelState', modelState);
+    modelState && this.storeModel('modelState', modelState);
   }
 
   _strToTuple(str) {

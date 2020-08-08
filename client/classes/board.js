@@ -88,6 +88,7 @@ class Board {
         timer: [],
         playStart: [],
         playStop: [],
+        recordStop: [],
         resize: [],
         center: [],
         select: [],
@@ -121,6 +122,7 @@ class Board {
         'lockline',
         'hexfilled',
         'hexoutline',
+        'none',
       ],
       modal: null,
       modalTranslate: null,
@@ -156,7 +158,6 @@ class Board {
         showSrb: document.querySelector('#show-srb'),
         showTrb: document.querySelector('#show-trb'),
         showCustom: document.querySelector('#show-custom'),
-        showClear: document.querySelector('#show-clear'),
         saveSnapshot: document.querySelector('#snapshot-save'),
         loadSnapshot: document.querySelector('#snapshot-load'),
         showDoc: document.querySelector('#show-doc'),
@@ -166,6 +167,8 @@ class Board {
         save: document.querySelector('#save'),
         saveData: document.querySelector('#save-data'),
         loadData: document.querySelector('#load-data'),
+        toggleLock: document.querySelector('#toggle-lock'),
+        showClear: document.querySelector('#show-clear'),
       },
       tools: {
         fill: document.querySelector('#tool-fill'),
@@ -248,7 +251,6 @@ class Board {
     this.buttons.showTrb.onmousedown = () => this.toggleModal('trb');
     this.buttons.showPlugin.onmousedown = () => this.toggleModal('plugin');
     this.buttons.showCustom.onmousedown = () => this.toggleModal('custom');
-    this.buttons.showClear.onmousedown = () => this.handleClearStorage();
 
     this.buttons.saveSnapshot.onclick = this.click(this.saveSnapshot);
     this.buttons.loadSnapshot.onclick = this.click(this.loadSnapshot);
@@ -259,6 +261,8 @@ class Board {
     this.buttons.save.onclick = this.click(this.save);
     this.buttons.loadData.onclick = this.click(this.loadData);
     this.buttons.saveData.onclick = this.click(this.saveData);
+    this.buttons.toggleLock.onclick = () => this.config.setLock();
+    this.buttons.showClear.onclick = () => this.handleClearStorage();
 
     this.tools.move.onclick = this.click((ev) => this.config.setTool('move'), this.config);
     this.tools.brush.onclick = this.click((ev) => this.config.setTool('brush'), this.config);
@@ -884,11 +888,13 @@ class Board {
  // Undo/redo stuff
 
   newHistoryState() {
-    let state = this.model.export();
-    state.steps = this.config.steps;
-    this.undoStack.push(state);
-    if (this.undoStack.length > this.config.undoStackSize)
-      this.undoStack.shift();
+    if (this.config.undoStackSize) {
+      let state = this.model.export();
+      state.steps = this.config.steps;
+      this.undoStack.push(state);
+      if (this.undoStack.length > this.config.undoStackSize)
+        this.undoStack.shift();
+    }
     this.redoStack = [];
     this.refreshHistoryButtons();
   }
@@ -1110,7 +1116,7 @@ class Board {
         focus.dispatchEvent(new Event('input'));
       }
     }
-    else if (ev.target == this.fgCanvas) {
+    else if (ev.target == this.fgCanvas && !this.config.locked) {
       let scale = 1 - Math.sign(ev.deltaY) * 0.1;
       this.scaleRelative(scale);
       this.draw();
@@ -1214,6 +1220,9 @@ class Board {
           }
           else if (key == 'h') {
             this.toggleModal('trb');
+          }
+          else if (key == 'l') {
+            this.config.setLock();
           }
           else if (key == 'r') {
             this.toggleModal('resize');
@@ -1463,6 +1472,8 @@ class Board {
   }
 
   startAction(ev, ...args) {
+    if (this.config.locked)
+      return;
     let ctrl = ev.ctrlKey;
     let shift = ev.shiftKey;
     let Class = this.toolClasses[this.config.tool];
@@ -1592,3 +1603,4 @@ class Board {
   }
 }
 Board.plugins = {};
+Board.constants = {};

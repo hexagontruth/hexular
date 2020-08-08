@@ -121,6 +121,10 @@ body.modal-state canvas {
   cursor: default;
 }
 
+body.locked .container canvas {
+  cursor: not-allowed;
+}
+
 button, input.jscolor {
   box-shadow:
     inset -1px -1px 2px #0000000a,
@@ -913,30 +917,30 @@ button.statemask.active, button.statemask:hover {
   height: 8em;
 }
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 599px) {
   .info-cursor { opacity: 0 !important; }
   .info { font-size: 3.333vw; }
 }
 
-@media screen and (max-width: 480px) {
+@media screen and (max-width: 479px) {
   .info-timer { opacity: 0 !important; }
   .info { opacity: 0 !important; }
 }
 
-@media screen and (max-width: 360px) {
-  html { font-size: 5.555vw; }
+@media screen and (max-width: 359px), screen and (max-height: 720px) {
+  html { font-size: min(2.777vh, 5.555vw); }
   .info { opacity: 0 !important;}
 }
 
-@media screen and (max-height: 800px) {
+@media screen and (max-height: 799px) {
   .modal { font-size: 2.5vh; }
 }
 
-@media screen and (max-width: 500px) {
+@media screen and (max-width: 499px) {
   .modal { font-size: 4vw; }
 }
 
-@media screen and (max-height: 800px), screen and (max-width: 500px) {
+@media screen and (max-height: 799px), screen and (max-width: 499px) {
   .modal { font-size: min(2.5vh, 4vw); }
 }
 

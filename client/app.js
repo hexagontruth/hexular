@@ -20,6 +20,7 @@ window.addEventListener('DOMContentLoaded',(e) => {
 
 // Do the stuff
 window.addEventListener('load', (e) => {
+  Board.constants.baseTitle = document.title;
   // Build select wrappers
   Select.init('.modal select');
   // Set up board

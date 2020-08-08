@@ -26,16 +26,17 @@ class Recorder {
       opts.mimeType = 'video/webm';
     this.stream.getTracks()[0].applyConstraints(constraints);
     this.recorder = new MediaRecorder(this.stream, opts);
-    let blobs = [];
+    let chunks = [];
     this.recorder.ondataavailable = (ev) => {
       if (ev.data && ev.data.size > 0) {
-        blobs.push(ev.data);
+        chunks.push(ev.data);
       }
     };
     this.recorder.onstop = (ev) => {
-      let buffer = new Blob(blobs, {type: 'video/webm'});
+      let buffer = new Blob(chunks, {type: 'video/webm'});
       let dataUri = window.URL.createObjectURL(buffer);
       this.board.promptDownload(this.config.defaultVideoFilename, dataUri);
+      this.board.runHooks('recordStop', chunks);
     };
     this.recorder.start();
   }
