@@ -257,6 +257,7 @@
 <li>Save model (Ctrl+S)</li>
 <li>Load local settings (Ctrl+Alt+O)</li>
 <li>Save local settings (Ctrl+Alt+S)</li>
+<li>Toggle lock mode (Ctrl+L)</li>
 <li>Clear local settings (Ctrl+X)</li>
 </ul>
 <p>Tool buttons and various editorial options run along the bottom:</p>
@@ -274,7 +275,7 @@
 <li>Re-scale and re-center model (R)</li>
 <li>Toggle color mode (C) — Override the default color assignment on paint actions with specific state colors</li>
 </ul>
-<p>Holding <code>&lt;Shift&gt;</code> will temporarily select the move tool by default, or whatever tool is given in the <code>Board.config.shiftTool</code> parameter. Holding <code>&lt;Alt&gt;</code> temporarily displays the default (pointy) hex for each cell state — useful when using plugins or drawing settings that may temporarily occult the drawn model state. <code>&lt;Escape&gt;</code> toggles button and coordinate indicator visibility, or conversely closes any open modal. Scrolling a central mouse wheel or pinch zooming will scale the canvas.</p>
+<p>Holding <code>&lt;Shift&gt;</code> will temporarily select the move tool by default, or whatever tool is given in the <code>Board.config.shiftTool</code> parameter. Holding <code>&lt;Alt&gt;</code> temporarily displays the default (pointy) hex for each cell state — useful when using plugins or drawing settings that may temporarily occult the drawn model state. <code>&lt;Escape&gt;</code> toggles button and coordinate indicator visibility, or conversely closes any open modal. Scrolling a central mouse wheel or pinch zooming will scale the canvas. Ctrl+L will lock the board to prevent cursor-initiated painting, scrolling, or zooming — though &quot;re-scale and re-center&quot; command will still work (this can be useful to prevent accidental adjustment of the board during recording). Hitting Ctrl+L again will unlock it.</p>
 <p>Cell states are changed by clicking and dragging with a paint tool selected. By default, the painting state is determined by the state of the initially-clicked cell, and is the successor to the current state modulo <code>Board.instance.model.numStates</code>. Right clicking, conversely, decrements the cell state by one, and ctrl+clicking clears to the ground state. Setting a specific state color can be effected by toggling the color mode button on the bottom right (C).</p>
 <p>The basic flow of the program is to set one's preferred state using either the mouse or by importing a saved file, setting desired rules, &amp;c. in the model configuration modal, and then either starting the timer (tab) or incrementing the state one step at a time (space).</p>
 <p>Additional options can be set or configured via the various modals. (Note that the modals aren't, at this point, strictly modal, as I've found it convenient to allow an automaton to be e.g. stopped and started while a &quot;modal&quot; is open. But the name remains as a sort of vestigial taxonomic artifact.)</p>
@@ -375,6 +376,7 @@
 <li>timer *</li>
 <li>playStart</li>
 <li>playStop</li>
+<li>recordStop</li>
 <li>resize</li>
 <li>center</li>
 <li>select</li>
