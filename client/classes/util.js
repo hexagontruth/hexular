@@ -90,6 +90,26 @@ const Util = (() => {
     return num;
   }
 
+  // ugghh
+  Util.groundStart = (delay=1) => {
+    let board = Board.instance;
+    if (board.running)
+      return;
+    let config = Board.config;
+    let model = Board.model;
+    let states = model.cells.map((cell) => cell.state);
+    board.addHook('autopauseStep', () => {
+      model.changed = true;
+      if (!--delay) {
+        model.cells.forEach((e, i) => e.setState(states[i]));
+        board.removeHook('Util.groundStart');
+      }
+    }, {id: 'Util.groundStart'});
+    board.clear();
+    board.resetDrawStep();
+    board.drawSync();
+  }
+
   Util.stateHistogram = () => {
     return Board.model.cells.reduce((a, e) => {
       a[e.state] = a[e.state] || 0;
@@ -138,15 +158,27 @@ const Util = (() => {
   Util.findDuplicateSteps = (opts={}) => {
     let radius = opts.radius || Board.config.order;
     let cell = opts.cell || Board.instance.debugSelected || Board.model.cells[0];
-    let halt = !!opts.halt;
     let cells = cell.wrap(radius);
+    let coord = cell.coord;
+    let halt = !!opts.halt;
     let map = window.stateMap = new Map();
     let dups = window.duplicates = [];
-    let getStateKey = () => cells.map((e) => ('0' + e.state.toString(16)).slice(-2)).join('');
+    let currentBoard = Board.instance;
+
+    let getStateKey = () => {
+      if (currentBoard != Board.instance) {
+        currentBoard = Board.instance;
+        cell = Board.model.cellAtCubic(coord);
+        cells = cell.wrap(radius);
+      }
+      return cells.map((e) => ('0' + e.state.toString(16)).slice(-2)).join('');
+    }
+
     let fn = () => {
       let stateKey = getStateKey();
       let cur = map.get(stateKey);
       if (cur != null) {
+        window.testmap = map;
         dups.push([cur, Board.config.steps, stateKey]);
         Board.instance.setMessage(`Duplicate at ${cur}, ${Board.config.steps}!`);
         console.log(`Duplicate at ${cur}, ${Board.config.steps}!`);
@@ -187,6 +219,7 @@ const Util = (() => {
       'Util.findDuplicateSteps',
       'Util.setBreakpoints',
       'Util.debugTimer',
+      'Util.groundStart',
     ];
     ids.forEach((e) => Board.instance.removeHook(e));
   },

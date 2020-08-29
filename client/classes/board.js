@@ -19,8 +19,10 @@ class Board {
           board.redoStack = oldBoard.redoStack;
           board.refreshHistoryButtons();
           Object.entries(oldBoard.hooks).forEach(([key, value]) => {
-            value.forEach((e, i) => {
-              e.fn.radio || board.addHook(key, e, {index: i})
+            value.forEach((hook) => {
+              // We do not wish to copy over the "core" radio button hooks
+              // TODO: Change addHook sig to fix the ridiculousness of this
+              hook.fn.radio || board.addHook(key, hook, hook);
             });
           });
         }
@@ -30,6 +32,7 @@ class Board {
         Board.adapter = board.adapter;
         Board.fgAdapter = board.fgAdapter;
         Board.modals = board.modals;
+        Board.meta = board.config.meta;
         Board.shared = board.shared;
         Board.db || Board.initDb();
         board.runHooks('resize');
@@ -81,6 +84,7 @@ class Board {
       hooks: {
         incrementStep: [],
         playStep: [],
+        autopauseStep: [],
         step: [],
         draw: [],
         drawCell: [],
@@ -467,6 +471,7 @@ class Board {
         this.newHistoryState();
         this.model.step();
         this.storeModelState();
+        this.runHooks('autopauseStep');
         if (!this.model.changed && this.config.autopause) {
           this.stop();
           this.undo(true);
@@ -519,7 +524,8 @@ class Board {
       this.removeHook(id);
     }
     else {
-      id = this.hookCounter++;
+      while (id == null || this.hookMap[id])
+        id = this.hookCounter++;
     }
     obj = {...opts, key, fn, id};
     this.hookMap[obj.id] = obj;
@@ -543,6 +549,7 @@ class Board {
   }
 
   removeHook(...args) {
+    // "Old style" hook removal not actually used anywhere and also stupid
     if (args.length == 2 && typeof args[1] == 'function') {
       let [hook, fn] = args;
       let idx = this.hooks[hook].findIndex((e) => e.fn == fn);
@@ -702,7 +709,7 @@ class Board {
       this.config.setRecordingMode(true);
       this.draw();
       let fn = async (e) => {
-        this.imageCapture.push([this.getImageFilename(), await this.saveImage()]);
+        this.imageCapture.push([this.getImageFilename(), await this.getImage()]);
       };
       // This shocks the conscience
       this.imageCapture.handle = this.addHook('drawStep', fn);
@@ -751,18 +758,30 @@ class Board {
     this.promptDownload(this.config.defaultArchiveFilename, dataUri);
   }
 
-  async saveImage() {
+  async getImage(type='url') {
     let recordingMode = this.config.recordingMode;
     this.config.setRecordingMode(true);
     await this.draw();
     let transferCanvas = new TransferCanvas(this);
     this.config.setRecordingMode(recordingMode);
     await this.draw();
-    return transferCanvas.canvas.toDataURL(`image/${this.config.imageFormat}`);
+    let canvas = transferCanvas.canvas;
+    let format = `image/${this.config.imageFormat}`;
+    let quality = this.config.imageQuality;
+    if (type == 'url') {
+      return canvas.toDataURL(format, quality);
+    }
+    else if (type == 'blob') {
+      return new Promise((resolve, reject) => {
+        canvas.toBlob((blob, format, quality) => {
+          resolve(blob);
+        })
+      });
+    }
   }
 
   async promptSaveImage() {
-    let dataUri = await this.saveImage();
+    let dataUri = await this.getImage();
     this.promptDownload(this.getImageFilename(), dataUri);
   }
 

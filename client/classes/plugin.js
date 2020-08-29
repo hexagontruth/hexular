@@ -138,7 +138,7 @@
     ctx.restore();
   }
 
-  getPivot(q, p=0.5) {
+  getPivot(q=this.board.drawStepQ, p=0.5) {
     // Always draw specific step (default 1) when drawStepInterval == 1
     if (this.config.drawStepInterval == this.config.drawDefaultQ)
       return 1;

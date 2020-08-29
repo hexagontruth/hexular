@@ -415,6 +415,7 @@ The following hooks are currently supported
 
 - incrementStep
 - playStep
+- autopauseStep
 - step
 - draw
 - drawCell

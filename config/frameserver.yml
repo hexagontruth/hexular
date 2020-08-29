@@ -1,0 +1,13 @@
+default:
+  port: 8008
+  width: 2560
+  height: 1440
+  fps: 30
+  codec: libx264
+  crf: 15
+  output: output
+  saveImages: false
+  saveVideo: true
+  imageFilename: hex-#####
+  imageStartIndex: 0
+  videoFilename: hexular-video.mp4

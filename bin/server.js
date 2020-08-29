@@ -4,7 +4,11 @@ const Server = require('static-server');
 const Builder = require('../lib/builder');
 const util = require('../lib/util');
 
-const config = util.config('dev');
+const overrides = {
+  port: process.env.port
+};
+const config = util.config('dev', overrides);
+
 const builder = new Builder(config);
 
 if (require.main === module) {
