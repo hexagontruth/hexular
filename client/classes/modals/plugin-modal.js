@@ -21,7 +21,7 @@ class PluginModal extends Modal {
   }
 
   update() {
-    this.selectPlugin.replace(Object.keys(Board.plugins), this.selectPlugin.value, 1);
+    this.selectPlugin.replace(Object.keys(Board.availablePlugins), this.selectPlugin.value, 1);
   }
 
   _addPlugin(pluginName) {

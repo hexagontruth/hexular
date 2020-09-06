@@ -369,6 +369,7 @@ Custom code is evaluated with the global `Hexular` and `Board` made available. E
 - `Board.instance` - The board itself
 - `Board.config` - Alias for `Board.instance.config`
 - `Board.model` - Alias for `Board.instance.model`
+- `Board.plugins` Alias for `Board.config.plugins`
 - `Board.bgAdapter` - Alias for `Board.instance.bgAdapter`
 - `Board.adapter` - Alias for `Board.instance.adapter`
 - `Board.fgAdapter` - Alias for `Board.instance.fgAdapter`

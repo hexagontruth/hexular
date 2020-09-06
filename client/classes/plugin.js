@@ -1,6 +1,6 @@
  class Plugin {
   static restore(board, pluginName, settings, name) {
-    return new Board.plugins[pluginName](board, settings, name);
+    return new Board.availablePlugins[pluginName](board, settings, name);
   }
 
   static policy() {

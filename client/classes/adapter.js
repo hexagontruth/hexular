@@ -34,35 +34,42 @@ class CanvasAdapter {
 
   draw() {
     // Provisional hack for the illusion of grid wrapping
+    // This is by a wide margin now the worst function in this project
     // TODO: Rewrite
-    if (this.config.meta.repeat) {
-      let rings = +this.config.meta.repeat;
-      let f = this.config.meta.repeatRadius || this.config.order;
-      let a = this.config.cellRadius * 2;
-      let r = (f + 0.5) * 1.5 * a;
-      let bigT = Hexular.math.scalarOp(Hexular.math.pointyVertices, r);
-      let smolT = Hexular.math.scalarOp(Hexular.math.flatVertices, this.config.cellRadius * Hexular.math.apothem);
-      let translate = (dir) => {
-        this.context.translate(...bigT[dir]);
-        this.context.translate(...smolT[(dir + 1) % 6]);
-      };
-      for (let i = 0; i < rings; i++) {
-        this.context.save();
-        for (let k = 0; k <= i; k++)
-          translate(0);
-        for (let j = 0; j < 6; j++) {
-          for (let k = 0; k <= i; k++) {
-            translate((j + 2) % 6);
-            this.board.runHooks('draw', this);
-            this.board.runHooksParallel('drawCell', this.model.getCells(), this);
-          }
+    this.board.eachHook(['draw', 'drawCell'], (hook, hookName) => {
+      if (this.config.meta.repeat) {
+        let rings = +this.config.meta.repeat;
+        let f = this.config.meta.repeatRadius || this.config.order;
+        let a = this.config.cellRadius * 2;
+        let r = (f + 0.5) * 1.5 * a;
+        let bigT = Hexular.math.scalarOp(Hexular.math.pointyVertices, r);
+        let smolT = Hexular.math.scalarOp(Hexular.math.flatVertices, this.config.cellRadius * Hexular.math.apothem);
+        let translate = (dir) => {
+          this.context.translate(...bigT[dir]);
+          this.context.translate(...smolT[(dir + 1) % 6]);
+        };
+        for (let i = 0; i < rings; i++) {
+          this.context.save();
+          for (let k = 0; k <= i; k++)
+            translate(0);
+          for (let j = 0; j < 6; j++) {
+            for (let k = 0; k <= i; k++) {
+              translate((j + 2) % 6);
+              if (hookName == 'draw')
+                this.board.runHook(hook, this);
+              else
+                this.board.runHookParallel(hook, this.model.getCells(), this);
+            }
 
+          }
+          this.context.restore();
         }
-        this.context.restore();
       }
-    }
-    this.board.runHooks('draw', this);
-    this.board.runHooksParallel('drawCell', this.model.getCells(), this);
+      if (hookName == 'draw')
+        this.board.runHook(hook, this);
+      else
+        this.board.runHookParallel(hook, this.model.getCells(), this);
+    });
   }
 
   clear() {

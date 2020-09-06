@@ -1,6 +1,6 @@
 class Board {
   static registerPlugin(PluginClass) {
-    Board.plugins[PluginClass.name] = PluginClass;
+    Board.availablePlugins[PluginClass.name] = PluginClass;
     Board.instance && Board.instance.modals.draw.update();
   }
 
@@ -33,6 +33,7 @@ class Board {
         Board.fgAdapter = board.fgAdapter;
         Board.modals = board.modals;
         Board.meta = board.config.meta;
+        Board.plugins = board.config.plugins;
         Board.shared = board.shared;
         Board.db || Board.initDb();
         board.runHooks('resize');
@@ -84,6 +85,7 @@ class Board {
       hooks: {
         incrementStep: [],
         playStep: [],
+        beforeStep: [],
         autopauseStep: [],
         step: [],
         draw: [],
@@ -468,6 +470,7 @@ class Board {
         this.drawStepQ = this.drawStepQInc = 1;
       }
       if (!this.drawStep) {
+        this.runHooks('beforeStep');
         this.newHistoryState();
         this.model.step();
         this.storeModelState();
@@ -589,6 +592,27 @@ class Board {
     for (let i = 0; i < fns.length; i++) {
       for (let j = 0; j < argArray.length; j++) {
         fns[i].fn(argArray[j], ...args);
+      }
+    }
+  }
+
+  runHook(hookObj, ...args) {
+    hookObj.fn(...args);
+  }
+
+  runHookParallel(hookObj, argArray, ...args) {
+    for (let i = 0; i < argArray.length; i++) {
+      hookObj.fn(argArray[i], ...args);
+    }
+  }
+
+  eachHook(hooks, fn) {
+    hooks = hooks.length ? hooks : [hooks];
+    let fns = [];
+    for (let hook of hooks) {
+      let fns = this.hooks[hook] || [];
+      for (let i = 0; i < fns.length; i++) {
+        fn(fns[i], hook);
       }
     }
   }
@@ -1621,5 +1645,5 @@ class Board {
     clearTimeout(this.messageTimer);
   }
 }
-Board.plugins = {};
+Board.availablePlugins = {};
 Board.constants = {};

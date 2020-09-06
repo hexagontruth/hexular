@@ -21,7 +21,13 @@ class QuickPlugin extends Plugin {
             });
           },
           onDrawCell: (cell, adapter) => {},
+          onClear: () => {},
+          onBeforeStep: () => {},
+          onAutopauseStep: () => {},
           onStep: () => {},
+          onDrawStep: () => {},
+          onPlayStart: () => {},
+          onPlayStop: () => {},
           onSelect: (cell) => {},
           onDebugSelect: (cell) => {},
           onPaint: (cells) => {},
@@ -44,7 +50,11 @@ class QuickPlugin extends Plugin {
   _activate() {
     this.registerHook('draw', this.callFn('onDraw'));
     this.registerHook('drawCell', this.callFn('onDrawCell'));
+    this.registerHook('clear', this.callFn('onClear'));
+    this.registerHook('beforeStep', this.callFn('onBeforeStep'));
+    this.registerHook('autopauseStep', this.callFn('onAutopauseStep'));
     this.registerHook('step', this.callFn('onStep'));
+    this.registerHook('drawStep', this.callFn('onDrawStep'));
     this.registerHook('select', this.callFn('onSelect'));
     this.registerHook('debugSelect', this.callFn('onDebugSelect'));
     this.registerHook('paint', this.callFn('onPaint'));

@@ -1,7 +1,7 @@
 class PluginControl {
   static restoreFromPluginState(board, pluginState) {
     let [pluginName, settings, name, enabled] = JSON.parse(pluginState);
-    let plugin = new Board.plugins[pluginName](board, settings, name);
+    let plugin = new Board.availablePlugins[pluginName](board, settings, name);
     new PluginControl(board, plugin, enabled);
   }
   constructor(board, plugin, enable=null) {
@@ -9,7 +9,7 @@ class PluginControl {
     this.config = board.config;
     let modal = this.modal = board.modals.plugin;
     if (typeof plugin == 'string') {
-      let PluginClass = Board.plugins[plugin];
+      let PluginClass = Board.availablePlugins[plugin];
       if (!PluginClass)
         return;
         plugin = new PluginClass(modal.board);
