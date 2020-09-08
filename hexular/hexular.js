@@ -939,6 +939,20 @@ var Hexular = (function () {
     }
 
     /**
+     * Shortcut for {@link Neighborhood#nbrSlice|this.with[this.neighborhood].minIdx}.
+     *
+     * @readonly
+     */
+    get minIdx() { return this.with[this.neighborhood].minIdx; }
+
+    /**
+     * Shortcut for {@link Neighborhood#nbrSlice|this.with[this.neighborhood].maxIdx}.
+     *
+     * @readonly
+     */
+    get maxIdx() { return this.with[this.neighborhood].maxIdx; }
+
+    /**
      * Shortcut for {@link Neighborhood#nbrSlice|this.with[this.neighborhood].nbrSlice}.
      *
      * @readonly

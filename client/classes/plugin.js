@@ -24,6 +24,8 @@
     this.adapter = board.adapter;
     this.fgAdapter = board.fgAdapter;
     this.config = board.config;
+    this.shared = board.shared;
+    this.meta = this.config.meta;
     this.stateWhitelist = null;
     this.stateBlacklist = null;
     this.activated = false;

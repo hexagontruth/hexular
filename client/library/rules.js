@@ -33,6 +33,10 @@ const Rules = (() => {
 
     max: (cell) => cell.max,
 
+    minUp: (cell) => cell.min + 1,
+
+    maxDown: (cell) => cell.max - 1,
+
     rhombicLife: (cell) => {
       let t = cell.with[6].total + cell.nbrs[7].state + cell.nbrs[10].state;
       return cell.state && (t == 2 || t == 3) || t == 3 ? 1 : 0;
