@@ -21,6 +21,11 @@ class FrameClient extends Plugin {
 
   _enable() {
     this.settings.frameOnActivate && this.onDrawStep();
+    this.board.startRecordingMode('frameClient_' + this.id);
+  }
+
+  _disable() {
+    this.board.endRecordingMode('frameClient_' + this.id);
   }
 
   async onDrawStep() {

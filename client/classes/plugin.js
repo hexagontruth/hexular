@@ -16,7 +16,13 @@
     };
   }
 
+  static getNewId() {
+    Plugin._counter = (Plugin._counter || 0) + 1;
+    return Plugin._counter;
+  }
+
   constructor(board, settings, name) {
+    this.id = Plugin.getNewId();
     this.name = name || this.constructor.name;
     this.board = board;
     this.model = board.model;

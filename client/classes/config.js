@@ -68,7 +68,6 @@ class Config {
       defaultArchiveFilename: 'hexular.ar',
       defaultSettingsFilename: 'hexular.json',
       defaultVideoFilename: 'hexular.webm',
-      recordingMode: false,
       videoMimeType: 'video/webm',
       videoCodec: 'vp9',
       videoFrameRate: 60,
@@ -813,10 +812,6 @@ class Config {
   setTrb(trbState) {
     this.trb = Hexular.util.merge({}, trbState);
     this.storeSessionConfigAsync();
-  }
-
-  setRecordingMode(value) {
-    this.recordingMode = value != null ? value : !this.recordingMode;
   }
 
   setSteps(steps) {

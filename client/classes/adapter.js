@@ -254,11 +254,11 @@ class CanvasAdapter {
     if (this.config.order == null) return;
     this.context.save();
     this.context.setTransform(1, 0, 0, 1, 0, 0);
-    this.context.fillStyle = this.config.recordingMode ?
+    this.context.fillStyle = this.board.recordingMode ?
       this.config.modelBackgroundColor.toString() : this.config.backgroundColor.toString();
     this.context.fillRect(0, 0, this.context.canvas.width, this.context.canvas.height);
     this.context.restore();
-    if (this.config.drawModelBackground && !this.config.recordingMode) {
+    if (this.config.drawModelBackground && !this.board.recordingMode) {
       let radius = (this.config.order + 1) * this.config.cellRadius * Hexular.math.apothem * 2;
       this.context.beginPath();
       this.context.moveTo(radius, 0);

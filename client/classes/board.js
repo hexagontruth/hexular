@@ -82,6 +82,9 @@ class Board {
       configMenu: false,
       altView: false,
       imageCapture: null,
+      recorder: null,
+      recordingMode: false,
+      recordingModeUsers: new Set(),
       hooks: {
         incrementStep: [],
         playStep: [],
@@ -323,8 +326,8 @@ class Board {
   draw() {
     if (!this.drawPromise && this.adapter) {
       this.drawPromise = new Promise((resolve, reject) => {
-        if (!this.running) {
-          requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (!this.running) {
             try {
               this.drawPromise && this.drawSync();
               resolve();
@@ -332,11 +335,12 @@ class Board {
             catch (e) {
               reject(e);
             }
-          });
-        }
-        else {
-          resolve();
-        }
+          }
+          else {
+            resolve();
+          }
+          this.drawPromise = null;
+        });
       });
     }
     return this.drawPromise;
@@ -364,7 +368,7 @@ class Board {
       this.disableWhenRecording.forEach((e) => e.disabled = true);
       this.buttons.toggleRecord.className = 'icon-stop active';
       this.setButtonTitle(this.buttons.toggleRecord, 'Stop');
-      this.config.setRecordingMode(true);
+      this.startRecordingMode('record');
       this.drawSync();
       this.recorder = new Recorder(this);
       this.recorder.start();
@@ -376,8 +380,7 @@ class Board {
         this.stop();
         this.draw();
       });
-      if (!this.imageCapture)
-        this.config.setRecordingMode(false);
+      this.endRecordingMode('record');
       this.buttons.toggleRecord.className = 'icon-record';
       this.setButtonTitle(this.buttons.toggleRecord, 'Record');
       this.disableWhenRecording.forEach((e) => e.disabled = false);
@@ -727,10 +730,24 @@ class Board {
     }
   }
 
+  // Recording mode and capture
+
+  startRecordingMode(user) {
+    this.recordingModeUsers.add(user);
+    this.recordingMode = true;
+    this.draw();
+  }
+
+  endRecordingMode(user) {
+    this.recordingModeUsers.delete(user);
+    this.recordingMode = !!this.recordingModeUsers.size;
+    this.draw();
+  }
+
   toggleImageCapture() {
     if (!this.imageCapture) {
       this.imageCapture = [];
-      this.config.setRecordingMode(true);
+      this.startRecordingMode('imageCapture');
       this.draw();
       let fn = async (e) => {
         this.imageCapture.push([this.getImageFilename(), await this.getImage()]);
@@ -742,8 +759,7 @@ class Board {
       this.buttons.toggleImageCapture.classList.add('active');
     }
     else {
-      if (!this.recorder)
-        this.config.setRecordingMode(false);
+      this.endRecordingMode('imageCapture');
       this.draw();
       this.removeHook(this.imageCapture.handle);
       this.processImageCaptures(this.imageCapture);
@@ -783,11 +799,10 @@ class Board {
   }
 
   async getImage(type='url') {
-    let recordingMode = this.config.recordingMode;
-    this.config.setRecordingMode(true);
+    this.startRecordingMode('getImage');
     await this.draw();
     let transferCanvas = new TransferCanvas(this);
-    this.config.setRecordingMode(recordingMode);
+    this.endRecordingMode('getImage');
     await this.draw();
     let canvas = transferCanvas.canvas;
     let format = `image/${this.config.imageFormat}`;
