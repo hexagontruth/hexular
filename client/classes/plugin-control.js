@@ -1,8 +1,14 @@
 class PluginControl {
   static restoreFromPluginState(board, pluginState) {
-    let [pluginName, settings, name, enabled] = JSON.parse(pluginState);
-    let plugin = new Board.availablePlugins[pluginName](board, settings, name);
-    new PluginControl(board, plugin, enabled);
+    try {
+      let [pluginName, settings, name, enabled] = JSON.parse(pluginState);
+      let plugin = new Board.availablePlugins[pluginName](board, settings, name);
+      new PluginControl(board, plugin, enabled);
+    }
+    catch (err) {
+      this.board.setMessage('Error restoring plugin');
+      console.error(err);
+    }
   }
   constructor(board, plugin, enable=null) {
     this.board = board;

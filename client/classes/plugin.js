@@ -82,7 +82,17 @@
   }
 
   registerFunction(fn) {
-    let wrapper = (...args) => (this.enabled || undefined) && fn(...args);
+    let wrapper = (...args) => {
+      let result;
+      try {
+        result = (this.enabled || undefined) && fn(...args);
+      }
+      catch (err) {
+        this.board.setMessage(err);
+        console.error(err);
+      }
+      return result;
+    };
     wrapper.plugin = this;
     this.fns.push(wrapper);
     return wrapper;

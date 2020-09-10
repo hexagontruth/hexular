@@ -2,6 +2,7 @@ class WaveCore extends Plugin {
   defaultSettings() {
     return `
       {
+        // Requires custom drawing functionality provided by e.g. WaveDraw plugin
         c: (cell) => 0.5,
         decay: (cell) => 1,
         friction: (cell) => 1,
@@ -33,6 +34,12 @@ class WaveCore extends Plugin {
     this.registerHook('beforeStep', () => this.onBeforeStep());
     this.registerHook('autopauseStep', () => this.onAutopauseStep());
     this.registerHook('clear', () => this.onClear());
+    this.registerHook('debugSelect', (cell) => {
+      let s = this.sMap.get(cell);
+      let v = this.vMap.get(cell);
+      let a = this.aMap.get(cell);
+      console.log(cell.coord, s, v, a);
+    });
   }
 
   _enable() {
