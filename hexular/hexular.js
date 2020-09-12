@@ -158,6 +158,24 @@ var Hexular = (function () {
        * @see {@link Hexular.enums.TYPE_TRI_AUTO}
        */
       TYPE_TRI_ANTI_AUTO: 15,
+      /**
+       * Enumerator representing shape stroke.
+       *
+       * @name STROKE
+       * @default 32
+       * @constant
+       * @memberof Hexular.enums
+       */
+      STROKE: 32,
+      /**
+       * Enumerator representing shape fill.
+       *
+       * @name FILL
+       * @default 33
+       * @constant
+       * @memberof Hexular.enums
+       */
+      FILL: 33,
     },
   };
 

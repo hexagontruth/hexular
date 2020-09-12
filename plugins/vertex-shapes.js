@@ -3,7 +3,7 @@ class VertexShapes extends Plugin {
     return `
       {
         shapeType: Hexular.enums.TYPE_TRI_AUTO,
-        color: 'blend', // max|min|blend|[custom]
+        color: 'blend', // 'max'|'min'|'blend'|string|function
         fadeIndex: 0, // 0-1
         angleOffset: 0,
         angleDelta: 0,
@@ -103,6 +103,9 @@ class VertexShapes extends Plugin {
       }
     }
 
+    let colorSetting = this.settings.color;
+    let colorFn = (typeof colorSetting == 'function') ? colorSetting : null;
+
     // Draw
     this.drawEachCell((cell) => {
       let allowed = this.isAllowedState(cell.state);
@@ -140,15 +143,19 @@ class VertexShapes extends Plugin {
         }
         // Fill and stroke
         let colorFill, colorStroke;
-        if (this.settings.color == 'max') {
+        if (colorFn) {
+          colorFill = colorFn(cell, n0, n1, Hexular.enums.FILL);
+          colorStroke = colorFn(cell, n0, n1, Hexular.enums.STROKE);
+        }
+        else if (colorSetting == 'max') {
           colorFill = fillColors[Math.max(cell.state, n0.state, n1.state)];
           colorStroke = strokeColors[Math.max(cell.state, n0.state, n1.state)];
         }
-        else if (this.settings.color == 'min') {
+        else if (colorSetting == 'min') {
           colorFill = fillColors[Math.min(cell.state, n0.state, n1.state)];
           colorStroke = strokeColors[Math.max(cell.state, n0.state, n1.state)];
         }
-        else if (this.settings.color == 'blend') {
+        else if (colorSetting == 'blend') {
           let c, c0, c1;
           c = fillColors[cell.state];
           c0 = fillColors[n0.state];
@@ -160,8 +167,8 @@ class VertexShapes extends Plugin {
           colorStroke = Color.blend(c, c0, c1);
         }
         else {
-          ctx.fillStyle = this.settings.color;
-          ctx.strokeStyle = this.settings.color;
+          ctx.fillStyle = colorSetting;
+          ctx.strokeStyle = colorSetting;
         }
         if (colorFill) {
           if (fadeQ < 1) {

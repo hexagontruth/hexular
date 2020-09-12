@@ -6,7 +6,7 @@ class PluginControl {
       new PluginControl(board, plugin, enabled);
     }
     catch (err) {
-      this.board.setMessage('Error restoring plugin');
+      this.board.setMessage('Error restoring plugin', 'error');
       console.error(err);
     }
   }

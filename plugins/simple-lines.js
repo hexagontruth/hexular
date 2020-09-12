@@ -2,7 +2,7 @@ class SimpleLines extends Plugin {
   defaultSettings() {
     return `
       {
-        color: 'max', // max|min|blend|[custom]
+        color: 'max', // 'max'|'min'|'blend'|string|function
         fadeIndex: 0, // 0-1
         minAlpha: 1,
         maxAlpha: 1,
@@ -41,6 +41,8 @@ class SimpleLines extends Plugin {
     let lineCap = this.settings.lineCap || 'round';
     let verts = Hexular.math.scalarOp(Hexular.math.flatVertices, this.config.cellRadius * 2 * Hexular.math.apothem);
 
+    let colorSetting = this.settings.color;
+    let colorFn = (typeof colorSetting == 'function') ? colorSetting : null;
     // Draw
     if (width) {
       this.drawEachCell((cell) => {
@@ -54,21 +56,25 @@ class SimpleLines extends Plugin {
           let cond = this.settings.isolate ? nbr.state == cell.state : allowedInclusive || nbrAllowed;
           if (cond && (this.settings.edges || cell.edge + nbr.edge < 2)) {
             let color;
-            if (this.settings.color == 'max')
+            if (colorFn)
+              color = colorFn(cell, nbr);
+            else if (colorSetting == 'max')
               color = colors[Math.max(cell.state, nbr.state)] || Color.t;
-            else if (this.settings.color == 'min')
+            else if (colorSetting == 'min')
               color = colors[Math.min(cell.state, nbr.state)] || Color.t;
-            else if (this.settings.color == 'blend')
+            else if (colorSetting == 'blend')
               color = Color.blend(colors[cell.state], colors[nbr.state]);
             if (!color)
-              ctx.strokeStyle = this.settings.color;
+              ctx.strokeStyle = colorSetting;
             else if (fadeQ < 1) {
               let lastColor;
-              if (this.settings.color == 'max')
+              if (colorFn)
+                color = colorFn(cell, nbr);
+              else if (colorSetting == 'max')
                 lastColor = colors[Math.max(cell.lastState, nbr.lastState)] || Color.t;
-              else if (this.settings.color == 'min')
+              else if (colorSetting == 'min')
                 lastColor = colors[Math.min(cell.lastState, nbr.lastState)] || Color.t;
-              else if (this.settings.color == 'blend')
+              else if (colorSetting == 'blend')
                 lastColor = Color.blend(colors[cell.lastState], colors[nbr.lastState]);
               adapter.strokeColor = color.blend(lastColor, fadeQ);
             }

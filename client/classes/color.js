@@ -41,8 +41,8 @@ const Color = (() => {
         return _Color.black;
       }
       else if (match = arg.match(/hsl\((.+?)\)/)) {
-        let [h, s, l] = match[1].split(',').map((e) => parseFloat(e.trim()));
-        return _Color(hslaToRgba(h, s, l));
+        let [h, s, l] = match[1].split(',').map((e) => parseFloat(e.trim().replace('%', '')));
+        return _Color(hslaToRgba(h, s / 100, l / 100));
       }
     }
     else if (arg instanceof Color) {

@@ -88,7 +88,7 @@
         result = (this.enabled || undefined) && fn(...args);
       }
       catch (err) {
-        this.board.setMessage(err);
+        this.board.setMessage(err, 'error');
         console.error(err);
       }
       return result;

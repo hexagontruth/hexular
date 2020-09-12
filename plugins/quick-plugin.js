@@ -9,6 +9,7 @@ class QuickPlugin extends Plugin {
               fill: true,
               stroke: false,
               fillStyle: null,
+              alpha: 1,
               strokeStyle: null,
               lineWidth: plugin.config.cellBorderWidth,
               lineJoin: 'miter',
