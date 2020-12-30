@@ -1791,7 +1791,7 @@ var Hexular = (function () {
 
     if (du > dv && du > dw)
       ru = -rv - rw;
-    else if (du > dw)
+    else if (dv > dw)
       rv = -ru - rw;
     else
       rw = -ru - rv;
